@@ -4,6 +4,39 @@ import numpy as np
 import pandas as pd
 
 
+def industry_pit_exposure(observations: pd.DataFrame, membership: pd.DataFrame) -> pd.DataFrame:
+    """Resolve SW level-1 industry from in/out intervals without future membership."""
+    if missing := {"ts_code", "trade_date"} - set(observations.columns):
+        raise ValueError(f"observations missing fields: {sorted(missing)}")
+    required = {"ts_code", "l1_code", "in_date", "out_date"}
+    if missing := required - set(membership.columns):
+        raise ValueError(f"industry membership missing fields: {sorted(missing)}")
+    points = observations.loc[:, ["ts_code", "trade_date"]].reset_index(drop=True)
+    points["_row"] = points.index
+    points["_point"] = pd.to_datetime(points["trade_date"], format="%Y%m%d", errors="coerce")
+    intervals = membership.loc[:, ["ts_code", "l1_code", "in_date", "out_date"]].copy()
+    intervals["_in"] = pd.to_datetime(intervals["in_date"], format="%Y%m%d", errors="coerce")
+    intervals["_out"] = pd.to_datetime(intervals["out_date"], format="%Y%m%d", errors="coerce")
+    joined = points.merge(intervals, on="ts_code", how="left")
+    effective = joined.loc[
+        joined["_in"].le(joined["_point"])
+        & (joined["_out"].isna() | joined["_out"].ge(joined["_point"]))
+    ].copy()
+    if effective.empty:
+        result = points.loc[:, ["ts_code", "trade_date"]].copy()
+        result["industry"] = pd.NA
+        return result
+    effective["_latest"] = effective.groupby("_row")["_in"].transform("max")
+    latest = effective.loc[effective["_in"].eq(effective["_latest"])]
+    resolved = latest.groupby("_row")["l1_code"].agg(
+        lambda values: "|".join(sorted({str(value) for value in values if pd.notna(value)}))
+    )
+    result = points.loc[:, ["_row", "ts_code", "trade_date"]].merge(
+        resolved.rename("industry"), left_on="_row", right_index=True, how="left"
+    )
+    return result.loc[:, ["ts_code", "trade_date", "industry"]]
+
+
 def forward_open_return(open_prices: pd.DataFrame, holding_days: int = 10) -> pd.DataFrame:
     """Signal at t executes at t+1 open and exits after ``holding_days`` trading days."""
     if holding_days < 1:

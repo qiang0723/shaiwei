@@ -1,7 +1,31 @@
 import numpy as np
 import pandas as pd
 
-from shaiwei.benchmark.fitness import benchmark_decision, forward_open_return, neutralized_rank_ic
+from shaiwei.benchmark.fitness import (
+    benchmark_decision,
+    forward_open_return,
+    industry_pit_exposure,
+    neutralized_rank_ic,
+)
+
+
+def test_industry_pit_exposure_observes_membership_transition():
+    observations = pd.DataFrame(
+        {
+            "ts_code": ["000001.SZ", "000001.SZ"],
+            "trade_date": ["20200102", "20210104"],
+        }
+    )
+    membership = pd.DataFrame(
+        {
+            "ts_code": ["000001.SZ", "000001.SZ"],
+            "l1_code": ["OLD", "NEW"],
+            "in_date": ["20100101", "20210101"],
+            "out_date": ["20201231", None],
+        }
+    )
+    result = industry_pit_exposure(observations, membership)
+    assert result["industry"].tolist() == ["OLD", "NEW"]
 
 
 def test_forward_open_return_uses_next_open_and_ten_day_holding():

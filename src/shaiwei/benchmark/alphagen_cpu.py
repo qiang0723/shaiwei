@@ -6,7 +6,7 @@ import subprocess
 import sys
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import numpy as np
 import pandas as pd
@@ -14,7 +14,8 @@ import psutil
 import torch
 import yaml
 
-from shaiwei.benchmark.fitness import benchmark_decision, neutralized_rank_ic
+from shaiwei.benchmark.fitness import benchmark_decision, industry_pit_exposure, neutralized_rank_ic
+from shaiwei.backtest.qlib_runtime import initialize_qlib
 from shaiwei.config import PROJECT_ROOT, load
 from shaiwei.ingest.catalog import load_latest_api
 from shaiwei.ledger import append_experiment, ingest_snapshot_sha256
@@ -48,16 +49,23 @@ class PeakMemorySampler:
         self._thread.join()
 
 
-def _load_exposures() -> pd.DataFrame:
+def _load_exposures(instruments: set[str], start: date, end: date) -> pd.DataFrame:
     daily_basic = load_latest_api("tushare.daily_basic")
-    stock_basic = load_latest_api("tushare.stock_basic")
-    industry = stock_basic.sort_values("list_status").drop_duplicates("ts_code", keep="last")
-    industry = industry.set_index("ts_code")["industry"]
     exposures = daily_basic.loc[:, ["ts_code", "trade_date", "total_mv"]].copy()
     exposures["instrument"] = exposures["ts_code"].map(qlib_code)
-    exposures["trade_date"] = pd.to_datetime(exposures["trade_date"], format="%Y%m%d")
-    exposures["industry"] = exposures["ts_code"].map(industry)
+    start_text = pd.Timestamp(start).strftime("%Y%m%d")
+    end_text = pd.Timestamp(end).strftime("%Y%m%d")
+    exposures = exposures.loc[
+        exposures["instrument"].isin(instruments)
+        & exposures["trade_date"].astype(str).between(start_text, end_text)
+    ].copy()
+    industry = industry_pit_exposure(
+        exposures.loc[:, ["ts_code", "trade_date"]],
+        load_latest_api("tushare.index_member_all"),
+    )
+    exposures["industry"] = industry["industry"].to_numpy()
     exposures["market_cap"] = pd.to_numeric(exposures["total_mv"], errors="coerce")
+    exposures["trade_date"] = pd.to_datetime(exposures["trade_date"], format="%Y%m%d")
     return exposures.loc[:, ["trade_date", "instrument", "industry", "market_cap"]]
 
 
@@ -91,14 +99,18 @@ def main() -> int:
     from alphagen.utils.random import reseed_everything
     from alphagen_generic.features import close, high, low, open_, volume, vwap
     from alphagen_generic.operators import funcs as generic_funcs
-    from alphagen_qlib.stock_data import StockData, initialize_qlib
+    from alphagen_qlib import stock_data as alphagen_stock_data
+    from alphagen_qlib.stock_data import StockData
     from gplearn.fitness import make_fitness
     from gplearn.functions import make_function
     from gplearn.genetic import SymbolicRegressor
 
     reseed_everything(config.seed)
     device = torch.device("cpu")
-    initialize_qlib(str(settings.runtime.data_root / "qlib_bin"))
+    initialize_qlib(settings)
+    # The locked upstream module otherwise calls qlib.init again with its
+    # default ./mlruns recorder and overwrites the project-owned configuration.
+    alphagen_stock_data._QLIB_INITIALIZED = True
     data = StockData(
         config.instrument,
         config.train_start.isoformat(),
@@ -109,7 +121,11 @@ def main() -> int:
     target = Ref(open_, -(settings.backtest.rebalance_days + 1)) / Ref(open_, -1) - 1
     label = data.make_dataframe(target.evaluate(data), columns=["label"]).reset_index()
     label.columns = ["trade_date", "instrument", "label"]
-    exposures = _load_exposures()
+    exposures = _load_exposures(
+        set(label["instrument"].dropna().astype(str)),
+        config.train_start,
+        config.train_end,
+    )
     cache: dict[str, dict[str, object]] = {}
     namespace = {
         **vars(sys.modules["alphagen.data.expression"]),
@@ -187,6 +203,7 @@ def main() -> int:
             scale_hours=config.scale_time_hours,
             abort_hours=config.abort_time_hours,
         ),
+        "industry_exposure": "SW L1 PIT (index_member_all in_date/out_date)",
         "device": str(device),
     }
     common = {
