@@ -32,6 +32,7 @@ def main() -> int:
     trade_cal = load_latest_api("tushare.trade_cal")
     stock_basic = load_latest_api("tushare.stock_basic")
     suspend_d = load_latest_api("tushare.suspend_d")
+    trade_status = load_latest_api("baostock.history_k_data_plus")
     daily = load_latest_api("tushare.daily")
     adj_factor = load_latest_api("tushare.adj_factor")
     namechange = load_latest_api("tushare.namechange")
@@ -43,6 +44,7 @@ def main() -> int:
         stock_basic,
         daily,
         suspend_d,
+        trade_status,
         start=settings.backtest.start.strftime("%Y%m%d"),
         end=max(daily["trade_date"].astype(str)),
         include_bse=settings.universe.include_bse,
@@ -63,11 +65,7 @@ def main() -> int:
         transformed, stock_basic, namechange, settings.limit_rules.model_dump(), copy=False
     )
 
-    suspended_keys = suspend_d.loc[
-        suspend_d["suspend_type"].eq("S"), ["ts_code", "trade_date"]
-    ].drop_duplicates()
-    aligned_suspended = suspended_keys.merge(transformed, on=["ts_code", "trade_date"], how="left")
-    results["S6"] = s6_suspensions(aligned_suspended, suspend_d)
+    results["S6"] = s6_suspensions(transformed, suspend_d, trade_status)
     results["S7"] = s7_price_volume_logic(transformed, dividend)
     akshare = load_latest_api("akshare.stock_zh_a_hist")
     results["S8"] = s8_cross_source(daily, akshare)
@@ -84,7 +82,7 @@ def main() -> int:
         }
     )
     results["S9"] = s9_st_status(namechange, st_observations)
-    del adj_factor, akshare, aligned_suspended, daily, dividend, transformed
+    del adj_factor, akshare, daily, dividend, trade_status, transformed
     gc.collect()
 
     income = pd.concat(

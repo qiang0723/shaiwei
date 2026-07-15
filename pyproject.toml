@@ -8,7 +8,7 @@ version = "0.1.0"
 requires-python = ">=3.10,<3.13"
 dependencies = [
   "pandas>=2.2", "numpy>=1.26,<2.0", "duckdb>=1.0", "pyarrow>=16",
-  "pandera>=0.20", "tushare>=1.4", "akshare",
+  "pandera>=0.20", "tushare>=1.4", "akshare", "baostock==0.9.1",
   "lightgbm>=4.3", "pyqlib>=0.9.5",
   "torch==2.13.0",
   "joblib", "psutil>=5", "pyyaml", "pydantic>=2", "python-dateutil", "python-dotenv",

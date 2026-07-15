@@ -97,3 +97,37 @@ def test_catalog_does_not_hide_duplicate_source_rows(tmp_path: Path):
         writer.writerow(entry)
 
     assert load_latest_api("tushare.stock_basic", ledger_path=ledger)["x"].tolist() == [1, 1]
+
+
+def test_catalog_uses_payload_schema_instead_of_hive_partition_inference(tmp_path: Path):
+    ledger = tmp_path / "ledger.csv"
+    path = (
+        tmp_path / "raw/source=tushare/api=suspend_d/trade_date=20160104"
+        / "ingest_date=2026-07-15/batch.parquet"
+    )
+    path.parent.mkdir(parents=True)
+    pd.DataFrame(
+        {
+            "ts_code": ["000002.SZ"],
+            "trade_date": ["20160104"],
+            "suspend_type": ["S"],
+        }
+    ).to_parquet(path)
+    entry = {
+        "batch_id": "partition-collision",
+        "ingest_time": "2026-07-15T00:00:00Z",
+        "source_api": "tushare.suspend_d",
+        "params_json": '{"trade_date":"20160104"}',
+        "row_count": 1,
+        "parquet_path": str(path),
+        "content_sha256": sha256_file(path),
+        "operator": "test",
+    }
+    with ledger.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=HEADER)
+        writer.writeheader()
+        writer.writerow(entry)
+
+    loaded = load_latest_api("tushare.suspend_d", ledger_path=ledger)
+    assert loaded.columns.tolist() == ["ts_code", "trade_date", "suspend_type"]
+    assert loaded["trade_date"].tolist() == ["20160104"]

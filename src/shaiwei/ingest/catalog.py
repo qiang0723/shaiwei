@@ -74,8 +74,13 @@ def load_latest_api(source_api: str, *, ledger_path: Path = INGEST, verify: bool
     # reject duplicate source rows rather than having the catalog hide them.
     connection = duckdb.connect(":memory:")
     try:
+        # Ledger paths identify exact immutable payloads.  Never let DuckDB
+        # infer Hive columns from directory names: a partition such as
+        # trade_date=20160104 is inferred as INTEGER and can override the
+        # payload's canonical string column, silently breaking PIT joins.
         return connection.execute(
-            "SELECT * FROM read_parquet(?, union_by_name = true)", [paths]
+            "SELECT * FROM read_parquet(?, union_by_name = true, hive_partitioning = false)",
+            [paths],
         ).df()
     finally:
         connection.close()

@@ -62,6 +62,55 @@ def test_s1_respects_the_pipeline_bse_scope_switch():
     assert result.metrics["excluded_bse_count"] == 1
 
 
+def test_s1_uses_independent_status_without_treating_intraday_event_as_full_day():
+    cal = pd.DataFrame({"cal_date": ["20200102", "20200103"], "is_open": [1, 1]})
+    stocks = pd.DataFrame([{"ts_code": "A", "list_date": "20200101", "delist_date": None}])
+    daily, _ = _market_inputs()
+    intraday = pd.DataFrame([
+        {
+            "ts_code": "A", "trade_date": "20200102", "suspend_type": "S",
+            "suspend_timing": "09:30-10:00",
+        }
+    ])
+    assert s1_completeness(
+        cal, stocks, daily, intraday, start="20200101", end="20200103"
+    ).status == "PASS"
+
+    missing = daily.iloc[1:].copy()
+    status0 = pd.DataFrame([
+        {"ts_code": "A", "trade_date": "20200102", "trade_status": "0"}
+    ])
+    assert s1_completeness(
+        cal, stocks, missing, intraday, status0, start="20200101", end="20200103"
+    ).status == "PASS"
+    status0.loc[0, "trade_status"] = "1"
+    assert s1_completeness(
+        cal, stocks, missing, intraday, status0, start="20200101", end="20200103"
+    ).status == "FAIL"
+
+
+def test_s1_requires_independent_resolution_when_full_day_source_conflicts_with_bar():
+    cal = pd.DataFrame({"cal_date": ["20200102", "20200103"], "is_open": [1, 1]})
+    stocks = pd.DataFrame([{"ts_code": "A", "list_date": "20200101", "delist_date": None}])
+    daily, _ = _market_inputs()
+    suspended = pd.DataFrame([
+        {
+            "ts_code": "A", "trade_date": "20200102", "suspend_type": "S",
+            "suspend_timing": None,
+        }
+    ])
+    unresolved = s1_completeness(
+        cal, stocks, daily, suspended, start="20200101", end="20200103"
+    )
+    assert unresolved.status == "FAIL"
+    status1 = pd.DataFrame([
+        {"ts_code": "A", "trade_date": "20200102", "trade_status": "1"}
+    ])
+    assert s1_completeness(
+        cal, stocks, daily, suspended, status1, start="20200101", end="20200103"
+    ).status == "PASS"
+
+
 def test_s2_s3_s4_and_s7_pass_consistent_market_data():
     daily, factors = _market_inputs()
     transformed = transform_market_data(daily, factors)
@@ -102,6 +151,20 @@ def test_s6_detects_non_nan_suspended_bar():
     assert s6_suspensions(aligned, suspended).status == "FAIL"
     aligned["open"] = float("nan")
     assert s6_suspensions(aligned, suspended).status == "PASS"
+
+
+def test_s6_independent_trading_status_resolves_false_full_day_source_event():
+    suspended = pd.DataFrame([
+        {
+            "ts_code": "A", "trade_date": "20200102", "suspend_type": "S",
+            "suspend_timing": None,
+        }
+    ])
+    market = pd.DataFrame([{"ts_code": "A", "trade_date": "20200102", "open": 1.0}])
+    status1 = pd.DataFrame([
+        {"ts_code": "A", "trade_date": "20200102", "trade_status": "1"}
+    ])
+    assert s6_suspensions(market, suspended, status1).status == "PASS"
 
 
 def test_s5_requires_three_structural_tables_and_preserves_restated_pit():

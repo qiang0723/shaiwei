@@ -28,7 +28,7 @@ def steps(as_of: date) -> list[Step]:
         Step(
             "runtime",
             "关键运行时导入",
-            (python, "-c", "import qlib,lightgbm,tushare,akshare,torch; print('runtime OK')"),
+            (python, "-c", "import qlib,lightgbm,tushare,akshare,baostock,torch; print('runtime OK')"),
         ),
         Step("bootstrap", "基础表采集", (python, "-m", "shaiwei.ingest", "--stage", "bootstrap", "--as-of", day, "--resume")),
         Step(
@@ -52,6 +52,11 @@ def steps(as_of: date) -> list[Step]:
             (python, "-m", "shaiwei.ingest", "--stage", "industry-membership", "--as-of", day, "--resume"),
         ),
         Step("market", "全市场行情/复权/市值采集", (python, "-m", "shaiwei.ingest", "--stage", "market", "--as-of", day, "--resume")),
+        Step(
+            "status_crosscheck",
+            "独立交易状态归因歧义缺口",
+            (python, "-m", "shaiwei.ingest.baostock", "--as-of", day, "--resume"),
+        ),
         Step(
             "financial",
             "三大财务报表采集",

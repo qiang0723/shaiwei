@@ -39,8 +39,9 @@ make stage0-plan STAGE0_ARGS="--as-of 2026-07-15"
 make stage0-run STAGE0_ARGS="--as-of 2026-07-15"
 ```
 
-流程按「测试/运行时 → 基础表 → 停复牌/历史名称/公司行为/申万历史行业 → 行情/财务 →
-AKShare 交叉源 → S1-S10 → qlib → 六窗口基线 → 影子信号 → AlphaGen CPU → G0 审计」运行，
+流程按「测试/运行时 → 基础表 → 停复牌/历史名称/公司行为/申万历史行业 → 行情 →
+Baostock 歧义交易状态 → 财务 → AKShare 交叉源 → S1-S10 → qlib → 六窗口基线 →
+影子信号 → AlphaGen CPU → G0 审计」运行，
 首个非零退出码即停止。采集按请求参数和已提交 Parquet 哈希续跑；流水线成功事件同时绑定
 `as-of + 代码快照 + 数据快照`，写入 `logs/pipeline/`。修复后重跑同一命令即可；需强制重验成功步骤时
 加 `--no-resume`。最终审计会重新核验每个原始 Parquet 与 qlib 派生树的行数/内容哈希，从六窗口明细

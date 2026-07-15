@@ -14,6 +14,11 @@ from shaiwei.transform.market import (
     ADJ_FACTOR_RELATIVE_PRICE_TOLERANCE,
     transform_market_data,
 )
+from shaiwei.transform.availability import (
+    authoritative_suspension_keys,
+    full_day_suspension_keys,
+    trade_status_sets,
+)
 from shaiwei.transform.pit import financial_pit_snapshot
 from shaiwei.transform.universe import st_status_on
 
@@ -36,6 +41,7 @@ def s1_completeness(
     stock_basic: pd.DataFrame,
     daily: pd.DataFrame,
     suspend_d: pd.DataFrame,
+    trade_status: pd.DataFrame | None = None,
     *,
     start: str,
     end: str,
@@ -43,7 +49,16 @@ def s1_completeness(
 ) -> SentinelResult:
     open_days = set(trade_cal.loc[trade_cal["is_open"].astype(str).eq("1"), "cal_date"].astype(str))
     open_days = {day for day in open_days if start <= day <= end}
-    suspended = suspend_d.loc[suspend_d["suspend_type"].eq("S")].groupby("ts_code")["trade_date"].agg(set)
+    suspended_by_code: dict[str, set[str]] = {}
+    for code, day in full_day_suspension_keys(suspend_d):
+        suspended_by_code.setdefault(code, set()).add(day)
+    status0, status1 = trade_status_sets(trade_status)
+    status0_by_code: dict[str, set[str]] = {}
+    status1_by_code: dict[str, set[str]] = {}
+    for code, day in status0:
+        status0_by_code.setdefault(code, set()).add(day)
+    for code, day in status1:
+        status1_by_code.setdefault(code, set()).add(day)
     bars = daily.groupby("ts_code")["trade_date"].agg(set)
     anomalies = []
     securities = stock_basic.drop_duplicates("ts_code")
@@ -54,17 +69,28 @@ def s1_completeness(
         securities = securities.loc[~bse]
     for security in securities.itertuples(index=False):
         life_start = max(start, str(security.list_date))
-        delist = str(security.delist_date) if pd.notna(security.delist_date) and str(security.delist_date) else end
-        life_end = min(end, delist)
-        if life_start > life_end:
+        delist = (
+            str(security.delist_date)
+            if pd.notna(security.delist_date) and str(security.delist_date)
+            else None
+        )
+        if life_start > end:
             continue
-        expected_days = {day for day in open_days if life_start <= day <= life_end}
+        expected_days = {
+            day for day in open_days
+            if life_start <= day <= end and (delist is None or day < delist)
+        }
         security_bars = bars.get(security.ts_code, set())
-        security_suspensions = suspended.get(security.ts_code, set()) & expected_days
+        security_suspensions = suspended_by_code.get(security.ts_code, set()) & expected_days
+        security_status0 = status0_by_code.get(security.ts_code, set()) & expected_days
+        security_status1 = status1_by_code.get(security.ts_code, set()) & expected_days
         missing = expected_days - security_bars
-        unresolved = missing - security_suspensions
+        unresolved = missing - security_suspensions - security_status0
         unexpected = security_bars - expected_days
-        if unresolved or unexpected or missing != security_suspensions:
+        status0_with_bar = security_bars & security_status0
+        source_with_bar = security_bars & security_suspensions
+        unresolved_source_conflicts = source_with_bar - security_status1
+        if unresolved or unexpected or status0_with_bar or unresolved_source_conflicts:
             anomalies.append(
                 {
                     "ts_code": security.ts_code,
@@ -73,6 +99,8 @@ def s1_completeness(
                     "suspend_days": len(security_suspensions),
                     "unresolved_missing_days": len(unresolved),
                     "unexpected_bar_days": len(unexpected),
+                    "status0_with_bar_days": len(status0_with_bar),
+                    "unresolved_source_conflict_days": len(unresolved_source_conflicts),
                 }
             )
     return SentinelResult(
@@ -82,6 +110,8 @@ def s1_completeness(
             "security_count": int(securities["ts_code"].nunique()),
             "excluded_bse_count": excluded_bse_count,
             "anomaly_count": len(anomalies),
+            "independent_nontrading_days": len(status0),
+            "independent_trading_days": len(status1),
         },
         anomalies[:1000],
     )
@@ -301,8 +331,15 @@ def s5_financial_pit(
     )
 
 
-def s6_suspensions(aligned_market: pd.DataFrame, suspend_d: pd.DataFrame) -> SentinelResult:
-    suspended = suspend_d.loc[suspend_d["suspend_type"].eq("S"), ["ts_code", "trade_date"]].drop_duplicates()
+def s6_suspensions(
+    aligned_market: pd.DataFrame,
+    suspend_d: pd.DataFrame,
+    trade_status: pd.DataFrame | None = None,
+) -> SentinelResult:
+    suspended = pd.DataFrame(
+        sorted(authoritative_suspension_keys(suspend_d, trade_status)),
+        columns=["ts_code", "trade_date"],
+    )
     checked = suspended.merge(aligned_market, on=["ts_code", "trade_date"], how="left")
     fields = [field for field in ("open", "high", "low", "close", "volume") if field in checked]
     bad = checked.loc[checked[fields].notna().any(axis=1)] if fields else checked

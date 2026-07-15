@@ -11,7 +11,7 @@ def test_stage0_pipeline_has_fail_closed_order_and_no_stage1():
     names = [step.name for step in steps(date(2026, 7, 15))]
     assert names == [
         "quality", "runtime", "bootstrap", "suspensions", "namechange", "corporate_actions",
-        "industry_membership", "market", "financial", "financial_corrections", "crosscheck",
+        "industry_membership", "market", "status_crosscheck", "financial", "financial_corrections", "crosscheck",
         "sentinel", "qlib", "baseline", "shadow", "alphagen", "audit",
     ]
     assert not any("stage1" in " ".join(step.argv).lower() for step in steps(date(2026, 7, 15)))
