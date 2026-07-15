@@ -1,5 +1,1 @@
-"""阶段 0 预注册基线回测。"""
-
-from shaiwei.backtest.strategy import BiweeklyTopkDropoutStrategy
-
-__all__ = ["BiweeklyTopkDropoutStrategy"]
+"""阶段 0 预注册基线回测。子模块按需加载，审计不隐式启动 qlib。"""

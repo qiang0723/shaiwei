@@ -29,7 +29,7 @@
 ## Day 7 · AlphaGen CPU benchmark（选型定案实验）
 - clone alphagen（+ AlphaEval 作对照参考）；gp.py device 改 "cpu"
 - fitness 改为：行业+对数市值中性化残差 RankIC，标签 = 双周 forward return（注意拆 MseAlphaPool 耦合层——它优化的是池组合 IC 非单因子 IC）
-- CSI300 小样本先通量纲断言（S4），再跑单轮：记录 耗时 / 峰值内存 / 产出因子 RankIC 分布 → 写入 STATE.md 待答区
+- CSI300 小样本先通量纲断言（S4），再跑单轮：记录完整 setup+evolution 总耗时、分项耗时、进程树峰值 RSS、输入行数与产出因子 RankIC 分布 → 写入 STATE.md 待答区
 - 判读：单轮 <4h 且 RankIC>0.03 → 阶段 1 放大；>12h 或内存爆 → 降参/纯 numpy 向量化/评估短租 GPU；AlphaGen 改造 2-3 天不通 → fallback 自建轻量 GP
 
 ## 阶段 0 退出（对 G0）

@@ -41,12 +41,18 @@ class PeakMemorySampler:
             self.peak_bytes = max(self.peak_bytes, rss)
 
     def __enter__(self) -> "PeakMemorySampler":
-        self._thread.start()
+        self.start()
         return self
 
-    def __exit__(self, *_: object) -> None:
+    def start(self) -> None:
+        self._thread.start()
+
+    def stop(self) -> None:
         self._stop.set()
         self._thread.join()
+
+    def __exit__(self, *_: object) -> None:
+        self.stop()
 
 
 def _load_exposures(instruments: set[str], start: date, end: date) -> pd.DataFrame:
@@ -107,6 +113,9 @@ def main() -> int:
 
     reseed_everything(config.seed)
     device = torch.device("cpu")
+    memory = PeakMemorySampler()
+    memory.start()
+    benchmark_started = time.perf_counter()
     initialize_qlib(settings)
     # The locked upstream module otherwise calls qlib.init again with its
     # default ./mlruns recorder and overwrites the project-owned configuration.
@@ -126,6 +135,7 @@ def main() -> int:
         config.train_start,
         config.train_end,
     )
+    setup_elapsed = time.perf_counter() - benchmark_started
     cache: dict[str, dict[str, object]] = {}
     namespace = {
         **vars(sys.modules["alphagen.data.expression"]),
@@ -182,15 +192,20 @@ def main() -> int:
         const_range=None,
         n_jobs=1,
     )
-    started = time.perf_counter()
-    with PeakMemorySampler() as memory:
-        estimator.fit(np.array([terminals]), np.array([[1]]))
-    elapsed = time.perf_counter() - started
+    evolution_started = time.perf_counter()
+    estimator.fit(np.array([terminals]), np.array([[1]]))
+    evolution_elapsed = time.perf_counter() - evolution_started
+    elapsed = time.perf_counter() - benchmark_started
+    memory.stop()
     values = np.array([float(result["rank_ic"]) for result in cache.values()], dtype=float)
     best_rank_ic = float(values.max()) if len(values) else -1.0
     summary = {
         "elapsed_seconds": elapsed,
+        "setup_elapsed_seconds": setup_elapsed,
+        "evolution_elapsed_seconds": evolution_elapsed,
         "peak_memory_bytes": memory.peak_bytes,
+        "input_label_rows": len(label),
+        "input_exposure_rows": len(exposures),
         "candidate_count": len(cache),
         "failed_candidate_count": sum(bool(result["error"]) for result in cache.values()),
         "rank_ic": {

@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -23,6 +24,54 @@ QLIB_FIELDS = (
     "limit_buy",
     "limit_sell",
 )
+
+QLIB_MANIFEST = "_shaiwei_manifest.json"
+
+
+def qlib_tree_integrity(output_root: Path) -> dict[str, int | str]:
+    """Hash every derived qlib file except the manifest that carries the hash."""
+    output_root = Path(output_root)
+    if not output_root.is_dir():
+        raise FileNotFoundError(output_root)
+    digest = hashlib.sha256()
+    file_count = 0
+    byte_count = 0
+    for path in sorted(output_root.rglob("*")):
+        if path.is_symlink():
+            raise ValueError(f"qlib cache must not contain symlinks: {path}")
+        if not path.is_file() or path.name == QLIB_MANIFEST:
+            continue
+        relative = path.relative_to(output_root).as_posix().encode("utf-8")
+        digest.update(len(relative).to_bytes(8, "big"))
+        digest.update(relative)
+        size = path.stat().st_size
+        digest.update(size.to_bytes(8, "big"))
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1 << 20), b""):
+                digest.update(chunk)
+        file_count += 1
+        byte_count += size
+    if file_count == 0:
+        raise ValueError(f"qlib cache contains no derived files: {output_root}")
+    return {
+        "artifact_file_count": file_count,
+        "artifact_byte_count": byte_count,
+        "artifact_sha256": digest.hexdigest(),
+    }
+
+
+def verify_qlib_tree_manifest(output_root: Path, *, data_hash: str, code_hash: str) -> dict[str, int | str]:
+    """Re-hash a reusable cache and bind it to the exact data/code snapshots."""
+    output_root = Path(output_root)
+    manifest_path = output_root / QLIB_MANIFEST
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest.get("data_snapshot_sha256") != data_hash or manifest.get("code_snapshot_sha256") != code_hash:
+        raise ValueError("qlib manifest does not match the requested data/code snapshots")
+    integrity = qlib_tree_integrity(output_root)
+    for field, value in integrity.items():
+        if manifest.get(field) != value:
+            raise ValueError(f"qlib cache {field} differs from its build manifest")
+    return integrity
 
 
 def qlib_code(ts_code: str) -> str:
@@ -183,13 +232,17 @@ def main() -> int:
             raise SystemExit("sentinels failed; qlib bin build is blocked")
     elif matching_sentinel.get("required_failures"):
         raise SystemExit("matching sentinel report failed; qlib bin build is blocked")
-    manifest_path = output_root / "_shaiwei_manifest.json"
+    manifest_path = output_root / QLIB_MANIFEST
     if manifest_path.is_file():
         existing = json.loads(manifest_path.read_text(encoding="utf-8"))
         if (
             existing.get("code_snapshot_sha256") == code_hash
             and existing.get("data_snapshot_sha256") == data_hash
         ):
+            try:
+                verify_qlib_tree_manifest(output_root, data_hash=data_hash, code_hash=code_hash)
+            except (OSError, TypeError, ValueError) as error:
+                raise SystemExit(f"matching qlib cache failed integrity verification: {error}") from error
             print(output_root)
             return 0
     if output_root.exists():
@@ -221,12 +274,14 @@ def main() -> int:
                 settings.alphagen_benchmark.instrument: settings.alphagen_benchmark.index_code,
             },
         )
-        (staging / "_shaiwei_manifest.json").write_text(
+        integrity = qlib_tree_integrity(staging)
+        (staging / QLIB_MANIFEST).write_text(
             json.dumps(
                 {
                     "generated_at": datetime.now(timezone.utc).isoformat(),
                     "code_snapshot_sha256": code_hash,
                     "data_snapshot_sha256": data_hash,
+                    **integrity,
                 },
                 indent=2,
                 sort_keys=True,

@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import numpy as np
@@ -7,7 +8,14 @@ import qlib
 from qlib.config import REG_CN
 from qlib.data import D
 
-from shaiwei.transform.qlib_bin import build_qlib_bin, membership_intervals, qlib_code
+from shaiwei.transform.qlib_bin import (
+    QLIB_MANIFEST,
+    build_qlib_bin,
+    membership_intervals,
+    qlib_code,
+    qlib_tree_integrity,
+    verify_qlib_tree_manifest,
+)
 
 
 def test_qlib_code_mapping():
@@ -79,3 +87,33 @@ def test_build_qlib_bin_keeps_suspension_gap_nan(tmp_path: Path):
     assert "SH600001" in (output / "instruments/csi300.txt").read_text()
     with pytest.raises(FileExistsError):
         build_qlib_bin(output, market, calendar, pd.DataFrame(), weights, benchmark, instrument_indices)
+
+
+def test_qlib_tree_integrity_detects_content_changes(tmp_path: Path):
+    root = tmp_path / "qlib"
+    feature = root / "features/sh600001/close.day.bin"
+    feature.parent.mkdir(parents=True)
+    feature.write_bytes(b"first")
+    first = qlib_tree_integrity(root)
+    feature.write_bytes(b"second")
+    second = qlib_tree_integrity(root)
+    assert first["artifact_file_count"] == second["artifact_file_count"] == 1
+    assert first["artifact_sha256"] != second["artifact_sha256"]
+
+
+def test_qlib_tree_manifest_blocks_reuse_after_tampering(tmp_path: Path):
+    root = tmp_path / "qlib"
+    feature = root / "features/sh600001/close.day.bin"
+    feature.parent.mkdir(parents=True)
+    feature.write_bytes(b"first")
+    integrity = qlib_tree_integrity(root)
+    (root / QLIB_MANIFEST).write_text(
+        json.dumps(
+            {"data_snapshot_sha256": "d" * 64, "code_snapshot_sha256": "c" * 64, **integrity}
+        ),
+        encoding="utf-8",
+    )
+    assert verify_qlib_tree_manifest(root, data_hash="d" * 64, code_hash="c" * 64) == integrity
+    feature.write_bytes(b"second")
+    with pytest.raises(ValueError, match="differs"):
+        verify_qlib_tree_manifest(root, data_hash="d" * 64, code_hash="c" * 64)

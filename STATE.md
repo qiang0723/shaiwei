@@ -18,11 +18,11 @@
 ## 当前进度
 - [x] Day 0：v0.5.4 报告+SHA256 存证；Git 基线 `9ab3c96` / tag `baseline-v0.5.4`；Python 3.12 隔离环境、依赖锁、7 项测试、Ruff、qlib/LightGBM/Tushare/AKShare 运行时检查通过
 - [x] Day 1-5 代码层（非数据验收）：Tushare 基础/停复牌/历史名称/公司行为/申万历史行业/行情/财务采集计划、AKShare 独立源、不可覆盖 Parquet+哈希账本、动态存续池、ST-PIT、后复权/量纲、财务 PIT、S1-S10 统一入口
-- [x] Day 6-7 代码层（非实测验收）：原子构建且快照绑定的 qlib 原生 bin、Alpha158+LightGBM 六窗口基线、双周/次开盘标签与成本情景、影子信号 manifest、AlphaGen 上游锁定+CPU/申万 L1 PIT 行业与市值中性化 RankIC benchmark
+- [x] Day 6-7 代码层（非实测验收）：原子构建且整树内容哈希绑定的 qlib 原生 bin、Alpha158+LightGBM 六窗口基线、双周/次开盘标签与成本情景、影子信号 manifest、AlphaGen 上游锁定+CPU/申万 L1 PIT 行业与市值中性化 RankIC benchmark（完整覆盖 setup+evolution 的耗时/RSS）
 - [x] 阶段 0 自动流：`make stage0-plan/stage0-run`；按 as-of+代码+数据快照续跑，采集按参数+文件哈希去重，首个失败即停，最终 G0 审计不含任何阶段 1 命令
-- [x] 证据链硬化：G0 逐批重哈希原始 Parquet，并核对六个不同窗口、影子实验/manifest、AlphaGen summary/候选数；空数据实测以退出码 2 拒绝，`next_phase_authorized=false`
+- [x] 证据链硬化：G0 逐批重哈希原始 Parquet 与 qlib 派生树；从六窗口明细重算冻结公式，逐项核对影子订单和 AlphaGen summary/候选结果与实验账本；拒绝空候选、空预测、伪结论和损坏缓存；空数据实测以退出码 2 拒绝，`next_phase_authorized=false`
 - [x] 关键门禁补强：S2 固定有界双算样本；S3 固定四类样本并核对复权连续收益；S4 核对 VWAP 绝对量纲；S5 核对三表结构与京东方更正；S7 复权因子跳变对公司行为；S8 核对成交额单位；qlib 使用方向性 PIT 涨跌停字段
-- [x] 离线质量门：67 项测试、Ruff、compileall、pip check、账本追加约束通过（2026-07-15；不等同真实数据验收）
+- [x] 离线质量门：73 项测试、Ruff、compileall、pip check、账本追加约束通过（2026-07-15；不等同真实数据验收）
 - [ ] Day 1-2：仓库骨架 / config / trade_cal / stock_basic（含退市）/ index_weight 历史
 - [ ] Day 3-4：全量 daily+adj_factor（分页！）→ 后复权 → 量纲统一 → 完整性对账 → 全部哨兵
 - [ ] Day 5：财务三表 PIT 层 + 京东方A 回归测试
