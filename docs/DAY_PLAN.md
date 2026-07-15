@@ -17,7 +17,7 @@
 - 退出标准：全部哨兵 PASS，零未归因异常
 
 ## Day 5 · 财务 PIT
-- income/balancesheet/cashflow 三表逐股全量（fields 显式含 update_flag/report_type/f_ann_date），再以三表 VIP 接口按季度补采 report_type=5 更正前值
+- income/balancesheet/cashflow 三表逐股全量（fields 显式含 update_flag/report_type/f_ann_date），再以三表 VIP 接口按季度补采 report_type=1 上市前值与 report_type=5 更正前值
 - PIT 快照逻辑（f_ann_date 对齐、更正前取 report_type=5）→ 跑哨兵 S5 `688502.SH/20221231` 真实回归测试
 - 本日产出只入库不入因子（财务因子属阶段 2），目的是把 PIT 层和回归测试建成
 

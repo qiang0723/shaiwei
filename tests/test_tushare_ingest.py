@@ -344,15 +344,15 @@ def test_financial_plan_explicitly_covers_three_statements():
         assert {"f_ann_date", "report_type", "update_flag"} <= set(FIELDS[api])
 
 
-def test_financial_corrections_plan_is_sparse_quarterly_type_five():
+def test_financial_corrections_plan_covers_quarterly_type_one_and_five():
     settings = load()
     plan = build_financial_corrections_plan(settings, date(2016, 7, 15))
-    assert len(plan) == 6
+    assert len(plan) == 12
     assert {request.api_name for request in plan} == {
         "income_vip", "balancesheet_vip", "cashflow_vip",
     }
     assert {request.params["period"] for request in plan} == {"20160331", "20160630"}
-    assert all(request.params["report_type"] == "5" for request in plan)
+    assert {request.params["report_type"] for request in plan} == {"1", "5"}
     assert FIELDS["income_vip"] == FIELDS["income"]
 
 

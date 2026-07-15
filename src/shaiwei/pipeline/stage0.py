@@ -64,7 +64,7 @@ def steps(as_of: date) -> list[Step]:
         ),
         Step(
             "financial_corrections",
-            "按季度补采三大报表更正前值",
+            "按季度补采三大报表上市前值与更正前值",
             (
                 python, "-m", "shaiwei.ingest", "--stage", "financial-corrections",
                 "--as-of", day, "--resume",

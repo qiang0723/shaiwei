@@ -13,7 +13,7 @@
 ## 口径层
 7. **复权**：后复权 + 上市首日 factor=1（与 qlib 原生一致）。daily（不复权）+ adj_factor 本地自算；禁用 pro_bar qfq/hfq（历史时段异常、前复权基准漂移，GitHub #924/#1546/#1555）。
 8. **量纲**：Tushare vol=手、amount=千元；AlphaGen/baostock 假设 股/元。→ 转换层强制 vol×100、amount×1000。VWAP=amount/volume 若量纲错会差 10-1000 倍且 IC 照常可算。
-9. **财务 PIT**：只用 income/balancesheet/cashflow 三表自建；fields 显式请求 update_flag、report_type、f_ann_date。逐股常规接口默认只给 report_type=1，必须再按季度用 income_vip/balancesheet_vip/cashflow_vip 显式补采稀疏的 report_type=5；不能用同一公告日下的 update_flag=0 冒充“更正前时点”。PIT 对齐用 f_ann_date ≤ 交易日 D；模拟日落在更正区间取 report_type=5 / update_flag=0；直接取 report_type=1 最新行 = 前视偏差。fina_indicator 缺 f_ann_date/report_type，不得用于严谨 PIT。盘后公告保守算次日可用。
+9. **财务 PIT**：只用 income/balancesheet/cashflow 三表自建；fields 显式请求 update_flag、report_type、f_ann_date。逐股常规接口从上市日开始且默认只给 report_type=1；上市前可能已经披露并更正报表，因此必须再按季度用 income_vip/balancesheet_vip/cashflow_vip 同时补采 report_type=1 与稀疏的 report_type=5。不能用同一公告日下的 update_flag=0 冒充“更正前时点”。PIT 对齐用 f_ann_date ≤ 交易日 D；模拟日落在更正区间取 report_type=5 / update_flag=0；直接取 report_type=1 最新行 = 前视偏差。fina_indicator 缺 f_ann_date/report_type，不得用于严谨 PIT。盘后公告保守算次日可用。
 10. **ST 状态库**：namechange 存在 end_date=NULL 的历史 ST 行；按「含 ST 且 end 为空即 ST」会把摘帽票永久钉成 ST（约一成宇宙误判）。→ latest-effective-name 按时点取现行有效名做 PIT 判定；同日双名保守判 ST；「XX退」判非 ST（退市整理期限幅主板 10%、创业板/科创板 20%，首日不设限）。
 11. **停牌**：停牌日 OHLCV=NaN，禁 0 或前值填充（零填充制造正自相关、统计量虚高，Kallunki 1997）；自算因子同样禁零填充，收益按 trade-to-trade 跨缺口口径。`suspend_d.suspend_timing` 非空表示日内停牌，不得计作全天缺 bar；全天事件与 bar 冲突、以及无全天事件的缺 bar，必须用独立 `tradestatus` 证据裁决。`delist_date` 是退市生效日，存续交易区间右开。
 12. **涨跌停**：主板 0.095；创业板 2020-08-24 前 0.095、之后 0.195（回测跨此日分段）；科创板 0.195；ST 0.045；退市整理期首日不设限。涨跌停价按分价位取整，比对留一分钱容差。

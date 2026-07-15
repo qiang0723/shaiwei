@@ -194,12 +194,12 @@ def build_financial_plan(settings: Settings, as_of: date, stock_basic: pd.DataFr
 
 
 def build_financial_corrections_plan(settings: Settings, as_of: date) -> list[Request]:
-    """Fetch sparse pre-correction statements (report_type=5) by quarter.
+    """Fetch quarterly PIT statements (report_type 1 and 5) across the market.
 
-    The ordinary per-security endpoints default to the latest consolidated
-    statement (report_type=1), so they do not provide the old value needed for
-    a strict restatement PIT test.  The VIP endpoints accept the same fields
-    and can safely fetch sparse type-5 rows for a whole reporting period.
+    Per-security history begins at list_date, but issuers can publish both an
+    original and a corrected statement before listing.  Quarterly VIP queries
+    provide the pre-list type-1 row and the sparse pre-correction type-5 row
+    without falsifying the immutable parameters of the ordinary requests.
     """
     requests = []
     quarter_ends = ((3, 31), (6, 30), (9, 30), (12, 31))
@@ -209,12 +209,13 @@ def build_financial_corrections_plan(settings: Settings, as_of: date) -> list[Re
             if not settings.backtest.start <= period <= as_of:
                 continue
             period_text = period.strftime("%Y%m%d")
-            params = {"period": period_text, "report_type": "5"}
-            partitions = {"period": period_text, "report_type": "5"}
-            requests.extend(
-                Request(f"{api}_vip", params, partitions)
-                for api in ("income", "balancesheet", "cashflow")
-            )
+            for report_type in ("1", "5"):
+                params = {"period": period_text, "report_type": report_type}
+                partitions = {"period": period_text, "report_type": report_type}
+                requests.extend(
+                    Request(f"{api}_vip", params, partitions)
+                    for api in ("income", "balancesheet", "cashflow")
+                )
     return requests
 
 
