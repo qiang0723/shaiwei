@@ -67,7 +67,7 @@ def main() -> int:
 
     results["S6"] = s6_suspensions(transformed, suspend_d, trade_status)
     results["S7"] = s7_price_volume_logic(transformed, dividend)
-    akshare = load_latest_api("akshare.stock_zh_a_hist")
+    akshare = load_latest_api("akshare.stock_zh_a_daily")
     results["S8"] = s8_cross_source(daily, akshare)
     observation_date = settings.evaluation.forward_oos_start.strftime("%Y%m%d")
     active_codes = active_securities(

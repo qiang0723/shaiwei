@@ -460,7 +460,7 @@ def s8_cross_source(tushare_daily: pd.DataFrame, akshare_daily: pd.DataFrame, to
     bad_mask = close_diff.gt(tolerance) | volume_diff.gt(tolerance)
     amount_diff = pd.Series(np.nan, index=joined.index)
     if compare_amount:
-        # Tushare amount is thousand yuan; AKShare stock_zh_a_hist amount is yuan.
+        # Tushare amount is thousand yuan; AKShare stock_zh_a_daily amount is yuan.
         amount_diff = (joined["amount_ts"] * 1000.0 / joined["amount_ak"] - 1).abs()
         bad_mask |= amount_diff.gt(tolerance)
     bad = joined.loc[bad_mask]

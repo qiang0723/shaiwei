@@ -12,17 +12,16 @@ import pandas as pd
 from shaiwei.ingest.core import RawBatch, RawBatchWriter
 from shaiwei.ingest.tushare import _add_no_proxy_host
 
-EASTMONEY_API_HOST = "push2his.eastmoney.com"
+SINA_API_HOSTS = ("finance.sina.com.cn", "stock.finance.sina.com.cn")
 
 AK_COLUMNS = {
-    "日期": "trade_date",
-    "股票代码": "symbol",
-    "开盘": "open",
-    "收盘": "close",
-    "最高": "high",
-    "最低": "low",
-    "成交量": "vol",
-    "成交额": "amount",
+    "date": "trade_date",
+    "open": "open",
+    "close": "close",
+    "high": "high",
+    "low": "low",
+    "volume": "vol",
+    "amount": "amount",
 }
 
 
@@ -34,9 +33,12 @@ class CrosscheckRequest:
 
 
 def request_params(request: CrosscheckRequest) -> dict[str, str]:
+    symbol, exchange = request.ts_code.split(".", maxsplit=1)
+    prefixes = {"SH": "sh", "SZ": "sz"}
+    if exchange not in prefixes:
+        raise ValueError(f"AKShare Sina adapter does not support exchange: {exchange}")
     return {
-        "symbol": request.ts_code.split(".", maxsplit=1)[0],
-        "period": "daily",
+        "symbol": f"{prefixes[exchange]}{symbol}",
         "start_date": request.start.strftime("%Y%m%d"),
         "end_date": request.end.strftime("%Y%m%d"),
         "adjust": "",
@@ -56,7 +58,7 @@ class AKShareIngestor:
         if fetch is None:
             import akshare as ak
 
-            fetch = ak.stock_zh_a_hist
+            fetch = ak.stock_zh_a_daily
         self.writer = writer
         self.fetch = fetch
         self.max_attempts = max_attempts
@@ -80,15 +82,17 @@ class AKShareIngestor:
             params = request_params(request)
             raw = self._fetch_with_retry(params)
             if not isinstance(raw, pd.DataFrame):
-                raise TypeError("AKShare stock_zh_a_hist must return DataFrame")
+                raise TypeError("AKShare stock_zh_a_daily must return DataFrame")
             if missing := set(AK_COLUMNS) - set(raw.columns):
                 raise ValueError(f"AKShare response missing fields: {sorted(missing)}")
             frame = raw.loc[:, list(AK_COLUMNS)].rename(columns=AK_COLUMNS).copy()
             frame["trade_date"] = pd.to_datetime(frame["trade_date"], errors="raise").dt.strftime("%Y%m%d")
+            # Sina returns shares while Tushare and the Eastmoney adapter use hands.
+            frame["vol"] = pd.to_numeric(frame["vol"], errors="raise") / 100.0
             frame["ts_code"] = request.ts_code
             batches.append(
                 self.writer.write(
-                    source_api="akshare.stock_zh_a_hist",
+                    source_api="akshare.stock_zh_a_daily",
                     params=params,
                     frame=frame,
                     partitions={
@@ -114,7 +118,7 @@ def main() -> int:
     requests = [CrosscheckRequest(symbol, start, args.as_of) for symbol in settings.crosscheck.symbols]
     planned_count = len(requests)
     if args.resume:
-        committed = committed_params_keys("akshare.stock_zh_a_hist")
+        committed = committed_params_keys("akshare.stock_zh_a_daily")
         requests = [request for request in requests if canonical_params_key(request_params(request)) not in committed]
     summary = {
         "as_of": args.as_of.isoformat(),
@@ -126,7 +130,8 @@ def main() -> int:
     if args.dry_run or not requests:
         print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
         return 0
-    _add_no_proxy_host(EASTMONEY_API_HOST)
+    for host in SINA_API_HOSTS:
+        _add_no_proxy_host(host)
     batches = AKShareIngestor(
         RawBatchWriter(settings.runtime.data_root),
         max_attempts=settings.ingest.max_attempts,
