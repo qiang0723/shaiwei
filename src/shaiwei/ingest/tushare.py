@@ -56,6 +56,15 @@ FIELDS: dict[str, tuple[str, ...]] = {
         "net_profit", "n_cashflow_act", "n_cashflow_inv_act", "n_cash_flows_fnc_act", "free_cashflow",
         "n_incr_cash_cash_equ", "c_cash_equ_end_period", "update_flag",
     ),
+    "dividend": (
+        "ts_code", "end_date", "ann_date", "div_proc", "stk_div", "stk_bo_rate", "stk_co_rate",
+        "cash_div", "cash_div_tax", "record_date", "ex_date", "pay_date", "div_listdate",
+        "imp_ann_date", "base_date", "base_share",
+    ),
+    "index_member_all": (
+        "l1_code", "l1_name", "l2_code", "l2_name", "l3_code", "l3_name",
+        "ts_code", "name", "in_date", "out_date", "is_new",
+    ),
 }
 
 
@@ -151,6 +160,41 @@ def build_namechange_plan(settings: Settings, as_of: date, stock_basic: pd.DataF
     ]
 
 
+def build_suspension_plan(settings: Settings, as_of: date, trade_cal: pd.DataFrame) -> list[Request]:
+    required = {"cal_date", "is_open"}
+    if missing := required - set(trade_cal.columns):
+        raise ValueError(f"trade_cal missing fields: {sorted(missing)}")
+    start_text = settings.backtest.start.strftime("%Y%m%d")
+    end_text = as_of.strftime("%Y%m%d")
+    open_days = sorted(
+        day
+        for day in trade_cal.loc[trade_cal["is_open"].astype(str).eq("1"), "cal_date"].astype(str).unique()
+        if start_text <= day <= end_text
+    )
+    return [Request("suspend_d", {"trade_date": day}, {"trade_date": day}) for day in open_days]
+
+
+def build_corporate_action_plan(settings: Settings, as_of: date, stock_basic: pd.DataFrame) -> list[Request]:
+    return [
+        Request("dividend", {"ts_code": security.ts_code}, {"symbol": security.ts_code})
+        for security in _eligible_securities(stock_basic, settings, as_of).itertuples(index=False)
+    ]
+
+
+def build_industry_membership_plan(settings: Settings, as_of: date, stock_basic: pd.DataFrame) -> list[Request]:
+    requests = []
+    for security in _eligible_securities(stock_basic, settings, as_of).itertuples(index=False):
+        requests.extend(
+            Request(
+                "index_member_all",
+                {"ts_code": security.ts_code, "is_new": status},
+                {"symbol": security.ts_code, "is_new": status},
+            )
+            for status in ("Y", "N")
+        )
+    return requests
+
+
 def build_bootstrap_plan(settings: Settings, as_of: date) -> list[Request]:
     start = settings.backtest.start
     if as_of < start:
@@ -195,13 +239,6 @@ def build_bootstrap_plan(settings: Settings, as_of: date) -> list[Request]:
                     {"index": index_code, "period": period},
                 )
             )
-    for window_start, window_end in month_windows(start, as_of):
-        period = window_start.strftime("%Y-%m")
-        date_params = {
-            "start_date": window_start.strftime("%Y%m%d"),
-            "end_date": window_end.strftime("%Y%m%d"),
-        }
-        requests.append(Request("suspend_d", date_params, {"period": period}))
     return requests
 
 

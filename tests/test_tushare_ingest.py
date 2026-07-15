@@ -12,9 +12,12 @@ from shaiwei.ingest.tushare import (
     Request,
     TushareIngestor,
     build_bootstrap_plan,
+    build_corporate_action_plan,
     build_financial_plan,
+    build_industry_membership_plan,
     build_market_plan,
     build_namechange_plan,
+    build_suspension_plan,
 )
 
 
@@ -39,7 +42,7 @@ def test_bootstrap_plan_partitions_monthly_and_defers_namechange(tmp_path: Path)
     assert {
         request.params["index_code"] for request in plan if request.api_name == "index_weight"
     } == {"000906.SH", "000300.SH"}
-    assert sum(request.api_name == "suspend_d" for request in plan) == 2
+    assert not any(request.api_name == "suspend_d" for request in plan)
     assert sum(request.api_name == "index_daily" for request in plan) == 1
     assert not any(request.api_name == "namechange" for request in plan)
     february = [request for request in plan if request.partitions.get("period") == "2016-02"]
@@ -135,3 +138,34 @@ def test_namechange_plan_splits_by_stock_without_date_filters():
         {"ts_code": "600002.SH"},
     ]
     assert all(not ({"start_date", "end_date"} & request.params.keys()) for request in plan)
+
+
+def test_suspension_plan_is_split_by_authoritative_open_day():
+    settings = load()
+    calendar = pd.DataFrame(
+        {"cal_date": ["20160101", "20160104", "20160105"], "is_open": [0, 1, 1]}
+    )
+    plan = build_suspension_plan(settings, date(2016, 1, 5), calendar)
+    assert [request.params for request in plan] == [
+        {"trade_date": "20160104"},
+        {"trade_date": "20160105"},
+    ]
+
+
+def test_corporate_action_plan_is_per_stock_without_unsupported_dates():
+    settings = load()
+    stocks = pd.DataFrame([{"ts_code": "600001.SH", "list_date": "20160101", "delist_date": None}])
+    plan = build_corporate_action_plan(settings, date(2020, 2, 1), stocks)
+    assert plan == [Request("dividend", {"ts_code": "600001.SH"}, {"symbol": "600001.SH"})]
+    assert {"ex_date", "div_proc", "stk_div"} <= set(FIELDS["dividend"])
+
+
+def test_industry_membership_plan_requests_current_and_historical_rows():
+    settings = load()
+    stocks = pd.DataFrame([{"ts_code": "600001.SH", "list_date": "20160101", "delist_date": None}])
+    plan = build_industry_membership_plan(settings, date(2020, 2, 1), stocks)
+    assert [request.params for request in plan] == [
+        {"ts_code": "600001.SH", "is_new": "Y"},
+        {"ts_code": "600001.SH", "is_new": "N"},
+    ]
+    assert {"l1_code", "in_date", "out_date"} <= set(FIELDS["index_member_all"])

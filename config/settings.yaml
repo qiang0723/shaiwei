@@ -34,6 +34,13 @@ crosscheck:
   # 启动前冻结：沪深主板/创业板/科创板各取高流动性代表，AKShare 最近 90 个自然日独立复核。
   symbols: ["000001.SZ", "600519.SH", "300750.SZ", "688981.SH"]
   lookback_calendar_days: 90
+sentinels:
+  dual_calculation_max_securities: 32  # S2 固定有界样本；S1/S4/S7 仍全市场
+  reverse_adjustment_samples:
+    blue_chip: "600519.SH"             # 贵州茅台
+    corporate_action: "002714.SZ"      # 牧原股份，多次送转/分红
+    delisted: "600401.SH"              # 退市海润，2019 年退市
+    long_suspension: "000638.SZ"       # 万方发展，历史长停复牌样本
 baseline:
   instrument: "csi800"
   validation_months: 6                # 每个 3 年训练窗末 6 个月作早停验证；首次回测前冻结

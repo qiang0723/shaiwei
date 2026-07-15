@@ -5,7 +5,7 @@ from collections.abc import Mapping
 import numpy as np
 import pandas as pd
 
-from shaiwei.transform.universe import st_status_on
+from shaiwei.transform.universe import st_flags_on
 
 PRICE_COLUMNS = ("open", "high", "low", "close", "pre_close")
 
@@ -58,6 +58,8 @@ def attach_trade_limit_flags(
     stock_basic: pd.DataFrame,
     namechange: pd.DataFrame,
     limit_rules: Mapping[str, float],
+    *,
+    copy: bool = True,
 ) -> pd.DataFrame:
     """Attach point-in-time direction-specific price-limit flags for qlib.
 
@@ -81,7 +83,7 @@ def attach_trade_limit_flags(
     if missing := rule_names - set(limit_rules):
         raise ValueError(f"limit_rules missing fields: {sorted(missing)}")
 
-    result = market.copy()
+    result = market.copy() if copy else market
     codes = result["ts_code"].astype("string")
     if codes.str.endswith(".BJ", na=False).any():
         raise ValueError("BSE securities require an explicit limit rule before inclusion")
@@ -94,11 +96,8 @@ def attach_trade_limit_flags(
     star = codes.str.endswith(".SH", na=False) & symbols.str.startswith(("688", "689"), na=False)
     thresholds.loc[star] = float(limit_rules["star"])
 
-    status = st_status_on(namechange, result.loc[:, ["ts_code", "trade_date"]])
-    thresholds.loc[status["is_st"].to_numpy()] = float(limit_rules["st"])
-    result["effective_name"] = status["effective_name"].to_numpy()
-    result["is_st"] = status["is_st"].to_numpy()
-    result["limit_threshold"] = thresholds
+    st_flags = st_flags_on(namechange, result.loc[:, ["ts_code", "trade_date"]])
+    thresholds.loc[st_flags.to_numpy()] = float(limit_rules["st"])
 
     basic = stock_basic.sort_values("list_date").drop_duplicates("ts_code", keep="last")
     list_dates = codes.map(basic.set_index("ts_code")["list_date"].astype("string"))

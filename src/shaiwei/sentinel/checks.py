@@ -72,11 +72,22 @@ def s1_completeness(
     )
 
 
-def s2_dual_calculation(daily: pd.DataFrame, adj_factor: pd.DataFrame, tolerance: float = 1e-12) -> SentinelResult:
-    pandas_result = transform_market_data(daily, adj_factor)
+def s2_dual_calculation(
+    daily: pd.DataFrame,
+    adj_factor: pd.DataFrame,
+    tolerance: float = 1e-12,
+    max_securities: int = 32,
+) -> SentinelResult:
+    securities = np.array(sorted(daily["ts_code"].dropna().astype(str).unique()))
+    sample_size = min(len(securities), max_securities)
+    positions = np.linspace(0, len(securities) - 1, sample_size, dtype=int) if sample_size else np.array([], dtype=int)
+    selected = set(securities[positions])
+    sample_daily = daily.loc[daily["ts_code"].astype(str).isin(selected)]
+    sample_adj = adj_factor.loc[adj_factor["ts_code"].astype(str).isin(selected)]
+    pandas_result = transform_market_data(sample_daily, sample_adj)
     connection = duckdb.connect(":memory:")
-    connection.register("daily", daily)
-    connection.register("adj", adj_factor)
+    connection.register("daily", sample_daily)
+    connection.register("adj", sample_adj)
     sql_result = connection.execute(
         """
         WITH joined AS (
@@ -112,11 +123,26 @@ def s2_dual_calculation(daily: pd.DataFrame, adj_factor: pd.DataFrame, tolerance
     return SentinelResult(
         "S2",
         "PASS" if passed else "FAIL",
-        {"row_count": len(comparison), "tolerance": tolerance, "max_abs_error": errors},
+        {
+            "row_count": len(comparison),
+            "sample_security_count": len(selected),
+            "total_security_count": len(securities),
+            "tolerance": tolerance,
+            "max_abs_error": errors,
+        },
     )
 
 
-def s3_reverse_adjustment(transformed: pd.DataFrame, daily: pd.DataFrame, tolerance: float = 1e-4) -> SentinelResult:
+def s3_reverse_adjustment(
+    transformed: pd.DataFrame,
+    daily: pd.DataFrame,
+    tolerance: float = 1e-4,
+    sample_codes: list[str] | None = None,
+) -> SentinelResult:
+    missing_samples = sorted(set(sample_codes or []) - set(daily["ts_code"].astype(str)))
+    if sample_codes:
+        transformed = transformed.loc[transformed["ts_code"].isin(sample_codes)]
+        daily = daily.loc[daily["ts_code"].isin(sample_codes)]
     source = daily.loc[:, ["ts_code", "trade_date", "close"]].rename(columns={"close": "raw_close"})
     joined = transformed.merge(source, on=["ts_code", "trade_date"], validate="one_to_one")
     reversed_close = joined["close"] * joined["factor"]
@@ -124,7 +150,24 @@ def s3_reverse_adjustment(transformed: pd.DataFrame, daily: pd.DataFrame, tolera
         [np.inf, -np.inf], np.nan
     )
     maximum = float(relative_error.max()) if relative_error.notna().any() else 0.0
-    return SentinelResult("S3", "PASS" if maximum < tolerance else "FAIL", {"max_relative_error": maximum})
+    ordered = transformed.sort_values(["ts_code", "trade_date"])
+    implied_return = pd.to_numeric(ordered["close"], errors="coerce").groupby(
+        ordered["ts_code"]
+    ).pct_change(fill_method=None)
+    return_error = (implied_return - pd.to_numeric(ordered["pct_chg"], errors="coerce") / 100.0).abs()
+    maximum_return_error = float(return_error.max()) if return_error.notna().any() else 0.0
+    passed = not missing_samples and not joined.empty and maximum < tolerance and maximum_return_error < tolerance
+    return SentinelResult(
+        "S3",
+        "PASS" if passed else "FAIL",
+        {
+            "sample_codes": sample_codes or sorted(daily["ts_code"].astype(str).unique()),
+            "missing_sample_codes": missing_samples,
+            "checked_rows": len(joined),
+            "max_relative_error": maximum,
+            "max_adjusted_return_error": maximum_return_error,
+        },
+    )
 
 
 def s4_units(transformed: pd.DataFrame, price_band_tolerance: float = 0.02) -> SentinelResult:
@@ -158,15 +201,49 @@ def s4_units(transformed: pd.DataFrame, price_band_tolerance: float = 0.02) -> S
     )
 
 
-def s5_financial_pit(statements: pd.DataFrame, trade_cal: pd.DataFrame) -> SentinelResult:
+def s5_financial_pit(
+    statements: pd.DataFrame,
+    trade_cal: pd.DataFrame,
+    statement_tables: dict[str, pd.DataFrame] | None = None,
+) -> SentinelResult:
+    tables = {"income": statements, **(statement_tables or {})}
+    table_metrics = {}
+    structural_failures = []
+    open_days_text = trade_cal.loc[trade_cal["is_open"].astype(str).eq("1"), "cal_date"].astype(str)
+    latest_open_day = open_days_text.max() if not open_days_text.empty else None
+    for name, table in tables.items():
+        required = {"ts_code", "f_ann_date", "end_date", "report_type", "update_flag"}
+        missing = required - set(table.columns)
+        if missing or table.empty or latest_open_day is None:
+            structural_failures.append({"table": name, "missing_fields": sorted(missing), "row_count": len(table)})
+            continue
+        snapshot = financial_pit_snapshot(table, trade_cal, latest_open_day)
+        duplicate_period_ratio = float(table.duplicated(["ts_code", "end_date"], keep=False).mean())
+        table_metrics[name] = {
+            "source_rows": len(table),
+            "snapshot_rows": len(snapshot),
+            "duplicate_period_ratio": duplicate_period_ratio,
+        }
+        if snapshot.empty:
+            structural_failures.append({"table": name, "reason": "latest PIT snapshot is empty"})
     boe = statements.loc[statements["ts_code"].eq("000725.SZ")].copy()
     boe["_f_ann"] = pd.to_datetime(boe["f_ann_date"], format="%Y%m%d", errors="coerce")
     old = boe.loc[boe["report_type"].astype(str).eq("5") & boe["update_flag"].astype(str).eq("0")]
     new = boe.loc[boe["report_type"].astype(str).eq("1") & boe["update_flag"].astype(str).eq("1")]
     pairs = old.merge(new, on=["ts_code", "end_date"], suffixes=("_old", "_new"))
-    pairs = pairs.loc[pairs["_f_ann_old"].lt(pairs["_f_ann_new"])]
+    case_date = pd.Timestamp("2023-04-29")
+    pairs = pairs.loc[
+        pairs["end_date"].astype(str).eq("20221231")
+        & pairs["_f_ann_old"].le(case_date)
+        & pairs["_f_ann_old"].lt(pairs["_f_ann_new"])
+    ]
     if pairs.empty:
-        return SentinelResult("S5", "FAIL", {"reason": "BOE 2023 restatement pair not found"})
+        return SentinelResult(
+            "S5",
+            "FAIL",
+            {"reason": "BOE 2023 restatement pair not found", "tables": table_metrics},
+            structural_failures,
+        )
     pair = pairs.sort_values("_f_ann_new").iloc[0]
     open_days = pd.to_datetime(
         trade_cal.loc[trade_cal["is_open"].astype(str).eq("1"), "cal_date"], format="%Y%m%d", errors="coerce"
@@ -174,7 +251,12 @@ def s5_financial_pit(statements: pd.DataFrame, trade_cal: pd.DataFrame) -> Senti
     between = open_days.loc[open_days.gt(pair["_f_ann_old"]) & open_days.lt(pair["_f_ann_new"])]
     after = open_days.loc[open_days.gt(pair["_f_ann_new"])]
     if between.empty or after.empty:
-        return SentinelResult("S5", "FAIL", {"reason": "calendar cannot bracket BOE correction"})
+        return SentinelResult(
+            "S5",
+            "FAIL",
+            {"reason": "calendar cannot bracket BOE correction", "tables": table_metrics},
+            structural_failures,
+        )
     before_snapshot = financial_pit_snapshot(boe, trade_cal, between.iloc[-1].strftime("%Y-%m-%d"))
     after_snapshot = financial_pit_snapshot(boe, trade_cal, after.iloc[0].strftime("%Y-%m-%d"))
     period = pair["end_date"]
@@ -188,7 +270,18 @@ def s5_financial_pit(statements: pd.DataFrame, trade_cal: pd.DataFrame) -> Senti
         and str(after_row.iloc[0]["report_type"]) == "1"
         and str(after_row.iloc[0]["update_flag"]) == "1"
     )
-    return SentinelResult("S5", "PASS" if passed else "FAIL", {"period": period})
+    passed = passed and not structural_failures
+    return SentinelResult(
+        "S5",
+        "PASS" if passed else "FAIL",
+        {
+            "period": period,
+            "old_f_ann_date": pair["f_ann_date_old"],
+            "new_f_ann_date": pair["f_ann_date_new"],
+            "tables": table_metrics,
+        },
+        structural_failures,
+    )
 
 
 def s6_suspensions(aligned_market: pd.DataFrame, suspend_d: pd.DataFrame) -> SentinelResult:
@@ -203,7 +296,11 @@ def s6_suspensions(aligned_market: pd.DataFrame, suspend_d: pd.DataFrame) -> Sen
     )
 
 
-def s7_price_volume_logic(market: pd.DataFrame) -> SentinelResult:
+def s7_price_volume_logic(
+    market: pd.DataFrame,
+    corporate_actions: pd.DataFrame | None = None,
+    factor_tolerance: float = 1e-12,
+) -> SentinelResult:
     numeric = market.loc[:, ["open", "high", "low", "close", "volume"]].apply(pd.to_numeric, errors="coerce")
     bad_mask = (
         numeric["high"].lt(numeric["low"])
@@ -218,15 +315,48 @@ def s7_price_volume_logic(market: pd.DataFrame) -> SentinelResult:
     else:
         contradictory_limit = pd.Series(False, index=market.index)
     bad = market.loc[bad_mask]
+    unmatched_factor_jumps = pd.DataFrame(columns=["ts_code", "trade_date"])
+    factor_jump_count = 0
+    if corporate_actions is not None:
+        required = {"ts_code", "ex_date", "div_proc"}
+        if missing := required - set(corporate_actions.columns):
+            raise ValueError(f"corporate_actions missing fields: {sorted(missing)}")
+        ordered = market.sort_values(["ts_code", "trade_date"])
+        factor_change = pd.to_numeric(ordered["adj_factor"], errors="coerce").groupby(
+            ordered["ts_code"]
+        ).pct_change(fill_method=None).abs()
+        factor_jumps = ordered.loc[factor_change.gt(factor_tolerance), ["ts_code", "trade_date"]].drop_duplicates()
+        factor_jump_count = len(factor_jumps)
+        implemented = corporate_actions.loc[
+            corporate_actions["div_proc"].astype("string").str.contains("实施", na=False)
+            & corporate_actions["ex_date"].notna()
+        ].copy()
+        implemented["trade_date"] = implemented["ex_date"].astype("string")
+        event_keys = implemented.loc[:, ["ts_code", "trade_date"]].drop_duplicates()
+        unmatched_factor_jumps = factor_jumps.merge(
+            event_keys.assign(_matched=True), on=["ts_code", "trade_date"], how="left"
+        )
+        unmatched_factor_jumps = unmatched_factor_jumps.loc[
+            unmatched_factor_jumps["_matched"].isna(), ["ts_code", "trade_date"]
+        ]
+    passed = bad.empty and unmatched_factor_jumps.empty
+    anomalies = bad.loc[:, ["ts_code", "trade_date"]].assign(reason="price_volume_or_limit")
+    if not unmatched_factor_jumps.empty:
+        anomalies = pd.concat(
+            [unmatched_factor_jumps.assign(reason="adj_factor_without_implemented_dividend"), anomalies],
+            ignore_index=True,
+        )
     return SentinelResult(
-        "S7", "PASS" if bad.empty else "FAIL",
+        "S7", "PASS" if passed else "FAIL",
         {
             "bad_rows": len(bad),
             "limit_buy_days": int(market.get("limit_buy", pd.Series(False, index=market.index)).sum()),
             "limit_sell_days": int(market.get("limit_sell", pd.Series(False, index=market.index)).sum()),
             "contradictory_limit_rows": int(contradictory_limit.sum()),
+            "factor_jump_rows": factor_jump_count,
+            "unmatched_factor_jump_rows": len(unmatched_factor_jumps),
         },
-        bad.loc[:, ["ts_code", "trade_date"]].head(100).to_dict("records"),
+        anomalies.head(100).to_dict("records"),
     )
 
 

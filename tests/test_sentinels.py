@@ -7,6 +7,7 @@ from shaiwei.sentinel.checks import (
     s2_dual_calculation,
     s3_reverse_adjustment,
     s4_units,
+    s5_financial_pit,
     s6_suspensions,
     s7_price_volume_logic,
     s8_cross_source,
@@ -20,7 +21,7 @@ def _market_inputs():
     daily = pd.DataFrame(
         [
             {"ts_code": "A", "trade_date": "20200102", "open": 9, "high": 11, "low": 8,
-             "close": 10, "pre_close": 9, "change": 1, "pct_chg": 11, "vol": 2, "amount": 2},
+             "close": 10, "pre_close": 9, "change": 1, "pct_chg": 11.111111, "vol": 2, "amount": 2},
             {"ts_code": "A", "trade_date": "20200103", "open": 10, "high": 12, "low": 10,
              "close": 11, "pre_close": 10, "change": 1, "pct_chg": 10, "vol": 2, "amount": 2.2},
         ]
@@ -60,12 +61,82 @@ def test_s4_rejects_self_consistent_vwap_with_wrong_absolute_units():
     assert s4_units(transformed).status == "FAIL"
 
 
+def test_s3_corporate_action_keeps_adjusted_close_return_continuous():
+    daily, factors = _market_inputs()
+    daily = daily.astype(
+        {field: "float64" for field in ("open", "high", "low", "close", "pre_close", "change", "amount")}
+    )
+    daily.loc[1, ["open", "high", "low", "close", "pre_close", "change", "amount"]] = [
+        5.0, 6.0, 5.0, 5.5, 5.0, 0.5, 1.1,
+    ]
+    factors.loc[1, "adj_factor"] = 2.0
+    transformed = transform_market_data(daily, factors)
+    assert s3_reverse_adjustment(transformed, daily).status == "PASS"
+
+    broken = transformed.copy()
+    broken.loc[1, "close"] = daily.loc[1, "close"]
+    assert s3_reverse_adjustment(broken, daily).status == "FAIL"
+
+
 def test_s6_detects_non_nan_suspended_bar():
     suspended = pd.DataFrame([{"ts_code": "A", "trade_date": "20200102", "suspend_type": "S"}])
     aligned = pd.DataFrame([{"ts_code": "A", "trade_date": "20200102", "open": 1.0}])
     assert s6_suspensions(aligned, suspended).status == "FAIL"
     aligned["open"] = float("nan")
     assert s6_suspensions(aligned, suspended).status == "PASS"
+
+
+def test_s5_requires_three_structural_tables_and_preserves_restated_pit():
+    calendar = pd.DataFrame(
+        {
+            "cal_date": ["20230428", "20230504", "20230510", "20230511"],
+            "is_open": [1, 1, 1, 1],
+        }
+    )
+    income = pd.DataFrame(
+        [
+            {
+                "ts_code": "000725.SZ",
+                "f_ann_date": "20230428",
+                "end_date": "20221231",
+                "report_type": "5",
+                "update_flag": "0",
+            },
+            {
+                "ts_code": "000725.SZ",
+                "f_ann_date": "20230510",
+                "end_date": "20221231",
+                "report_type": "1",
+                "update_flag": "1",
+            },
+        ]
+    )
+    result = s5_financial_pit(
+        income,
+        calendar,
+        statement_tables={"balancesheet": income.copy(), "cashflow": income.copy()},
+    )
+    assert result.status == "PASS"
+    assert set(result.metrics["tables"]) == {"income", "balancesheet", "cashflow"}
+
+    missing_cashflow = s5_financial_pit(
+        income,
+        calendar,
+        statement_tables={"balancesheet": income.copy(), "cashflow": income.iloc[:0]},
+    )
+    assert missing_cashflow.status == "FAIL"
+
+
+def test_s7_requires_factor_jumps_to_match_implemented_corporate_actions():
+    daily, factors = _market_inputs()
+    factors.loc[1, "adj_factor"] = 2.0
+    market = transform_market_data(daily, factors)
+    actions = pd.DataFrame(
+        [{"ts_code": "A", "ex_date": "20200103", "div_proc": "实施"}]
+    )
+    assert s7_price_volume_logic(market, actions).status == "PASS"
+    actions.loc[0, "ex_date"] = "20200104"
+    assert s7_price_volume_logic(market, actions).status == "FAIL"
 
 
 def test_s8_checks_close_and_volume_with_same_raw_units():

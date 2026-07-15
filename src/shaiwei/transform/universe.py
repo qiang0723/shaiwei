@@ -47,6 +47,42 @@ def _name_is_st(name: object) -> bool:
     return "ST" in rendered and not rendered.endswith("退")
 
 
+def st_flags_on(namechange: pd.DataFrame, observations: pd.DataFrame) -> pd.Series:
+    """Memory-bounded ST flags aligned positionally to observations."""
+    history_required = {"ts_code", "name", "start_date", "end_date"}
+    observation_required = {"ts_code", "trade_date"}
+    if missing := history_required - set(namechange.columns):
+        raise ValueError(f"namechange missing fields: {sorted(missing)}")
+    if missing := observation_required - set(observations.columns):
+        raise ValueError(f"observations missing fields: {sorted(missing)}")
+    history = namechange.loc[:, ["ts_code", "name", "start_date", "end_date"]].copy()
+    history["_start"] = _date_column(history["start_date"])
+    history["_end"] = _date_column(history["end_date"])
+    points = observations.loc[:, ["ts_code", "trade_date"]].reset_index(drop=True)
+    points["_point"] = _date_column(points["trade_date"])
+    result = pd.Series(False, index=points.index, dtype=bool)
+    history_by_code = {code: frame for code, frame in history.groupby("ts_code", sort=False)}
+    for code, point_index in points.groupby("ts_code", sort=False).groups.items():
+        security_history = history_by_code.get(code)
+        if security_history is None:
+            continue
+        dates = points.loc[point_index, "_point"]
+        best_start = pd.Series(pd.NaT, index=point_index, dtype="datetime64[ns]")
+        flags = pd.Series(False, index=point_index, dtype=bool)
+        intervals = security_history.loc[:, ["name", "_start", "_end"]]
+        for name, interval_start, interval_end in intervals.itertuples(index=False, name=None):
+            if pd.isna(interval_start):
+                continue
+            active = dates.ge(interval_start) & (pd.isna(interval_end) | dates.le(interval_end))
+            newer = active & (best_start.isna() | best_start.lt(interval_start))
+            tied = active & best_start.eq(interval_start)
+            best_start.loc[newer] = interval_start
+            flags.loc[newer] = _name_is_st(name)
+            flags.loc[tied] = flags.loc[tied] | _name_is_st(name)
+        result.loc[point_index] = flags
+    return result
+
+
 def st_status_on(namechange: pd.DataFrame, observations: pd.DataFrame) -> pd.DataFrame:
     """Resolve the latest effective name for each (ts_code, trade_date), conservatively on ties."""
     history_required = {"ts_code", "name", "start_date", "end_date"}

@@ -75,6 +75,18 @@ class Crosscheck(BaseModel):
         return self
 
 
+class ReverseAdjustmentSamples(BaseModel):
+    blue_chip: str
+    corporate_action: str
+    delisted: str
+    long_suspension: str
+
+
+class Sentinels(BaseModel):
+    dual_calculation_max_securities: int = Field(ge=4, le=256)
+    reverse_adjustment_samples: ReverseAdjustmentSamples
+
+
 class Baseline(BaseModel):
     instrument: str
     validation_months: int = Field(ge=1, le=12)
@@ -150,6 +162,7 @@ class Settings(BaseModel):
     compute: Compute
     ingest: Ingest
     crosscheck: Crosscheck
+    sentinels: Sentinels
     baseline: Baseline
     alphagen_benchmark: AlphaGenBenchmark
     evaluation: Evaluation

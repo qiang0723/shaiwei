@@ -7,22 +7,22 @@
 > 定位：抽样哨兵抓口径错，抓不住整段缺失；6000 硬顶只有这条能抓。
 
 ## S2 双算闸
-关键派生量（后复权收盘、全市场等权收益、VWAP）用两条独立实现路径（如 Python 向量化 vs DuckDB SQL 窗口函数）各算一遍，对到 <1e-12。成本半天，换静默实现错误终身免疫。
+关键派生量（后复权收盘、等权收益、VWAP）用两条独立实现路径（Python 向量化 vs DuckDB SQL 窗口函数）各算一遍，对到 <1e-12。为适配 24GB 本机，按股票代码排序后等距固定抽取 32 只；样本数和全市场股票数写入证据报告，样本配置冻结后不得随结果替换。
 
 ## S3 复权反算
-`$close × $factor` 对 Tushare daily.close，相对误差 <1e-4。固定抽样四类：贵州茅台 / 一只高送转股 / 一只退市股 / 一只长期停牌复牌股。除权日断言后复权序列无跳变。
+`$close × $factor` 对 Tushare daily.close，相对误差 <1e-4。固定抽样四类：贵州茅台 / 牧原股份（公司行为）/ 退市海润 / 万方发展（长停复牌）。同时断言相邻后复权收盘收益与 daily.pct_chg 一致，防止除权日产生机械跳变；缺少任一样本直接 FAIL。
 
 ## S4 量纲断言
 `$vwap` 与 `amount/volume` 比值 ∈ [0.5, 2]。（这条防的是差 10-1000 倍的静默错，是 Tushare×AlphaGen 链路的守门员。）
 
 ## S5 财务 PIT 回归测试（永久用例）
-京东方A（000725.SZ）2023-04-29 追溯调整案例：模拟日落在更正前，必须取到 report_type=5 / update_flag=0 的旧值。任何 PIT 层代码改动后必须重跑。附带监控：同一 end_date 多行的出现比例（更正频率健康度）。
+京东方A（000725.SZ）2023-04-29 追溯调整案例：模拟日落在更正前，必须取到 report_type=5 / update_flag=0 的旧值，更正公告后取 report_type=1 / update_flag=1。income/balancesheet/cashflow 三表均须字段齐全、非空且最新 PIT 快照非空；任何 PIT 层代码改动后必须重跑。附带监控：各表同一 end_date 多行的出现比例（更正频率健康度）。
 
 ## S6 停牌断言
 停牌日 OHLCV 全部为 NaN（不得为 0/前值）；与 suspend_d 交叉核对；长停复牌股单独抽查复牌日复权连续性。
 
 ## S7 量价逻辑
-high ≥ low ≥ 0；high ≥ max(open, close)；low ≤ min(open, close)；volume ≥ 0；非除权日 |pct_chg| 超所属板块阈值告警；adj_factor 环比突变必须对应分红送转记录。
+high ≥ low ≥ 0；high ≥ max(open, close)；low ≤ min(open, close)；volume ≥ 0；方向性涨跌停字段不得互相矛盾；adj_factor 环比突变必须在同一 ex_date 对应已实施的分红送转记录。
 
 ## S8 独立源交叉比对
 每日与 AKShare 比对收盘价/成交量，差异 >1% 排查；缺失率监控（可从 qlib check_data_health.py 起步）。

@@ -11,6 +11,7 @@ def test_frozen_config_loads():
     assert settings.ingest.source_row_limit == 6000
     assert settings.crosscheck.symbols == ["000001.SZ", "600519.SH", "300750.SZ", "688981.SH"]
     assert settings.alphagen_benchmark.index_code == "000300.SH"
+    assert settings.sentinels.reverse_adjustment_samples.delisted == "600401.SH"
     assert settings.ingest.history_window_years == 10
     assert settings.baseline.validation_months == 6
     assert settings.baseline.seed == 42

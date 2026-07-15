@@ -2,7 +2,7 @@ from datetime import date
 
 import pandas as pd
 
-from shaiwei.transform.universe import active_securities, index_members_on, st_status_on
+from shaiwei.transform.universe import active_securities, index_members_on, st_flags_on, st_status_on
 
 
 def test_active_securities_is_survivorship_free_and_bse_switch_is_suffix_based():
@@ -59,3 +59,4 @@ def test_st_status_is_conservative_on_same_day_ties_and_excludes_delisting_name(
     )
     result = st_status_on(history, observations)
     assert result.set_index("ts_code")["is_st"].to_dict() == {"A": True, "B": False}
+    assert st_flags_on(history, observations).tolist() == [True, False]

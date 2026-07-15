@@ -10,9 +10,12 @@ from shaiwei.ingest.core import RawBatchWriter
 from shaiwei.ingest.tushare import (
     TushareIngestor,
     build_bootstrap_plan,
+    build_corporate_action_plan,
     build_financial_plan,
+    build_industry_membership_plan,
     build_market_plan,
     build_namechange_plan,
+    build_suspension_plan,
     create_client,
     public_request_params,
 )
@@ -21,7 +24,12 @@ from shaiwei.ingest.tushare import (
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="筛微阶段 0 不可变数据采集")
     parser.add_argument(
-        "--stage", choices=("bootstrap", "namechange", "market", "financial"), default="bootstrap"
+        "--stage",
+        choices=(
+            "bootstrap", "suspensions", "namechange", "corporate-actions",
+            "industry-membership", "market", "financial",
+        ),
+        default="bootstrap",
     )
     parser.add_argument("--as-of", type=date.fromisoformat, default=date.today())
     parser.add_argument("--dry-run", action="store_true", help="只打印请求计划，不读取 token、不访问网络")
@@ -34,10 +42,14 @@ def main() -> int:
     settings = load()
     if args.stage == "bootstrap":
         plan = build_bootstrap_plan(settings, args.as_of)
+    elif args.stage == "suspensions":
+        plan = build_suspension_plan(settings, args.as_of, load_latest_api("tushare.trade_cal"))
     else:
         stock_basic = load_latest_api("tushare.stock_basic")
         builders = {
             "namechange": build_namechange_plan,
+            "corporate-actions": build_corporate_action_plan,
+            "industry-membership": build_industry_membership_plan,
             "market": build_market_plan,
             "financial": build_financial_plan,
         }
