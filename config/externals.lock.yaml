@@ -1,0 +1,8 @@
+alphagen:
+  url: "https://github.com/RL-MLDM/alphagen.git"
+  commit: "259687e8f316994426416c530a94842a2fe6405e"
+  fetched_at: "2026-07-15"
+alphaeval:
+  url: "https://github.com/BerkinChen/AlphaEval.git"
+  commit: "6300e8f30def996f99a00663d679fab14f6d0ba9"
+  fetched_at: "2026-07-15"

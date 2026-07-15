@@ -4,6 +4,7 @@ logs/
 *.parquet
 *.duckdb
 qlib_bin/
+vendor/
 # 密钥
 .env
 config/secrets*

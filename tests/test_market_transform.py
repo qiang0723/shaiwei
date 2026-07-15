@@ -9,11 +9,13 @@ def test_market_transform_adjusts_prices_and_units_with_reversible_factor():
         [
             {
                 "ts_code": "A", "trade_date": "20200101", "open": 9.0, "high": 11.0,
-                "low": 8.0, "close": 10.0, "pre_close": 9.0, "vol": 2.0, "amount": 2.0,
+                "low": 8.0, "close": 10.0, "pre_close": 9.0, "change": 1.0, "pct_chg": 10.0,
+                "vol": 2.0, "amount": 2.0,
             },
             {
                 "ts_code": "A", "trade_date": "20200102", "open": 4.5, "high": 5.5,
-                "low": 4.0, "close": 5.0, "pre_close": 4.5, "vol": 4.0, "amount": 2.0,
+                "low": 4.0, "close": 5.0, "pre_close": 4.5, "change": 0.5, "pct_chg": 11.11,
+                "vol": 4.0, "amount": 2.0,
             },
         ]
     )
@@ -32,13 +34,15 @@ def test_market_transform_adjusts_prices_and_units_with_reversible_factor():
     assert result["volume"].tolist() == [200.0, 200.0]
     assert result["amount"].tolist() == [2000.0, 2000.0]
     assert result["vwap"].tolist() == [10.0, 10.0]
+    np.testing.assert_allclose(result["change"], [0.1, 0.1111])
+    assert result["price_change"].tolist() == [1.0, 0.5]
 
 
 def test_market_transform_refuses_missing_factor():
     daily = pd.DataFrame(
         [{
             "ts_code": "A", "trade_date": "20200101", "open": 1, "high": 1, "low": 1,
-            "close": 1, "pre_close": 1, "vol": 1, "amount": 1,
+            "close": 1, "pre_close": 1, "pct_chg": 0, "vol": 1, "amount": 1,
         }]
     )
     factors = pd.DataFrame(columns=["ts_code", "trade_date", "adj_factor"])

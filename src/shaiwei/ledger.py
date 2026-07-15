@@ -47,6 +47,24 @@ def sha256_file(p: str | Path) -> str:
             h.update(chunk)
     return h.hexdigest()
 
+
+def ingest_snapshot_sha256(path: Path = INGEST) -> str:
+    """Hash the ordered committed batch identities without hashing multi-GB data again."""
+    with path.open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    canonical = [
+        {
+            "batch_id": row["batch_id"],
+            "source_api": row["source_api"],
+            "params_json": json.loads(row["params_json"]),
+            "row_count": int(row["row_count"]),
+            "content_sha256": row["content_sha256"],
+        }
+        for row in rows
+    ]
+    payload = json.dumps(canonical, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(payload).hexdigest()
+
 def append_ingest_batch(source_api: str, params: dict, row_count: int,
                         parquet_path: str, content_sha256: str | None = None,
                         operator: str = "automation") -> str:

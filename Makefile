@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run sentinel test backtest-baseline check-ledger
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run sentinel qlib-build test backtest-baseline alphagen-benchmark check-ledger
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -26,9 +26,13 @@ ingest-dry-run:   ## 无凭据打印基础表请求计划
 	$(PYTHON) -m shaiwei.ingest --dry-run
 sentinel:         ## 跑全部哨兵（S1-S10），任一 FAIL 退出码非零
 	$(PYTHON) -m shaiwei.sentinel
+qlib-build:       ## 哨兵通过后构建 qlib 原生 bin
+	$(PYTHON) -m shaiwei.transform.qlib_bin
 test:             ## 单元测试 + 账本追加校验
 	$(PYTHON) -m pytest -q
 backtest-baseline:## Alpha158+LightGBM 双周基线，输出 G0 三条件数字与成本情景带
 	$(PYTHON) -m shaiwei.backtest.baseline
+alphagen-benchmark:## AlphaGen 单轮 CPU benchmark（必须先完成 qlib-build）
+	$(PYTHON) -m shaiwei.benchmark.alphagen_cpu
 check-ledger:     ## 账本 append-only 校验（也包含在 test 内）
 	$(PYTHON) -m pytest -q tests/test_ledger_append_only.py

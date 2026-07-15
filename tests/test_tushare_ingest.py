@@ -35,6 +35,7 @@ def test_bootstrap_plan_partitions_monthly_and_never_dates_namechange(tmp_path: 
     assert sum(request.api_name == "stock_basic" for request in plan) == 3
     assert sum(request.api_name == "index_weight" for request in plan) == 2
     assert sum(request.api_name == "suspend_d" for request in plan) == 2
+    assert sum(request.api_name == "index_daily" for request in plan) == 1
     namechange = next(request for request in plan if request.api_name == "namechange")
     assert namechange.params == {}
     february = [request for request in plan if request.partitions.get("period") == "2016-02"]
@@ -103,6 +104,7 @@ def test_market_plan_is_per_stock_windowed_and_excludes_bse():
     assert {request.params["ts_code"] for request in plan} == {"600001.SH"}
     assert [request.api_name for request in plan].count("daily") == 3
     assert [request.api_name for request in plan].count("adj_factor") == 3
+    assert [request.api_name for request in plan].count("daily_basic") == 3
     assert all({"ts_code", "start_date", "end_date"} == request.params.keys() for request in plan)
 
 

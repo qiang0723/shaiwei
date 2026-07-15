@@ -7,7 +7,7 @@ PRICE_COLUMNS = ("open", "high", "low", "close", "pre_close")
 
 
 def transform_market_data(daily: pd.DataFrame, adj_factor: pd.DataFrame) -> pd.DataFrame:
-    daily_required = {"ts_code", "trade_date", "vol", "amount", *PRICE_COLUMNS}
+    daily_required = {"ts_code", "trade_date", "vol", "amount", "pct_chg", *PRICE_COLUMNS}
     factor_required = {"ts_code", "trade_date", "adj_factor"}
     if missing := daily_required - set(daily.columns):
         raise ValueError(f"daily missing fields: {sorted(missing)}")
@@ -43,4 +43,7 @@ def transform_market_data(daily: pd.DataFrame, adj_factor: pd.DataFrame) -> pd.D
     merged["amount"] = pd.to_numeric(merged["amount"], errors="coerce") * 1000.0
     merged["vwap"] = merged["amount"] / merged["volume"].replace(0, np.nan)
     merged["raw_volume"] = raw_volume_shares
+    if "change" in merged:
+        merged["price_change"] = merged["change"]
+    merged["change"] = pd.to_numeric(merged["pct_chg"], errors="coerce") / 100.0
     return merged.reset_index(drop=True)

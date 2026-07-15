@@ -30,6 +30,33 @@ ingest:
   min_request_interval_seconds: 0.15  # 基础频控 500 次/分钟留安全余量
   source_row_limit: 6000              # Tushare daily 单次硬顶；触顶必须判失败而非接受截断
   history_window_years: 10            # 单票行情分窗；远小于 6000 个交易日
+baseline:
+  instrument: "csi800"
+  validation_months: 6                # 每个 3 年训练窗末 6 个月作早停验证；首次回测前冻结
+  account: 100000000
+  seed: 42
+  learning_rate: 0.05
+  num_leaves: 31
+  max_depth: -1
+  colsample_bytree: 0.8879
+  subsample: 0.8789
+  reg_alpha: 0.0421
+  reg_lambda: 0.0220
+  num_boost_round: 1000
+  early_stopping_rounds: 50
+alphagen_benchmark:
+  instrument: "csi300"
+  train_start: "2019-01-01"
+  train_end: "2021-12-31"
+  population_size: 100
+  generations: 1                         # Day 7 单轮通量实验，不是正式挖掘预算
+  tournament_size: 30
+  max_expression_tokens: 20
+  seed: 2
+  min_cross_section: 30
+  rank_ic_threshold: 0.03
+  scale_time_hours: 4
+  abort_time_hours: 12
 evaluation:
   # 2026-07-15、任何回测运行前预注册：3 年训练 + 次年检验，共 6 个窗口。
   g0_windows:

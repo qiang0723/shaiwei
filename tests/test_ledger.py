@@ -38,3 +38,12 @@ def test_ingest_ledger_rejects_false_row_count(tmp_path: Path):
     pd.DataFrame({"x": [1]}).to_parquet(artifact)
     with pytest.raises(ValueError, match="does not match"):
         ledger.append_ingest_batch("tushare.daily", {}, 2, str(artifact))
+
+
+def test_empty_ingest_snapshot_is_stable(tmp_path: Path):
+    path = tmp_path / "ingest.csv"
+    path.write_text(
+        "batch_id,ingest_time,source_api,params_json,row_count,parquet_path,content_sha256,operator\n",
+        encoding="utf-8",
+    )
+    assert ledger.ingest_snapshot_sha256(path) == ledger.ingest_snapshot_sha256(path)

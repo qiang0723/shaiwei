@@ -13,6 +13,7 @@
 - 回测窗口起点：2016-01-01（早于 2008 不可前移，除非重估幸存者偏差缺口）。
 - 本机：Mac M5 10 核 24G；joblib ≤8 进程；torch 用 CPU。
 - G0 六窗口：2026-07-15 在任何回测运行前预注册为 3 年训练 + 次年检验（W1-W6，检验年 2019-2024），详见 docs/GATES.md；此项补足日期口径，不改 G0 公式。
+- 基线训练窗内部切分：末 6 个月固定作 LightGBM 早停验证；标签固定为“次一开盘买入、10 个交易日后开盘卖出”的 `Ref($open,-11)/Ref($open,-1)-1`；均在首次回测前冻结。
 
 ## 当前进度
 - [x] Day 0：v0.5.4 报告+SHA256 存证；Git 基线 `9ab3c96` / tag `baseline-v0.5.4`；Python 3.12 隔离环境、依赖锁、7 项测试、Ruff、qlib/LightGBM/Tushare/AKShare 运行时检查通过
@@ -20,8 +21,8 @@
 - [ ] Day 1-2：仓库骨架 / config / trade_cal / stock_basic（含退市）/ index_weight 历史
 - [ ] Day 3-4：全量 daily+adj_factor（分页！）→ 后复权 → 量纲统一 → 完整性对账 → 全部哨兵
 - [ ] Day 5：财务三表 PIT 层 + 京东方A 回归测试
-- [ ] Day 6：dump_bin → qlib Alpha158+LightGBM 基线 → 启动影子执行
-- [ ] Day 7：AlphaGen CPU 化 benchmark（含中性化 fitness），记录耗时/内存
+- [ ] Day 6：dump_bin → qlib Alpha158+LightGBM 基线 → 启动影子执行（代码层已完成；待真实数据运行、信号 manifest 入 git 与次日对账）
+- [ ] Day 7：AlphaGen CPU 化 benchmark（含中性化 fitness），记录耗时/内存（官方仓库已锁定；CPU/中性化适配代码已完成，待真实 qlib 数据运行）
 - [ ] fund_comparator.csv 冻结填充（开工第一周内，晚于此即引入事后挑选空间）
 
 ## 后台任务

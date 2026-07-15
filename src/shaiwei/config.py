@@ -62,6 +62,47 @@ class Ingest(BaseModel):
     history_window_years: int = Field(ge=1, le=20)
 
 
+class Baseline(BaseModel):
+    instrument: str
+    validation_months: int = Field(ge=1, le=12)
+    account: float = Field(gt=0)
+    seed: int = Field(ge=0)
+    learning_rate: float = Field(gt=0, le=1)
+    num_leaves: int = Field(ge=2)
+    max_depth: int
+    colsample_bytree: float = Field(gt=0, le=1)
+    subsample: float = Field(gt=0, le=1)
+    reg_alpha: float = Field(ge=0)
+    reg_lambda: float = Field(ge=0)
+    num_boost_round: int = Field(gt=0)
+    early_stopping_rounds: int = Field(gt=0)
+
+
+class AlphaGenBenchmark(BaseModel):
+    instrument: str
+    train_start: date
+    train_end: date
+    population_size: int = Field(gt=1)
+    generations: int = Field(gt=0)
+    tournament_size: int = Field(gt=1)
+    max_expression_tokens: int = Field(gt=0)
+    seed: int = Field(ge=0)
+    min_cross_section: int = Field(ge=5)
+    rank_ic_threshold: float
+    scale_time_hours: float = Field(gt=0)
+    abort_time_hours: float = Field(gt=0)
+
+    @model_validator(mode="after")
+    def validate_benchmark(self) -> "AlphaGenBenchmark":
+        if self.train_start >= self.train_end:
+            raise ValueError("alphagen train_start must be before train_end")
+        if self.tournament_size > self.population_size:
+            raise ValueError("alphagen tournament_size must not exceed population_size")
+        if self.abort_time_hours <= self.scale_time_hours:
+            raise ValueError("alphagen abort_time_hours must exceed scale_time_hours")
+        return self
+
+
 class EvaluationWindow(BaseModel):
     name: str
     train_start: date
@@ -94,6 +135,8 @@ class Settings(BaseModel):
     limit_rules: LimitRules
     compute: Compute
     ingest: Ingest
+    baseline: Baseline
+    alphagen_benchmark: AlphaGenBenchmark
     evaluation: Evaluation
 
 

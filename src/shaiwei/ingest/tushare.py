@@ -35,6 +35,11 @@ FIELDS: dict[str, tuple[str, ...]] = {
         "change", "pct_chg", "vol", "amount",
     ),
     "adj_factor": ("ts_code", "trade_date", "adj_factor"),
+    "daily_basic": ("ts_code", "trade_date", "close", "turnover_rate", "volume_ratio", "total_mv", "circ_mv"),
+    "index_daily": (
+        "ts_code", "trade_date", "open", "high", "low", "close", "pre_close",
+        "change", "pct_chg", "vol", "amount",
+    ),
     "income": (
         "ts_code", "ann_date", "f_ann_date", "end_date", "report_type", "comp_type", "end_type",
         "basic_eps", "total_revenue", "revenue", "total_cogs", "operate_profit", "total_profit",
@@ -116,7 +121,7 @@ def build_market_plan(settings: Settings, as_of: date, stock_basic: pd.DataFrame
                 "symbol": security.ts_code,
                 "period": f"{window_start:%Y%m%d}-{window_end:%Y%m%d}",
             }
-            requests.extend(Request(api, params, partitions) for api in ("daily", "adj_factor"))
+            requests.extend(Request(api, params, partitions) for api in ("daily", "adj_factor", "daily_basic"))
     return requests
 
 
@@ -145,6 +150,17 @@ def build_bootstrap_plan(settings: Settings, as_of: date) -> list[Request]:
             {"exchange": "SSE"},
         )
     ]
+    requests.append(
+        Request(
+            "index_daily",
+            {
+                "ts_code": settings.universe.index_code,
+                "start_date": start.strftime("%Y%m%d"),
+                "end_date": as_of.strftime("%Y%m%d"),
+            },
+            {"symbol": settings.universe.index_code},
+        )
+    )
     requests.extend(
         Request("stock_basic", {"exchange": "", "list_status": status}, {"list_status": status})
         for status in ("L", "D", "P")
