@@ -28,3 +28,29 @@ def test_akshare_history_is_normalized_and_recorded(tmp_path: Path):
     assert pd.read_parquet(batch.parquet_path).loc[0, "ts_code"] == "600519.SH"
     assert pd.read_parquet(batch.parquet_path).loc[0, "trade_date"] == "20260715"
     assert recorded[0]["source_api"] == "akshare.stock_zh_a_hist"
+
+
+def test_akshare_retries_transient_network_failures_through_configured_window(tmp_path: Path):
+    attempts = []
+
+    def fetch(**kwargs):
+        attempts.append(kwargs)
+        if len(attempts) < 6:
+            raise ConnectionError("temporary proxy disconnect")
+        return pd.DataFrame(
+            [{
+                "日期": "2026-07-15", "股票代码": "600519", "开盘": 1.0, "收盘": 2.0,
+                "最高": 2.0, "最低": 1.0, "成交量": 3.0, "成交额": 4.0,
+            }]
+        )
+
+    ingestor = AKShareIngestor(
+        RawBatchWriter(tmp_path, recorder=lambda **_: "id"),
+        fetch=fetch,
+        max_attempts=6,
+        retry_base_seconds=0,
+    )
+    request = CrosscheckRequest("600519.SH", date(2026, 7, 15), date(2026, 7, 15))
+
+    assert ingestor.run([request])[0].row_count == 1
+    assert len(attempts) == 6
