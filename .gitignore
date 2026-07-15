@@ -1,6 +1,7 @@
 # 数据与派生物不入 git（数据不可变纪律靠 Parquet 分区+备份盘，不靠 git）
 data/
 logs/
+mlruns/
 *.parquet
 *.duckdb
 qlib_bin/

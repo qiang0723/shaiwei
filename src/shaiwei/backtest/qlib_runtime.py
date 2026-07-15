@@ -1,4 +1,4 @@
-"""Project-owned qlib initialization, including an ignored local recorder root."""
+"""Project-owned qlib initialization with ignored local tracking state."""
 
 import qlib
 from qlib.config import REG_CN
