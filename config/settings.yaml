@@ -1,6 +1,10 @@
 runtime:
   data_root: "./data"
   environment: "dev"
+notifications:
+  feishu_enabled: false
+  timeout_seconds: 10
+  heartbeat_seconds: 1800
 universe:
   index_code: "000906.SH"       # 中证800
   include_bse: false            # 北交所口径，全管线唯一开关（.BJ 后缀识别）

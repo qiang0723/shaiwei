@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow alphagen-benchmark g0-audit stage0-plan stage0-run check-ledger
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow alphagen-benchmark g0-audit stage0-plan stage0-run check-ledger feishu-test
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -46,3 +46,5 @@ stage0-run:       ## 失败即停、可续跑的 Day0-7 全流程
 	$(PYTHON) -m shaiwei.pipeline.stage0 $(STAGE0_ARGS)
 check-ledger:     ## 账本 append-only 校验（也包含在 test 内）
 	$(PYTHON) -m pytest -q tests/test_ledger_append_only.py
+feishu-test:      ## 使用本地 .env 向飞书发送一条签名连通性测试消息
+	$(PYTHON) -m shaiwei.notify --test

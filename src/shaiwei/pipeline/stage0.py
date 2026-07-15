@@ -7,9 +7,12 @@ import sys
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path
+from threading import Event, Thread
+import time
 
 from shaiwei.config import PROJECT_ROOT, load
 from shaiwei.ledger import ingest_snapshot_sha256
+from shaiwei.notify import FeishuNotifier
 from shaiwei.provenance import code_snapshot_sha256
 
 
@@ -111,6 +114,61 @@ def _selected(all_steps: list[Step], start: str | None, through: str | None) -> 
     return all_steps[first:last]
 
 
+def _notify(
+    notifier: FeishuNotifier,
+    event: str,
+    title: str,
+    fields: dict[str, object] | None = None,
+) -> None:
+    try:
+        result = notifier.send(event, title, fields)
+    except Exception as error:  # Notification failures must never alter the research task result.
+        print(
+            json.dumps(
+                {"notification": event, "status": "FAIL", "error_type": type(error).__name__},
+                ensure_ascii=False,
+            ),
+            file=sys.stderr,
+        )
+        return
+    if result.status == "FAIL":
+        print(
+            json.dumps(
+                {"notification": event, "status": "FAIL", "error_type": result.error_type},
+                ensure_ascii=False,
+            ),
+            file=sys.stderr,
+        )
+
+
+def _run_with_guard(step: Step, notifier: FeishuNotifier, *, as_of: date) -> subprocess.CompletedProcess:
+    stop = Event()
+    started = time.monotonic()
+
+    def heartbeat() -> None:
+        while not stop.wait(notifier.config.heartbeat_seconds):
+            _notify(
+                notifier,
+                "pipeline_heartbeat",
+                "阶段流水线持续运行",
+                {
+                    "as_of": as_of.isoformat(),
+                    "step": step.name,
+                    "elapsed_seconds": round(time.monotonic() - started, 1),
+                },
+            )
+
+    guard = Thread(target=heartbeat, name=f"feishu-guard-{step.name}", daemon=True)
+    if notifier.enabled:
+        guard.start()
+    try:
+        return subprocess.run(step.argv, cwd=PROJECT_ROOT)
+    finally:
+        stop.set()
+        if guard.is_alive():
+            guard.join(timeout=notifier.config.timeout_seconds + 1)
+
+
 def main() -> int:
     all_steps = steps(date.today())
     names = [step.name for step in all_steps]
@@ -154,6 +212,20 @@ def main() -> int:
         if args.no_resume
         else _completed_steps(log_path, code_hash=code_hash, data_hash=current_data_hash, as_of=args.as_of)
     )
+    notifier = FeishuNotifier(settings.notifications)
+    pipeline_started = time.monotonic()
+    _notify(
+        notifier,
+        "pipeline_started",
+        "阶段 0 流水线启动",
+        {
+            "as_of": args.as_of.isoformat(),
+            "environment": settings.runtime.environment,
+            "step_count": len(selected),
+            "code_snapshot": code_hash[:12],
+            "data_snapshot": current_data_hash[:12],
+        },
+    )
     for step in selected:
         if step.name in completed:
             print(json.dumps({"step": step.name, "status": "SKIP_RESUMED"}, ensure_ascii=False))
@@ -166,7 +238,7 @@ def main() -> int:
             "command": list(step.argv),
         }
         _append_event(log_path, {**common, "status": "START", "ts": started.isoformat()})
-        result = subprocess.run(step.argv, cwd=PROJECT_ROOT)
+        result = _run_with_guard(step, notifier, as_of=args.as_of)
         finished = datetime.now(timezone.utc)
         status = "PASS" if result.returncode == 0 else "FAIL"
         _append_event(
@@ -181,8 +253,30 @@ def main() -> int:
             },
         )
         if result.returncode != 0:
+            _notify(
+                notifier,
+                "pipeline_failed",
+                "阶段 0 流水线失败",
+                {
+                    "as_of": args.as_of.isoformat(),
+                    "step": step.name,
+                    "returncode": result.returncode,
+                    "step_elapsed_seconds": round((finished - started).total_seconds(), 1),
+                    "pipeline_elapsed_seconds": round(time.monotonic() - pipeline_started, 1),
+                },
+            )
             print(json.dumps({"step": step.name, "status": status, "returncode": result.returncode}))
             return result.returncode
+    _notify(
+        notifier,
+        "pipeline_completed",
+        "阶段 0 流水线完成",
+        {
+            "as_of": args.as_of.isoformat(),
+            "completed_steps": len(selected),
+            "elapsed_seconds": round(time.monotonic() - pipeline_started, 1),
+        },
+    )
     print(json.dumps({"status": "PASS", "completed_steps": [step.name for step in selected]}))
     return 0
 

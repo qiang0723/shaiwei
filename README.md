@@ -25,6 +25,16 @@ make fix-lightgbm-macos
 
 阶段 0 的自动执行顺序以 `docs/DAY_PLAN.md` 为准；任一哨兵失败或 G0 未通过均停止，不自动进入阶段 1。
 
+## 飞书守护告警
+
+告警凭据只放在被 Git 忽略的本地 `.env`，变量名见 `.env.example`。阶段流水线会发送启动、失败、完成事件；单个步骤运行超过 `FEISHU_HEARTBEAT_SECONDS` 后持续发送守护心跳。通知失败只写入 `logs/notifications/` 的脱敏投递账本，不改变研究流水线退出码。
+
+```bash
+make feishu-test
+```
+
+Docker 启动时通过 Compose 的 `env_file: .env` 注入相同变量，禁止把 webhook 或签名密钥写进镜像和 compose 文件。
+
 ## 阶段 0 目标流
 
 先看计划和凭据是否就绪（不会访问网络）：

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from shaiwei.pipeline.stage0 import _completed_steps, _selected, steps
+from shaiwei.pipeline.stage0 import _completed_steps, _notify, _selected, steps
 
 
 def test_stage0_pipeline_has_fail_closed_order_and_no_stage1():
@@ -33,3 +33,12 @@ def test_pipeline_rejects_reversed_slice():
     all_steps = steps(date(2026, 7, 15))
     with pytest.raises(ValueError, match="must not be after"):
         _selected(all_steps, "baseline", "market")
+
+
+def test_notification_exception_never_changes_pipeline_control_flow(capsys):
+    class BrokenNotifier:
+        def send(self, *_args, **_kwargs):
+            raise OSError("delivery unavailable")
+
+    _notify(BrokenNotifier(), "pipeline_failed", "failed")
+    assert '"error_type": "OSError"' in capsys.readouterr().err

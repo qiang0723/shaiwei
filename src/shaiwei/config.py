@@ -16,6 +16,21 @@ class Runtime(BaseModel):
     environment: Literal["dev", "prod"]
     tushare_token: SecretStr | None = None
 
+
+class Notifications(BaseModel):
+    feishu_enabled: bool = False
+    feishu_webhook_url: SecretStr | None = None
+    feishu_signing_secret: SecretStr | None = None
+    timeout_seconds: float = Field(gt=0, le=60)
+    heartbeat_seconds: int = Field(ge=60, le=86400)
+
+    @model_validator(mode="after")
+    def validate_feishu_credentials(self) -> "Notifications":
+        if self.feishu_enabled and not (self.feishu_webhook_url and self.feishu_signing_secret):
+            raise ValueError("enabled Feishu alerts require webhook URL and signing secret")
+        return self
+
+
 class Universe(BaseModel):
     index_code: str
     include_bse: bool
@@ -157,6 +172,7 @@ class Evaluation(BaseModel):
 
 class Settings(BaseModel):
     runtime: Runtime
+    notifications: Notifications
     universe: Universe
     backtest: Backtest
     limit_rules: LimitRules
@@ -180,6 +196,16 @@ def load(path: str | Path | None = None) -> Settings:
     runtime["data_root"] = os.getenv("SHAIWEI_DATA_ROOT", runtime.get("data_root", "./data"))
     runtime["environment"] = os.getenv("SHAIWEI_ENV", runtime.get("environment", "dev"))
     runtime["tushare_token"] = os.getenv("TUSHARE_TOKEN") or None
+    notifications = raw.setdefault("notifications", {})
+    enabled = os.getenv("FEISHU_ALERTS_ENABLED")
+    if enabled is not None:
+        notifications["feishu_enabled"] = enabled.strip().lower() in {"1", "true", "yes", "on"}
+    notifications["feishu_webhook_url"] = os.getenv("FEISHU_WEBHOOK_URL") or None
+    notifications["feishu_signing_secret"] = os.getenv("FEISHU_SIGNING_SECRET") or None
+    if timeout := os.getenv("FEISHU_TIMEOUT_SECONDS"):
+        notifications["timeout_seconds"] = float(timeout)
+    if heartbeat := os.getenv("FEISHU_HEARTBEAT_SECONDS"):
+        notifications["heartbeat_seconds"] = int(heartbeat)
     data_root = Path(runtime["data_root"])
     runtime["data_root"] = data_root if data_root.is_absolute() else (project_root / data_root).resolve()
     return Settings.model_validate(raw)
