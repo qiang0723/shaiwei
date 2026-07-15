@@ -69,6 +69,26 @@ FIELDS: dict[str, tuple[str, ...]] = {
     ),
 }
 
+# These interfaces are expected to return dense time-series or reference data
+# for most planned requests.  Tushare can occasionally return an empty frame
+# without raising an error; retry those responses before preserving a genuine
+# zero-row result.  Sparse event interfaces (for example dividend/namechange)
+# intentionally remain single-shot because an empty response is commonplace.
+RETRY_EMPTY_APIS = frozenset(
+    {
+        "trade_cal",
+        "stock_basic",
+        "index_weight",
+        "index_daily",
+        "daily",
+        "adj_factor",
+        "daily_basic",
+        "income",
+        "balancesheet",
+        "cashflow",
+    }
+)
+
 
 @dataclass(frozen=True)
 class Request:
@@ -283,18 +303,29 @@ class TushareIngestor:
             self._throttle()
             try:
                 frame = self.client.query(request.api_name, fields=",".join(fields), **request.params)
-                break
             except Exception as exc:
                 error = exc
                 if attempt + 1 < self.settings.ingest.max_attempts:
                     self.sleep(self.settings.ingest.retry_base_seconds * (2**attempt))
+                continue
+
+            if not isinstance(frame, pd.DataFrame):
+                raise IngestError(
+                    f"Tushare {request.api_name} returned {type(frame).__name__}, expected DataFrame"
+                )
+            if (
+                frame.empty
+                and request.api_name in RETRY_EMPTY_APIS
+                and attempt + 1 < self.settings.ingest.max_attempts
+            ):
+                self.sleep(self.settings.ingest.retry_base_seconds * (2**attempt))
+                continue
+            break
         else:
             raise IngestError(
                 f"Tushare {request.api_name} failed after {self.settings.ingest.max_attempts} attempts"
             ) from error
 
-        if not isinstance(frame, pd.DataFrame):
-            raise IngestError(f"Tushare {request.api_name} returned {type(frame).__name__}, expected DataFrame")
         # Tushare represents a legitimate no-data response as DataFrame() with
         # neither rows nor columns.  Preserve the frozen API schema so the
         # immutable zero-row Parquet remains queryable and resumable.
@@ -303,6 +334,14 @@ class TushareIngestor:
         missing = set(fields) - set(frame.columns)
         if missing:
             raise IngestError(f"Tushare {request.api_name} response missing fields: {sorted(missing)}")
+        if "ts_code" in request.params and not frame.empty:
+            response_codes = set(frame["ts_code"].dropna().astype(str).unique())
+            expected_code = request.params["ts_code"]
+            if response_codes != {expected_code}:
+                raise IngestError(
+                    f"Tushare {request.api_name} response ts_code mismatch: "
+                    f"expected {expected_code}, got {sorted(response_codes)}"
+                )
         if len(frame) >= self.settings.ingest.source_row_limit:
             raise IngestError(
                 f"Tushare {request.api_name} returned {len(frame)} rows at/above configured limit; "

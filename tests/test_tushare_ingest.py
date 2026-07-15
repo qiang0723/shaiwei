@@ -118,6 +118,54 @@ def test_ingestor_preserves_schema_for_legitimate_empty_response(tmp_path: Path)
     assert recorded[0]["row_count"] == 0
 
 
+def test_ingestor_retries_transient_empty_dense_response(tmp_path: Path):
+    class EmptyThenDataClient(FakeClient):
+        def query(self, api_name: str, **kwargs):
+            self.calls.append((api_name, kwargs))
+            fields = kwargs["fields"].split(",")
+            if len(self.calls) == 1:
+                return pd.DataFrame()
+            return pd.DataFrame(
+                {
+                    field: [kwargs["ts_code"] if field == "ts_code" else None]
+                    for field in fields
+                }
+            )
+
+    settings = load()
+    settings.ingest.min_request_interval_seconds = 0
+    settings.ingest.retry_base_seconds = 0
+    client = EmptyThenDataClient()
+    recorded = []
+    writer = RawBatchWriter(tmp_path, recorder=lambda **kw: recorded.append(kw) or "id")
+
+    batches = TushareIngestor(client=client, writer=writer, settings=settings).run(
+        [Request("daily", {"ts_code": "000750.SZ"}, {"symbol": "000750.SZ"})]
+    )
+
+    assert len(client.calls) == 2
+    assert pd.read_parquet(batches[0].parquet_path)["ts_code"].tolist() == ["000750.SZ"]
+    assert recorded[0]["row_count"] == 1
+
+
+def test_ingestor_rejects_response_for_wrong_security(tmp_path: Path):
+    class WrongSecurityClient(FakeClient):
+        def query(self, api_name: str, **kwargs):
+            fields = kwargs["fields"].split(",")
+            return pd.DataFrame(
+                {field: ["000751.SZ" if field == "ts_code" else None] for field in fields}
+            )
+
+    settings = load()
+    settings.ingest.min_request_interval_seconds = 0
+    writer = RawBatchWriter(tmp_path, recorder=lambda **_: "id")
+
+    with pytest.raises(IngestError, match="ts_code mismatch"):
+        TushareIngestor(client=WrongSecurityClient(), writer=writer, settings=settings).run(
+            [Request("daily", {"ts_code": "000750.SZ"}, {"symbol": "000750.SZ"})]
+        )
+
+
 def test_ingestor_hides_latency_concurrently_but_commits_in_request_order(tmp_path: Path):
     class SlowClient(FakeClient):
         def __init__(self):
