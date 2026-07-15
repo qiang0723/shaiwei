@@ -45,6 +45,7 @@ def main() -> int:
         suspend_d,
         start=settings.backtest.start.strftime("%Y%m%d"),
         end=max(daily["trade_date"].astype(str)),
+        include_bse=settings.universe.include_bse,
     )
     results["S2"] = s2_dual_calculation(
         daily,
@@ -86,9 +87,18 @@ def main() -> int:
     del adj_factor, akshare, aligned_suspended, daily, dividend, transformed
     gc.collect()
 
-    income = load_latest_api("tushare.income")
-    balancesheet = load_latest_api("tushare.balancesheet")
-    cashflow = load_latest_api("tushare.cashflow")
+    income = pd.concat(
+        [load_latest_api("tushare.income"), load_latest_api("tushare.income_vip")],
+        ignore_index=True,
+    )
+    balancesheet = pd.concat(
+        [load_latest_api("tushare.balancesheet"), load_latest_api("tushare.balancesheet_vip")],
+        ignore_index=True,
+    )
+    cashflow = pd.concat(
+        [load_latest_api("tushare.cashflow"), load_latest_api("tushare.cashflow_vip")],
+        ignore_index=True,
+    )
     results["S5"] = s5_financial_pit(
         income,
         trade_cal,

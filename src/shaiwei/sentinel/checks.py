@@ -39,13 +39,20 @@ def s1_completeness(
     *,
     start: str,
     end: str,
+    include_bse: bool = True,
 ) -> SentinelResult:
     open_days = set(trade_cal.loc[trade_cal["is_open"].astype(str).eq("1"), "cal_date"].astype(str))
     open_days = {day for day in open_days if start <= day <= end}
     suspended = suspend_d.loc[suspend_d["suspend_type"].eq("S")].groupby("ts_code")["trade_date"].agg(set)
     bars = daily.groupby("ts_code")["trade_date"].agg(set)
     anomalies = []
-    for security in stock_basic.drop_duplicates("ts_code").itertuples(index=False):
+    securities = stock_basic.drop_duplicates("ts_code")
+    excluded_bse_count = 0
+    if not include_bse:
+        bse = securities["ts_code"].astype("string").str.endswith(".BJ", na=False)
+        excluded_bse_count = int(bse.sum())
+        securities = securities.loc[~bse]
+    for security in securities.itertuples(index=False):
         life_start = max(start, str(security.list_date))
         delist = str(security.delist_date) if pd.notna(security.delist_date) and str(security.delist_date) else end
         life_end = min(end, delist)
@@ -71,7 +78,11 @@ def s1_completeness(
     return SentinelResult(
         "S1",
         "PASS" if not anomalies else "FAIL",
-        {"security_count": int(stock_basic["ts_code"].nunique()), "anomaly_count": len(anomalies)},
+        {
+            "security_count": int(securities["ts_code"].nunique()),
+            "excluded_bse_count": excluded_bse_count,
+            "anomaly_count": len(anomalies),
+        },
         anomalies[:1000],
     )
 
@@ -230,22 +241,24 @@ def s5_financial_pit(
         }
         if snapshot.empty:
             structural_failures.append({"table": name, "reason": "latest PIT snapshot is empty"})
-    boe = statements.loc[statements["ts_code"].eq("000725.SZ")].copy()
-    boe["_f_ann"] = pd.to_datetime(boe["f_ann_date"], format="%Y%m%d", errors="coerce")
-    old = boe.loc[boe["report_type"].astype(str).eq("5") & boe["update_flag"].astype(str).eq("0")]
-    new = boe.loc[boe["report_type"].astype(str).eq("1") & boe["update_flag"].astype(str).eq("1")]
+    sample = statements.loc[statements["ts_code"].eq("688502.SH")].copy()
+    sample["_f_ann"] = pd.to_datetime(sample["f_ann_date"], format="%Y%m%d", errors="coerce")
+    old = sample.loc[
+        sample["report_type"].astype(str).eq("5") & sample["update_flag"].astype(str).eq("0")
+    ]
+    new = sample.loc[
+        sample["report_type"].astype(str).eq("1") & sample["update_flag"].astype(str).eq("1")
+    ]
     pairs = old.merge(new, on=["ts_code", "end_date"], suffixes=("_old", "_new"))
-    case_date = pd.Timestamp("2023-04-29")
     pairs = pairs.loc[
         pairs["end_date"].astype(str).eq("20221231")
-        & pairs["_f_ann_old"].le(case_date)
         & pairs["_f_ann_old"].lt(pairs["_f_ann_new"])
     ]
     if pairs.empty:
         return SentinelResult(
             "S5",
             "FAIL",
-            {"reason": "BOE 2023 restatement pair not found", "tables": table_metrics},
+            {"reason": "688502.SH 2022 restatement pair not found", "tables": table_metrics},
             structural_failures,
         )
     pair = pairs.sort_values("_f_ann_new").iloc[0]
@@ -258,11 +271,11 @@ def s5_financial_pit(
         return SentinelResult(
             "S5",
             "FAIL",
-            {"reason": "calendar cannot bracket BOE correction", "tables": table_metrics},
+            {"reason": "calendar cannot bracket 688502.SH correction", "tables": table_metrics},
             structural_failures,
         )
-    before_snapshot = financial_pit_snapshot(boe, trade_cal, between.iloc[-1].strftime("%Y-%m-%d"))
-    after_snapshot = financial_pit_snapshot(boe, trade_cal, after.iloc[0].strftime("%Y-%m-%d"))
+    before_snapshot = financial_pit_snapshot(sample, trade_cal, between.iloc[-1].strftime("%Y-%m-%d"))
+    after_snapshot = financial_pit_snapshot(sample, trade_cal, after.iloc[0].strftime("%Y-%m-%d"))
     period = pair["end_date"]
     before_row = before_snapshot.loc[before_snapshot["end_date"].eq(period)]
     after_row = after_snapshot.loc[after_snapshot["end_date"].eq(period)]

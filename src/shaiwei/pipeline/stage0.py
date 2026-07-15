@@ -57,6 +57,14 @@ def steps(as_of: date) -> list[Step]:
             "三大财务报表采集",
             (python, "-m", "shaiwei.ingest", "--stage", "financial", "--as-of", day, "--resume"),
         ),
+        Step(
+            "financial_corrections",
+            "按季度补采三大报表更正前值",
+            (
+                python, "-m", "shaiwei.ingest", "--stage", "financial-corrections",
+                "--as-of", day, "--resume",
+            ),
+        ),
         Step("crosscheck", "AKShare 独立源样本", (python, "-m", "shaiwei.ingest.akshare", "--as-of", day, "--resume")),
         Step("sentinel", "S1-S10 全量门禁", (python, "-m", "shaiwei.sentinel")),
         Step("qlib", "构建带 PIT 涨跌停字段的 qlib bin", (python, "-m", "shaiwei.transform.qlib_bin")),
@@ -128,6 +136,7 @@ def main() -> int:
     ingest_steps = {
         "bootstrap", "suspensions", "namechange", "corporate_actions",
         "industry_membership", "market", "financial",
+        "financial_corrections",
     }
     if any(step.name in ingest_steps for step in selected) and not token_ready:
         raise SystemExit("TUSHARE_TOKEN is missing from local .env; fill it locally, then rerun the same command")

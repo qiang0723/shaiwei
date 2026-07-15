@@ -70,6 +70,13 @@ FIELDS: dict[str, tuple[str, ...]] = {
     ),
 }
 
+# The VIP statement endpoints share the exact schema of the per-security
+# endpoints.  We use them only for sparse report_type=5 correction rows, where
+# a quarter-wide request is bounded and avoids thousands of legitimate empty
+# per-security responses.
+for _statement_api in ("income", "balancesheet", "cashflow"):
+    FIELDS[f"{_statement_api}_vip"] = FIELDS[_statement_api]
+
 # These interfaces are expected to return dense time-series or reference data
 # for most planned requests.  Tushare can occasionally return an empty frame
 # without raising an error; retry those responses before preserving a genuine
@@ -183,6 +190,31 @@ def build_financial_plan(settings: Settings, as_of: date, stock_basic: pd.DataFr
         }
         partitions = {"symbol": security.ts_code, "horizon": f"{start:%Y%m%d}-{as_of:%Y%m%d}"}
         requests.extend(Request(api, params, partitions) for api in ("income", "balancesheet", "cashflow"))
+    return requests
+
+
+def build_financial_corrections_plan(settings: Settings, as_of: date) -> list[Request]:
+    """Fetch sparse pre-correction statements (report_type=5) by quarter.
+
+    The ordinary per-security endpoints default to the latest consolidated
+    statement (report_type=1), so they do not provide the old value needed for
+    a strict restatement PIT test.  The VIP endpoints accept the same fields
+    and can safely fetch sparse type-5 rows for a whole reporting period.
+    """
+    requests = []
+    quarter_ends = ((3, 31), (6, 30), (9, 30), (12, 31))
+    for year in range(settings.backtest.start.year, as_of.year + 1):
+        for month, day in quarter_ends:
+            period = date(year, month, day)
+            if not settings.backtest.start <= period <= as_of:
+                continue
+            period_text = period.strftime("%Y%m%d")
+            params = {"period": period_text, "report_type": "5"}
+            partitions = {"period": period_text, "report_type": "5"}
+            requests.extend(
+                Request(f"{api}_vip", params, partitions)
+                for api in ("income", "balancesheet", "cashflow")
+            )
     return requests
 
 

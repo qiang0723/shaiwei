@@ -18,6 +18,7 @@ from shaiwei.ingest.tushare import (
     _add_no_proxy_host,
     build_bootstrap_plan,
     build_corporate_action_plan,
+    build_financial_corrections_plan,
     build_financial_plan,
     build_industry_membership_plan,
     build_market_plan,
@@ -341,6 +342,18 @@ def test_financial_plan_explicitly_covers_three_statements():
     assert {request.api_name for request in plan} == {"income", "balancesheet", "cashflow"}
     for api in ("income", "balancesheet", "cashflow"):
         assert {"f_ann_date", "report_type", "update_flag"} <= set(FIELDS[api])
+
+
+def test_financial_corrections_plan_is_sparse_quarterly_type_five():
+    settings = load()
+    plan = build_financial_corrections_plan(settings, date(2016, 7, 15))
+    assert len(plan) == 6
+    assert {request.api_name for request in plan} == {
+        "income_vip", "balancesheet_vip", "cashflow_vip",
+    }
+    assert {request.params["period"] for request in plan} == {"20160331", "20160630"}
+    assert all(request.params["report_type"] == "5" for request in plan)
+    assert FIELDS["income_vip"] == FIELDS["income"]
 
 
 def test_namechange_plan_splits_by_stock_without_date_filters():

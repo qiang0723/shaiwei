@@ -44,6 +44,24 @@ def test_s1_accepts_only_calendar_minus_suspensions():
     assert s1_completeness(cal, stocks, daily.iloc[:1], suspensions, start="20200101", end="20200103").status == "FAIL"
 
 
+def test_s1_respects_the_pipeline_bse_scope_switch():
+    cal = pd.DataFrame({"cal_date": ["20200102", "20200103"], "is_open": [1, 1]})
+    stocks = pd.DataFrame(
+        [
+            {"ts_code": "A", "list_date": "20200101", "delist_date": None},
+            {"ts_code": "920001.BJ", "list_date": "20200101", "delist_date": None},
+        ]
+    )
+    daily, _ = _market_inputs()
+    suspensions = pd.DataFrame(columns=["ts_code", "trade_date", "suspend_type"])
+    result = s1_completeness(
+        cal, stocks, daily, suspensions,
+        start="20200101", end="20200103", include_bse=False,
+    )
+    assert result.status == "PASS"
+    assert result.metrics["excluded_bse_count"] == 1
+
+
 def test_s2_s3_s4_and_s7_pass_consistent_market_data():
     daily, factors = _market_inputs()
     transformed = transform_market_data(daily, factors)
@@ -89,22 +107,22 @@ def test_s6_detects_non_nan_suspended_bar():
 def test_s5_requires_three_structural_tables_and_preserves_restated_pit():
     calendar = pd.DataFrame(
         {
-            "cal_date": ["20230428", "20230504", "20230510", "20230511"],
+            "cal_date": ["20230216", "20230217", "20230308", "20230309"],
             "is_open": [1, 1, 1, 1],
         }
     )
     income = pd.DataFrame(
         [
             {
-                "ts_code": "000725.SZ",
-                "f_ann_date": "20230428",
+                "ts_code": "688502.SH",
+                "f_ann_date": "20230216",
                 "end_date": "20221231",
                 "report_type": "5",
                 "update_flag": "0",
             },
             {
-                "ts_code": "000725.SZ",
-                "f_ann_date": "20230510",
+                "ts_code": "688502.SH",
+                "f_ann_date": "20230308",
                 "end_date": "20221231",
                 "report_type": "1",
                 "update_flag": "1",

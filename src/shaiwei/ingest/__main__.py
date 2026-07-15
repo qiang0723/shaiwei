@@ -11,6 +11,7 @@ from shaiwei.ingest.tushare import (
     TushareIngestor,
     build_bootstrap_plan,
     build_corporate_action_plan,
+    build_financial_corrections_plan,
     build_financial_plan,
     build_industry_membership_plan,
     build_market_plan,
@@ -27,7 +28,7 @@ def parse_args() -> argparse.Namespace:
         "--stage",
         choices=(
             "bootstrap", "suspensions", "namechange", "corporate-actions",
-            "industry-membership", "market", "financial",
+            "industry-membership", "market", "financial", "financial-corrections",
         ),
         default="bootstrap",
     )
@@ -44,6 +45,8 @@ def main() -> int:
         plan = build_bootstrap_plan(settings, args.as_of)
     elif args.stage == "suspensions":
         plan = build_suspension_plan(settings, args.as_of, load_latest_api("tushare.trade_cal"))
+    elif args.stage == "financial-corrections":
+        plan = build_financial_corrections_plan(settings, args.as_of)
     else:
         stock_basic = load_latest_api("tushare.stock_basic")
         builders = {

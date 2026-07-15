@@ -23,7 +23,7 @@
 - Tushare `daily`/`adj_factor` 单票单次最多 6000 行 → 所有长历史拉取必须按日期窗分页。
 - 量纲：Tushare vol 单位=手、amount=千元 → 入库统一 vol×100（股）、amount×1000（元）。
 - 复权：统一后复权 + 上市首日 factor=1；禁用 pro_bar 的 qfq/hfq 参数；用 daily+adj_factor 本地自算。
-- 财务 PIT：只从三大报表自建，显式请求 update_flag/report_type/f_ann_date；PIT 对齐用 f_ann_date；更正前取 report_type=5/update_flag=0；禁用 fina_indicator 做严谨 PIT。
+- 财务 PIT：只从三大报表自建，逐股常规接口取 type 1、按季度 VIP 接口补 type 5，均显式请求 update_flag/report_type/f_ann_date；PIT 对齐用 f_ann_date；更正前取 report_type=5/update_flag=0；禁用 fina_indicator 做严谨 PIT。
 - namechange 全量拉取后本地筛，禁止传日期区间；ST 判定按 latest-effective-name PIT 逻辑。
 - 停牌日 OHLCV=NaN，禁止零填充/前值填充；收益按跨缺口口径。
 - 交易日历以 trade_cal 为权威轴，bar ∩ calendar。
