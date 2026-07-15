@@ -22,13 +22,13 @@
 - [x] 阶段 0 自动流：`make stage0-plan/stage0-run`；按 as-of+代码+数据快照续跑，采集按参数+文件哈希去重，首个失败即停，最终 G0 审计不含任何阶段 1 命令
 - [x] 证据链硬化：G0 逐批重哈希原始 Parquet，并核对六个不同窗口、影子实验/manifest、AlphaGen summary/候选数；空数据实测以退出码 2 拒绝，`next_phase_authorized=false`
 - [x] 关键门禁补强：S2 固定有界双算样本；S3 固定四类样本并核对复权连续收益；S4 核对 VWAP 绝对量纲；S5 核对三表结构与京东方更正；S7 复权因子跳变对公司行为；S8 核对成交额单位；qlib 使用方向性 PIT 涨跌停字段
-- [x] 离线质量门：66 项测试、Ruff、compileall、pip check、账本追加约束通过（2026-07-15；不等同真实数据验收）
+- [x] 离线质量门：67 项测试、Ruff、compileall、pip check、账本追加约束通过（2026-07-15；不等同真实数据验收）
 - [ ] Day 1-2：仓库骨架 / config / trade_cal / stock_basic（含退市）/ index_weight 历史
 - [ ] Day 3-4：全量 daily+adj_factor（分页！）→ 后复权 → 量纲统一 → 完整性对账 → 全部哨兵
 - [ ] Day 5：财务三表 PIT 层 + 京东方A 回归测试
 - [ ] Day 6：dump_bin → qlib Alpha158+LightGBM 基线 → 启动影子执行（代码层已完成；待真实数据运行、信号 manifest 入 git 与次日对账）
 - [ ] Day 7：AlphaGen CPU 化 benchmark（含中性化 fitness），记录耗时/内存（官方仓库已锁定；CPU/中性化适配代码已完成，待真实 qlib 数据运行）
-- [ ] fund_comparator.csv 冻结填充（开工第一周内，晚于此即引入事后挑选空间）
+- [x] fund_comparator.csv 于 2026-07-15 冻结：不看历史收益，按产品定义+成立日机械选取中证800/A500各3只；纳入、费用和R1替换规则见 `docs/FUND_COMPARATOR_SPEC.md`
 
 ## 后台任务
 （无）
@@ -50,6 +50,7 @@
 - AlphaGen CPU 单轮耗时（CSI300）→ 决定放大 / 降参 / fallback，并换算 mini 机与云配置
 - Tushare 量纲统一后 AlphaGen VWAP 数量级断言是否通过（公开无先例，自研验证）
 - G1 中“DSR/t≥3.0”的实现解释须在阶段 1 编码前冻结；阶段 0 不使用该歧义口径。
+- G8 的“同风险口径”归一化公式须在首次三年裁决计算前预注册；产品成员已冻结，但未冻结风险归一化公式前不得输出 G8 结论。
 - 本机 `.env` 已建立且被 git 忽略/权限收紧，但 `TUSHARE_TOKEN` 仍为空；完整自动流已在采集前 fail-closed，须由人只在本机填写后重跑同一命令。
 
 ## 作废记录
