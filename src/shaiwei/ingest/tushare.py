@@ -98,6 +98,8 @@ RETRY_EMPTY_APIS = frozenset(
 )
 
 TUSHARE_API_HOST = "api.waditu.com"
+FINANCIAL_VIP_PAGE_LIMIT = 4000
+FINANCIAL_VIP_PAGE_OFFSETS = (0, 4000, 8000)
 
 
 def _add_no_proxy_host(host: str) -> None:
@@ -112,11 +114,11 @@ def _add_no_proxy_host(host: str) -> None:
 @dataclass(frozen=True)
 class Request:
     api_name: str
-    params: dict[str, str]
+    params: dict[str, object]
     partitions: dict[str, str]
 
 
-def public_request_params(request: Request) -> dict[str, str]:
+def public_request_params(request: Request) -> dict[str, object]:
     return {**request.params, "fields": ",".join(FIELDS[request.api_name])}
 
 
@@ -210,12 +212,17 @@ def build_financial_corrections_plan(settings: Settings, as_of: date) -> list[Re
                 continue
             period_text = period.strftime("%Y%m%d")
             for report_type in ("1", "5"):
-                params = {"period": period_text, "report_type": report_type}
-                partitions = {"period": period_text, "report_type": report_type}
-                requests.extend(
-                    Request(f"{api}_vip", params, partitions)
-                    for api in ("income", "balancesheet", "cashflow")
-                )
+                offsets = FINANCIAL_VIP_PAGE_OFFSETS if report_type == "1" else (None,)
+                for offset in offsets:
+                    params: dict[str, object] = {"period": period_text, "report_type": report_type}
+                    partitions = {"period": period_text, "report_type": report_type}
+                    if offset is not None:
+                        params.update(limit=FINANCIAL_VIP_PAGE_LIMIT, offset=offset)
+                        partitions["offset"] = str(offset)
+                    requests.extend(
+                        Request(f"{api}_vip", params, partitions)
+                        for api in ("income", "balancesheet", "cashflow")
+                    )
     return requests
 
 
@@ -391,6 +398,16 @@ class TushareIngestor:
             raise IngestError(
                 f"Tushare {request.api_name} returned {len(frame)} rows at/above configured limit; "
                 "refuse possible truncation"
+            )
+        if (
+            request.api_name.endswith("_vip")
+            and request.params.get("report_type") == "1"
+            and request.params.get("offset") == FINANCIAL_VIP_PAGE_OFFSETS[-1]
+            and len(frame) >= FINANCIAL_VIP_PAGE_LIMIT
+        ):
+            raise IngestError(
+                f"Tushare {request.api_name} final pagination page is saturated; "
+                "extend the frozen offset plan before accepting the quarter"
             )
         return frame.loc[:, fields]
 

@@ -11,6 +11,8 @@ from shaiwei.config import load
 from shaiwei.ingest.core import RawBatchWriter
 from shaiwei.ingest.tushare import (
     FIELDS,
+    FINANCIAL_VIP_PAGE_LIMIT,
+    FINANCIAL_VIP_PAGE_OFFSETS,
     IngestError,
     Request,
     TUSHARE_API_HOST,
@@ -347,13 +349,39 @@ def test_financial_plan_explicitly_covers_three_statements():
 def test_financial_corrections_plan_covers_quarterly_type_one_and_five():
     settings = load()
     plan = build_financial_corrections_plan(settings, date(2016, 7, 15))
-    assert len(plan) == 12
+    assert len(plan) == 24
     assert {request.api_name for request in plan} == {
         "income_vip", "balancesheet_vip", "cashflow_vip",
     }
     assert {request.params["period"] for request in plan} == {"20160331", "20160630"}
     assert {request.params["report_type"] for request in plan} == {"1", "5"}
+    type_one = [request for request in plan if request.params["report_type"] == "1"]
+    assert {request.params["offset"] for request in type_one} == set(FINANCIAL_VIP_PAGE_OFFSETS)
+    assert {request.params["limit"] for request in type_one} == {FINANCIAL_VIP_PAGE_LIMIT}
+    assert all("offset" not in request.params for request in plan if request.params["report_type"] == "5")
     assert FIELDS["income_vip"] == FIELDS["income"]
+
+
+def test_financial_vip_rejects_a_saturated_final_pagination_page(tmp_path: Path):
+    settings = load()
+    settings.ingest.min_request_interval_seconds = 0
+    settings.ingest.max_attempts = 1
+    request = Request(
+        "income_vip",
+        {
+            "period": "20251231",
+            "report_type": "1",
+            "limit": FINANCIAL_VIP_PAGE_LIMIT,
+            "offset": FINANCIAL_VIP_PAGE_OFFSETS[-1],
+        },
+        {"period": "20251231", "report_type": "1", "offset": "8000"},
+    )
+    with pytest.raises(IngestError, match="final pagination page is saturated"):
+        TushareIngestor(
+            client=FakeClient(rows=FINANCIAL_VIP_PAGE_LIMIT),
+            writer=RawBatchWriter(tmp_path, recorder=lambda **_: "id"),
+            settings=settings,
+        ).run([request])
 
 
 def test_namechange_plan_splits_by_stock_without_date_filters():
