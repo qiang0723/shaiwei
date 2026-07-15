@@ -9,7 +9,11 @@ import duckdb
 import numpy as np
 import pandas as pd
 
-from shaiwei.transform.market import transform_market_data
+from shaiwei.transform.market import (
+    ADJ_FACTOR_ABSOLUTE_PRICE_TOLERANCE,
+    ADJ_FACTOR_RELATIVE_PRICE_TOLERANCE,
+    transform_market_data,
+)
 from shaiwei.transform.pit import financial_pit_snapshot
 from shaiwei.transform.universe import st_status_on
 
@@ -317,6 +321,21 @@ def s7_price_volume_logic(
     bad = market.loc[bad_mask]
     unmatched_factor_jumps = pd.DataFrame(columns=["ts_code", "trade_date"])
     factor_jump_count = 0
+    corrected_factor_rows = int(
+        market.get("factor_corrected", pd.Series(False, index=market.index)).fillna(False).astype(bool).sum()
+    )
+    correction_columns = [
+        column
+        for column in ("ts_code", "trade_date", "raw_adj_factor", "adj_factor")
+        if column in market.columns
+    ]
+    corrected_factor_sample = (
+        market.loc[market["factor_corrected"].fillna(False).astype(bool), correction_columns]
+        .head(20)
+        .to_dict("records")
+        if "factor_corrected" in market.columns
+        else []
+    )
     if corporate_actions is not None:
         required = {"ts_code", "ex_date", "div_proc"}
         if missing := required - set(corporate_actions.columns):
@@ -336,8 +355,19 @@ def s7_price_volume_logic(
         unmatched_factor_jumps = factor_jumps.merge(
             event_keys.assign(_matched=True), on=["ts_code", "trade_date"], how="left"
         )
+        if "factor_change_supported" in ordered.columns:
+            supported_keys = ordered.loc[
+                ordered["factor_change_supported"].fillna(False).astype(bool),
+                ["ts_code", "trade_date"],
+            ].drop_duplicates()
+            unmatched_factor_jumps = unmatched_factor_jumps.merge(
+                supported_keys.assign(_supported=True), on=["ts_code", "trade_date"], how="left"
+            )
+        else:
+            unmatched_factor_jumps["_supported"] = pd.NA
         unmatched_factor_jumps = unmatched_factor_jumps.loc[
-            unmatched_factor_jumps["_matched"].isna(), ["ts_code", "trade_date"]
+            unmatched_factor_jumps["_matched"].isna() & unmatched_factor_jumps["_supported"].isna(),
+            ["ts_code", "trade_date"],
         ]
     passed = bad.empty and unmatched_factor_jumps.empty
     anomalies = bad.loc[:, ["ts_code", "trade_date"]].assign(reason="price_volume_or_limit")
@@ -354,6 +384,11 @@ def s7_price_volume_logic(
             "limit_sell_days": int(market.get("limit_sell", pd.Series(False, index=market.index)).sum()),
             "contradictory_limit_rows": int(contradictory_limit.sum()),
             "factor_jump_rows": factor_jump_count,
+            "factor_sanitizer_applied": "factor_change_supported" in market.columns,
+            "factor_absolute_price_tolerance": ADJ_FACTOR_ABSOLUTE_PRICE_TOLERANCE,
+            "factor_relative_price_tolerance": ADJ_FACTOR_RELATIVE_PRICE_TOLERANCE,
+            "corrected_factor_rows": corrected_factor_rows,
+            "corrected_factor_sample": corrected_factor_sample,
             "unmatched_factor_jump_rows": len(unmatched_factor_jumps),
         },
         anomalies.head(100).to_dict("records"),

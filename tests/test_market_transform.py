@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from shaiwei.transform.market import attach_trade_limit_flags, transform_market_data
+from shaiwei.transform.market import attach_trade_limit_flags, sanitize_adj_factors, transform_market_data
 
 
 def test_market_transform_adjusts_prices_and_units_with_reversible_factor():
@@ -52,6 +52,53 @@ def test_market_transform_refuses_missing_factor():
         assert "missing adj_factor" in str(error)
     else:
         raise AssertionError("missing factor must fail")
+
+
+def test_factor_sanitizer_ignores_unsubstantiated_patches_but_keeps_real_ratio():
+    daily = pd.DataFrame(
+        [
+            {"ts_code": "A", "trade_date": "20200101", "close": 10.0, "pre_close": 9.0},
+            {"ts_code": "A", "trade_date": "20200102", "close": 10.0, "pre_close": 10.0},
+            {"ts_code": "A", "trade_date": "20200103", "close": 9.5, "pre_close": 10.0 / 1.1},
+            {"ts_code": "A", "trade_date": "20200104", "close": 9.5, "pre_close": 9.5},
+        ]
+    )
+    factors = pd.DataFrame(
+        [
+            {"ts_code": "A", "trade_date": "20200101", "adj_factor": 1.0},
+            {"ts_code": "A", "trade_date": "20200102", "adj_factor": 1.5},
+            {"ts_code": "A", "trade_date": "20200103", "adj_factor": 1.65},
+            {"ts_code": "A", "trade_date": "20200104", "adj_factor": 1.1},
+        ]
+    )
+
+    result = sanitize_adj_factors(daily, factors)
+
+    np.testing.assert_allclose(result["raw_adj_factor"], [1.0, 1.5, 1.65, 1.1])
+    np.testing.assert_allclose(result["adj_factor"], [1.0, 1.0, 1.1, 1.1])
+    assert result["factor_corrected"].tolist() == [False, True, False, True]
+    assert result["factor_change_supported"].tolist() == [True, False, True, False]
+
+
+def test_factor_sanitizer_keeps_explicit_implemented_dividend():
+    daily = pd.DataFrame(
+        [
+            {"ts_code": "A", "trade_date": "20200101", "close": 10.0, "pre_close": 9.0},
+            {"ts_code": "A", "trade_date": "20200102", "close": 10.0, "pre_close": 10.0},
+        ]
+    )
+    factors = pd.DataFrame(
+        [
+            {"ts_code": "A", "trade_date": "20200101", "adj_factor": 1.0},
+            {"ts_code": "A", "trade_date": "20200102", "adj_factor": 1.1},
+        ]
+    )
+    actions = pd.DataFrame([{"ts_code": "A", "ex_date": "20200102", "div_proc": "实施"}])
+
+    result = sanitize_adj_factors(daily, factors, actions)
+
+    np.testing.assert_allclose(result["adj_factor"], [1.0, 1.1])
+    assert result["factor_corrected"].tolist() == [False, False]
 
 
 def test_trade_limit_flags_cover_board_date_st_and_direction():

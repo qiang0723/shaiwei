@@ -14,7 +14,7 @@ from shaiwei.sentinel.checks import (
     s9_st_status,
     s10_git_consistency,
 )
-from shaiwei.transform.market import transform_market_data
+from shaiwei.transform.market import sanitize_adj_factors, transform_market_data
 
 
 def _market_inputs():
@@ -137,6 +137,26 @@ def test_s7_requires_factor_jumps_to_match_implemented_corporate_actions():
     assert s7_price_volume_logic(market, actions).status == "PASS"
     actions.loc[0, "ex_date"] = "20200104"
     assert s7_price_volume_logic(market, actions).status == "FAIL"
+
+
+def test_s7_accepts_preclose_evidence_and_counts_corrected_source_patch():
+    daily, factors = _market_inputs()
+    daily = daily.astype({field: "float64" for field in ("close", "pre_close")})
+    daily.loc[1, "pre_close"] = 5.0
+    factors.loc[1, "adj_factor"] = 2.0
+    actions = pd.DataFrame(columns=["ts_code", "ex_date", "div_proc"])
+    supported = transform_market_data(daily, sanitize_adj_factors(daily, factors, actions))
+    supported_result = s7_price_volume_logic(supported, actions)
+    assert supported_result.status == "PASS"
+    assert supported_result.metrics["factor_jump_rows"] == 1
+    assert supported_result.metrics["corrected_factor_rows"] == 0
+
+    daily.loc[1, "pre_close"] = daily.loc[0, "close"]
+    corrected = transform_market_data(daily, sanitize_adj_factors(daily, factors, actions))
+    corrected_result = s7_price_volume_logic(corrected, actions)
+    assert corrected_result.status == "PASS"
+    assert corrected_result.metrics["factor_jump_rows"] == 0
+    assert corrected_result.metrics["corrected_factor_rows"] == 1
 
 
 def test_s8_checks_close_and_volume_with_same_raw_units():

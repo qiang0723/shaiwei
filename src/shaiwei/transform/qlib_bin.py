@@ -212,7 +212,7 @@ def main() -> int:
     from shaiwei.ledger import ingest_snapshot_sha256
     from shaiwei.provenance import code_snapshot_sha256
     from shaiwei.sentinel.__main__ import main as run_sentinels
-    from shaiwei.transform.market import attach_trade_limit_flags, transform_market_data
+    from shaiwei.transform.market import attach_trade_limit_flags, sanitize_adj_factors, transform_market_data
 
     settings = load()
     output_root = settings.runtime.data_root / "qlib_bin"
@@ -253,6 +253,7 @@ def main() -> int:
     adj_factor = load_latest_api("tushare.adj_factor")
     stock_basic = load_latest_api("tushare.stock_basic")
     namechange = load_latest_api("tushare.namechange")
+    adj_factor = sanitize_adj_factors(daily, adj_factor, load_latest_api("tushare.dividend"))
     market = attach_trade_limit_flags(
         transform_market_data(daily, adj_factor),
         stock_basic,

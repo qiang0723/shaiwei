@@ -23,7 +23,7 @@ from shaiwei.sentinel.checks import (
     s9_st_status,
     s10_git_consistency,
 )
-from shaiwei.transform.market import attach_trade_limit_flags, transform_market_data
+from shaiwei.transform.market import attach_trade_limit_flags, sanitize_adj_factors, transform_market_data
 from shaiwei.transform.universe import active_securities
 
 
@@ -35,6 +35,8 @@ def main() -> int:
     daily = load_latest_api("tushare.daily")
     adj_factor = load_latest_api("tushare.adj_factor")
     namechange = load_latest_api("tushare.namechange")
+    dividend = load_latest_api("tushare.dividend")
+    adj_factor = sanitize_adj_factors(daily, adj_factor, dividend)
     results = {}
     results["S1"] = s1_completeness(
         trade_cal,
@@ -65,7 +67,6 @@ def main() -> int:
     ].drop_duplicates()
     aligned_suspended = suspended_keys.merge(transformed, on=["ts_code", "trade_date"], how="left")
     results["S6"] = s6_suspensions(aligned_suspended, suspend_d)
-    dividend = load_latest_api("tushare.dividend")
     results["S7"] = s7_price_volume_logic(transformed, dividend)
     akshare = load_latest_api("akshare.stock_zh_a_hist")
     results["S8"] = s8_cross_source(daily, akshare)

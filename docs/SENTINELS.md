@@ -22,7 +22,7 @@
 停牌日 OHLCV 全部为 NaN（不得为 0/前值）；与 suspend_d 交叉核对；长停复牌股单独抽查复牌日复权连续性。
 
 ## S7 量价逻辑
-high ≥ low ≥ 0；high ≥ max(open, close)；low ≤ min(open, close)；volume ≥ 0；方向性涨跌停字段不得互相矛盾；adj_factor 环比突变必须在同一 ex_date 对应已实施的分红送转记录。
+high ≥ low ≥ 0；high ≥ max(open, close)；low ≤ min(open, close)；volume ≥ 0；方向性涨跌停字段不得互相矛盾。adj_factor 环比变化必须满足至少一项独立证据：同一 ex_date 有已实施分红送转，或“前一交易收盘价 ÷ 因子倍率”在价格刻度/因子精度容差内等于当日除权 pre_close。两项都不满足的源因子补丁不得进入累计复权链，必须保留 raw_adj_factor、标记 factor_corrected 并在 S7 证据中计数；修正后仍有未归因有效跳变则 FAIL。
 
 ## S8 独立源交叉比对
 每日与 AKShare 比对收盘价/成交量，差异 >1% 排查；缺失率监控（可从 qlib check_data_health.py 起步）。

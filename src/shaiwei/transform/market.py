@@ -8,6 +8,93 @@ import pandas as pd
 from shaiwei.transform.universe import st_flags_on
 
 PRICE_COLUMNS = ("open", "high", "low", "close", "pre_close")
+ADJ_FACTOR_ABSOLUTE_PRICE_TOLERANCE = 0.011
+ADJ_FACTOR_RELATIVE_PRICE_TOLERANCE = 0.001
+
+
+def sanitize_adj_factors(
+    daily: pd.DataFrame,
+    adj_factor: pd.DataFrame,
+    corporate_actions: pd.DataFrame | None = None,
+    *,
+    absolute_price_tolerance: float = ADJ_FACTOR_ABSOLUTE_PRICE_TOLERANCE,
+    relative_price_tolerance: float = ADJ_FACTOR_RELATIVE_PRICE_TOLERANCE,
+) -> pd.DataFrame:
+    """Remove unsubstantiated source-factor patches from the cumulative chain.
+
+    Tushare ``daily.pre_close`` is the ex-right previous close.  A real factor
+    ratio must therefore imply that price within the exchange tick/rounding
+    tolerance, unless an implemented dividend explicitly identifies the date.
+    Unsupported raw ratios are retained for audit but contribute a neutral
+    ratio to the cleaned cumulative factor.
+    """
+    daily_required = {"ts_code", "trade_date", "close", "pre_close"}
+    factor_required = {"ts_code", "trade_date", "adj_factor"}
+    if missing := daily_required - set(daily.columns):
+        raise ValueError(f"daily missing fields: {sorted(missing)}")
+    if missing := factor_required - set(adj_factor.columns):
+        raise ValueError(f"adj_factor missing fields: {sorted(missing)}")
+    keys = ["ts_code", "trade_date"]
+    if daily.duplicated(keys, keep=False).any() or adj_factor.duplicated(keys, keep=False).any():
+        raise ValueError("daily/adj_factor keys must be unique")
+    frame = daily.loc[:, [*keys, "close", "pre_close"]].merge(
+        adj_factor.loc[:, [*keys, "adj_factor"]],
+        on=keys,
+        how="left",
+        validate="one_to_one",
+    ).sort_values(keys)
+    if frame["adj_factor"].isna().any():
+        missing_keys = frame.loc[frame["adj_factor"].isna(), keys].head(10)
+        raise ValueError(f"missing adj_factor for daily rows: {missing_keys.to_dict('records')}")
+    for column in ("close", "pre_close", "adj_factor"):
+        frame[column] = pd.to_numeric(frame[column], errors="coerce")
+    if frame[["close", "pre_close", "adj_factor"]].isna().any().any():
+        raise ValueError("factor sanitization inputs must be numeric")
+    if frame["adj_factor"].le(0).any():
+        raise ValueError("adj_factor must be positive")
+
+    grouped = frame.groupby("ts_code", sort=False)
+    previous_close = grouped["close"].shift()
+    previous_factor = grouped["adj_factor"].shift()
+    raw_ratio = frame["adj_factor"] / previous_factor
+    implied_pre_close = previous_close / raw_ratio
+    price_supported = np.isclose(
+        implied_pre_close,
+        frame["pre_close"],
+        atol=absolute_price_tolerance,
+        rtol=relative_price_tolerance,
+        equal_nan=False,
+    )
+    first_observation = previous_factor.isna()
+
+    event_supported = pd.Series(False, index=frame.index, dtype=bool)
+    if corporate_actions is not None:
+        required = {"ts_code", "ex_date", "div_proc"}
+        if missing := required - set(corporate_actions.columns):
+            raise ValueError(f"corporate_actions missing fields: {sorted(missing)}")
+        implemented = corporate_actions.loc[
+            corporate_actions["div_proc"].astype("string").str.contains("实施", na=False)
+            & corporate_actions["ex_date"].notna(),
+            ["ts_code", "ex_date"],
+        ].drop_duplicates()
+        event_keys = pd.MultiIndex.from_frame(
+            implemented.rename(columns={"ex_date": "trade_date"}).astype("string")
+        )
+        frame_keys = pd.MultiIndex.from_frame(frame.loc[:, keys].astype("string"))
+        event_supported = pd.Series(frame_keys.isin(event_keys), index=frame.index)
+
+    supported = first_observation | price_supported | event_supported
+    corrected = raw_ratio.notna() & ~supported
+    effective_ratio = raw_ratio.mask(corrected, 1.0).fillna(1.0)
+    effective_multiplier = effective_ratio.groupby(frame["ts_code"], sort=False).cumprod()
+    first_factor = frame.groupby("ts_code", sort=False)["adj_factor"].transform("first")
+    frame["raw_adj_factor"] = frame["adj_factor"]
+    frame["adj_factor"] = first_factor * effective_multiplier
+    frame["factor_corrected"] = corrected
+    frame["factor_change_supported"] = supported
+    return frame.loc[
+        :, [*keys, "adj_factor", "raw_adj_factor", "factor_corrected", "factor_change_supported"]
+    ].reset_index(drop=True)
 
 
 def transform_market_data(daily: pd.DataFrame, adj_factor: pd.DataFrame) -> pd.DataFrame:
@@ -23,8 +110,14 @@ def transform_market_data(daily: pd.DataFrame, adj_factor: pd.DataFrame) -> pd.D
     if duplicate_daily.any() or duplicate_factor.any():
         raise ValueError("daily/adj_factor keys must be unique")
 
+    factor_columns = ["ts_code", "trade_date", "adj_factor"]
+    factor_columns.extend(
+        column
+        for column in ("raw_adj_factor", "factor_corrected", "factor_change_supported")
+        if column in adj_factor.columns
+    )
     merged = daily.merge(
-        adj_factor.loc[:, ["ts_code", "trade_date", "adj_factor"]],
+        adj_factor.loc[:, factor_columns],
         on=["ts_code", "trade_date"],
         how="left",
         validate="one_to_one",
