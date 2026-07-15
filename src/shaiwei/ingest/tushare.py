@@ -264,8 +264,8 @@ class TushareIngestor:
         self._throttle_lock = Lock()
 
     def _throttle(self) -> None:
-        # Reserve request start slots globally across workers.  Four workers
-        # hide network latency, while the frozen 0.15s spacing caps starts at
+        # Reserve request start slots globally across workers.  Workers only
+        # hide network latency; the frozen 0.15s spacing caps starts at
         # 400/minute, below the official 500/minute entitlement.
         with self._throttle_lock:
             if self._last_request_at is not None:

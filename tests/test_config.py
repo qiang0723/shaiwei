@@ -9,7 +9,7 @@ def test_frozen_config_loads():
     assert settings.backtest.rebalance_days == 10
     assert settings.backtest.topk == 30
     assert settings.ingest.source_row_limit == 6000
-    assert settings.ingest.max_concurrent_requests == 4
+    assert settings.ingest.max_concurrent_requests == 8
     assert settings.crosscheck.symbols == ["000001.SZ", "600519.SH", "300750.SZ", "688981.SH"]
     assert settings.alphagen_benchmark.index_code == "000300.SH"
     assert settings.sentinels.reverse_adjustment_samples.delisted == "600401.SH"
