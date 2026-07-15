@@ -32,6 +32,7 @@
 - [x] AKShare 交叉源连接闭环：东方财富历史行情 API 对 curl 同参数正常、但对 Python/requests 在代理与直连路径均持续主动断连，6 次指数退避仍失败；不跳过 S8，改用同一 AKShare 库的新浪 `stock_zh_a_daily` 独立行情适配器。新浪 volume=股，采集层除以 100 统一为手后再与 Tushare 比对；四只冻结样本与阈值不变。
 - [ ] Day 5：财务三表逐股采集已完成 16,335/16,335 个唯一请求（income/balancesheet/cashflow 各 5,445），共 743,743 行；2016Q1-2026Q2 三表 VIP 的 126 个 type 5 更正前值请求也已全部完成，共 19,592 行。正式 S5 揭示逐股窗口从上市日开始会漏掉上市前已披露的 type 1 新值；type 1 单季直查又真实触发 7,000 行硬顶。现按官方同参数 VIP 接口和实测有效的 limit/offset，将 type 1 固定拆为 0/4,000/8,000 三页，尾页饱和即 FAIL；完整季度计划共 504 请求，待新增 378 个分页批次完成并通过 S5 后勾选本日完成
 - [ ] Day 6：dump_bin → qlib Alpha158+LightGBM 基线 → 启动影子执行（代码层已完成；待真实数据运行、信号 manifest 入 git 与次日对账）
+- [x] qlib 全量 bin 已真实构建；首窗基线在模型训练前被 MLflow 3.14 拒绝旧文件目录跟踪后端，失败尝试已记实验账本。实验跟踪现固定为忽略目录内的本地 SQLite，不改模型、窗口、随机种子或 G0 判据
 - [ ] Day 7：AlphaGen CPU 化 benchmark（含中性化 fitness），记录耗时/内存（官方仓库已锁定；CPU/中性化适配代码已完成，待真实 qlib 数据运行）
 - [x] fund_comparator.csv 于 2026-07-15 冻结：不看历史收益，按产品定义+成立日机械选取中证800/A500各3只；纳入、费用和R1替换规则见 `docs/FUND_COMPARATOR_SPEC.md`
 

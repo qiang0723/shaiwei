@@ -13,5 +13,5 @@ def test_qlib_runtime_keeps_recorder_under_ignored_logs(monkeypatch):
     initialize_qlib(settings)
 
     manager = captured["exp_manager"]
-    assert manager["kwargs"]["uri"] == (PROJECT_ROOT / "logs/mlruns").resolve().as_uri()
+    assert manager["kwargs"]["uri"] == f"sqlite:///{(PROJECT_ROOT / 'logs/mlflow.db').resolve()}"
     assert captured["provider_uri"] == str(settings.runtime.data_root / "qlib_bin")
