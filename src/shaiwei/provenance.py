@@ -5,6 +5,19 @@ from pathlib import Path
 import subprocess
 
 
+CONTROLLED_ROOTS = ("src/", "config/", "templates/", "tests/")
+CONTROLLED_FILES = {
+    ".env.example",
+    "Makefile",
+    "pyproject.toml",
+    "requirements.lock",
+}
+
+
+def _is_controlled_input(name: str) -> bool:
+    return name in CONTROLLED_FILES or name.startswith(CONTROLLED_ROOTS)
+
+
 def git_head() -> str:
     return subprocess.run(
         ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
@@ -12,10 +25,10 @@ def git_head() -> str:
 
 
 def code_snapshot_sha256() -> str:
-    """Hash controlled working-tree content, excluding append-only evidence.
+    """Hash executable, configuration, dependency, template, and test inputs.
 
-    HEAD itself is intentionally absent: an evidence-only ledger commit must
-    not invalidate reports produced by identical code and configuration.
+    HEAD and documentation/status/evidence files are intentionally absent:
+    committing or backfilling an unchanged run must not invalidate its reports.
     """
     tracked = subprocess.run(
         ["git", "ls-files", "-z"], capture_output=True, check=True
@@ -28,8 +41,7 @@ def code_snapshot_sha256() -> str:
     names = sorted(
         name.decode("utf-8")
         for name in {*tracked, *untracked}
-        if name
-        and not name.startswith((b"ledger/", b"signals/"))
+        if name and _is_controlled_input(name.decode("utf-8"))
     )
     payload = hashlib.sha256()
     for name in names:

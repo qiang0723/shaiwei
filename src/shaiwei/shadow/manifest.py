@@ -80,7 +80,8 @@ def write_signal_manifest(
     document = {**payload, "signal_sha256": signal_hash}
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    path = output_dir / f"{signal_date:%Y%m%d}.json"
+    version = f"{code_snapshot_sha256[:12]}-{data_snapshot_sha256[:12]}"
+    path = output_dir / f"{signal_date:%Y%m%d}-{version}.json"
     with path.open("x", encoding="utf-8") as handle:
         json.dump(document, handle, ensure_ascii=False, indent=2, sort_keys=True)
         handle.write("\n")

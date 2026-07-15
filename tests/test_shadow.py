@@ -35,6 +35,7 @@ def test_shadow_manifest_is_ranked_hashed_and_never_overwritten(tmp_path: Path):
         "output_dir": tmp_path,
     }
     path, digest = write_signal_manifest(scores, **kwargs)
+    assert path.name == f"20260715-{'c' * 12}-{'d' * 12}.json"
     document = json.loads(path.read_text())
     assert [order["instrument"] for order in document["orders"]] == ["A", "B"]
     assert verify_signal_manifest(path) == digest
