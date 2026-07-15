@@ -1,5 +1,6 @@
 """Tushare 基础表采集计划与执行器。所有请求都显式 fields，所有响应都独立入账。"""
 
+import os
 import time
 from calendar import monthrange
 from collections.abc import Callable, Iterable
@@ -88,6 +89,17 @@ RETRY_EMPTY_APIS = frozenset(
         "cashflow",
     }
 )
+
+TUSHARE_API_HOST = "api.waditu.com"
+
+
+def _add_no_proxy_host(host: str) -> None:
+    """Bypass a flaky desktop proxy for the proven-reachable Tushare host only."""
+    for key in ("NO_PROXY", "no_proxy"):
+        hosts = [item.strip() for item in os.environ.get(key, "").split(",") if item.strip()]
+        if host not in hosts:
+            hosts.append(host)
+        os.environ[key] = ",".join(hosts)
 
 
 @dataclass(frozen=True)
@@ -402,6 +414,7 @@ class TushareIngestor:
 
 
 def create_client(token: str) -> QueryClient:
+    _add_no_proxy_host(TUSHARE_API_HOST)
     import tushare as ts
 
     return ts.pro_api(token)

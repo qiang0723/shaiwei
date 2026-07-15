@@ -1,4 +1,5 @@
 from datetime import date
+import os
 from pathlib import Path
 from threading import Event, Lock, Thread
 import time
@@ -12,7 +13,9 @@ from shaiwei.ingest.tushare import (
     FIELDS,
     IngestError,
     Request,
+    TUSHARE_API_HOST,
     TushareIngestor,
+    _add_no_proxy_host,
     build_bootstrap_plan,
     build_corporate_action_plan,
     build_financial_plan,
@@ -146,6 +149,46 @@ def test_ingestor_retries_transient_empty_dense_response(tmp_path: Path):
     assert len(client.calls) == 2
     assert pd.read_parquet(batches[0].parquet_path)["ts_code"].tolist() == ["000750.SZ"]
     assert recorded[0]["row_count"] == 1
+
+
+def test_ingestor_survives_network_failures_through_configured_retry_window(tmp_path: Path):
+    class NetworkFlapClient(FakeClient):
+        def query(self, api_name: str, **kwargs):
+            self.calls.append((api_name, kwargs))
+            if len(self.calls) < 6:
+                raise ConnectionError("temporary resolver failure")
+            fields = kwargs["fields"].split(",")
+            return pd.DataFrame(
+                {
+                    field: [kwargs["ts_code"] if field == "ts_code" else None]
+                    for field in fields
+                }
+            )
+
+    settings = load()
+    settings.ingest.min_request_interval_seconds = 0
+    settings.ingest.retry_base_seconds = 0
+    assert settings.ingest.max_attempts == 6
+    client = NetworkFlapClient()
+    writer = RawBatchWriter(tmp_path, recorder=lambda **_: "id")
+
+    batches = TushareIngestor(client=client, writer=writer, settings=settings).run(
+        [Request("daily", {"ts_code": "000750.SZ"}, {"symbol": "000750.SZ"})]
+    )
+
+    assert len(client.calls) == 6
+    assert batches[0].row_count == 1
+
+
+def test_tushare_proxy_bypass_is_narrow_and_idempotent(monkeypatch):
+    monkeypatch.setenv("NO_PROXY", "localhost")
+    monkeypatch.setenv("no_proxy", "127.0.0.1,api.waditu.com")
+
+    _add_no_proxy_host(TUSHARE_API_HOST)
+    _add_no_proxy_host(TUSHARE_API_HOST)
+
+    assert os.environ["NO_PROXY"].split(",") == ["localhost", "api.waditu.com"]
+    assert os.environ["no_proxy"].split(",") == ["127.0.0.1", "api.waditu.com"]
 
 
 def test_ingestor_rejects_response_for_wrong_security(tmp_path: Path):
