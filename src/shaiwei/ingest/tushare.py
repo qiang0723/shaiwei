@@ -290,6 +290,11 @@ class TushareIngestor:
 
         if not isinstance(frame, pd.DataFrame):
             raise IngestError(f"Tushare {request.api_name} returned {type(frame).__name__}, expected DataFrame")
+        # Tushare represents a legitimate no-data response as DataFrame() with
+        # neither rows nor columns.  Preserve the frozen API schema so the
+        # immutable zero-row Parquet remains queryable and resumable.
+        if frame.empty and len(frame.columns) == 0:
+            frame = pd.DataFrame(columns=fields)
         missing = set(fields) - set(frame.columns)
         if missing:
             raise IngestError(f"Tushare {request.api_name} response missing fields: {sorted(missing)}")

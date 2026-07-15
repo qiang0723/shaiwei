@@ -98,6 +98,24 @@ def test_ingestor_rejects_missing_response_field(tmp_path: Path):
         )
 
 
+def test_ingestor_preserves_schema_for_legitimate_empty_response(tmp_path: Path):
+    class EmptyClient(FakeClient):
+        def query(self, api_name: str, **kwargs):
+            return pd.DataFrame()
+
+    settings = load()
+    settings.ingest.min_request_interval_seconds = 0
+    recorded = []
+    writer = RawBatchWriter(tmp_path, recorder=lambda **kw: recorded.append(kw) or "id")
+    batches = TushareIngestor(client=EmptyClient(), writer=writer, settings=settings).run(
+        [Request("suspend_d", {"trade_date": "20171214"}, {"trade_date": "20171214"})]
+    )
+    stored = pd.read_parquet(batches[0].parquet_path)
+    assert stored.empty
+    assert stored.columns.tolist() == list(FIELDS["suspend_d"])
+    assert recorded[0]["row_count"] == 0
+
+
 def test_market_plan_is_per_stock_windowed_and_excludes_bse():
     settings = load()
     settings.ingest.history_window_years = 2

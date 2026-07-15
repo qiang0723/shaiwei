@@ -22,7 +22,7 @@
 - [x] 阶段 0 自动流：`make stage0-plan/stage0-run`；按 as-of+代码+数据快照续跑，采集按参数+文件哈希去重，首个失败即停，最终 G0 审计不含任何阶段 1 命令
 - [x] 证据链硬化：G0 逐批重哈希原始 Parquet 与 qlib 派生树；从六窗口明细重算冻结公式，逐项核对影子订单和 AlphaGen summary/候选结果与实验账本；拒绝空候选、空预测、伪结论和损坏缓存；空数据实测以退出码 2 拒绝，`next_phase_authorized=false`
 - [x] 关键门禁补强：S2 固定有界双算样本；S3 固定四类样本并核对复权连续收益；S4 核对 VWAP 绝对量纲；S5 核对三表结构与京东方更正；S7 复权因子跳变对公司行为；S8 核对成交额单位；qlib 使用方向性 PIT 涨跌停字段
-- [x] 离线质量门：73 项测试、Ruff、compileall、pip check、账本追加约束通过（2026-07-15；不等同真实数据验收）
+- [x] 离线质量门：75 项测试、Ruff、compileall、pip check、账本追加约束通过（2026-07-15；不等同真实数据验收）
 - [ ] Day 1-2：仓库骨架 / config / trade_cal / stock_basic（含退市）/ index_weight 历史
 - [ ] Day 3-4：全量 daily+adj_factor（分页！）→ 后复权 → 量纲统一 → 完整性对账 → 全部哨兵
 - [ ] Day 5：财务三表 PIT 层 + 京东方A 回归测试

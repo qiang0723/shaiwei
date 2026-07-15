@@ -27,6 +27,13 @@ def test_append_rejects_unknown_fields(tmp_path: Path):
         ledger._append(path, {"a": "1", "b": "2", "c": "3"})
 
 
+def test_append_uses_lf_line_endings(tmp_path: Path):
+    path = tmp_path / "ledger.csv"
+    path.write_bytes(b"a,b\n")
+    ledger._append(path, {"a": "1", "b": "2"})
+    assert path.read_bytes() == b"a,b\n1,2\n"
+
+
 def test_ingest_ledger_rejects_sensitive_params(tmp_path: Path):
     artifact = tmp_path / "batch.parquet"
     pd.DataFrame({"x": [1]}).to_parquet(artifact)

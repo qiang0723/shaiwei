@@ -24,7 +24,7 @@ def _append(path: Path, row: dict) -> None:
         if extra:
             raise ValueError(f"ledger row has unknown fields: {extra}")
         f.seek(0, os.SEEK_END)
-        csv.DictWriter(f, fieldnames=header).writerow(row)
+        csv.DictWriter(f, fieldnames=header, lineterminator="\n").writerow(row)
         f.flush()
         os.fsync(f.fileno())
 
