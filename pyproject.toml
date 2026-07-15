@@ -11,7 +11,7 @@ dependencies = [
   "pandera>=0.20", "tushare>=1.4", "akshare",
   "lightgbm>=4.3", "pyqlib>=0.9.5",
   "torch==2.13.0",
-  "joblib", "psutil>=5", "pyyaml", "pydantic>=2", "python-dotenv",
+  "joblib", "psutil>=5", "pyyaml", "pydantic>=2", "python-dateutil", "python-dotenv",
 ]
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff"]

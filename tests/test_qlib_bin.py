@@ -35,13 +35,20 @@ def test_build_qlib_bin_keeps_suspension_gap_nan(tmp_path: Path):
     market = pd.DataFrame(
         [
             {"ts_code": "600001.SH", "trade_date": "20200102", "open": 1, "high": 1, "low": 1,
-             "close": 1, "volume": 100, "vwap": 1, "factor": 1, "change": 0},
+             "close": 1, "volume": 100, "vwap": 1, "factor": 1, "change": 0,
+             "limit_buy": True, "limit_sell": False},
             {"ts_code": "600001.SH", "trade_date": "20200106", "open": 2, "high": 2, "low": 2,
-             "close": 2, "volume": 100, "vwap": 2, "factor": 1, "change": 0},
+             "close": 2, "volume": 100, "vwap": 2, "factor": 1, "change": 0,
+             "limit_buy": False, "limit_sell": True},
         ]
     )
     calendar = pd.DataFrame({"cal_date": ["20200102", "20200103", "20200106"], "is_open": [1, 1, 1]})
-    weights = pd.DataFrame([{"con_code": "600001.SH", "trade_date": "20200102"}])
+    weights = pd.DataFrame(
+        [
+            {"index_code": "000906.SH", "con_code": "600001.SH", "trade_date": "20200102"},
+            {"index_code": "000300.SH", "con_code": "600001.SH", "trade_date": "20200102"},
+        ]
+    )
     benchmark = pd.DataFrame(
         [
             {"ts_code": "000906.SH", "trade_date": day, "open": 1, "high": 1, "low": 1,
@@ -49,7 +56,10 @@ def test_build_qlib_bin_keeps_suspension_gap_nan(tmp_path: Path):
             for day in calendar["cal_date"]
         ]
     )
-    output = build_qlib_bin(tmp_path / "qlib", market, calendar, pd.DataFrame(), weights, benchmark)
+    instrument_indices = {"csi800": "000906.SH", "csi300": "000300.SH"}
+    output = build_qlib_bin(
+        tmp_path / "qlib", market, calendar, pd.DataFrame(), weights, benchmark, instrument_indices
+    )
     close_bin = np.fromfile(output / "features/sh600001/close.day.bin", dtype="<f4")
     assert close_bin[0] == 0
     assert close_bin[1] == 1
@@ -58,10 +68,14 @@ def test_build_qlib_bin_keeps_suspension_gap_nan(tmp_path: Path):
     assert "SH600001\t20200102\t20200106" in (output / "instruments/all.txt").read_text()
     qlib.init(provider_uri=str(output), region=REG_CN, expression_cache=None, dataset_cache=None)
     loaded = D.features(
-        ["SH600001"], ["$close"], start_time="2020-01-02", end_time="2020-01-06", freq="day"
+        ["SH600001"], ["$close", "$limit_buy", "$limit_sell"],
+        start_time="2020-01-02", end_time="2020-01-06", freq="day",
     )
     assert loaded["$close"].iloc[0] == 1
     assert np.isnan(loaded["$close"].iloc[1])
     assert loaded["$close"].iloc[2] == 2
+    assert loaded["$limit_buy"].iloc[0] == 1
+    assert loaded["$limit_sell"].iloc[2] == 1
+    assert "SH600001" in (output / "instruments/csi300.txt").read_text()
     with pytest.raises(FileExistsError):
-        build_qlib_bin(output, market, calendar, pd.DataFrame(), weights, benchmark)
+        build_qlib_bin(output, market, calendar, pd.DataFrame(), weights, benchmark, instrument_indices)

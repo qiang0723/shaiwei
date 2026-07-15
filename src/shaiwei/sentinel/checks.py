@@ -127,15 +127,34 @@ def s3_reverse_adjustment(transformed: pd.DataFrame, daily: pd.DataFrame, tolera
     return SentinelResult("S3", "PASS" if maximum < tolerance else "FAIL", {"max_relative_error": maximum})
 
 
-def s4_units(transformed: pd.DataFrame) -> SentinelResult:
+def s4_units(transformed: pd.DataFrame, price_band_tolerance: float = 0.02) -> SentinelResult:
+    required = {"ts_code", "trade_date", "low", "high", "amount", "volume", "vwap"}
+    if missing := required - set(transformed.columns):
+        raise ValueError(f"transformed market missing fields: {sorted(missing)}")
     calculated = transformed["amount"] / transformed["volume"].replace(0, np.nan)
     ratio = (transformed["vwap"] / calculated).replace([np.inf, -np.inf], np.nan).dropna()
-    outliers = ratio.loc[~ratio.between(0.5, 2.0)]
+    identity_outliers = ratio.loc[~ratio.between(0.5, 2.0)]
+    low = pd.to_numeric(transformed["low"], errors="coerce")
+    high = pd.to_numeric(transformed["high"], errors="coerce")
+    vwap = pd.to_numeric(transformed["vwap"], errors="coerce")
+    comparable = low.notna() & high.notna() & vwap.notna() & transformed["volume"].gt(0)
+    outside_band = comparable & (
+        vwap.lt(low * (1.0 - price_band_tolerance)) | vwap.gt(high * (1.0 + price_band_tolerance))
+    )
+    anomaly_index = identity_outliers.index.union(transformed.index[outside_band])
+    passed = anomaly_index.empty
     return SentinelResult(
         "S4",
-        "PASS" if outliers.empty and not ratio.empty else "FAIL",
-        {"checked_rows": len(ratio), "ratio_min": float(ratio.min()), "ratio_max": float(ratio.max())},
-        transformed.loc[outliers.index, ["ts_code", "trade_date"]].head(100).to_dict("records"),
+        "PASS" if passed and not ratio.empty and comparable.any() else "FAIL",
+        {
+            "checked_rows": len(ratio),
+            "price_band_checked_rows": int(comparable.sum()),
+            "identity_ratio_min": float(ratio.min()) if not ratio.empty else None,
+            "identity_ratio_max": float(ratio.max()) if not ratio.empty else None,
+            "price_band_tolerance": price_band_tolerance,
+            "outside_price_band_rows": int(outside_band.sum()),
+        },
+        transformed.loc[anomaly_index, ["ts_code", "trade_date"]].head(100).to_dict("records"),
     )
 
 
@@ -193,25 +212,54 @@ def s7_price_volume_logic(market: pd.DataFrame) -> SentinelResult:
         | numeric["low"].gt(numeric[["open", "close"]].min(axis=1))
         | numeric["volume"].lt(0)
     )
+    if {"limit_buy", "limit_sell"}.issubset(market.columns):
+        contradictory_limit = market["limit_buy"].astype(bool) & market["limit_sell"].astype(bool)
+        bad_mask |= contradictory_limit
+    else:
+        contradictory_limit = pd.Series(False, index=market.index)
     bad = market.loc[bad_mask]
     return SentinelResult(
-        "S7", "PASS" if bad.empty else "FAIL", {"bad_rows": len(bad)},
+        "S7", "PASS" if bad.empty else "FAIL",
+        {
+            "bad_rows": len(bad),
+            "limit_buy_days": int(market.get("limit_buy", pd.Series(False, index=market.index)).sum()),
+            "limit_sell_days": int(market.get("limit_sell", pd.Series(False, index=market.index)).sum()),
+            "contradictory_limit_rows": int(contradictory_limit.sum()),
+        },
         bad.loc[:, ["ts_code", "trade_date"]].head(100).to_dict("records"),
     )
 
 
 def s8_cross_source(tushare_daily: pd.DataFrame, akshare_daily: pd.DataFrame, tolerance: float = 0.01) -> SentinelResult:
-    left = tushare_daily.loc[:, ["ts_code", "trade_date", "close", "vol"]]
-    right = akshare_daily.loc[:, ["ts_code", "trade_date", "close", "vol"]]
+    fields = ["ts_code", "trade_date", "close", "vol"]
+    compare_amount = "amount" in tushare_daily.columns and "amount" in akshare_daily.columns
+    if compare_amount:
+        fields.append("amount")
+    left = tushare_daily.loc[:, fields]
+    right = akshare_daily.loc[:, fields]
     joined = left.merge(right, on=["ts_code", "trade_date"], suffixes=("_ts", "_ak"))
     if joined.empty:
         return SentinelResult("S8", "FAIL", {"reason": "no overlapping AKShare observations"})
     close_diff = (joined["close_ts"] / joined["close_ak"] - 1).abs()
     volume_diff = (joined["vol_ts"] / joined["vol_ak"] - 1).abs()
-    bad = joined.loc[close_diff.gt(tolerance) | volume_diff.gt(tolerance)]
+    bad_mask = close_diff.gt(tolerance) | volume_diff.gt(tolerance)
+    amount_diff = pd.Series(np.nan, index=joined.index)
+    if compare_amount:
+        # Tushare amount is thousand yuan; AKShare stock_zh_a_hist amount is yuan.
+        amount_diff = (joined["amount_ts"] * 1000.0 / joined["amount_ak"] - 1).abs()
+        bad_mask |= amount_diff.gt(tolerance)
+    bad = joined.loc[bad_mask]
     return SentinelResult(
         "S8", "PASS" if bad.empty else "FAIL",
-        {"overlap_rows": len(joined), "bad_rows": len(bad), "tolerance": tolerance},
+        {
+            "overlap_rows": len(joined),
+            "bad_rows": len(bad),
+            "tolerance": tolerance,
+            "amount_unit_crosscheck": compare_amount,
+            "max_close_relative_diff": float(close_diff.max()),
+            "max_volume_relative_diff": float(volume_diff.max()),
+            "max_amount_relative_diff": float(amount_diff.max()) if amount_diff.notna().any() else None,
+        },
         bad.loc[:, ["ts_code", "trade_date"]].head(100).to_dict("records"),
     )
 

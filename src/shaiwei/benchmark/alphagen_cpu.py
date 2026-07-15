@@ -1,6 +1,5 @@
 """上游 AlphaGen 表达式/GP + 项目侧中性化 RankIC 的单轮 CPU benchmark。"""
 
-import hashlib
 import json
 import os
 import subprocess
@@ -13,11 +12,13 @@ import numpy as np
 import pandas as pd
 import psutil
 import torch
+import yaml
 
 from shaiwei.benchmark.fitness import benchmark_decision, neutralized_rank_ic
 from shaiwei.config import PROJECT_ROOT, load
 from shaiwei.ingest.catalog import load_latest_api
 from shaiwei.ledger import append_experiment, ingest_snapshot_sha256
+from shaiwei.provenance import code_snapshot_sha256
 from shaiwei.transform.qlib_bin import qlib_code
 
 
@@ -31,8 +32,11 @@ class PeakMemorySampler:
     def _run(self) -> None:
         process = psutil.Process(os.getpid())
         while not self._stop.wait(self.interval):
-            processes = [process, *process.children(recursive=True)]
-            rss = sum(child.memory_info().rss for child in processes if child.is_running())
+            try:
+                processes = [process, *process.children(recursive=True)]
+                rss = sum(child.memory_info().rss for child in processes if child.is_running())
+            except (psutil.Error, ProcessLookupError):
+                continue
             self.peak_bytes = max(self.peak_bytes, rss)
 
     def __enter__(self) -> "PeakMemorySampler":
@@ -42,12 +46,6 @@ class PeakMemorySampler:
     def __exit__(self, *_: object) -> None:
         self._stop.set()
         self._thread.join()
-
-
-def _code_snapshot_sha256() -> str:
-    head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
-    diff = subprocess.run(["git", "diff", "--binary", "HEAD"], capture_output=True, check=True).stdout
-    return hashlib.sha256(head.encode() + b"\0" + diff).hexdigest()
 
 
 def _load_exposures() -> pd.DataFrame:
@@ -63,12 +61,30 @@ def _load_exposures() -> pd.DataFrame:
     return exposures.loc[:, ["trade_date", "instrument", "industry", "market_cap"]]
 
 
+def _verify_vendor_checkout(vendor: os.PathLike[str]) -> str:
+    lock = yaml.safe_load((PROJECT_ROOT / "config/externals.lock.yaml").read_text(encoding="utf-8"))
+    expected = str(lock["alphagen"]["commit"])
+    try:
+        actual = subprocess.run(
+            ["git", "-C", os.fspath(vendor), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+    except subprocess.CalledProcessError as error:
+        raise RuntimeError("vendor/alphagen is not a verifiable git checkout") from error
+    if actual != expected:
+        raise RuntimeError(f"AlphaGen checkout mismatch: expected {expected}, got {actual}")
+    return actual
+
+
 def main() -> int:
     settings = load()
     config = settings.alphagen_benchmark
     vendor = PROJECT_ROOT / "vendor" / "alphagen"
     if not (vendor / "gp.py").is_file():
         raise SystemExit("vendor/alphagen missing; clone the commit in config/externals.lock.yaml")
+    upstream_commit = _verify_vendor_checkout(vendor)
     sys.path.insert(0, str(vendor))
 
     from alphagen.data.expression import Constant, OutOfDataRangeError, Ref
@@ -176,10 +192,10 @@ def main() -> int:
     common = {
         "candidate_source": "AlphaGen-GP",
         "model_or_engine": "AlphaGen upstream GP + shaiwei neutralized RankIC",
-        "engine_version": "259687e8f316994426416c530a94842a2fe6405e",
+        "engine_version": upstream_commit,
         "seed": config.seed,
         "prompt_hash": "",
-        "code_sha256": _code_snapshot_sha256(),
+        "code_sha256": code_snapshot_sha256(),
         "data_snapshot_sha256": ingest_snapshot_sha256(),
         "params_json": config.model_dump(mode="json"),
         "train_period": f"{config.train_start}~{config.train_end}",
@@ -202,7 +218,20 @@ def main() -> int:
     output_dir = PROJECT_ROOT / "logs" / "benchmark"
     output_dir.mkdir(parents=True, exist_ok=True)
     output = output_dir / f"alphagen_cpu_{datetime.now(timezone.utc):%Y%m%dT%H%M%S.%fZ}.json"
-    output.write_text(json.dumps({"summary": summary, "candidates": cache}, indent=2, sort_keys=True), encoding="utf-8")
+    output.write_text(
+        json.dumps(
+            {
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "code_snapshot_sha256": code_snapshot_sha256(),
+                "data_snapshot_sha256": ingest_snapshot_sha256(),
+                "summary": summary,
+                "candidates": cache,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
     print(json.dumps({"summary": summary, "report_path": str(output)}, sort_keys=True))
     return 0
 

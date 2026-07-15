@@ -62,6 +62,19 @@ class Ingest(BaseModel):
     history_window_years: int = Field(ge=1, le=20)
 
 
+class Crosscheck(BaseModel):
+    symbols: list[str] = Field(min_length=4)
+    lookback_calendar_days: int = Field(ge=30, le=365)
+
+    @model_validator(mode="after")
+    def validate_symbols(self) -> "Crosscheck":
+        if len(set(self.symbols)) != len(self.symbols):
+            raise ValueError("crosscheck symbols must be unique")
+        if any("." not in symbol for symbol in self.symbols):
+            raise ValueError("crosscheck symbols must use Tushare codes")
+        return self
+
+
 class Baseline(BaseModel):
     instrument: str
     validation_months: int = Field(ge=1, le=12)
@@ -80,6 +93,7 @@ class Baseline(BaseModel):
 
 class AlphaGenBenchmark(BaseModel):
     instrument: str
+    index_code: str
     train_start: date
     train_end: date
     population_size: int = Field(gt=1)
@@ -135,6 +149,7 @@ class Settings(BaseModel):
     limit_rules: LimitRules
     compute: Compute
     ingest: Ingest
+    crosscheck: Crosscheck
     baseline: Baseline
     alphagen_benchmark: AlphaGenBenchmark
     evaluation: Evaluation

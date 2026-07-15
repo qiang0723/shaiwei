@@ -62,25 +62,41 @@ def st_status_on(namechange: pd.DataFrame, observations: pd.DataFrame) -> pd.Dat
     points = observations.loc[:, ["ts_code", "trade_date"]].copy()
     points["_point"] = _date_column(points["trade_date"])
     points["_row"] = range(len(points))
+    result = points.loc[:, ["_row", "ts_code", "trade_date"]].copy()
+    result["effective_name"] = pd.Series(pd.NA, index=result.index, dtype="string")
+    result["is_st"] = False
 
-    joined = points.merge(history, on="ts_code", how="left")
-    effective = joined.loc[
-        joined["_start"].le(joined["_point"])
-        & (joined["_end"].isna() | joined["_end"].ge(joined["_point"]))
-    ].copy()
-    if effective.empty:
-        result = points.loc[:, ["_row", "ts_code", "trade_date"]].copy()
-        result["effective_name"] = pd.NA
-        result["is_st"] = False
-        return result.sort_values("_row").drop(columns="_row").reset_index(drop=True)
+    # Do interval resolution one security at a time.  A whole-market point-in-time
+    # table contains millions of observations; a many-to-many merge with every
+    # historical name can multiply memory usage enough to invalidate the Day 7
+    # CPU benchmark itself.
+    history_by_code = {code: frame for code, frame in history.groupby("ts_code", sort=False)}
+    for code, point_index in points.groupby("ts_code", sort=False).groups.items():
+        security_history = history_by_code.get(code)
+        if security_history is None:
+            continue
+        dates = points.loc[point_index, "_point"]
+        best_start = pd.Series(pd.NaT, index=point_index, dtype="datetime64[ns]")
+        names: dict[int, set[str]] = {}
+        st_flags = pd.Series(False, index=point_index)
+        intervals = security_history.loc[:, ["name", "_start", "_end"]]
+        for name, interval_start, interval_end in intervals.itertuples(index=False, name=None):
+            if pd.isna(interval_start):
+                continue
+            active = dates.ge(interval_start) & (pd.isna(interval_end) | dates.le(interval_end))
+            newer = active & (best_start.isna() | best_start.lt(interval_start))
+            tied = active & best_start.eq(interval_start)
+            for index in dates.index[newer]:
+                names[index] = {str(name)}
+            for index in dates.index[tied]:
+                names.setdefault(index, set()).add(str(name))
+            best_start.loc[newer] = interval_start
+            st_flags.loc[newer] = _name_is_st(name)
+            st_flags.loc[tied] |= _name_is_st(name)
+        resolved_index = list(names)
+        result.loc[resolved_index, "effective_name"] = ["|".join(sorted(names[index])) for index in resolved_index]
+        result.loc[point_index, "is_st"] = st_flags.astype(bool)
 
-    effective["_latest"] = effective.groupby("_row")["_start"].transform("max")
-    latest = effective.loc[effective["_start"].eq(effective["_latest"])].copy()
-    latest["_is_st"] = latest["name"].map(_name_is_st)
-    resolved = latest.groupby("_row", as_index=False).agg(
-        effective_name=("name", lambda values: "|".join(sorted({str(value) for value in values}))),
-        is_st=("_is_st", "any"),
+    return result.sort_values("_row").loc[:, ["ts_code", "trade_date", "effective_name", "is_st"]].reset_index(
+        drop=True
     )
-    result = points.merge(resolved, on="_row", how="left")
-    result["is_st"] = result["is_st"].fillna(False).astype(bool)
-    return result.loc[:, ["ts_code", "trade_date", "effective_name", "is_st"]]

@@ -9,6 +9,8 @@ def test_frozen_config_loads():
     assert settings.backtest.rebalance_days == 10
     assert settings.backtest.topk == 30
     assert settings.ingest.source_row_limit == 6000
+    assert settings.crosscheck.symbols == ["000001.SZ", "600519.SH", "300750.SZ", "688981.SH"]
+    assert settings.alphagen_benchmark.index_code == "000300.SH"
     assert settings.ingest.history_window_years == 10
     assert settings.baseline.validation_months == 6
     assert settings.baseline.seed == 42

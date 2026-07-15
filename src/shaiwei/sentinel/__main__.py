@@ -8,6 +8,8 @@ import pandas as pd
 
 from shaiwei.config import PROJECT_ROOT, load
 from shaiwei.ingest.catalog import load_latest_api
+from shaiwei.ledger import ingest_snapshot_sha256
+from shaiwei.provenance import code_snapshot_sha256, git_head
 from shaiwei.sentinel.checks import (
     s1_completeness,
     s2_dual_calculation,
@@ -20,7 +22,8 @@ from shaiwei.sentinel.checks import (
     s9_st_status,
     s10_git_consistency,
 )
-from shaiwei.transform.market import transform_market_data
+from shaiwei.transform.market import attach_trade_limit_flags, transform_market_data
+from shaiwei.transform.universe import active_securities
 
 
 def main() -> int:
@@ -34,14 +37,28 @@ def main() -> int:
     income = load_latest_api("tushare.income")
     akshare = load_latest_api("akshare.stock_zh_a_hist")
     transformed = transform_market_data(daily, adj_factor)
+    market_with_limits = attach_trade_limit_flags(
+        transformed,
+        stock_basic,
+        namechange,
+        settings.limit_rules.model_dump(),
+    )
 
     suspended_keys = suspend_d.loc[
         suspend_d["suspend_type"].eq("S"), ["ts_code", "trade_date"]
     ].drop_duplicates()
     aligned_suspended = suspended_keys.merge(transformed, on=["ts_code", "trade_date"], how="left")
     observation_date = settings.evaluation.forward_oos_start.strftime("%Y%m%d")
+    active_codes = active_securities(
+        stock_basic,
+        settings.evaluation.forward_oos_start,
+        include_bse=settings.universe.include_bse,
+    )["ts_code"]
     st_observations = pd.DataFrame(
-        {"ts_code": namechange["ts_code"].dropna().drop_duplicates(), "trade_date": observation_date}
+        {
+            "ts_code": namechange.loc[namechange["ts_code"].isin(active_codes), "ts_code"].dropna().drop_duplicates(),
+            "trade_date": observation_date,
+        }
     )
     results = [
         s1_completeness(
@@ -57,7 +74,7 @@ def main() -> int:
         s4_units(transformed),
         s5_financial_pit(income, trade_cal),
         s6_suspensions(aligned_suspended, suspend_d),
-        s7_price_volume_logic(transformed),
+        s7_price_volume_logic(market_with_limits),
         s8_cross_source(daily, akshare),
         s9_st_status(namechange, st_observations),
         s10_git_consistency(
@@ -67,6 +84,9 @@ def main() -> int:
     ]
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "git_head": git_head(),
+        "code_snapshot_sha256": code_snapshot_sha256(),
+        "data_snapshot_sha256": ingest_snapshot_sha256(),
         "required_failures": [result.sentinel for result in results if result.status == "FAIL"],
         "results": [result.to_dict() for result in results],
     }

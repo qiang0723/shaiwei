@@ -1,8 +1,6 @@
 """Alpha158 + LightGBM 六滚动窗基线与 G0 成本情景证据。"""
 
-import hashlib
 import json
-import subprocess
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 
@@ -19,6 +17,7 @@ from qlib.workflow import R
 from shaiwei.backtest.strategy import BiweeklyTopkDropoutStrategy
 from shaiwei.config import PROJECT_ROOT, EvaluationWindow, Settings, load
 from shaiwei.ledger import append_experiment, ingest_snapshot_sha256
+from shaiwei.provenance import code_snapshot_sha256
 
 FORWARD_LABEL = "Ref($open, -11) / Ref($open, -1) - 1"
 
@@ -84,12 +83,6 @@ def g0_backtest_summary(window_results: list[dict], baseline_multiplier: float =
     }
 
 
-def _code_snapshot_sha256() -> str:
-    head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
-    diff = subprocess.run(["git", "diff", "--binary", "HEAD"], capture_output=True, check=True).stdout
-    return hashlib.sha256(head.encode() + b"\0" + diff).hexdigest()
-
-
 def _model(settings: Settings) -> LGBModel:
     baseline = settings.baseline
     return LGBModel(
@@ -152,6 +145,7 @@ def run_window(settings: Settings, window: EvaluationWindow) -> dict[str, object
         benchmark=settings.backtest.benchmark,
         exchange_kwargs={
             "deal_price": settings.backtest.deal_price,
+            "limit_threshold": ("$limit_buy", "$limit_sell"),
             "open_cost": settings.backtest.open_cost,
             "close_cost": settings.backtest.close_cost,
             "min_cost": settings.backtest.min_cost,
@@ -173,7 +167,7 @@ def _record_window(settings: Settings, window: EvaluationWindow, result: dict, *
         engine_version="4.6.0",
         seed=settings.baseline.seed,
         prompt_hash="",
-        code_sha256=_code_snapshot_sha256(),
+        code_sha256=code_snapshot_sha256(),
         data_snapshot_sha256=ingest_snapshot_sha256(),
         feature_or_formula=f"Alpha158; label={FORWARD_LABEL}",
         params_json={
@@ -207,6 +201,8 @@ def main() -> int:
     summary = g0_backtest_summary(results)
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "code_snapshot_sha256": code_snapshot_sha256(),
+        "data_snapshot_sha256": ingest_snapshot_sha256(),
         "forward_label": FORWARD_LABEL,
         "windows": results,
         "g0_backtest": summary,

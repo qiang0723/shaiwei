@@ -30,6 +30,10 @@ ingest:
   min_request_interval_seconds: 0.15  # 基础频控 500 次/分钟留安全余量
   source_row_limit: 6000              # Tushare daily 单次硬顶；触顶必须判失败而非接受截断
   history_window_years: 10            # 单票行情分窗；远小于 6000 个交易日
+crosscheck:
+  # 启动前冻结：沪深主板/创业板/科创板各取高流动性代表，AKShare 最近 90 个自然日独立复核。
+  symbols: ["000001.SZ", "600519.SH", "300750.SZ", "688981.SH"]
+  lookback_calendar_days: 90
 baseline:
   instrument: "csi800"
   validation_months: 6                # 每个 3 年训练窗末 6 个月作早停验证；首次回测前冻结
@@ -46,6 +50,7 @@ baseline:
   early_stopping_rounds: 50
 alphagen_benchmark:
   instrument: "csi300"
+  index_code: "000300.SH"
   train_start: "2019-01-01"
   train_end: "2021-12-31"
   population_size: 100

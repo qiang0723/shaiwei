@@ -14,6 +14,7 @@ from shaiwei.ingest.tushare import (
     build_bootstrap_plan,
     build_financial_plan,
     build_market_plan,
+    build_namechange_plan,
 )
 
 
@@ -28,16 +29,19 @@ class FakeClient:
         return pd.DataFrame({field: [None] * self.rows for field in fields})
 
 
-def test_bootstrap_plan_partitions_monthly_and_never_dates_namechange(tmp_path: Path):
+def test_bootstrap_plan_partitions_monthly_and_defers_namechange(tmp_path: Path):
     settings = load()
     plan = build_bootstrap_plan(settings, date(2016, 2, 10))
 
     assert sum(request.api_name == "stock_basic" for request in plan) == 3
-    assert sum(request.api_name == "index_weight" for request in plan) == 2
+    assert sum(request.api_name == "index_weight" for request in plan) == 6
+    assert any(request.partitions.get("period") == "2015-12" for request in plan)
+    assert {
+        request.params["index_code"] for request in plan if request.api_name == "index_weight"
+    } == {"000906.SH", "000300.SH"}
     assert sum(request.api_name == "suspend_d" for request in plan) == 2
     assert sum(request.api_name == "index_daily" for request in plan) == 1
-    namechange = next(request for request in plan if request.api_name == "namechange")
-    assert namechange.params == {}
+    assert not any(request.api_name == "namechange" for request in plan)
     february = [request for request in plan if request.partitions.get("period") == "2016-02"]
     assert {request.params["end_date"] for request in february} == {"20160210"}
 
@@ -115,3 +119,19 @@ def test_financial_plan_explicitly_covers_three_statements():
     assert {request.api_name for request in plan} == {"income", "balancesheet", "cashflow"}
     for api in ("income", "balancesheet", "cashflow"):
         assert {"f_ann_date", "report_type", "update_flag"} <= set(FIELDS[api])
+
+
+def test_namechange_plan_splits_by_stock_without_date_filters():
+    settings = load()
+    stocks = pd.DataFrame(
+        [
+            {"ts_code": "600001.SH", "list_date": "20160101", "delist_date": None},
+            {"ts_code": "600002.SH", "list_date": "20160101", "delist_date": None},
+        ]
+    )
+    plan = build_namechange_plan(settings, date(2020, 2, 1), stocks)
+    assert [request.params for request in plan] == [
+        {"ts_code": "600001.SH"},
+        {"ts_code": "600002.SH"},
+    ]
+    assert all(not ({"start_date", "end_date"} & request.params.keys()) for request in plan)

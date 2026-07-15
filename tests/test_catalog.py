@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from shaiwei.ingest.catalog import CatalogError, load_latest_api
+from shaiwei.ingest.catalog import CatalogError, canonical_params_key, committed_params_keys, load_latest_api
 from shaiwei.ledger import sha256_file
 
 
@@ -55,3 +55,23 @@ def test_catalog_detects_tampered_committed_batch(tmp_path: Path):
         writer.writerow(entry)
     with pytest.raises(CatalogError, match="hash mismatch"):
         load_latest_api("tushare.stock_basic", ledger_path=ledger)
+
+
+def test_resume_keys_only_include_intact_latest_batches(tmp_path: Path):
+    ledger = tmp_path / "ledger.csv"
+    good = _entry(
+        tmp_path / "good.parquet", batch="good", ingest_time="2026-01-01T00:00:00Z", value=1
+    )
+    bad = _entry(
+        tmp_path / "bad.parquet", batch="bad", ingest_time="2026-01-01T00:00:01Z", value=2
+    )
+    bad["params_json"] = '{"list_status":"D"}'
+    bad["content_sha256"] = "0" * 64
+    with ledger.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=HEADER)
+        writer.writeheader()
+        writer.writerows([good, bad])
+
+    assert committed_params_keys("tushare.stock_basic", ledger_path=ledger) == {
+        canonical_params_key({"list_status": "L"})
+    }

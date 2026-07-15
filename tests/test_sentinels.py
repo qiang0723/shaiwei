@@ -52,6 +52,14 @@ def test_s2_s3_s4_and_s7_pass_consistent_market_data():
     assert s7_price_volume_logic(transformed).status == "PASS"
 
 
+def test_s4_rejects_self_consistent_vwap_with_wrong_absolute_units():
+    daily, factors = _market_inputs()
+    transformed = transform_market_data(daily, factors)
+    transformed["amount"] *= 1000
+    transformed["vwap"] *= 1000
+    assert s4_units(transformed).status == "FAIL"
+
+
 def test_s6_detects_non_nan_suspended_bar():
     suspended = pd.DataFrame([{"ts_code": "A", "trade_date": "20200102", "suspend_type": "S"}])
     aligned = pd.DataFrame([{"ts_code": "A", "trade_date": "20200102", "open": 1.0}])
@@ -62,7 +70,8 @@ def test_s6_detects_non_nan_suspended_bar():
 
 def test_s8_checks_close_and_volume_with_same_raw_units():
     daily, _ = _market_inputs()
-    ak = daily.loc[:, ["ts_code", "trade_date", "close", "vol"]].copy()
+    ak = daily.loc[:, ["ts_code", "trade_date", "close", "vol", "amount"]].copy()
+    ak["amount"] *= 1000
     ak["close"] = ak["close"].astype(float)
     assert s8_cross_source(daily, ak).status == "PASS"
     ak.loc[0, "close"] *= 1.02

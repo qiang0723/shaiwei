@@ -41,6 +41,7 @@ def write_signal_manifest(
     generated_at: datetime,
     data_snapshot_sha256: str,
     code_commit: str,
+    code_snapshot_sha256: str,
     output_dir: Path,
     environment: str = "dev",
 ) -> tuple[Path, str]:
@@ -68,6 +69,7 @@ def write_signal_manifest(
         "generated_at": generated_at.astimezone(timezone.utc).isoformat(),
         "data_snapshot_sha256": data_snapshot_sha256,
         "code_commit": code_commit,
+        "code_snapshot_sha256": code_snapshot_sha256,
         "topk": topk,
         "orders": [
             {"rank": rank, "instrument": row.instrument, "score": float(row.score), "target_weight": target_weight}

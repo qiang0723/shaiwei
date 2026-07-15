@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from shaiwei.transform.market import transform_market_data
+from shaiwei.transform.market import attach_trade_limit_flags, transform_market_data
 
 
 def test_market_transform_adjusts_prices_and_units_with_reversible_factor():
@@ -52,3 +52,42 @@ def test_market_transform_refuses_missing_factor():
         assert "missing adj_factor" in str(error)
     else:
         raise AssertionError("missing factor must fail")
+
+
+def test_trade_limit_flags_cover_board_date_st_and_direction():
+    market = pd.DataFrame(
+        [
+            {"ts_code": "600001.SH", "trade_date": "20200102", "change": 0.10},
+            {"ts_code": "300001.SZ", "trade_date": "20200102", "change": 0.10},
+            {"ts_code": "300001.SZ", "trade_date": "20200824", "change": 0.10},
+            {"ts_code": "688001.SH", "trade_date": "20200102", "change": -0.20},
+            {"ts_code": "600002.SH", "trade_date": "20200102", "change": -0.05},
+            {"ts_code": "600003.SH", "trade_date": "20200102", "change": 0.10},
+        ]
+    )
+    stock_basic = pd.DataFrame(
+        [
+            {"ts_code": code, "list_date": "20100101"}
+            for code in market["ts_code"].drop_duplicates()
+        ]
+    )
+    stock_basic.loc[stock_basic["ts_code"].eq("600003.SH"), "list_date"] = "20200102"
+    names = pd.DataFrame(
+        [
+            {"ts_code": code, "name": "普通", "start_date": "20100101", "end_date": None}
+            for code in market["ts_code"].drop_duplicates()
+        ]
+        + [{"ts_code": "600002.SH", "name": "*ST样本", "start_date": "20190101", "end_date": None}]
+    )
+    rules = {
+        "main": 0.095,
+        "chinext_before_20200824": 0.095,
+        "chinext_after_20200824": 0.195,
+        "star": 0.195,
+        "st": 0.045,
+    }
+
+    result = attach_trade_limit_flags(market, stock_basic, names, rules)
+
+    assert result["limit_buy"].tolist() == [True, True, False, False, False, False]
+    assert result["limit_sell"].tolist() == [False, False, False, True, True, False]

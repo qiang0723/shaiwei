@@ -31,6 +31,7 @@ def test_shadow_manifest_is_ranked_hashed_and_never_overwritten(tmp_path: Path):
         "generated_at": complete + timedelta(minutes=1),
         "data_snapshot_sha256": "d" * 64,
         "code_commit": "abc",
+        "code_snapshot_sha256": "c" * 64,
         "output_dir": tmp_path,
     }
     path, digest = write_signal_manifest(scores, **kwargs)
@@ -50,7 +51,7 @@ def test_shadow_manifest_blocks_failed_sentinel(tmp_path: Path):
             pd.DataFrame({"instrument": ["A"], "score": [1.0]}),
             signal_date=date.today(), topk=1, sentinel_results=sentinels,
             data_complete_at=now, generated_at=now, data_snapshot_sha256="d" * 64,
-            code_commit="abc", output_dir=tmp_path,
+            code_commit="abc", code_snapshot_sha256="c" * 64, output_dir=tmp_path,
         )
 
 
@@ -59,7 +60,8 @@ def test_shadow_next_open_reconciliation(tmp_path: Path):
     path, _ = write_signal_manifest(
         pd.DataFrame({"instrument": ["A"], "score": [1.0]}),
         signal_date=date.today(), topk=1, sentinel_results=_sentinels(), data_complete_at=now,
-        generated_at=now, data_snapshot_sha256="d" * 64, code_commit="abc", output_dir=tmp_path,
+        generated_at=now, data_snapshot_sha256="d" * 64, code_commit="abc",
+        code_snapshot_sha256="c" * 64, output_dir=tmp_path,
     )
     execution = pd.DataFrame(
         [{"instrument": "A", "executable": True, "actual_open": 10.1, "reference_open": 10.0}]

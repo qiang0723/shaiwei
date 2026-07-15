@@ -1,7 +1,11 @@
 """daily + adj_factor → 后复权/统一量纲的研究表。"""
 
+from collections.abc import Mapping
+
 import numpy as np
 import pandas as pd
+
+from shaiwei.transform.universe import st_status_on
 
 PRICE_COLUMNS = ("open", "high", "low", "close", "pre_close")
 
@@ -47,3 +51,69 @@ def transform_market_data(daily: pd.DataFrame, adj_factor: pd.DataFrame) -> pd.D
         merged["price_change"] = merged["change"]
     merged["change"] = pd.to_numeric(merged["pct_chg"], errors="coerce") / 100.0
     return merged.reset_index(drop=True)
+
+
+def attach_trade_limit_flags(
+    market: pd.DataFrame,
+    stock_basic: pd.DataFrame,
+    namechange: pd.DataFrame,
+    limit_rules: Mapping[str, float],
+) -> pd.DataFrame:
+    """Attach point-in-time direction-specific price-limit flags for qlib.
+
+    Qlib's single float threshold cannot represent the A-share board/date/ST
+    matrix.  These two explicit fields let the exchange block buying at limit-up
+    and selling at limit-down while still allowing the opposite direction.
+    """
+    required = {"ts_code", "trade_date", "change"}
+    if missing := required - set(market.columns):
+        raise ValueError(f"market missing fields: {sorted(missing)}")
+    basic_required = {"ts_code", "list_date"}
+    if missing := basic_required - set(stock_basic.columns):
+        raise ValueError(f"stock_basic missing fields: {sorted(missing)}")
+    rule_names = {
+        "main",
+        "chinext_before_20200824",
+        "chinext_after_20200824",
+        "star",
+        "st",
+    }
+    if missing := rule_names - set(limit_rules):
+        raise ValueError(f"limit_rules missing fields: {sorted(missing)}")
+
+    result = market.copy()
+    codes = result["ts_code"].astype("string")
+    if codes.str.endswith(".BJ", na=False).any():
+        raise ValueError("BSE securities require an explicit limit rule before inclusion")
+    symbols = codes.str.split(".", n=1).str[0]
+    trade_dates = result["trade_date"].astype("string")
+    thresholds = pd.Series(float(limit_rules["main"]), index=result.index, dtype=float)
+    chinext = codes.str.endswith(".SZ", na=False) & symbols.str.startswith(("300", "301"), na=False)
+    thresholds.loc[chinext & trade_dates.lt("20200824")] = float(limit_rules["chinext_before_20200824"])
+    thresholds.loc[chinext & trade_dates.ge("20200824")] = float(limit_rules["chinext_after_20200824"])
+    star = codes.str.endswith(".SH", na=False) & symbols.str.startswith(("688", "689"), na=False)
+    thresholds.loc[star] = float(limit_rules["star"])
+
+    status = st_status_on(namechange, result.loc[:, ["ts_code", "trade_date"]])
+    thresholds.loc[status["is_st"].to_numpy()] = float(limit_rules["st"])
+    result["effective_name"] = status["effective_name"].to_numpy()
+    result["is_st"] = status["is_st"].to_numpy()
+    result["limit_threshold"] = thresholds
+
+    basic = stock_basic.sort_values("list_date").drop_duplicates("ts_code", keep="last")
+    list_dates = codes.map(basic.set_index("ts_code")["list_date"].astype("string"))
+    first_listing_day = trade_dates.eq(list_dates)
+    delisting_starts = {
+        (str(row.ts_code), str(row.start_date))
+        for row in namechange.loc[:, ["ts_code", "name", "start_date"]].itertuples(index=False)
+        if str(row.name).strip().endswith("退")
+    }
+    first_delisting_day = pd.Series(
+        ((str(code), str(day)) in delisting_starts for code, day in zip(codes, trade_dates, strict=True)),
+        index=result.index,
+    )
+    exempt = first_listing_day | first_delisting_day
+    change = pd.to_numeric(result["change"], errors="coerce")
+    result["limit_buy"] = change.ge(thresholds) & ~exempt
+    result["limit_sell"] = change.le(-thresholds) & ~exempt
+    return result

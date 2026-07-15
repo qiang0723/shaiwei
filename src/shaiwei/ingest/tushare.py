@@ -66,6 +66,10 @@ class Request:
     partitions: dict[str, str]
 
 
+def public_request_params(request: Request) -> dict[str, str]:
+    return {**request.params, "fields": ",".join(FIELDS[request.api_name])}
+
+
 def month_windows(start: date, end: date) -> Iterable[tuple[date, date]]:
     if start > end:
         raise ValueError("start must not be after end")
@@ -139,6 +143,14 @@ def build_financial_plan(settings: Settings, as_of: date, stock_basic: pd.DataFr
     return requests
 
 
+def build_namechange_plan(settings: Settings, as_of: date, stock_basic: pd.DataFrame) -> list[Request]:
+    """Split the no-date name history request by security to avoid global truncation."""
+    return [
+        Request("namechange", {"ts_code": security.ts_code}, {"symbol": security.ts_code})
+        for security in _eligible_securities(stock_basic, settings, as_of).itertuples(index=False)
+    ]
+
+
 def build_bootstrap_plan(settings: Settings, as_of: date) -> list[Request]:
     start = settings.backtest.start
     if as_of < start:
@@ -165,21 +177,30 @@ def build_bootstrap_plan(settings: Settings, as_of: date) -> list[Request]:
         Request("stock_basic", {"exchange": "", "list_status": status}, {"list_status": status})
         for status in ("L", "D", "P")
     )
-    # DATA_SPEC: date parameters here are forbidden because historical rows are silently lost.
-    requests.append(Request("namechange", {}, {"scope": "all"}))
+    # Seed the first backtest month with the preceding constituent snapshot so
+    # membership can be forward-filled from the first trading day without a gap.
+    preceding_month_end = start.replace(day=1) - timedelta(days=1)
+    index_start = preceding_month_end.replace(day=1)
+    for window_start, window_end in month_windows(index_start, as_of):
+        period = window_start.strftime("%Y-%m")
+        date_params = {
+            "start_date": window_start.strftime("%Y%m%d"),
+            "end_date": window_end.strftime("%Y%m%d"),
+        }
+        for index_code in sorted({settings.universe.index_code, settings.alphagen_benchmark.index_code}):
+            requests.append(
+                Request(
+                    "index_weight",
+                    {"index_code": index_code, **date_params},
+                    {"index": index_code, "period": period},
+                )
+            )
     for window_start, window_end in month_windows(start, as_of):
         period = window_start.strftime("%Y-%m")
         date_params = {
             "start_date": window_start.strftime("%Y%m%d"),
             "end_date": window_end.strftime("%Y%m%d"),
         }
-        requests.append(
-            Request(
-                "index_weight",
-                {"index_code": settings.universe.index_code, **date_params},
-                {"period": period},
-            )
-        )
         requests.append(Request("suspend_d", date_params, {"period": period}))
     return requests
 
@@ -246,11 +267,10 @@ class TushareIngestor:
         batches = []
         for request in requests:
             frame = self._query(request)
-            public_params = {**request.params, "fields": ",".join(FIELDS[request.api_name])}
             batches.append(
                 self.writer.write(
                     source_api=f"tushare.{request.api_name}",
-                    params=public_params,
+                    params=public_request_params(request),
                     frame=frame,
                     partitions=request.partitions,
                 )

@@ -3,7 +3,7 @@
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
 ## 当前阶段
-阶段 0（基线）· Day 1-5 代码施工 — Day 0 基线已完成；采集/转换/PIT/哨兵代码已实现，尚未真实拉数与实测。
+阶段 0（基线）· Day 0-7 代码层收口 — 采集、门禁、基线、影子执行、AlphaGen CPU 与失败即停自动流已实现；尚未真实拉数与 G0 实测。
 
 ## 已定口径（冻结，改动须走 STATE 显式作废流程）
 - 规划基线：可行性报告 v0.5.4（开工基线版，2026-07-09），判据 G0-G9 + C0 已生效，执行期不得回溯修改。
@@ -18,6 +18,9 @@
 ## 当前进度
 - [x] Day 0：v0.5.4 报告+SHA256 存证；Git 基线 `9ab3c96` / tag `baseline-v0.5.4`；Python 3.12 隔离环境、依赖锁、7 项测试、Ruff、qlib/LightGBM/Tushare/AKShare 运行时检查通过
 - [x] Day 1-5 代码层（非数据验收）：Tushare 基础/行情/财务分窗计划、AKShare 独立源适配、不可覆盖 Parquet+哈希账本、动态存续池、ST-PIT、后复权/量纲、财务 PIT、S1-S10 纯函数与统一入口；36 项离线测试通过
+- [x] Day 6-7 代码层（非实测验收）：qlib 原生 bin、Alpha158+LightGBM 六窗口基线、双周/次开盘标签与成本情景、影子信号 manifest、AlphaGen 上游锁定+CPU/行业市值中性化 RankIC benchmark
+- [x] 阶段 0 自动流：`make stage0-plan/stage0-run`；按代码快照续跑、采集按参数+文件哈希去重，首个失败即停，最终 G0 审计不含任何阶段 1 命令
+- [x] 关键门禁补强：S4 增加 VWAP 对 OHLC 绝对量纲检查，S8 增加 Tushare 千元↔AKShare 元成交额交叉核验；qlib 使用主板/创业板时点/科创板/ST 的方向性涨跌停字段
 - [ ] Day 1-2：仓库骨架 / config / trade_cal / stock_basic（含退市）/ index_weight 历史
 - [ ] Day 3-4：全量 daily+adj_factor（分页！）→ 后复权 → 量纲统一 → 完整性对账 → 全部哨兵
 - [ ] Day 5：财务三表 PIT 层 + 京东方A 回归测试

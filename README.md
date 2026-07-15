@@ -24,3 +24,22 @@ make fix-lightgbm-macos
 ```
 
 阶段 0 的自动执行顺序以 `docs/DAY_PLAN.md` 为准；任一哨兵失败或 G0 未通过均停止，不自动进入阶段 1。
+
+## 阶段 0 目标流
+
+先看计划和凭据是否就绪（不会访问网络）：
+
+```bash
+make stage0-plan STAGE0_ARGS="--as-of 2026-07-15"
+```
+
+在本机 `.env` 填好 `TUSHARE_TOKEN` 后启动：
+
+```bash
+make stage0-run STAGE0_ARGS="--as-of 2026-07-15"
+```
+
+流程按「测试 → Tushare 基础/行情/财务 → AKShare 交叉源 → S1-S10 → qlib → 六窗口基线 →
+影子信号 → AlphaGen CPU → G0 审计」顺序运行，首个非零退出码即停止。采集按请求参数和已提交
+Parquet 哈希续跑；流水线事件写入 `logs/pipeline/`。修复后重跑同一命令即可，需强制重验成功步骤时加
+`--no-resume`。流程中没有阶段 1 命令，G0 失败只形成报告。
