@@ -1,0 +1,15 @@
+# 数据与派生物不入 git（数据不可变纪律靠 Parquet 分区+备份盘，不靠 git）
+data/
+logs/
+*.parquet
+*.duckdb
+qlib_bin/
+# 密钥
+.env
+config/secrets*
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.venv/
+.DS_Store
+!ledger/*.csv

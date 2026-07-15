@@ -1,0 +1,40 @@
+runtime:
+  data_root: "./data"
+  environment: "dev"
+universe:
+  index_code: "000906.SH"       # 中证800
+  include_bse: false            # 北交所口径，全管线唯一开关（.BJ 后缀识别）
+backtest:
+  start: "2016-01-01"
+  benchmark: "SH000906"
+  rebalance_days: 10
+  topk: 30
+  n_drop: 3
+  deal_price: "open"
+  open_cost: 0.0006
+  close_cost: 0.0016
+  min_cost: 5
+  cost_scenarios: [1.0, 1.5, 2.0]     # 成本情景带
+limit_rules:                          # 板块×时段涨跌停，含创业板 2020-08-24 分段
+  main: 0.095
+  chinext_before_20200824: 0.095
+  chinext_after_20200824: 0.195
+  star: 0.195
+  st: 0.045
+  price_tick_tolerance: 0.01          # 贴板判定一分钱容差
+compute:
+  joblib_max_procs: 8                 # M5 24G 口径
+evaluation:
+  # 2026-07-15、任何回测运行前预注册：3 年训练 + 次年检验，共 6 个窗口。
+  g0_windows:
+    - {name: "W1", train_start: "2016-01-01", train_end: "2018-12-31", test_start: "2019-01-01", test_end: "2019-12-31"}
+    - {name: "W2", train_start: "2017-01-01", train_end: "2019-12-31", test_start: "2020-01-01", test_end: "2020-12-31"}
+    - {name: "W3", train_start: "2018-01-01", train_end: "2020-12-31", test_start: "2021-01-01", test_end: "2021-12-31"}
+    - {name: "W4", train_start: "2019-01-01", train_end: "2021-12-31", test_start: "2022-01-01", test_end: "2022-12-31"}
+    - {name: "W5", train_start: "2020-01-01", train_end: "2022-12-31", test_start: "2023-01-01", test_end: "2023-12-31"}
+    - {name: "W6", train_start: "2021-01-01", train_end: "2023-12-31", test_start: "2024-01-01", test_end: "2024-12-31"}
+  stress_periods:
+    - {name: "style_shift_2017", start: "2017-01-01", end: "2017-12-31"}
+    - {name: "microcap_crash_2024", start: "2024-01-01", end: "2024-02-29"}
+    - {name: "volume_price_drawdown_2026h1", start: "2026-01-01", end: "2026-06-30"}
+  forward_oos_start: "2026-07-09"

@@ -1,0 +1,1 @@
+batch_id,ingest_time,source_api,params_json,row_count,parquet_path,content_sha256,operator
