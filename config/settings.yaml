@@ -28,6 +28,7 @@ ingest:
   max_attempts: 3
   retry_base_seconds: 1.0
   min_request_interval_seconds: 0.15  # 基础频控 500 次/分钟留安全余量
+  max_concurrent_requests: 4          # 请求起点仍全局间隔 0.15s；上限 400 次/分钟
   source_row_limit: 6000              # Tushare daily 单次硬顶；触顶必须判失败而非接受截断
   history_window_years: 10            # 单票行情分窗；远小于 6000 个交易日
 crosscheck:

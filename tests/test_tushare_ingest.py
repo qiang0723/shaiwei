@@ -1,5 +1,7 @@
 from datetime import date
 from pathlib import Path
+from threading import Lock
+import time
 
 import pandas as pd
 import pytest
@@ -114,6 +116,64 @@ def test_ingestor_preserves_schema_for_legitimate_empty_response(tmp_path: Path)
     assert stored.empty
     assert stored.columns.tolist() == list(FIELDS["suspend_d"])
     assert recorded[0]["row_count"] == 0
+
+
+def test_ingestor_hides_latency_concurrently_but_commits_in_request_order(tmp_path: Path):
+    class SlowClient(FakeClient):
+        def __init__(self):
+            super().__init__()
+            self.active = 0
+            self.max_active = 0
+            self.lock = Lock()
+
+        def query(self, api_name: str, **kwargs):
+            with self.lock:
+                self.active += 1
+                self.max_active = max(self.max_active, self.active)
+            time.sleep(0.02)
+            with self.lock:
+                self.active -= 1
+            fields = kwargs["fields"].split(",")
+            return pd.DataFrame({field: [kwargs.get("trade_date")] for field in fields})
+
+    settings = load()
+    settings.ingest.min_request_interval_seconds = 0
+    settings.ingest.max_concurrent_requests = 3
+    client = SlowClient()
+    recorded = []
+    writer = RawBatchWriter(tmp_path, recorder=lambda **kw: recorded.append(kw) or "id")
+    requests = [
+        Request("suspend_d", {"trade_date": f"2020010{day}"}, {"trade_date": f"2020010{day}"})
+        for day in range(1, 7)
+    ]
+    TushareIngestor(client=client, writer=writer, settings=settings).run(requests)
+    assert client.max_active == 3
+    assert [row["params"]["trade_date"] for row in recorded] == [
+        request.params["trade_date"] for request in requests
+    ]
+
+
+def test_ingestor_reserves_globally_spaced_request_start_slots(tmp_path: Path):
+    settings = load()
+    settings.ingest.min_request_interval_seconds = 0.15
+    clock = [0.0]
+    sleeps = []
+
+    def sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+        clock[0] += seconds
+
+    ingestor = TushareIngestor(
+        client=FakeClient(),
+        writer=RawBatchWriter(tmp_path, recorder=lambda **_: "id"),
+        settings=settings,
+        sleep=sleep,
+        monotonic=lambda: clock[0],
+    )
+    ingestor._throttle()
+    ingestor._throttle()
+    ingestor._throttle()
+    assert sleeps == pytest.approx([0.15, 0.15])
 
 
 def test_market_plan_is_per_stock_windowed_and_excludes_bse():

@@ -2,9 +2,12 @@
 
 import time
 from calendar import monthrange
+from collections import deque
 from collections.abc import Callable, Iterable
+from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import date, timedelta
+from threading import Lock
 from typing import Protocol
 
 import pandas as pd
@@ -258,14 +261,19 @@ class TushareIngestor:
         self.sleep = sleep
         self.monotonic = monotonic
         self._last_request_at: float | None = None
+        self._throttle_lock = Lock()
 
     def _throttle(self) -> None:
-        if self._last_request_at is None:
-            return
-        elapsed = self.monotonic() - self._last_request_at
-        remaining = self.settings.ingest.min_request_interval_seconds - elapsed
-        if remaining > 0:
-            self.sleep(remaining)
+        # Reserve request start slots globally across workers.  Four workers
+        # hide network latency, while the frozen 0.15s spacing caps starts at
+        # 400/minute, below the official 500/minute entitlement.
+        with self._throttle_lock:
+            if self._last_request_at is not None:
+                elapsed = self.monotonic() - self._last_request_at
+                remaining = self.settings.ingest.min_request_interval_seconds - elapsed
+                if remaining > 0:
+                    self.sleep(remaining)
+            self._last_request_at = self.monotonic()
 
     def _query(self, request: Request) -> pd.DataFrame:
         if request.api_name == "namechange" and ({"start_date", "end_date"} & request.params.keys()):
@@ -276,10 +284,8 @@ class TushareIngestor:
             self._throttle()
             try:
                 frame = self.client.query(request.api_name, fields=",".join(fields), **request.params)
-                self._last_request_at = self.monotonic()
                 break
             except Exception as exc:
-                self._last_request_at = self.monotonic()
                 error = exc
                 if attempt + 1 < self.settings.ingest.max_attempts:
                     self.sleep(self.settings.ingest.retry_base_seconds * (2**attempt))
@@ -306,17 +312,35 @@ class TushareIngestor:
         return frame.loc[:, fields]
 
     def run(self, requests: Iterable[Request]) -> list[RawBatch]:
+        iterator = iter(requests)
+        pending: deque[tuple[Request, Future[pd.DataFrame]]] = deque()
         batches = []
-        for request in requests:
-            frame = self._query(request)
-            batches.append(
-                self.writer.write(
-                    source_api=f"tushare.{request.api_name}",
-                    params=public_request_params(request),
-                    frame=frame,
-                    partitions=request.partitions,
+        with ThreadPoolExecutor(
+            max_workers=self.settings.ingest.max_concurrent_requests,
+            thread_name_prefix="tushare",
+        ) as executor:
+            for _ in range(self.settings.ingest.max_concurrent_requests):
+                try:
+                    request = next(iterator)
+                except StopIteration:
+                    break
+                pending.append((request, executor.submit(self._query, request)))
+            while pending:
+                request, future = pending.popleft()
+                frame = future.result()
+                batches.append(
+                    self.writer.write(
+                        source_api=f"tushare.{request.api_name}",
+                        params=public_request_params(request),
+                        frame=frame,
+                        partitions=request.partitions,
+                    )
                 )
-            )
+                try:
+                    next_request = next(iterator)
+                except StopIteration:
+                    continue
+                pending.append((next_request, executor.submit(self._query, next_request)))
         return batches
 
 
