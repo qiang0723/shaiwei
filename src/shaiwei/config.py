@@ -54,6 +54,14 @@ class Compute(BaseModel):
     joblib_max_procs: int = Field(ge=1, le=8, description="M5 24G 上限，改动须先改 STATE.md 口径")
 
 
+class Ingest(BaseModel):
+    max_attempts: int = Field(ge=1, le=10)
+    retry_base_seconds: float = Field(ge=0, le=60)
+    min_request_interval_seconds: float = Field(ge=0, le=10)
+    source_row_limit: int = Field(gt=0)
+    history_window_years: int = Field(ge=1, le=20)
+
+
 class EvaluationWindow(BaseModel):
     name: str
     train_start: date
@@ -85,6 +93,7 @@ class Settings(BaseModel):
     backtest: Backtest
     limit_rules: LimitRules
     compute: Compute
+    ingest: Ingest
     evaluation: Evaluation
 
 

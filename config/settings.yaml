@@ -24,6 +24,12 @@ limit_rules:                          # 板块×时段涨跌停，含创业板 2
   price_tick_tolerance: 0.01          # 贴板判定一分钱容差
 compute:
   joblib_max_procs: 8                 # M5 24G 口径
+ingest:
+  max_attempts: 3
+  retry_base_seconds: 1.0
+  min_request_interval_seconds: 0.15  # 基础频控 500 次/分钟留安全余量
+  source_row_limit: 6000              # Tushare daily 单次硬顶；触顶必须判失败而非接受截断
+  history_window_years: 10            # 单票行情分窗；远小于 6000 个交易日
 evaluation:
   # 2026-07-15、任何回测运行前预注册：3 年训练 + 次年检验，共 6 个窗口。
   g0_windows:

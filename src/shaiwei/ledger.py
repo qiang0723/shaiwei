@@ -1,5 +1,6 @@
 """账本唯一写入口。任何代码禁止直接 open/pandas 重写 ledger/*.csv —— 只准调用这里的 append_*。"""
 import csv
+import fcntl
 import hashlib
 import json
 import os
@@ -13,18 +14,31 @@ EXPERIMENTS = LEDGER_DIR / "experiments.csv"
 INGEST = LEDGER_DIR / "ingest_batches.csv"
 
 def _append(path: Path, row: dict) -> None:
-    with path.open("r", encoding="utf-8") as f:
+    with path.open("r+", newline="", encoding="utf-8") as f:
+        fcntl.flock(f.fileno(), fcntl.LOCK_EX)
         header = f.readline().strip().split(",")
-    missing = set(header) - set(row)
-    if missing:
-        raise ValueError(f"ledger row missing fields: {missing}")
-    extra = set(row) - set(header)
-    if extra:
-        raise ValueError(f"ledger row has unknown fields: {extra}")
-    with path.open("a", newline="", encoding="utf-8") as f:
+        missing = set(header) - set(row)
+        if missing:
+            raise ValueError(f"ledger row missing fields: {missing}")
+        extra = set(row) - set(header)
+        if extra:
+            raise ValueError(f"ledger row has unknown fields: {extra}")
+        f.seek(0, os.SEEK_END)
         csv.DictWriter(f, fieldnames=header).writerow(row)
         f.flush()
         os.fsync(f.fileno())
+
+
+def _reject_sensitive_params(value: object, path: str = "params") -> None:
+    if isinstance(value, dict):
+        for key, child in value.items():
+            normalized = str(key).lower().replace("-", "_")
+            if any(marker in normalized for marker in ("token", "secret", "password", "api_key")):
+                raise ValueError(f"sensitive field is forbidden in ledger: {path}.{key}")
+            _reject_sensitive_params(child, f"{path}.{key}")
+    elif isinstance(value, (list, tuple)):
+        for index, child in enumerate(value):
+            _reject_sensitive_params(child, f"{path}[{index}]")
 
 def sha256_file(p: str | Path) -> str:
     h = hashlib.sha256()
@@ -36,9 +50,15 @@ def sha256_file(p: str | Path) -> str:
 def append_ingest_batch(source_api: str, params: dict, row_count: int,
                         parquet_path: str, content_sha256: str | None = None,
                         operator: str = "automation") -> str:
+    import pyarrow.parquet as pq
+
+    _reject_sensitive_params(params)
     parquet_file = Path(parquet_path)
     if not parquet_file.is_file():
         raise FileNotFoundError(parquet_file)
+    actual_row_count = pq.read_metadata(parquet_file).num_rows
+    if row_count != actual_row_count:
+        raise ValueError(f"row_count={row_count} does not match parquet rows={actual_row_count}")
     actual_sha256 = sha256_file(parquet_file)
     if content_sha256 is not None and content_sha256 != actual_sha256:
         raise ValueError("provided content_sha256 does not match parquet file")

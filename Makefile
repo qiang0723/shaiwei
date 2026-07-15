@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest sentinel test backtest-baseline check-ledger
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run sentinel test backtest-baseline check-ledger
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -22,6 +22,8 @@ runtime-check:     ## 核对阶段 0 关键运行时确实可导入
 	$(PYTHON) -c "import qlib, lightgbm, tushare, akshare; print('qlib', qlib.__version__); print('lightgbm', lightgbm.__version__); print('tushare', tushare.__version__); print('akshare', akshare.__version__)"
 ingest:           ## Day1-5 数据采集（实现于 src/shaiwei/ingest/，每批必过 ledger.append_ingest_batch）
 	$(PYTHON) -m shaiwei.ingest
+ingest-dry-run:   ## 无凭据打印基础表请求计划
+	$(PYTHON) -m shaiwei.ingest --dry-run
 sentinel:         ## 跑全部哨兵（S1-S10），任一 FAIL 退出码非零
 	$(PYTHON) -m shaiwei.sentinel
 test:             ## 单元测试 + 账本追加校验
