@@ -5,15 +5,14 @@ import json
 from datetime import date, datetime, timedelta, timezone
 
 import pandas as pd
-import qlib
 from dateutil.relativedelta import relativedelta
-from qlib.config import REG_CN
 from qlib.contrib.data.handler import Alpha158
 from qlib.data import D
 from qlib.data.dataset import DatasetH
 from qlib.workflow import R
 
 from shaiwei.backtest.baseline import FORWARD_LABEL, _model
+from shaiwei.backtest.qlib_runtime import initialize_qlib
 from shaiwei.config import PROJECT_ROOT, load
 from shaiwei.ledger import append_experiment, ingest_snapshot_sha256
 from shaiwei.provenance import code_snapshot_sha256, git_head
@@ -68,7 +67,7 @@ def main() -> int:
     parser.add_argument("--as-of", type=date.fromisoformat, default=date.today())
     args = parser.parse_args()
     settings = load()
-    qlib.init(provider_uri=str(settings.runtime.data_root / "qlib_bin"), region=REG_CN)
+    initialize_qlib(settings)
     calendar = D.calendar(start_time=settings.backtest.start, end_time=args.as_of, freq="day")
     if not len(calendar):
         raise SystemExit(f"no qlib trading day on or before {args.as_of}")

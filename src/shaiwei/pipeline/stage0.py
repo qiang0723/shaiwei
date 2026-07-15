@@ -9,6 +9,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 from shaiwei.config import PROJECT_ROOT, load
+from shaiwei.ledger import ingest_snapshot_sha256
 from shaiwei.provenance import code_snapshot_sha256
 
 
@@ -31,9 +32,24 @@ def steps(as_of: date) -> list[Step]:
         ),
         Step("bootstrap", "基础表采集", (python, "-m", "shaiwei.ingest", "--stage", "bootstrap", "--as-of", day, "--resume")),
         Step(
+            "suspensions",
+            "按交易日采集停复牌记录",
+            (python, "-m", "shaiwei.ingest", "--stage", "suspensions", "--as-of", day, "--resume"),
+        ),
+        Step(
             "namechange",
             "逐票无日期参数采集历史名称",
             (python, "-m", "shaiwei.ingest", "--stage", "namechange", "--as-of", day, "--resume"),
+        ),
+        Step(
+            "corporate_actions",
+            "逐票采集分红送股与除权日",
+            (python, "-m", "shaiwei.ingest", "--stage", "corporate-actions", "--as-of", day, "--resume"),
+        ),
+        Step(
+            "industry_membership",
+            "逐票采集申万行业历史区间",
+            (python, "-m", "shaiwei.ingest", "--stage", "industry-membership", "--as-of", day, "--resume"),
         ),
         Step("market", "全市场行情/复权/市值采集", (python, "-m", "shaiwei.ingest", "--stage", "market", "--as-of", day, "--resume")),
         Step(
@@ -57,7 +73,7 @@ def _append_event(path: Path, event: dict[str, object]) -> None:
         handle.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
 
 
-def _completed_steps(path: Path, *, code_hash: str, as_of: date) -> set[str]:
+def _completed_steps(path: Path, *, code_hash: str, data_hash: str, as_of: date) -> set[str]:
     if not path.is_file():
         return set()
     completed = set()
@@ -66,6 +82,7 @@ def _completed_steps(path: Path, *, code_hash: str, as_of: date) -> set[str]:
         if (
             event.get("status") == "PASS"
             and event.get("code_snapshot_sha256") == code_hash
+            and event.get("data_snapshot_sha256") == data_hash
             and event.get("as_of") == as_of.isoformat()
         ):
             completed.add(str(event["step"]))
@@ -108,12 +125,21 @@ def main() -> int:
     if args.plan:
         print(json.dumps(plan, ensure_ascii=False, indent=2, sort_keys=True))
         return 0
-    if any(step.name in {"bootstrap", "namechange", "market", "financial"} for step in selected) and not token_ready:
-        raise SystemExit("TUSHARE_TOKEN is missing; create local .env from .env.example, then rerun the same command")
+    ingest_steps = {
+        "bootstrap", "suspensions", "namechange", "corporate_actions",
+        "industry_membership", "market", "financial",
+    }
+    if any(step.name in ingest_steps for step in selected) and not token_ready:
+        raise SystemExit("TUSHARE_TOKEN is missing from local .env; fill it locally, then rerun the same command")
 
     code_hash = code_snapshot_sha256()
     log_path = PROJECT_ROOT / "logs/pipeline" / f"stage0_{args.as_of:%Y%m%d}.jsonl"
-    completed = set() if args.no_resume else _completed_steps(log_path, code_hash=code_hash, as_of=args.as_of)
+    current_data_hash = ingest_snapshot_sha256()
+    completed = (
+        set()
+        if args.no_resume
+        else _completed_steps(log_path, code_hash=code_hash, data_hash=current_data_hash, as_of=args.as_of)
+    )
     for step in selected:
         if step.name in completed:
             print(json.dumps({"step": step.name, "status": "SKIP_RESUMED"}, ensure_ascii=False))
@@ -137,6 +163,7 @@ def main() -> int:
                 "ts": finished.isoformat(),
                 "elapsed_seconds": (finished - started).total_seconds(),
                 "returncode": result.returncode,
+                "data_snapshot_sha256": ingest_snapshot_sha256(),
             },
         )
         if result.returncode != 0:

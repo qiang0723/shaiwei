@@ -4,8 +4,10 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+import pandas as pd
+
 from shaiwei.config import PROJECT_ROOT, load
-from shaiwei.ledger import ingest_snapshot_sha256
+from shaiwei.ledger import EXPERIMENTS, ingest_snapshot_sha256, verify_ingest_batches
 from shaiwei.provenance import code_snapshot_sha256
 from shaiwei.shadow.manifest import verify_signal_manifest
 
@@ -24,6 +26,16 @@ def main() -> int:
     code_hash = code_snapshot_sha256()
     missing = []
     evidence: dict[str, object] = {}
+    try:
+        integrity = verify_ingest_batches()
+    except (FileNotFoundError, OSError, ValueError) as error:
+        integrity = {"status": "FAIL", "error": f"{type(error).__name__}: {error}"}
+        missing.append("immutable ingest batch integrity verification failed")
+    else:
+        integrity = {"status": "PASS", **integrity}
+        if integrity["batch_count"] == 0:
+            missing.append("ingest ledger has no committed data batches")
+    evidence["ingest_integrity"] = integrity
     reports: dict[str, tuple[Path, dict]] = {}
     for name, directory, pattern in (
         ("sentinel", PROJECT_ROOT / "logs/sentinels", "*.json"),
@@ -56,18 +68,50 @@ def main() -> int:
         path, alphagen = reports["alphagen"]
         evidence["alphagen_cpu"] = {"report_path": str(path), **alphagen["summary"]}
 
+    experiments = pd.read_csv(EXPERIMENTS, dtype=str, keep_default_na=False)
+    matching = experiments.loc[
+        experiments["code_sha256"].eq(code_hash) & experiments["data_snapshot_sha256"].eq(data_hash)
+    ]
+    baseline_rows = matching.loc[matching["candidate_source"].eq("Alpha158")]
+    shadow_rows = matching.loc[matching["candidate_source"].eq("Alpha158-shadow")]
+    alphagen_rows = matching.loc[matching["candidate_source"].eq("AlphaGen-GP")]
+    baseline_windows = {
+        str(json.loads(value).get("window"))
+        for value in baseline_rows["params_json"]
+        if value
+    }
+    required_windows = {window.name for window in settings.evaluation.g0_windows}
+    experiment_evidence = {
+        "baseline_rows": len(baseline_rows),
+        "baseline_windows": sorted(baseline_windows),
+        "shadow_rows": len(shadow_rows),
+        "alphagen_candidate_rows": int(alphagen_rows["feature_or_formula"].ne("BENCHMARK_SUMMARY").sum()),
+        "alphagen_summary_rows": int(alphagen_rows["feature_or_formula"].eq("BENCHMARK_SUMMARY").sum()),
+    }
+    evidence["experiment_ledger"] = experiment_evidence
+    if missing_windows := sorted(required_windows - baseline_windows):
+        missing.append(f"experiment ledger is missing baseline windows: {missing_windows}")
+    if shadow_rows.empty:
+        missing.append("experiment ledger has no matching shadow run")
+    if not alphagen_rows["feature_or_formula"].eq("BENCHMARK_SUMMARY").any():
+        missing.append("experiment ledger has no matching AlphaGen benchmark summary")
+    if "alphagen" in reports:
+        expected_candidates = int(reports["alphagen"][1]["summary"]["candidate_count"])
+        if experiment_evidence["alphagen_candidate_rows"] < expected_candidates:
+            missing.append("experiment ledger has fewer AlphaGen candidates than the benchmark report")
+
     signal_evidence = None
-    manifests = sorted((PROJECT_ROOT / "signals").glob("*.json"), reverse=True)
-    if manifests:
-        document = json.loads(manifests[0].read_text(encoding="utf-8"))
+    for manifest in sorted((PROJECT_ROOT / "signals").glob("*.json"), reverse=True):
+        document = json.loads(manifest.read_text(encoding="utf-8"))
         if (
             document.get("data_snapshot_sha256") == data_hash
             and document.get("code_snapshot_sha256") == code_hash
         ):
             signal_evidence = {
-                "manifest_path": str(manifests[0]),
-                "signal_sha256": verify_signal_manifest(manifests[0]),
+                "manifest_path": str(manifest),
+                "signal_sha256": verify_signal_manifest(manifest),
             }
+            break
     if signal_evidence is None:
         missing.append("no shadow manifest matches the current data and code snapshots")
     else:

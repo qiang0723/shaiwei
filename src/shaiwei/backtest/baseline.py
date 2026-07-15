@@ -5,9 +5,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 
 import pandas as pd
-import qlib
 from dateutil.relativedelta import relativedelta
-from qlib.config import REG_CN
 from qlib.contrib.data.handler import Alpha158
 from qlib.contrib.evaluate import backtest_daily
 from qlib.contrib.model.gbdt import LGBModel
@@ -15,6 +13,7 @@ from qlib.data.dataset import DatasetH
 from qlib.workflow import R
 
 from shaiwei.backtest.strategy import BiweeklyTopkDropoutStrategy
+from shaiwei.backtest.qlib_runtime import initialize_qlib
 from shaiwei.config import PROJECT_ROOT, EvaluationWindow, Settings, load
 from shaiwei.ledger import append_experiment, ingest_snapshot_sha256
 from shaiwei.provenance import code_snapshot_sha256
@@ -188,7 +187,7 @@ def _record_window(settings: Settings, window: EvaluationWindow, result: dict, *
 
 def main() -> int:
     settings = load()
-    qlib.init(provider_uri=str(settings.runtime.data_root / "qlib_bin"), region=REG_CN)
+    initialize_qlib(settings)
     results = []
     for window in settings.evaluation.g0_windows:
         try:

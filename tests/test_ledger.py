@@ -1,3 +1,4 @@
+import csv
 from pathlib import Path
 
 import pandas as pd
@@ -47,3 +48,31 @@ def test_empty_ingest_snapshot_is_stable(tmp_path: Path):
         encoding="utf-8",
     )
     assert ledger.ingest_snapshot_sha256(path) == ledger.ingest_snapshot_sha256(path)
+
+
+def test_verify_ingest_batches_rehashes_every_committed_file(tmp_path: Path):
+    artifact = tmp_path / "batch.parquet"
+    pd.DataFrame({"x": [1, 2]}).to_parquet(artifact)
+    path = tmp_path / "ingest.csv"
+    header = [
+        "batch_id", "ingest_time", "source_api", "params_json", "row_count",
+        "parquet_path", "content_sha256", "operator",
+    ]
+    row = {
+        "batch_id": "batch1",
+        "ingest_time": "2026-01-01T00:00:00Z",
+        "source_api": "tushare.daily",
+        "params_json": "{}",
+        "row_count": 2,
+        "parquet_path": str(artifact),
+        "content_sha256": ledger.sha256_file(artifact),
+        "operator": "test",
+    }
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=header)
+        writer.writeheader()
+        writer.writerow(row)
+    assert ledger.verify_ingest_batches(path)["row_count"] == 2
+    artifact.write_bytes(b"tampered")
+    with pytest.raises((ValueError, OSError)):
+        ledger.verify_ingest_batches(path)

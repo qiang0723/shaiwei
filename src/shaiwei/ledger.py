@@ -48,6 +48,32 @@ def sha256_file(p: str | Path) -> str:
     return h.hexdigest()
 
 
+def verify_ingest_batches(path: Path = INGEST) -> dict[str, int]:
+    """Re-hash every immutable raw batch referenced by the append-only ledger."""
+    import pyarrow.parquet as pq
+
+    with path.open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    batch_ids = [row["batch_id"] for row in rows]
+    if len(batch_ids) != len(set(batch_ids)):
+        raise ValueError("ingest ledger contains duplicate batch_id values")
+    total_rows = 0
+    total_bytes = 0
+    for row in rows:
+        parquet_path = Path(row["parquet_path"])
+        if not parquet_path.is_file():
+            raise FileNotFoundError(parquet_path)
+        metadata = pq.read_metadata(parquet_path)
+        expected_rows = int(row["row_count"])
+        if metadata.num_rows != expected_rows:
+            raise ValueError(f"row count mismatch: {parquet_path}")
+        if sha256_file(parquet_path) != row["content_sha256"]:
+            raise ValueError(f"content hash mismatch: {parquet_path}")
+        total_rows += expected_rows
+        total_bytes += parquet_path.stat().st_size
+    return {"batch_count": len(rows), "row_count": total_rows, "byte_count": total_bytes}
+
+
 def ingest_snapshot_sha256(path: Path = INGEST) -> str:
     """Hash the ordered committed batch identities without hashing multi-GB data again."""
     with path.open(newline="", encoding="utf-8") as handle:

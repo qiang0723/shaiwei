@@ -3,7 +3,10 @@
 from collections import defaultdict
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
+import shutil
+import uuid
 
 import numpy as np
 import pandas as pd
@@ -107,29 +110,35 @@ def build_qlib_bin(
         raise ValueError("trade calendar has no open dates")
     _write_lines(output_root / "calendars/day.txt", open_calendar)
 
-    combined = pd.concat([market, benchmark_frame(index_daily)], ignore_index=True, sort=False)
     calendar_index = pd.Index(open_calendar)
     instrument_lines = []
-    for ts_code, frame in combined.groupby("ts_code", sort=True):
-        frame = frame.copy()
-        frame["trade_date"] = frame["trade_date"].astype(str)
-        frame = frame.loc[frame["trade_date"].isin(calendar_index)].sort_values("trade_date")
-        if frame.empty:
-            continue
-        if frame["trade_date"].duplicated().any():
-            raise ValueError(f"duplicate qlib dates for {ts_code}")
-        first_index = int(calendar_index.get_loc(frame["trade_date"].iloc[0]))
-        last_index = int(calendar_index.get_loc(frame["trade_date"].iloc[-1]))
-        aligned_dates = calendar_index[first_index : last_index + 1]
-        aligned = frame.set_index("trade_date").reindex(aligned_dates)
-        code = qlib_code(ts_code)
-        feature_dir = output_root / "features" / code.lower()
-        feature_dir.mkdir(parents=True, exist_ok=True)
-        for field_name in QLIB_FIELDS:
-            values = pd.to_numeric(aligned[field_name], errors="coerce").to_numpy(dtype="float32")
-            payload = np.concatenate([np.array([first_index], dtype="float32"), values]).astype("<f4")
-            payload.tofile(feature_dir / f"{field_name}.day.bin")
-        instrument_lines.append(f"{code}\t{aligned_dates[0]}\t{aligned_dates[-1]}")
+    seen_codes = set()
+    # Process equities and the benchmark separately; concatenating the full
+    # market creates another multi-gigabyte copy on the 24GB target machine.
+    for source in (market, benchmark_frame(index_daily)):
+        for ts_code, frame in source.groupby("ts_code", sort=True):
+            code = qlib_code(ts_code)
+            if code in seen_codes:
+                raise ValueError(f"duplicate qlib instrument code: {code}")
+            seen_codes.add(code)
+            frame = frame.copy()
+            frame["trade_date"] = frame["trade_date"].astype(str)
+            frame = frame.loc[frame["trade_date"].isin(calendar_index)].sort_values("trade_date")
+            if frame.empty:
+                continue
+            if frame["trade_date"].duplicated().any():
+                raise ValueError(f"duplicate qlib dates for {ts_code}")
+            first_index = int(calendar_index.get_loc(frame["trade_date"].iloc[0]))
+            last_index = int(calendar_index.get_loc(frame["trade_date"].iloc[-1]))
+            aligned_dates = calendar_index[first_index : last_index + 1]
+            aligned = frame.set_index("trade_date").reindex(aligned_dates)
+            feature_dir = output_root / "features" / code.lower()
+            feature_dir.mkdir(parents=True, exist_ok=True)
+            for field_name in QLIB_FIELDS:
+                values = pd.to_numeric(aligned[field_name], errors="coerce").to_numpy(dtype="float32")
+                payload = np.concatenate([np.array([first_index], dtype="float32"), values]).astype("<f4")
+                payload.tofile(feature_dir / f"{field_name}.day.bin")
+            instrument_lines.append(f"{code}\t{aligned_dates[0]}\t{aligned_dates[-1]}")
 
     _write_lines(output_root / "instruments/all.txt", sorted(instrument_lines))
     if "index_code" not in index_weight.columns:
@@ -149,16 +158,44 @@ def build_qlib_bin(
 
 
 def main() -> int:
-    from shaiwei.config import load
+    from shaiwei.config import PROJECT_ROOT, load
     from shaiwei.ingest.catalog import load_latest_api
     from shaiwei.ledger import ingest_snapshot_sha256
     from shaiwei.provenance import code_snapshot_sha256
     from shaiwei.sentinel.__main__ import main as run_sentinels
     from shaiwei.transform.market import attach_trade_limit_flags, transform_market_data
 
-    if run_sentinels() != 0:
-        raise SystemExit("sentinels failed; qlib bin build is blocked")
     settings = load()
+    output_root = settings.runtime.data_root / "qlib_bin"
+    code_hash = code_snapshot_sha256()
+    data_hash = ingest_snapshot_sha256()
+    matching_sentinel = None
+    for report_path in sorted((PROJECT_ROOT / "logs/sentinels").glob("*.json"), reverse=True):
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+        if (
+            report.get("code_snapshot_sha256") == code_hash
+            and report.get("data_snapshot_sha256") == data_hash
+        ):
+            matching_sentinel = report
+            break
+    if matching_sentinel is None:
+        if run_sentinels() != 0:
+            raise SystemExit("sentinels failed; qlib bin build is blocked")
+    elif matching_sentinel.get("required_failures"):
+        raise SystemExit("matching sentinel report failed; qlib bin build is blocked")
+    manifest_path = output_root / "_shaiwei_manifest.json"
+    if manifest_path.is_file():
+        existing = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if (
+            existing.get("code_snapshot_sha256") == code_hash
+            and existing.get("data_snapshot_sha256") == data_hash
+        ):
+            print(output_root)
+            return 0
+    if output_root.exists():
+        if any(output_root.iterdir()):
+            raise SystemExit("qlib cache exists for a different snapshot; remove only this derived cache to rebuild")
+        output_root.rmdir()
     daily = load_latest_api("tushare.daily")
     adj_factor = load_latest_api("tushare.adj_factor")
     stock_basic = load_latest_api("tushare.stock_basic")
@@ -168,32 +205,38 @@ def main() -> int:
         stock_basic,
         namechange,
         settings.limit_rules.model_dump(),
+        copy=False,
     )
-    output_root = settings.runtime.data_root / "qlib_bin"
-    build_qlib_bin(
-        output_root,
-        market,
-        load_latest_api("tushare.trade_cal"),
-        stock_basic,
-        load_latest_api("tushare.index_weight"),
-        load_latest_api("tushare.index_daily"),
-        {
-            settings.baseline.instrument: settings.universe.index_code,
-            settings.alphagen_benchmark.instrument: settings.alphagen_benchmark.index_code,
-        },
-    )
-    (output_root / "_shaiwei_manifest.json").write_text(
-        json.dumps(
+    staging = output_root.with_name(f".{output_root.name}.building.{uuid.uuid4().hex}")
+    try:
+        build_qlib_bin(
+            staging,
+            market,
+            load_latest_api("tushare.trade_cal"),
+            stock_basic,
+            load_latest_api("tushare.index_weight"),
+            load_latest_api("tushare.index_daily"),
             {
-                "generated_at": datetime.now(timezone.utc).isoformat(),
-                "code_snapshot_sha256": code_snapshot_sha256(),
-                "data_snapshot_sha256": ingest_snapshot_sha256(),
+                settings.baseline.instrument: settings.universe.index_code,
+                settings.alphagen_benchmark.instrument: settings.alphagen_benchmark.index_code,
             },
-            indent=2,
-            sort_keys=True,
-        ),
-        encoding="utf-8",
-    )
+        )
+        (staging / "_shaiwei_manifest.json").write_text(
+            json.dumps(
+                {
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "code_snapshot_sha256": code_hash,
+                    "data_snapshot_sha256": data_hash,
+                },
+                indent=2,
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
+        os.replace(staging, output_root)
+    except Exception:
+        shutil.rmtree(staging, ignore_errors=True)
+        raise
     print(output_root)
     return 0
 

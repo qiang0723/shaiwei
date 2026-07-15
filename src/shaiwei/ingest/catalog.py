@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 
+import duckdb
 import pandas as pd
 import pyarrow.parquet as pq
 
@@ -54,7 +55,7 @@ def load_latest_api(source_api: str, *, ledger_path: Path = INGEST, verify: bool
     entries["_time"] = pd.to_datetime(entries["ingest_time"], utc=True, errors="raise")
     latest = entries.sort_values("_time").drop_duplicates("_params_key", keep="last")
 
-    frames = []
+    paths = []
     for entry in latest.itertuples(index=False):
         path = Path(entry.parquet_path)
         if not path.is_file():
@@ -64,7 +65,17 @@ def load_latest_api(source_api: str, *, ledger_path: Path = INGEST, verify: bool
             raise CatalogError(f"content hash mismatch: {path}")
         if metadata.num_rows != int(entry.row_count):
             raise CatalogError(f"row count mismatch: {path}")
-        frames.append(pd.read_parquet(path))
-    if not frames:
+        paths.append(str(path))
+    if not paths:
         return pd.DataFrame()
-    return pd.concat(frames, ignore_index=True).drop_duplicates().reset_index(drop=True)
+    # DuckDB streams the Parquet fragments into one result and avoids retaining
+    # thousands of per-request pandas frames plus a second full concat copy.
+    # Do not silently drop duplicates: downstream key assertions must see and
+    # reject duplicate source rows rather than having the catalog hide them.
+    connection = duckdb.connect(":memory:")
+    try:
+        return connection.execute(
+            "SELECT * FROM read_parquet(?, union_by_name = true)", [paths]
+        ).df()
+    finally:
+        connection.close()

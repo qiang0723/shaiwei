@@ -75,3 +75,25 @@ def test_resume_keys_only_include_intact_latest_batches(tmp_path: Path):
     assert committed_params_keys("tushare.stock_basic", ledger_path=ledger) == {
         canonical_params_key({"list_status": "L"})
     }
+
+
+def test_catalog_does_not_hide_duplicate_source_rows(tmp_path: Path):
+    ledger = tmp_path / "ledger.csv"
+    path = tmp_path / "duplicates.parquet"
+    pd.DataFrame({"x": [1, 1]}).to_parquet(path)
+    entry = {
+        "batch_id": "dup",
+        "ingest_time": "2026-01-01T00:00:00Z",
+        "source_api": "tushare.stock_basic",
+        "params_json": '{"list_status":"L"}',
+        "row_count": 2,
+        "parquet_path": str(path),
+        "content_sha256": sha256_file(path),
+        "operator": "test",
+    }
+    with ledger.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=HEADER)
+        writer.writeheader()
+        writer.writerow(entry)
+
+    assert load_latest_api("tushare.stock_basic", ledger_path=ledger)["x"].tolist() == [1, 1]
