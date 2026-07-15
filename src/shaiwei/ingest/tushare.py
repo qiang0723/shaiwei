@@ -2,9 +2,8 @@
 
 import time
 from calendar import monthrange
-from collections import deque
 from collections.abc import Callable, Iterable
-from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 from datetime import date, timedelta
 from threading import Lock
@@ -312,35 +311,54 @@ class TushareIngestor:
         return frame.loc[:, fields]
 
     def run(self, requests: Iterable[Request]) -> list[RawBatch]:
-        iterator = iter(requests)
-        pending: deque[tuple[Request, Future[pd.DataFrame]]] = deque()
+        iterator = enumerate(requests)
+        workers = self.settings.ingest.max_concurrent_requests
+        pending: dict[Future[pd.DataFrame], tuple[int, Request]] = {}
+        ready: dict[int, tuple[Request, pd.DataFrame]] = {}
+        exhausted = False
+        next_commit = 0
         batches = []
+
+        def submit_available(executor: ThreadPoolExecutor) -> None:
+            nonlocal exhausted
+            # Bound queried-but-uncommitted work to two worker windows.  This
+            # keeps workers busy across a slow head request without allowing an
+            # arbitrarily large out-of-order frame buffer.
+            max_ahead = workers * 2
+            while not exhausted and len(pending) < workers and len(pending) + len(ready) < max_ahead:
+                try:
+                    index, request = next(iterator)
+                except StopIteration:
+                    exhausted = True
+                    break
+                pending[executor.submit(self._query, request)] = (index, request)
+
         with ThreadPoolExecutor(
-            max_workers=self.settings.ingest.max_concurrent_requests,
+            max_workers=workers,
             thread_name_prefix="tushare",
         ) as executor:
-            for _ in range(self.settings.ingest.max_concurrent_requests):
-                try:
-                    request = next(iterator)
-                except StopIteration:
-                    break
-                pending.append((request, executor.submit(self._query, request)))
-            while pending:
-                request, future = pending.popleft()
-                frame = future.result()
-                batches.append(
-                    self.writer.write(
-                        source_api=f"tushare.{request.api_name}",
-                        params=public_request_params(request),
-                        frame=frame,
-                        partitions=request.partitions,
+            submit_available(executor)
+            while pending or ready:
+                while next_commit in ready:
+                    request, frame = ready.pop(next_commit)
+                    batches.append(
+                        self.writer.write(
+                            source_api=f"tushare.{request.api_name}",
+                            params=public_request_params(request),
+                            frame=frame,
+                            partitions=request.partitions,
+                        )
                     )
-                )
-                try:
-                    next_request = next(iterator)
-                except StopIteration:
-                    continue
-                pending.append((next_request, executor.submit(self._query, next_request)))
+                    next_commit += 1
+                submit_available(executor)
+                if not pending:
+                    if ready:
+                        raise IngestError("internal scheduler gap before next commit")
+                    break
+                completed, _ = wait(tuple(pending), return_when=FIRST_COMPLETED)
+                for future in completed:
+                    index, request = pending.pop(future)
+                    ready[index] = (request, future.result())
         return batches
 
 

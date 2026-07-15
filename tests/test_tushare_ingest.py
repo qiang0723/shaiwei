@@ -1,6 +1,6 @@
 from datetime import date
 from pathlib import Path
-from threading import Lock
+from threading import Event, Lock, Thread
 import time
 
 import pandas as pd
@@ -148,6 +148,56 @@ def test_ingestor_hides_latency_concurrently_but_commits_in_request_order(tmp_pa
     ]
     TushareIngestor(client=client, writer=writer, settings=settings).run(requests)
     assert client.max_active == 3
+    assert [row["params"]["trade_date"] for row in recorded] == [
+        request.params["trade_date"] for request in requests
+    ]
+
+
+def test_ingestor_replenishes_workers_while_head_request_is_slow(tmp_path: Path):
+    first_started = Event()
+    release_first = Event()
+    fourth_started = Event()
+
+    class HeadBlockedClient(FakeClient):
+        def query(self, api_name: str, **kwargs):
+            trade_date = kwargs["trade_date"]
+            if trade_date == "20200101":
+                first_started.set()
+                if not release_first.wait(timeout=2):
+                    raise TimeoutError("test did not release first request")
+            elif trade_date == "20200104":
+                fourth_started.set()
+            fields = kwargs["fields"].split(",")
+            return pd.DataFrame({field: [trade_date] for field in fields})
+
+    settings = load()
+    settings.ingest.min_request_interval_seconds = 0
+    settings.ingest.max_concurrent_requests = 3
+    recorded = []
+    writer = RawBatchWriter(tmp_path, recorder=lambda **kw: recorded.append(kw) or "id")
+    requests = [
+        Request("suspend_d", {"trade_date": f"2020010{day}"}, {"trade_date": f"2020010{day}"})
+        for day in range(1, 7)
+    ]
+    errors = []
+
+    def run() -> None:
+        try:
+            TushareIngestor(client=HeadBlockedClient(), writer=writer, settings=settings).run(requests)
+        except Exception as exc:  # pragma: no cover - asserted below
+            errors.append(exc)
+
+    thread = Thread(target=run)
+    thread.start()
+    try:
+        assert first_started.wait(timeout=1)
+        assert fourth_started.wait(timeout=1)
+    finally:
+        release_first.set()
+        thread.join(timeout=2)
+
+    assert not thread.is_alive()
+    assert errors == []
     assert [row["params"]["trade_date"] for row in recorded] == [
         request.params["trade_date"] for request in requests
     ]
