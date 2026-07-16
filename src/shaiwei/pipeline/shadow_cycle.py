@@ -37,6 +37,10 @@ class ShadowCycleError(RuntimeError):
     pass
 
 
+class ShadowCycleBusy(ShadowCycleError):
+    """A healthy concurrent cycle owns the non-blocking process lock."""
+
+
 @dataclass(frozen=True)
 class ShadowCycleResult:
     status: str
@@ -80,7 +84,7 @@ def shadow_lock(path: Path | None = None) -> Iterator[None]:
         try:
             fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as error:
-            raise ShadowCycleError("another shadow cycle is already running") from error
+            raise ShadowCycleBusy("another shadow cycle is already running") from error
         try:
             yield
         finally:
@@ -363,7 +367,15 @@ def run_once(settings: Settings | None = None) -> ShadowCycleResult:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args(argv)
-    print(json.dumps(asdict(run_once()), ensure_ascii=False, sort_keys=True))
+    try:
+        result = run_once()
+    except ShadowCycleBusy:
+        # The scheduler can legitimately overlap a manual idempotent --once
+        # cycle after the daily lock is released.  Lock ownership proves that
+        # another process is already doing the work, so this is BUSY rather
+        # than a pipeline failure or an alert-worthy degraded state.
+        result = ShadowCycleResult("BUSY", "", False, (), "")
+    print(json.dumps(asdict(result), ensure_ascii=False, sort_keys=True))
     return 0
 
 

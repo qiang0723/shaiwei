@@ -5,6 +5,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pandas as pd
+import pytest
 
 from shaiwei.config import load
 from shaiwei.pipeline import shadow_cycle
@@ -140,6 +141,34 @@ def test_shadow_cycle_generates_once_for_one_daily_pass(monkeypatch, tmp_path: P
     assert first.status == "PASS"
     assert second.status == "NOOP"
     assert calls == ["generated"]
+
+
+def test_shadow_cycle_cli_reports_lock_contention_as_busy(monkeypatch, capsys):
+    def busy():
+        raise shadow_cycle.ShadowCycleBusy("already running")
+
+    monkeypatch.setattr(shadow_cycle, "run_once", busy)
+
+    assert shadow_cycle.main([]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload == {
+        "generated_signal": False,
+        "reconciled_trade_days": [],
+        "report_path": "",
+        "signal_trade_date": "",
+        "status": "BUSY",
+    }
+
+
+def test_shadow_cycle_run_once_still_exposes_busy_to_python_callers(monkeypatch):
+    @shadow_cycle.contextmanager
+    def busy_lock():
+        raise shadow_cycle.ShadowCycleBusy("already running")
+        yield
+
+    monkeypatch.setattr(shadow_cycle, "shadow_lock", busy_lock)
+    with pytest.raises(shadow_cycle.ShadowCycleBusy):
+        shadow_cycle.run_once(load())
 
 
 def test_rebalance_context_changes_targets_only_every_ten_open_days(monkeypatch, tmp_path: Path):
