@@ -1,21 +1,14 @@
 """Repository-wide credential and generated-data leak gates."""
 
-import os
 import re
 import subprocess
 
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 
 from shaiwei.config import PROJECT_ROOT
 
 
-SECRET_ENV_KEYS = (
-    "TUSHARE_TOKEN",
-    "DEEPSEEK_API_KEY",
-    "DEEPSEEK_TOKEN",
-    "FEISHU_WEBHOOK_URL",
-    "FEISHU_SIGNING_SECRET",
-)
+SECRET_KEY_MARKERS = ("TOKEN", "SECRET", "API_KEY", "WEBHOOK")
 FORBIDDEN_TRACKED_PREFIXES = ("data/", "logs/")
 SECRET_SHAPES = {
     "llm_api_key": re.compile(rb"(?<![A-Za-z0-9])sk-[A-Za-z0-9]{20,}"),
@@ -40,11 +33,13 @@ def test_local_secrets_and_generated_data_are_not_tracked():
     assert ".env" not in tracked
     assert not [path for path in tracked if path.startswith(FORBIDDEN_TRACKED_PREFIXES)]
 
-    load_dotenv(PROJECT_ROOT / ".env", override=False)
+    local_env = dotenv_values(PROJECT_ROOT / ".env")
     configured_secrets = {
-        key: os.environ[key].encode()
-        for key in SECRET_ENV_KEYS
-        if len(os.environ.get(key, "")) >= 8
+        str(key): str(value).encode()
+        for key, value in local_env.items()
+        if value
+        and len(str(value)) >= 8
+        and any(marker in str(key).upper() for marker in SECRET_KEY_MARKERS)
     }
     findings: dict[str, list[str]] = {}
     for relative_path in tracked:
