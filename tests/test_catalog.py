@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+from shaiwei import ledger as ledger_module
 from shaiwei.ingest.catalog import CatalogError, canonical_params_key, committed_params_keys, load_latest_api
 from shaiwei.ledger import sha256_file
 
@@ -38,6 +39,22 @@ def test_catalog_uses_latest_committed_batch_per_request(tmp_path: Path):
         writer.writeheader()
         writer.writerows([old, new])
     assert load_latest_api("tushare.stock_basic", ledger_path=ledger)["x"].tolist() == [2]
+
+
+def test_catalog_resolves_legacy_path_after_project_move(monkeypatch, tmp_path: Path):
+    project = tmp_path / "new-project"
+    path = project / "data/raw/source=tushare/api=stock_basic/batch.parquet"
+    path.parent.mkdir(parents=True)
+    entry = _entry(path, batch="old-path", ingest_time="2026-01-01T00:00:00Z", value=7)
+    entry["parquet_path"] = "/old/mac/shaiwei_init/data/raw/source=tushare/api=stock_basic/batch.parquet"
+    ledger = tmp_path / "ledger.csv"
+    with ledger.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=HEADER)
+        writer.writeheader()
+        writer.writerow(entry)
+    monkeypatch.setattr(ledger_module, "PROJECT_ROOT", project)
+
+    assert load_latest_api("tushare.stock_basic", ledger_path=ledger)["x"].tolist() == [7]
 
 
 def test_catalog_detects_tampered_committed_batch(tmp_path: Path):

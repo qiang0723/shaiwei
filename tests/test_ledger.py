@@ -13,6 +13,27 @@ def test_sha256_file_is_deterministic(tmp_path: Path):
     assert ledger.sha256_file(artifact) == ledger.sha256_file(artifact)
 
 
+def test_project_artifact_path_is_portable(monkeypatch, tmp_path: Path):
+    monkeypatch.setattr(ledger, "PROJECT_ROOT", tmp_path)
+    artifact = tmp_path / "data/raw/source=tushare/batch.parquet"
+    artifact.parent.mkdir(parents=True)
+    artifact.touch()
+
+    assert ledger.portable_artifact_path(artifact) == "data/raw/source=tushare/batch.parquet"
+    assert ledger.resolve_artifact_path("data/raw/source=tushare/batch.parquet") == artifact
+
+
+def test_legacy_absolute_raw_path_survives_project_move(monkeypatch, tmp_path: Path):
+    project = tmp_path / "new-project"
+    artifact = project / "data/raw/source=tushare/batch.parquet"
+    artifact.parent.mkdir(parents=True)
+    artifact.touch()
+    monkeypatch.setattr(ledger, "PROJECT_ROOT", project)
+
+    legacy = "/old/mac/shaiwei_init/data/raw/source=tushare/batch.parquet"
+    assert ledger.resolve_artifact_path(legacy) == artifact
+
+
 def test_append_rejects_missing_fields(tmp_path: Path):
     path = tmp_path / "ledger.csv"
     path.write_text("a,b\n", encoding="utf-8")

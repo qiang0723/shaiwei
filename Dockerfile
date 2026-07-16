@@ -1,0 +1,35 @@
+# pyqlib 0.9.7 publishes Linux artifacts for Python <=3.11. The project
+# supports 3.10-3.12, so 3.11 is the portable ARM64 container baseline.
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    MPLCONFIGDIR=/workspace/data/cache/matplotlib
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get -o Acquire::Retries=5 update \
+    && apt-get -o Acquire::Retries=5 install --yes --no-install-recommends build-essential git libgomp1
+
+WORKDIR /workspace
+
+COPY requirements.lock pyproject.toml ./
+COPY src ./src
+# PyPI publishes pyqlib 0.9.7 Linux wheels only for x86_64. Build the exact
+# signed v0.9.7 release commit natively for Apple Silicon instead.
+ARG QLIB_COMMIT=da920b7f954f48ab1bb64117c976710de198373e
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
+    python -m pip install --upgrade pip \
+    && grep -Ev '^(pyqlib|torch)==' requirements.lock > /tmp/requirements-container.lock \
+    && python -m pip install -r /tmp/requirements-container.lock \
+    && python -m pip install --no-deps --index-url https://download.pytorch.org/whl/cpu "torch==2.13.0+cpu" \
+    && python -c "import torch; assert torch.__version__ == '2.13.0+cpu'; assert not torch.cuda.is_available()" \
+    && python -m pip install --no-deps "git+https://github.com/microsoft/qlib.git@${QLIB_COMMIT}" \
+    && python -c "import qlib; assert qlib.__version__ == '0.9.7', qlib.__version__" \
+    && python -m pip install --no-deps -e .
+
+COPY config ./config
+
+CMD ["python", "-m", "shaiwei.pipeline.stage0", "--plan"]

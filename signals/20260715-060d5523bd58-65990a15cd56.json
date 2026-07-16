@@ -1,0 +1,193 @@
+{
+  "code_commit": "e0503c901735f65eaa235aa659909c3da0cd6e83",
+  "code_snapshot_sha256": "060d5523bd58a4491fedfa5618aaf60d26dd4f41e648488577a83fa155a9aba5",
+  "data_complete_at": "2026-07-16T04:14:14.626202+00:00",
+  "data_snapshot_sha256": "65990a15cd56cf02b9a4812a0a37e4574affd7fc90b500fcb5e8e64b12c7b866",
+  "generated_at": "2026-07-16T04:23:23.324371+00:00",
+  "orders": [
+    {
+      "instrument": "SH603290",
+      "rank": 1,
+      "score": 0.22752460963686014,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SH603688",
+      "rank": 2,
+      "score": 0.22752460963686014,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SH605589",
+      "rank": 3,
+      "score": 0.22752460963686014,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SH688248",
+      "rank": 4,
+      "score": 0.22752460963686014,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ301308",
+      "rank": 5,
+      "score": 0.22752460963686014,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SH688582",
+      "rank": 6,
+      "score": 0.21144194783633707,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SH600498",
+      "rank": 7,
+      "score": 0.2092920480714913,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ000050",
+      "rank": 8,
+      "score": 0.2092920480714913,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ300037",
+      "rank": 9,
+      "score": 0.2092920480714913,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ300136",
+      "rank": 10,
+      "score": 0.2092920480714913,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ300316",
+      "rank": 11,
+      "score": 0.2092920480714913,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ300679",
+      "rank": 12,
+      "score": 0.2092920480714913,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ003031",
+      "rank": 13,
+      "score": 0.1979106569521926,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ000032",
+      "rank": 14,
+      "score": 0.19320938627096823,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ002407",
+      "rank": 15,
+      "score": 0.19320938627096823,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ300623",
+      "rank": 16,
+      "score": 0.19320938627096823,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SH688676",
+      "rank": 17,
+      "score": 0.1929023515622532,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ002138",
+      "rank": 18,
+      "score": 0.1900368108943903,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ001309",
+      "rank": 19,
+      "score": 0.18483887349771394,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SH688234",
+      "rank": 20,
+      "score": 0.18182799515166953,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SH688629",
+      "rank": 21,
+      "score": 0.18182799515166953,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ300857",
+      "rank": 22,
+      "score": 0.18182799515166953,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ300390",
+      "rank": 23,
+      "score": 0.17466978999688434,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ300373",
+      "rank": 24,
+      "score": 0.1735701898865285,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SZ002203",
+      "rank": 25,
+      "score": 0.16534827822383275,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SH688385",
+      "rank": 26,
+      "score": 0.1635954335863007,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SH688387",
+      "rank": 27,
+      "score": 0.1635954335863007,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SH688469",
+      "rank": 28,
+      "score": 0.1635954335863007,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SH688521",
+      "rank": 29,
+      "score": 0.1635954335863007,
+      "target_weight": 0.03333333333333333
+    },
+    {
+      "instrument": "SH688728",
+      "rank": 30,
+      "score": 0.1635954335863007,
+      "target_weight": 0.03333333333333333
+    }
+  ],
+  "schema_version": 1,
+  "signal_date": "2026-07-15",
+  "signal_sha256": "1eabb250d5d62b392fb4b88b86fa105bbe16ad584266406365615dd389d3b72e",
+  "topk": 30
+}

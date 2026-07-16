@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow alphagen-benchmark g0-audit stage0-plan stage0-run check-ledger feishu-test
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow alphagen-benchmark g0-audit stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -48,3 +48,13 @@ check-ledger:     ## 账本 append-only 校验（也包含在 test 内）
 	$(PYTHON) -m pytest -q tests/test_ledger_append_only.py
 feishu-test:      ## 使用本地 .env 向飞书发送一条签名连通性测试消息
 	$(PYTHON) -m shaiwei.notify --test
+network-check:    ## 脱敏验证 Tushare 直连；不写数据、账本或 Token
+	$(PYTHON) -m shaiwei.network_check
+docker-build:     ## 构建统一 Docker 运行镜像
+	docker compose build shaiwei
+docker-network-check: ## 容器内脱敏验证 Tushare 直连
+	docker compose run --rm shaiwei python -m shaiwei.network_check
+docker-stage0-plan: ## 容器内查看阶段 0 执行计划
+	docker compose run --rm shaiwei python -m shaiwei.pipeline.stage0 --plan $(STAGE0_ARGS)
+docker-stage0-run: ## 容器内执行阶段 0 流水线
+	docker compose run --rm shaiwei python -m shaiwei.pipeline.stage0 $(STAGE0_ARGS)

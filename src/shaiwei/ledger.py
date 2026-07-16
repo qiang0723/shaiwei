@@ -13,6 +13,37 @@ LEDGER_DIR = PROJECT_ROOT / "ledger"
 EXPERIMENTS = LEDGER_DIR / "experiments.csv"
 INGEST = LEDGER_DIR / "ingest_batches.csv"
 
+
+def portable_artifact_path(path: str | Path) -> str:
+    """Store project artifacts relative to the repository when possible."""
+    artifact = Path(path)
+    try:
+        return artifact.resolve().relative_to(PROJECT_ROOT.resolve()).as_posix()
+    except ValueError:
+        return str(artifact)
+
+
+def resolve_artifact_path(path: str | Path) -> Path:
+    """Resolve portable paths and legacy absolute raw-data paths after a move."""
+    artifact = Path(path)
+    if artifact.is_file():
+        return artifact
+    if not artifact.is_absolute():
+        return PROJECT_ROOT / artifact
+
+    # Historical ledger rows used machine-specific absolute paths. Preserve
+    # those immutable rows, but recover the project-owned data/raw suffix so a
+    # clone mounted at /workspace (or moved to another machine) remains usable.
+    parts = artifact.parts
+    raw_markers = [
+        index
+        for index in range(len(parts) - 1)
+        if parts[index : index + 2] == ("data", "raw")
+    ]
+    if raw_markers:
+        return PROJECT_ROOT.joinpath(*parts[raw_markers[-1] :])
+    return artifact
+
 def _append(path: Path, row: dict) -> None:
     with path.open("r+", newline="", encoding="utf-8") as f:
         fcntl.flock(f.fileno(), fcntl.LOCK_EX)
@@ -60,7 +91,7 @@ def verify_ingest_batches(path: Path = INGEST) -> dict[str, int]:
     total_rows = 0
     total_bytes = 0
     for row in rows:
-        parquet_path = Path(row["parquet_path"])
+        parquet_path = resolve_artifact_path(row["parquet_path"])
         if not parquet_path.is_file():
             raise FileNotFoundError(parquet_path)
         metadata = pq.read_metadata(parquet_path)
@@ -113,7 +144,7 @@ def append_ingest_batch(source_api: str, params: dict, row_count: int,
         "source_api": source_api,
         "params_json": json.dumps(params, ensure_ascii=False, sort_keys=True),
         "row_count": row_count,
-        "parquet_path": str(parquet_file),
+        "parquet_path": portable_artifact_path(parquet_file),
         "content_sha256": actual_sha256,
         "operator": operator,
     })

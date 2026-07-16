@@ -35,6 +35,37 @@ make feishu-test
 
 Docker 启动时通过 Compose 的 `env_file: .env` 注入相同变量，禁止把 webhook 或签名密钥写进镜像和 compose 文件。
 
+## Docker 与国内数据源直连
+
+完整 Stage 0 建议为 Docker Desktop 分配至少 **16 GiB** 内存。本机 1,058 万行行情的
+S1-S10 门禁实测最大 RSS 约 10.0 GiB、峰值 footprint 约 14.1 GiB；Docker 默认约
+8 GiB 会在 sentinel 阶段触发 OOM（退出码 `-9`）。本机当前使用约 20 GiB 上限。
+
+Codex 桌面客户端继续使用 macOS 系统代理；筛微容器显式清空 HTTP/HTTPS/ALL
+代理变量，并通过 `NO_PROXY` 对 Tushare、Sina、Eastmoney 和 Baostock 做直连。无需关闭
+Clash，也不要把本机代理地址写进 `.env` 或 Compose。
+
+Docker Desktop 使用手动代理时，还需要在 **Settings → Resources → Proxies** 的代理绕过
+名单中加入下列域名。Docker Desktop 的网络后端独立于容器环境变量；缺少这项配置时，
+容器仍可能经境外代理访问数据源，表现为 Tushare 延迟约 20 秒后返回空表。
+
+```text
+api.waditu.com,*.waditu.com,*.sina.com.cn,*.eastmoney.com,*.baostock.com,localhost,127.0.0.1
+```
+
+镜像仓库域名不要加入绕过名单，镜像拉取仍可经 Clash 代理完成。`network-check` 将交易
+日历空表视为失败，避免把区域拒绝误报为网络正常。
+
+```bash
+make docker-build
+make docker-network-check   # 只查询最近 7 天上交所交易日历，不写数据或账本
+make docker-stage0-plan STAGE0_ARGS="--as-of 2026-07-15"
+make docker-stage0-run  STAGE0_ARGS="--as-of 2026-07-15"
+```
+
+项目目录整体挂载到 `/workspace`，因此 `data/`、`logs/`、`ledger/`、`signals/` 和
+`vendor/` 始终保留在本地 `shaiwei_init` 文件夹，迁移时不依赖 Docker 命名卷。
+
 ## 阶段 0 目标流
 
 先看计划和凭据是否就绪（不会访问网络）：

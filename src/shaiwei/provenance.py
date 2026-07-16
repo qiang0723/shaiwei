@@ -7,8 +7,11 @@ import subprocess
 
 CONTROLLED_ROOTS = ("src/", "config/", "templates/", "tests/")
 CONTROLLED_FILES = {
+    ".dockerignore",
     ".env.example",
+    "Dockerfile",
     "Makefile",
+    "compose.yaml",
     "pyproject.toml",
     "requirements.lock",
 }

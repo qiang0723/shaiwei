@@ -7,7 +7,7 @@ import duckdb
 import pandas as pd
 import pyarrow.parquet as pq
 
-from shaiwei.ledger import INGEST, sha256_file
+from shaiwei.ledger import INGEST, resolve_artifact_path, sha256_file
 
 
 class CatalogError(RuntimeError):
@@ -34,7 +34,7 @@ def committed_params_keys(
     latest = entries.sort_values("ingest_order").drop_duplicates("params_key", keep="last")
     valid = set()
     for entry in latest.itertuples(index=False):
-        path = Path(entry.parquet_path)
+        path = resolve_artifact_path(entry.parquet_path)
         if not path.is_file():
             continue
         metadata = pq.read_metadata(path)
@@ -57,7 +57,7 @@ def load_latest_api(source_api: str, *, ledger_path: Path = INGEST, verify: bool
 
     paths = []
     for entry in latest.itertuples(index=False):
-        path = Path(entry.parquet_path)
+        path = resolve_artifact_path(entry.parquet_path)
         if not path.is_file():
             raise CatalogError(f"committed batch file is missing: {path}")
         metadata = pq.read_metadata(path)
