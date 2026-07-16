@@ -66,6 +66,27 @@ make docker-stage0-run  STAGE0_ARGS="--as-of 2026-07-15"
 项目目录整体挂载到 `/workspace`，因此 `data/`、`logs/`、`ledger/`、`signals/` 和
 `vendor/` 始终保留在本地 `shaiwei_init` 文件夹，迁移时不依赖 Docker 命名卷。
 
+## Docker 日增量守护
+
+日增量不依赖 macOS 的 cron/launchd，也不要求屏幕常亮。`scheduler` 容器每 15 分钟读取
+交易日历与 `ledger/daily_runs.csv` 对账；北京时间 19:30 后才接纳当日数据。电脑熄屏不影响，
+电脑真正休眠时容器会暂停，唤醒后的下一轮会按交易日逐日补齐。单轮最多补 20 个交易日，
+每个交易日只有在行情、复权因子、每日指标、停牌和中证 800 指数数据全部通过行数、日期、
+唯一键、跨接口覆盖和北交所排除校验后，才写入 PASS。
+
+```bash
+make docker-daily-plan       # 只读查看当前缺口
+make docker-daily-once       # 手工跑一个对账周期
+make docker-scheduler-up     # 常驻启动，restart: unless-stopped
+make docker-scheduler-status # 查看健康状态
+make docker-scheduler-logs   # 查看最近日志
+make docker-scheduler-down   # 停止守护，数据与账本保留
+```
+
+原始 Parquet、日任务账本和健康文件都落在项目目录。Tushare 请求部分成功后再次运行会复用
+已经过哈希校验的精确请求批次；只有整日 PASS 才推进水位。开始补采、完成和失败会发飞书，
+无缺口的 15 分钟轮询不会刷屏。Docker 健康文件位于 `logs/scheduler/health.json`。
+
 ## 阶段 0 目标流
 
 先看计划和凭据是否就绪（不会访问网络）：

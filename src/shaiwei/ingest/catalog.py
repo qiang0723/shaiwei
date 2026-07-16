@@ -84,3 +84,32 @@ def load_latest_api(source_api: str, *, ledger_path: Path = INGEST, verify: bool
         ).df()
     finally:
         connection.close()
+
+
+def load_latest_request(
+    source_api: str,
+    params: dict[str, object],
+    *,
+    ledger_path: Path = INGEST,
+    verify: bool = True,
+) -> pd.DataFrame:
+    """Load the latest intact payload for one exact, canonical request."""
+    entries = pd.read_csv(ledger_path, dtype=str, keep_default_na=False)
+    entries = entries.loc[entries["source_api"].eq(source_api)].copy()
+    wanted = canonical_params_key(params)
+    entries = entries.loc[
+        entries["params_json"].map(lambda value: canonical_params_key(json.loads(value))).eq(wanted)
+    ]
+    if entries.empty:
+        raise CatalogError(f"no committed batch for {source_api} params={wanted}")
+    entries["_time"] = pd.to_datetime(entries["ingest_time"], utc=True, errors="raise")
+    entry = entries.sort_values("_time").iloc[-1]
+    path = resolve_artifact_path(entry["parquet_path"])
+    if not path.is_file():
+        raise CatalogError(f"committed batch file is missing: {path}")
+    metadata = pq.read_metadata(path)
+    if metadata.num_rows != int(entry["row_count"]):
+        raise CatalogError(f"row count mismatch: {path}")
+    if verify and sha256_file(path) != entry["content_sha256"]:
+        raise CatalogError(f"content hash mismatch: {path}")
+    return pd.read_parquet(path)

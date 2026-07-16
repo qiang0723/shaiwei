@@ -78,6 +78,15 @@ class Ingest(BaseModel):
     history_window_years: int = Field(ge=1, le=20)
 
 
+class DailyPipeline(BaseModel):
+    poll_seconds: int = Field(ge=60, le=3600)
+    ready_hour: int = Field(ge=0, le=23)
+    ready_minute: int = Field(ge=0, le=59)
+    max_catchup_trade_days: int = Field(ge=1, le=120)
+    min_market_rows: int = Field(ge=1000, le=6000)
+    health_stale_seconds: int = Field(ge=300, le=86400)
+
+
 class Crosscheck(BaseModel):
     symbols: list[str] = Field(min_length=4)
     lookback_calendar_days: int = Field(ge=30, le=365)
@@ -178,6 +187,7 @@ class Settings(BaseModel):
     limit_rules: LimitRules
     compute: Compute
     ingest: Ingest
+    daily: DailyPipeline
     crosscheck: Crosscheck
     sentinels: Sentinels
     baseline: Baseline

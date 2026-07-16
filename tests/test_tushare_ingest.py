@@ -124,6 +124,31 @@ def test_ingestor_preserves_schema_for_legitimate_empty_response(tmp_path: Path)
     assert recorded[0]["row_count"] == 0
 
 
+def test_ingestor_filters_bse_from_all_market_response(tmp_path: Path):
+    class MixedMarketClient(FakeClient):
+        def query(self, api_name: str, **kwargs):
+            fields = kwargs["fields"].split(",")
+            values = {}
+            for field in fields:
+                if field == "ts_code":
+                    values[field] = ["000001.SZ", "920001.BJ"]
+                elif field == "trade_date":
+                    values[field] = [kwargs["trade_date"], kwargs["trade_date"]]
+                else:
+                    values[field] = [None, None]
+            return pd.DataFrame(values)
+
+    settings = load()
+    settings.ingest.min_request_interval_seconds = 0
+    writer = RawBatchWriter(tmp_path, recorder=lambda **_: "id")
+    batches = TushareIngestor(
+        client=MixedMarketClient(), writer=writer, settings=settings
+    ).run([Request("daily", {"trade_date": "20260715"}, {"trade_date": "20260715"})])
+
+    stored = pd.read_parquet(batches[0].parquet_path)
+    assert stored["ts_code"].tolist() == ["000001.SZ"]
+
+
 def test_ingestor_retries_transient_empty_dense_response(tmp_path: Path):
     class EmptyThenDataClient(FakeClient):
         def query(self, api_name: str, **kwargs):

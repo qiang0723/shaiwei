@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow alphagen-benchmark g0-audit stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow alphagen-benchmark g0-audit stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -58,3 +58,15 @@ docker-stage0-plan: ## 容器内查看阶段 0 执行计划
 	docker compose run --rm shaiwei python -m shaiwei.pipeline.stage0 --plan $(STAGE0_ARGS)
 docker-stage0-run: ## 容器内执行阶段 0 流水线
 	docker compose run --rm shaiwei python -m shaiwei.pipeline.stage0 $(STAGE0_ARGS)
+docker-daily-plan: ## 只读查看日增量缺口，不访问网络
+	docker compose run --rm shaiwei python -m shaiwei.pipeline.daily --plan
+docker-daily-once: ## 容器内立即对账并补采一次
+	docker compose run --rm shaiwei python -m shaiwei.pipeline.scheduler --once
+docker-scheduler-up: ## 启动常驻日增量守护（Docker 自动重启）
+	docker compose up -d --build scheduler
+docker-scheduler-status: ## 查看守护容器与健康状态
+	docker compose ps scheduler
+docker-scheduler-logs: ## 查看最近 100 行脱敏守护日志
+	docker compose logs --tail=100 scheduler
+docker-scheduler-down: ## 停止日增量守护，不删除本地数据
+	docker compose stop scheduler

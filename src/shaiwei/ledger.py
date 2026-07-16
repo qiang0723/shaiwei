@@ -12,6 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 LEDGER_DIR = PROJECT_ROOT / "ledger"
 EXPERIMENTS = LEDGER_DIR / "experiments.csv"
 INGEST = LEDGER_DIR / "ingest_batches.csv"
+DAILY_RUNS = LEDGER_DIR / "daily_runs.csv"
 
 
 def portable_artifact_path(path: str | Path) -> str:
@@ -161,3 +162,12 @@ def append_experiment(**kw) -> str:
         kw["admitted"] = str(kw["admitted"]).lower()
     _append(EXPERIMENTS, kw)
     return kw["experiment_id"]
+
+
+def append_daily_run(**kw: object) -> str:
+    """Append one terminal daily-run outcome; never store credentials or URLs."""
+    kw.setdefault("run_id", uuid.uuid4().hex[:12])
+    kw.setdefault("finished_at", datetime.now(timezone.utc).isoformat())
+    kw.setdefault("operator", "docker-scheduler")
+    _append(DAILY_RUNS, kw)
+    return str(kw["run_id"])

@@ -24,3 +24,8 @@ def test_frozen_config_loads():
     assert settings.evaluation.forward_oos_start == date(2026, 7, 9)
     assert settings.notifications.timeout_seconds == 10
     assert settings.notifications.heartbeat_seconds == 1800
+    assert settings.daily.poll_seconds == 900
+    assert settings.daily.ready_hour == 19
+    assert settings.daily.ready_minute == 30
+    assert settings.daily.max_catchup_trade_days == 20
+    assert settings.daily.min_market_rows == 3000

@@ -386,6 +386,13 @@ class TushareIngestor:
         missing = set(fields) - set(frame.columns)
         if missing:
             raise IngestError(f"Tushare {request.api_name} response missing fields: {sorted(missing)}")
+        # Daily trade-date queries return the whole market.  Enforce the
+        # project-wide BSE exclusion at the ingestion boundary so a provider
+        # response can never leak .BJ rows into immutable raw data.
+        if not self.settings.universe.include_bse and "ts_code" in frame.columns:
+            frame = frame.loc[
+                ~frame["ts_code"].astype("string").str.endswith(".BJ", na=False)
+            ].copy()
         if "ts_code" in request.params and not frame.empty:
             response_codes = set(frame["ts_code"].dropna().astype(str).unique())
             expected_code = request.params["ts_code"]

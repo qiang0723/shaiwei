@@ -3,7 +3,7 @@ import subprocess
 from pathlib import Path
 import pytest
 
-LEDGERS = ["ledger/experiments.csv", "ledger/ingest_batches.csv"]
+LEDGERS = ["ledger/experiments.csv", "ledger/ingest_batches.csv", "ledger/daily_runs.csv"]
 
 
 def test_git_baseline_exists():
@@ -17,7 +17,12 @@ def test_git_baseline_exists():
 @pytest.mark.parametrize("path", LEDGERS)
 def test_append_only(path):
     r = subprocess.run(["git", "show", f"HEAD:{path}"], capture_output=True, text=True)
-    assert r.returncode == 0, f"{path}: file is not tracked in HEAD"
+    if r.returncode != 0:
+        # A ledger introduced by the current commit has no historical prefix
+        # yet.  It must contain only its schema header; subsequent commits are
+        # checked byte-for-byte against that committed baseline.
+        assert Path(path).read_text(encoding="utf-8").count("\n") == 1
+        return
     old = r.stdout
     new = Path(path).read_text(encoding="utf-8")
     assert new.startswith(old), f"{path}: 历史行被修改或删除 —— 账本只准追加"

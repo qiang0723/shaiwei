@@ -35,6 +35,13 @@ ingest:
   max_concurrent_requests: 8          # 只隐藏网络延迟；请求起点仍全局 0.15s，硬顶 400 次/分钟
   source_row_limit: 6000              # Tushare daily 单次硬顶；触顶必须判失败而非接受截断
   history_window_years: 10            # 单票行情分窗；远小于 6000 个交易日
+daily:
+  poll_seconds: 900                   # Docker 内每 15 分钟对账；休眠唤醒后自动补跑
+  ready_hour: 19                     # 北京时间 19:30 后才把当日视为可采完毕
+  ready_minute: 30
+  max_catchup_trade_days: 20         # 单轮最多补 20 个交易日，避免异常积压失控
+  min_market_rows: 3000              # 沪深全市场最低行数哨兵（已排除北交所）
+  health_stale_seconds: 3600         # 容器健康文件最大允许陈旧时间
 crosscheck:
   # 启动前冻结：沪深主板/创业板/科创板各取高流动性代表，AKShare 最近 90 个自然日独立复核。
   symbols: ["000001.SZ", "600519.SH", "300750.SZ", "688981.SH"]

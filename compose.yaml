@@ -1,25 +1,46 @@
+x-shaiwei-environment: &shaiwei_environment
+  SHAIWEI_DATA_ROOT: /workspace/data
+  # Keep Codex on the macOS system proxy while data collectors leave the
+  # container directly. Empty proxy variables override inherited settings;
+  # NO_PROXY remains defense in depth for Docker Desktop proxy settings.
+  HTTP_PROXY: ""
+  HTTPS_PROXY: ""
+  ALL_PROXY: ""
+  http_proxy: ""
+  https_proxy: ""
+  all_proxy: ""
+  NO_PROXY: &domestic_data_hosts "api.waditu.com,.waditu.com,finance.sina.com.cn,stock.finance.sina.com.cn,.sina.com.cn,.eastmoney.com,.baostock.com,localhost,127.0.0.1"
+  no_proxy: *domestic_data_hosts
+
+x-shaiwei-common: &shaiwei_common
+  image: shaiwei:local
+  build:
+    context: .
+    dockerfile: Dockerfile
+  init: true
+  working_dir: /workspace
+  env_file:
+    - .env
+  environment: *shaiwei_environment
+  volumes:
+    - .:/workspace
+
 services:
   shaiwei:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    init: true
-    working_dir: /workspace
-    env_file:
-      - .env
-    environment:
-      SHAIWEI_DATA_ROOT: /workspace/data
-      # Keep Codex on the macOS system proxy while data collectors leave the
-      # container directly. Empty proxy variables override inherited settings;
-      # NO_PROXY remains defense in depth for Docker Desktop proxy settings.
-      HTTP_PROXY: ""
-      HTTPS_PROXY: ""
-      ALL_PROXY: ""
-      http_proxy: ""
-      https_proxy: ""
-      all_proxy: ""
-      NO_PROXY: &domestic_data_hosts "api.waditu.com,.waditu.com,finance.sina.com.cn,stock.finance.sina.com.cn,.sina.com.cn,.eastmoney.com,.baostock.com,localhost,127.0.0.1"
-      no_proxy: *domestic_data_hosts
-    volumes:
-      - .:/workspace
+    <<: *shaiwei_common
     command: ["python", "-m", "shaiwei.pipeline.stage0", "--plan"]
+
+  scheduler:
+    <<: *shaiwei_common
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      <<: *shaiwei_environment
+      TZ: Asia/Shanghai
+    command: ["python", "-m", "shaiwei.pipeline.scheduler"]
+    healthcheck:
+      test: ["CMD", "python", "-m", "shaiwei.pipeline.scheduler", "--healthcheck"]
+      interval: 5m
+      timeout: 15s
+      retries: 3
+      start_period: 2m
