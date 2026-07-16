@@ -120,9 +120,14 @@ def validate_alphagen_report(report: dict) -> dict[str, object]:
     if int(summary.get("input_label_rows", 0)) <= 0 or int(summary.get("input_exposure_rows", 0)) <= 0:
         raise ValueError("AlphaGen benchmark input row counts must be positive")
     values = []
+    minimum_daily_ic = int(summary.get("min_daily_ic_observations", 0))
+    if minimum_daily_ic < 60:
+        raise ValueError("AlphaGen benchmark lacks a credible minimum daily IC observation gate")
     for expression, result in candidates.items():
         if not isinstance(result, dict):
             raise ValueError(f"AlphaGen candidate {expression!r} result must be an object")
+        if not result.get("error") and int(result.get("daily_ic_count", 0)) < minimum_daily_ic:
+            raise ValueError(f"AlphaGen candidate {expression!r} bypassed the minimum daily IC gate")
         values.append(_finite(result.get("rank_ic"), f"AlphaGen candidate {expression!r} rank_ic"))
     rank_ic = summary.get("rank_ic")
     if not isinstance(rank_ic, dict):

@@ -18,6 +18,7 @@ def test_frozen_config_loads():
     assert settings.baseline.seed == 42
     assert settings.alphagen_benchmark.generations == 1
     assert settings.alphagen_benchmark.population_size == 100
+    assert settings.alphagen_benchmark.min_daily_ic_observations == 252
     assert len(settings.evaluation.g0_windows) == 6
     assert settings.evaluation.g0_windows[0].test_start == date(2019, 1, 1)
     assert settings.evaluation.g0_windows[-1].test_end == date(2024, 12, 31)
@@ -37,3 +38,7 @@ def test_frozen_config_loads():
     assert settings.g1_admission.hac_t_threshold == 3.0
     assert settings.g1_admission.hac_lags == 10
     assert settings.g1_admission.min_observations == 252
+    assert settings.g1_admission.discovery_end == date(2018, 12, 31)
+    assert settings.g1_admission.factor_blend_weight == 0.1
+    assert settings.g1_admission.slippage_stress_extra_each_side == 0.001
+    assert settings.g1_admission.promoted_candidates == 2

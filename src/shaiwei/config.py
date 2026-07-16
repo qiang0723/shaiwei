@@ -112,6 +112,17 @@ class G1Admission(BaseModel):
     min_rank_ic_retention: float = Field(gt=0, le=1)
     max_stress_drawdown: float = Field(gt=0, lt=1)
     max_turnover_ratio: float = Field(ge=1)
+    discovery_start: date
+    discovery_end: date
+    factor_blend_weight: float = Field(gt=0, lt=0.5)
+    slippage_stress_extra_each_side: float = Field(ge=0)
+    promoted_candidates: int = Field(ge=2, le=10)
+
+    @model_validator(mode="after")
+    def validate_discovery_period(self) -> "G1Admission":
+        if self.discovery_start >= self.discovery_end:
+            raise ValueError("G1 discovery_start must be before discovery_end")
+        return self
 
 
 class Crosscheck(BaseModel):
@@ -166,6 +177,7 @@ class AlphaGenBenchmark(BaseModel):
     max_expression_tokens: int = Field(gt=0)
     seed: int = Field(ge=0)
     min_cross_section: int = Field(ge=5)
+    min_daily_ic_observations: int = Field(ge=60)
     rank_ic_threshold: float
     scale_time_hours: float = Field(gt=0)
     abort_time_hours: float = Field(gt=0)
@@ -222,6 +234,13 @@ class Settings(BaseModel):
     baseline: Baseline
     alphagen_benchmark: AlphaGenBenchmark
     evaluation: Evaluation
+
+    @model_validator(mode="after")
+    def validate_g1_timeline(self) -> "Settings":
+        first_test = min(window.test_start for window in self.evaluation.g0_windows)
+        if self.g1_admission.discovery_end >= first_test:
+            raise ValueError("G1 discovery period must end before the first frozen OOS window")
+        return self
 
 
 def load(path: str | Path | None = None) -> Settings:

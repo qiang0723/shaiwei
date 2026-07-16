@@ -6,6 +6,8 @@ from shaiwei.benchmark.fitness import (
     forward_open_return,
     industry_pit_exposure,
     neutralized_rank_ic,
+    neutralized_factor_values,
+    screened_rank_ic,
 )
 
 
@@ -57,8 +59,16 @@ def test_neutralized_rank_ic_removes_industry_and_size_exposure():
     mean_ic, daily = neutralized_rank_ic(pd.DataFrame(rows), min_cross_section=30)
     assert len(daily) == 2
     assert mean_ic > 0.8
+    residual = neutralized_factor_values(pd.DataFrame(rows), min_cross_section=30)
+    assert len(residual) == 200
+    assert residual.index.names == ["datetime", "instrument"]
 
 
 def test_benchmark_decision_uses_time_and_rank_ic_threshold():
     assert benchmark_decision(100, 0.04, scale_hours=4, abort_hours=12) == "scale_stage1"
     assert benchmark_decision(13 * 3600, 0.04, scale_hours=4, abort_hours=12) == "fallback_or_reduce"
+
+
+def test_rank_ic_screen_rejects_one_day_false_winner():
+    assert screened_rank_ic(0.13, 1, 252) == (-1.0, "insufficient_daily_ic:1")
+    assert screened_rank_ic(0.03, 252, 252) == (0.03, "")

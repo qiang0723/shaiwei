@@ -84,7 +84,10 @@ def _model(settings: Settings) -> LGBModel:
     )
 
 
-def run_window(settings: Settings, window: EvaluationWindow) -> dict[str, object]:
+def train_window_predictions(
+    settings: Settings,
+    window: EvaluationWindow,
+) -> tuple[pd.Series, WindowSegments]:
     segments = window_segments(window, settings.baseline.validation_months)
     handler = Alpha158(
         instruments=settings.baseline.instrument,
@@ -107,6 +110,11 @@ def run_window(settings: Settings, window: EvaluationWindow) -> dict[str, object
     with R.start(experiment_name="stage0_alpha158_lightgbm"):
         model.fit(dataset, verbose_eval=50)
         predictions = model.predict(dataset, segment="test")
+    return predictions, segments
+
+
+def run_window(settings: Settings, window: EvaluationWindow) -> dict[str, object]:
+    predictions, segments = train_window_predictions(settings, window)
     strategy = BiweeklyTopkDropoutStrategy(
         signal=predictions,
         topk=settings.backtest.topk,

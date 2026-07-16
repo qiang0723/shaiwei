@@ -60,6 +60,32 @@ def _neutralized_residual(group: pd.DataFrame) -> pd.Series:
     return pd.Series(factor - matrix @ coefficients, index=valid.index)
 
 
+def neutralized_factor_values(
+    observations: pd.DataFrame,
+    min_cross_section: int = 30,
+) -> pd.Series:
+    """Return PIT industry/size residuals on a datetime/instrument index."""
+    required = {"trade_date", "instrument", "factor", "industry", "market_cap"}
+    if missing := required - set(observations.columns):
+        raise ValueError(f"fitness observations missing fields: {sorted(missing)}")
+    residuals = []
+    for _, group in observations.groupby("trade_date", sort=True):
+        residual = _neutralized_residual(group)
+        if len(residual) < min_cross_section or residual.nunique() < 2:
+            continue
+        frame = observations.loc[residual.index, ["trade_date", "instrument"]].copy()
+        frame["factor"] = residual.to_numpy()
+        residuals.append(frame)
+    if not residuals:
+        return pd.Series(dtype=float, name="factor")
+    combined = pd.concat(residuals, ignore_index=True)
+    index = pd.MultiIndex.from_frame(
+        combined.loc[:, ["trade_date", "instrument"]],
+        names=["datetime", "instrument"],
+    )
+    return pd.Series(combined["factor"].to_numpy(dtype=float), index=index, name="factor")
+
+
 def neutralized_rank_ic(observations: pd.DataFrame, min_cross_section: int = 30) -> tuple[float, pd.Series]:
     required = {"trade_date", "instrument", "factor", "label", "industry", "market_cap"}
     if missing := required - set(observations.columns):
@@ -75,6 +101,17 @@ def neutralized_rank_ic(observations: pd.DataFrame, min_cross_section: int = 30)
         daily[trade_date] = residual.rank(pct=True).corr(labels.rank(pct=True))
     daily_series = pd.Series(daily, dtype=float).dropna()
     return (float(daily_series.mean()) if not daily_series.empty else float("nan"), daily_series)
+
+
+def screened_rank_ic(rank_ic: float, daily_ic_count: int, minimum: int) -> tuple[float, str]:
+    """Reject attractive-looking IC estimates that have no credible time-series depth."""
+    if minimum < 1:
+        raise ValueError("minimum daily IC observations must be positive")
+    if not np.isfinite(rank_ic):
+        return -1.0, "rank_ic_nan"
+    if daily_ic_count < minimum:
+        return -1.0, f"insufficient_daily_ic:{daily_ic_count}"
+    return float(rank_ic), ""
 
 
 def benchmark_decision(

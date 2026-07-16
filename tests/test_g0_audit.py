@@ -58,6 +58,7 @@ def _alphagen_report() -> dict:
             "input_exposure_rows": 900,
             "candidate_count": 2,
             "failed_candidate_count": 1,
+            "min_daily_ic_observations": 60,
             "rank_ic": {"min": -1.0, "median": -0.495, "max": 0.01},
             "decision": "stop",
         },

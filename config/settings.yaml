@@ -64,6 +64,11 @@ g1_admission:
   min_rank_ic_retention: 0.5
   max_stress_drawdown: 0.2
   max_turnover_ratio: 1.1           # 不高于同配置基线的 110%
+  discovery_start: "2016-01-01"    # 因子方向和 GP 发现只看首个 OOS 年之前的数据
+  discovery_end: "2018-12-31"
+  factor_blend_weight: 0.1          # 现有 Alpha158 排名 90% + 新因子残差排名 10%
+  slippage_stress_extra_each_side: 0.001  # 报告 4.5 的保守下界：买卖各加 10bp
+  promoted_candidates: 2           # 极小预算预演至少两只，满足 DSR 方差最小证据
 crosscheck:
   # 启动前冻结：沪深主板/创业板/科创板各取高流动性代表，AKShare 最近 90 个自然日独立复核。
   symbols: ["000001.SZ", "600519.SH", "300750.SZ", "688981.SH"]
@@ -100,6 +105,7 @@ alphagen_benchmark:
   max_expression_tokens: 20
   seed: 2
   min_cross_section: 30
+  min_daily_ic_observations: 252       # 禁止单日/短样本候选抬高 benchmark 选型结论
   rank_ic_threshold: 0.03
   scale_time_hours: 4
   abort_time_hours: 12
