@@ -87,6 +87,28 @@ make docker-scheduler-down   # 停止守护，数据与账本保留
 已经过哈希校验的精确请求批次；只有整日 PASS 才推进水位。开始补采、完成和失败会发飞书，
 无缺口的 15 分钟轮询不会刷屏。Docker 健康文件位于 `logs/scheduler/health.json`。
 
+## 前瞻影子执行闭环
+
+日增量整日 PASS 后，`scheduler` 会在隔离子进程中续跑前瞻影子周期。周期先运行与当前
+代码/数据快照严格匹配的 S1-S10 门禁，再把完整 qlib 派生缓存构建到
+`data/qlib_forward/versions/`；校验整树哈希后只原子切换 `current.json`，绝不修改阶段 0
+冻结缓存 `data/qlib_bin/`。前瞻缓存仅保留当前和上一版。
+
+Alpha158+LightGBM 每日评分会保存实际 Booster 文本，但严格维持“日频信号、10 个交易日调仓”：
+非调仓日沿用上一期目标持仓，只有达到第 10 个交易日才按新 Top30 改变组合。模型哈希、模型规格、qlib 整树哈希、
+代码快照、数据快照和门禁报告全部绑定到不可覆盖信号 manifest。下一交易日数据 PASS 后，
+系统以官方次日开盘价对比信号日收盘价，按买入涨停/卖出跌停/停牌或缺 bar 判断纸面可成交性，
+并把现金腿纳入组合换手和成本估算。此流程不连接券商、不产生真实订单。
+
+运行结果追加到 `ledger/shadow_runs.csv` 和 `ledger/shadow_reconciliations.csv`，汇总报告位于
+`logs/shadow/forward_report.json`；飞书分别通知信号开始/完成/失败和次日对账结果。精确同一
+交易日的成功信号与对账不会重复生成，崩溃后运行同一命令会从账本续跑。
+
+```bash
+make docker-shadow-cycle   # 手工续跑一次；常驻 scheduler 已自动包含
+make shadow-report         # 刷新本地审计报告
+```
+
 ## 阶段 0 目标流
 
 先看计划和凭据是否就绪（不会访问网络）：

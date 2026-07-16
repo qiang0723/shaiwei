@@ -13,6 +13,8 @@ LEDGER_DIR = PROJECT_ROOT / "ledger"
 EXPERIMENTS = LEDGER_DIR / "experiments.csv"
 INGEST = LEDGER_DIR / "ingest_batches.csv"
 DAILY_RUNS = LEDGER_DIR / "daily_runs.csv"
+SHADOW_RUNS = LEDGER_DIR / "shadow_runs.csv"
+SHADOW_RECONCILIATIONS = LEDGER_DIR / "shadow_reconciliations.csv"
 
 
 def portable_artifact_path(path: str | Path) -> str:
@@ -171,3 +173,22 @@ def append_daily_run(**kw: object) -> str:
     kw.setdefault("operator", "docker-scheduler")
     _append(DAILY_RUNS, kw)
     return str(kw["run_id"])
+
+
+def append_shadow_run(**kw: object) -> str:
+    kw.setdefault("run_id", uuid.uuid4().hex[:12])
+    kw.setdefault("finished_at", datetime.now(timezone.utc).isoformat())
+    kw.setdefault("operator", "docker-scheduler")
+    for field in ("rebalance_due", "on_time"):
+        if isinstance(kw.get(field), bool):
+            kw[field] = str(kw[field]).lower()
+    _append(SHADOW_RUNS, kw)
+    return str(kw["run_id"])
+
+
+def append_shadow_reconciliation(**kw: object) -> str:
+    kw.setdefault("reconciliation_id", uuid.uuid4().hex[:12])
+    kw.setdefault("finished_at", datetime.now(timezone.utc).isoformat())
+    kw.setdefault("operator", "docker-scheduler")
+    _append(SHADOW_RECONCILIATIONS, kw)
+    return str(kw["reconciliation_id"])

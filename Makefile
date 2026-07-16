@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow alphagen-benchmark g0-audit stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report alphagen-benchmark g0-audit stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -36,6 +36,10 @@ backtest-baseline:## Alpha158+LightGBM 双周基线，输出 G0 三条件数字�
 	$(PYTHON) -m shaiwei.backtest.baseline
 shadow:           ## 复用当前快照生成不可覆盖影子信号 manifest
 	$(PYTHON) -m shaiwei.shadow
+shadow-cycle:     ## 前瞻影子：续跑次日开盘对账并为最新日增量 PASS 生成信号
+	$(PYTHON) -m shaiwei.pipeline.shadow_cycle
+shadow-report:    ## 刷新前瞻影子运行审计报告
+	$(PYTHON) -c "from shaiwei.config import load; from shaiwei.shadow.report import write_forward_report; print(write_forward_report(load()))"
 alphagen-benchmark:## AlphaGen 单轮 CPU benchmark（必须先完成 qlib-build）
 	$(PYTHON) -m shaiwei.benchmark.alphagen_cpu
 g0-audit:         ## 只汇总冻结 G0 和两项动手证据；永不进入阶段 1
@@ -62,6 +66,8 @@ docker-daily-plan: ## 只读查看日增量缺口，不访问网络
 	docker compose run --rm shaiwei python -m shaiwei.pipeline.daily --plan
 docker-daily-once: ## 容器内立即对账并补采一次
 	docker compose run --rm shaiwei python -m shaiwei.pipeline.scheduler --once
+docker-shadow-cycle: ## 容器内单独续跑一次前瞻影子闭环
+	docker compose run --rm shaiwei python -m shaiwei.pipeline.shadow_cycle
 docker-scheduler-up: ## 启动常驻日增量守护（Docker 自动重启）
 	docker compose up -d --build scheduler
 docker-scheduler-status: ## 查看守护容器与健康状态

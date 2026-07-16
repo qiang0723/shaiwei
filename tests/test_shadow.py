@@ -37,6 +37,9 @@ def test_shadow_manifest_is_ranked_hashed_and_never_overwritten(tmp_path: Path):
     path, digest = write_signal_manifest(scores, **kwargs)
     assert path.name == f"20260715-{'c' * 12}-{'d' * 12}.json"
     document = json.loads(path.read_text())
+    assert document["schema_version"] == 2
+    assert "model_artifact_sha256" in document
+    assert document["rebalance_due"] is True
     assert [order["instrument"] for order in document["orders"]] == ["A", "B"]
     assert verify_signal_manifest(path) == digest
     with pytest.raises(FileExistsError):
@@ -70,3 +73,30 @@ def test_shadow_next_open_reconciliation(tmp_path: Path):
     result = reconcile_next_open(path, execution)
     assert result.loc[0, "reconcile_status"] == "OK"
     assert result.loc[0, "open_deviation"] == pytest.approx(0.01)
+
+
+def test_non_rebalance_signal_carries_previous_targets(tmp_path: Path):
+    now = datetime.now(timezone.utc)
+    scores = pd.DataFrame(
+        {"instrument": ["A", "B", "C"], "score": [0.1, 0.2, 0.9]}
+    )
+    path, _ = write_signal_manifest(
+        scores,
+        signal_date=date.today(),
+        topk=2,
+        sentinel_results=_sentinels(),
+        data_complete_at=now,
+        generated_at=now,
+        data_snapshot_sha256="d" * 64,
+        code_commit="abc",
+        code_snapshot_sha256="c" * 64,
+        output_dir=tmp_path,
+        target_instruments=["A", "B"],
+        rebalance_due=False,
+        previous_signal_sha256="p" * 64,
+        rebalance_days=10,
+    )
+    document = json.loads(path.read_text())
+    assert [order["instrument"] for order in document["orders"]] == ["A", "B"]
+    assert document["rebalance_due"] is False
+    assert document["rebalance_days"] == 10

@@ -1,0 +1,1 @@
+reconciliation_id,started_at,finished_at,signal_trade_date,execution_trade_date,status,signal_sha256,data_snapshot_sha256,artifact_path,artifact_sha256,order_count,trade_count,executable_count,turnover,mean_abs_open_deviation,estimated_cost,error_type,operator

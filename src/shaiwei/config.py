@@ -87,6 +87,14 @@ class DailyPipeline(BaseModel):
     health_stale_seconds: int = Field(ge=300, le=86400)
 
 
+class ShadowPipeline(BaseModel):
+    enabled: bool = True
+    signal_deadline_hour: int = Field(ge=0, le=23)
+    signal_deadline_minute: int = Field(ge=0, le=59)
+    qlib_versions_to_keep: int = Field(ge=2, le=10)
+    trial_trade_days: int = Field(ge=1, le=20)
+
+
 class Crosscheck(BaseModel):
     symbols: list[str] = Field(min_length=4)
     lookback_calendar_days: int = Field(ge=30, le=365)
@@ -188,6 +196,7 @@ class Settings(BaseModel):
     compute: Compute
     ingest: Ingest
     daily: DailyPipeline
+    shadow_pipeline: ShadowPipeline
     crosscheck: Crosscheck
     sentinels: Sentinels
     baseline: Baseline

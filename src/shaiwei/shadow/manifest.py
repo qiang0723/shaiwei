@@ -44,12 +44,22 @@ def write_signal_manifest(
     code_snapshot_sha256: str,
     output_dir: Path,
     environment: str = "dev",
+    qlib_artifact_sha256: str = "",
+    model_spec_sha256: str = "",
+    model_artifact_sha256: str = "",
+    model_artifact_path: str = "",
+    target_instruments: list[str] | None = None,
+    rebalance_due: bool = True,
+    previous_signal_sha256: str = "",
+    rebalance_days: int = 1,
 ) -> tuple[Path, str]:
     required = {"instrument", "score"}
     if missing := required - set(scores.columns):
         raise ValueError(f"scores missing fields: {sorted(missing)}")
     if topk < 1:
         raise ValueError("topk must be positive")
+    if rebalance_days < 1:
+        raise ValueError("rebalance_days must be positive")
     if generated_at.tzinfo is None or data_complete_at.tzinfo is None:
         raise ValueError("data clock timestamps must be timezone-aware")
     if generated_at < data_complete_at:
@@ -58,22 +68,43 @@ def write_signal_manifest(
     ranked = scores.dropna(subset=["instrument", "score"]).copy()
     if ranked["instrument"].duplicated().any():
         raise ValueError("scores contain duplicate instruments")
-    ranked = ranked.sort_values(["score", "instrument"], ascending=[False, True]).head(topk)
-    if len(ranked) < topk:
-        raise DataClockError(f"only {len(ranked)} valid scores for topk={topk}")
+    ranked = ranked.sort_values(["score", "instrument"], ascending=[False, True])
+    if target_instruments is None:
+        selected = ranked.head(topk)
+    else:
+        if len(target_instruments) != topk or len(set(target_instruments)) != topk:
+            raise DataClockError("carried target instruments must contain exactly topk unique names")
+        selected = (
+            ranked.set_index("instrument")
+            .reindex(target_instruments)
+            .reset_index()
+        )
+        if selected["score"].isna().any():
+            missing_targets = selected.loc[selected["score"].isna(), "instrument"].tolist()
+            raise DataClockError(f"carried targets missing current scores: {missing_targets}")
+    if len(selected) < topk:
+        raise DataClockError(f"only {len(selected)} valid scores for topk={topk}")
     target_weight = 1.0 / topk
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
         "signal_date": signal_date.isoformat(),
         "data_complete_at": data_complete_at.astimezone(timezone.utc).isoformat(),
         "generated_at": generated_at.astimezone(timezone.utc).isoformat(),
         "data_snapshot_sha256": data_snapshot_sha256,
         "code_commit": code_commit,
         "code_snapshot_sha256": code_snapshot_sha256,
+        "qlib_artifact_sha256": qlib_artifact_sha256,
+        "model_spec_sha256": model_spec_sha256,
+        "model_artifact_sha256": model_artifact_sha256,
+        "model_artifact_path": model_artifact_path,
+        "score_rows": len(scores),
+        "rebalance_due": rebalance_due,
+        "previous_signal_sha256": previous_signal_sha256,
+        "rebalance_days": rebalance_days,
         "topk": topk,
         "orders": [
             {"rank": rank, "instrument": row.instrument, "score": float(row.score), "target_weight": target_weight}
-            for rank, row in enumerate(ranked.itertuples(index=False), start=1)
+            for rank, row in enumerate(selected.itertuples(index=False), start=1)
         ],
     }
     signal_hash = hashlib.sha256(_canonical_json(payload)).hexdigest()

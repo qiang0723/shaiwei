@@ -15,3 +15,13 @@ def test_qlib_runtime_keeps_recorder_under_ignored_logs(monkeypatch):
     manager = captured["exp_manager"]
     assert manager["kwargs"]["uri"] == f"sqlite:///{(PROJECT_ROOT / 'logs/mlflow.db').resolve()}"
     assert captured["provider_uri"] == str(settings.runtime.data_root / "qlib_bin")
+
+
+def test_qlib_runtime_accepts_versioned_forward_provider(monkeypatch, tmp_path):
+    captured = {}
+    monkeypatch.setattr(
+        "shaiwei.backtest.qlib_runtime.qlib.init",
+        lambda **kwargs: captured.update(kwargs),
+    )
+    initialize_qlib(load(), provider_uri=tmp_path / "version")
+    assert captured["provider_uri"] == str(tmp_path / "version")

@@ -89,6 +89,7 @@ def main() -> int:
         code_snapshot_sha256=code_hash,
         output_dir=PROJECT_ROOT / "signals",
         environment=settings.runtime.environment,
+        rebalance_days=settings.backtest.rebalance_days,
     )
     append_experiment(
         candidate_source="Alpha158-shadow",

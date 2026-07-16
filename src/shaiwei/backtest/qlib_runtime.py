@@ -1,16 +1,18 @@
 """Project-owned qlib initialization with ignored local tracking state."""
 
+from pathlib import Path
+
 import qlib
 from qlib.config import REG_CN
 
 from shaiwei.config import PROJECT_ROOT, Settings
 
 
-def initialize_qlib(settings: Settings) -> None:
+def initialize_qlib(settings: Settings, *, provider_uri: Path | None = None) -> None:
     recorder_db = (PROJECT_ROOT / "logs" / "mlflow.db").resolve()
     recorder_db.parent.mkdir(parents=True, exist_ok=True)
     qlib.init(
-        provider_uri=str(settings.runtime.data_root / "qlib_bin"),
+        provider_uri=str(provider_uri or settings.runtime.data_root / "qlib_bin"),
         region=REG_CN,
         exp_manager={
             "class": "MLflowExpManager",

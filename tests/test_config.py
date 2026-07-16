@@ -29,3 +29,6 @@ def test_frozen_config_loads():
     assert settings.daily.ready_minute == 30
     assert settings.daily.max_catchup_trade_days == 20
     assert settings.daily.min_market_rows == 3000
+    assert settings.shadow_pipeline.enabled
+    assert settings.shadow_pipeline.qlib_versions_to_keep == 2
+    assert settings.shadow_pipeline.trial_trade_days == 3

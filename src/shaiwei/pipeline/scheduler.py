@@ -6,6 +6,8 @@ import argparse
 import json
 import os
 import signal
+import subprocess
+import sys
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,6 +17,15 @@ from shaiwei.notify.feishu import FeishuNotifier
 from shaiwei.pipeline.daily import AlreadyRunning, run_once
 
 HEALTH_PATH = PROJECT_ROOT / "logs" / "scheduler" / "health.json"
+
+
+def run_shadow_cycle(settings: Settings) -> None:
+    if not settings.shadow_pipeline.enabled:
+        return
+    subprocess.run(
+        [sys.executable, "-m", "shaiwei.pipeline.shadow_cycle"],
+        check=True,
+    )
 
 
 def write_health(status: str, *, detail: str = "", path: Path = HEALTH_PATH) -> None:
@@ -56,6 +67,8 @@ def run_scheduler(*, once: bool = False, settings: Settings | None = None) -> in
         write_health("running")
         try:
             result = run_once(settings=settings)
+            write_health("shadow", detail=result.eligible_target)
+            run_shadow_cycle(settings)
             write_health(result.status.lower(), detail=result.eligible_target)
         except AlreadyRunning:
             write_health("waiting", detail="daily lock is held")
@@ -64,7 +77,7 @@ def run_scheduler(*, once: bool = False, settings: Settings | None = None) -> in
             write_health("degraded", detail=type(error).__name__)
             notifier.send(
                 "daily_scheduler_cycle_failed",
-                "日增量守护周期失败",
+                "日增量与影子守护周期失败",
                 {"error_type": type(error).__name__},
             )
         if once:

@@ -42,6 +42,12 @@ daily:
   max_catchup_trade_days: 20         # 单轮最多补 20 个交易日，避免异常积压失控
   min_market_rows: 3000              # 沪深全市场最低行数哨兵（已排除北交所）
   health_stale_seconds: 3600         # 容器健康文件最大允许陈旧时间
+shadow_pipeline:
+  enabled: true
+  signal_deadline_hour: 23           # 收盘数据通过后，当晚 23:00 前产出影子信号
+  signal_deadline_minute: 0
+  qlib_versions_to_keep: 2           # G0 缓存不动；前瞻缓存保留当前+上一版便于回滚
+  trial_trade_days: 3                # 连续三交易日零人工修数后完成首轮运行验收
 crosscheck:
   # 启动前冻结：沪深主板/创业板/科创板各取高流动性代表，AKShare 最近 90 个自然日独立复核。
   symbols: ["000001.SZ", "600519.SH", "300750.SZ", "688981.SH"]

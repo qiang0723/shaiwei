@@ -3,7 +3,13 @@ import subprocess
 from pathlib import Path
 import pytest
 
-LEDGERS = ["ledger/experiments.csv", "ledger/ingest_batches.csv", "ledger/daily_runs.csv"]
+LEDGERS = [
+    "ledger/experiments.csv",
+    "ledger/ingest_batches.csv",
+    "ledger/daily_runs.csv",
+    "ledger/shadow_runs.csv",
+    "ledger/shadow_reconciliations.csv",
+]
 
 
 def test_git_baseline_exists():

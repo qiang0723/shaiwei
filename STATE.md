@@ -38,11 +38,14 @@
 - [x] G0 最终审计：S1-S9 全部 PASS、开发态 S10 NOT_APPLICABLE，未归因异常 0；六窗口正超额数 5；+50% 成本合并累计超额 +49.23%；数据账本 66,322 批、34,151,949 行逐批重哈希通过，`stage0_complete=true`、`next_phase_authorized=false`
 - [x] 两项动手验证：S4 在 10,586,765 行上确认 VWAP/价格量纲恒等比 1.0、价格带外 0 行；AlphaGen CPU 实测结果见上，均已进入 G0 审计证据
 - [x] fund_comparator.csv 于 2026-07-15 冻结：不看历史收益，按产品定义+成立日机械选取中证800/A500各3只；纳入、费用和R1替换规则见 `docs/FUND_COMPARATOR_SPEC.md`
+- [x] 前瞻影子闭环代码与隔离预演（2026-07-16）：日增量 PASS 后由 Docker 守护在隔离子进程续跑完整 S1-S10、版本化 qlib、Alpha158 日频评分与飞书，严格按 10 个交易日才改变目标组合；下一交易日按真实开盘回填方向性涨跌停可成交性、换手和成本。G0 的 `data/qlib_bin` 永不修改，前瞻 qlib 以整树哈希校验后原子切换且仅保留当前/上一版。最终代码快照 SHA-256 `cfd0987240ad65a0eaa4128f85c039a348a2a0f63465f601ed33f75c7d53bd00` 下预演 S1-S9 PASS、S10 NOT_APPLICABLE，qlib SHA-256 `d4799c334516111956aecfd3004677d1aa5d32194c6cbbf34484283e793010ae`，799 个有效分数，LightGBM Booster SHA-256 `bc8f3c5cbd26e1146a1e998e57327f137c4f6b167ab261b6928b085e005f3632`，首日 `rebalance_due=true`，信号 SHA-256 `a9ffb6b250bfc94737fab42853dbba9fd2caa18c764b865f63adfe4cd1d99263`；同快照复验直接复用产物，实验账本前后均为 442 行，幂等 PASS。预演不写正式影子运行账本，不计入连续三日验收。
+- [ ] 前瞻影子真实运行验收：等待日增量产生首个 PASS 后，连续三个交易日验证准时信号率、真实开盘可成交率、换手、开盘偏差、预计成本、异常恢复和零重复/零人工修数；未满三日不得宣称闭环完成。
 
 ## 后台任务
 运行态以 `logs/pipeline/stage0_20260715.jsonl` 和 `ledger/ingest_batches.csv` 为准；自动流按 as-of+代码+数据快照及逐批文件哈希安全续跑。
 
 - 飞书自定义机器人作为运行守护与告警通道：流水线启动/失败/完成和长步骤心跳均发送签名消息；凭据仅在本地 `.env`，投递结果脱敏记录于 `logs/notifications/`，告警通道故障不得改变核心任务退出码。2026-07-16 真实连通性、流水线启动与完成三类消息均投递 PASS。
+- Docker `scheduler` 在每轮日增量对账后调用前瞻影子子进程；无日增量 PASS 时轻量 NOOP，有 PASS 时按「次日对账 → 当前快照门禁 → 版本化 qlib → 模型与信号」顺序失败即停。运行账本为 `ledger/shadow_runs.csv`、`ledger/shadow_reconciliations.csv`，汇总为 `logs/shadow/forward_report.json`；不连接券商、不产生真实订单。
 
 ## 预注册实验（v0.5.4 封笔后新增，效力以本文件 git 时间戳为准）
 - **阶段 1 第四臂：CogAlpha-lite**（LLM 代码级因子进化，源自 arXiv 2511.18850 / ACL 2026 评审建议，2026-07 预注册）：
