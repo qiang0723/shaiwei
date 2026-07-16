@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-g1-admit docker-stage1-preflight docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-g1-admit docker-stage1-preflight docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -55,6 +55,8 @@ g1-schema:        ## 打印 G1 候选证据 JSON Schema；不运行研究或准�
 g1-admit:         ## 对已记实验总账的候选作 G1 判定；用 G1_EVIDENCE=项目内JSON
 	@test -n "$(G1_EVIDENCE)" || (echo "G1_EVIDENCE is required"; exit 2)
 	$(PYTHON) -m shaiwei.research.g1 --evidence "$(G1_EVIDENCE)"
+g8-spec:          ## 打印冻结的 G8 同风险公式、产品篮子哈希与规格哈希；不作提前裁决
+	$(PYTHON) -m shaiwei.evaluation.g8
 stage0-plan:      ## 查看阶段 0 自动流和凭据就绪状态；STAGE0_ARGS 可传 --as-of/步骤范围
 	$(PYTHON) -m shaiwei.pipeline.stage0 --plan $(STAGE0_ARGS)
 stage0-run:       ## 失败即停、可续跑的 Day0-7 全流程

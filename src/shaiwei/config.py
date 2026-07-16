@@ -125,6 +125,32 @@ class G1Admission(BaseModel):
         return self
 
 
+class G8Evaluation(BaseModel):
+    """Pre-registered, no-leverage risk matching for the three-year G8 verdict."""
+
+    spec_version: Literal["g8-v1"]
+    comparator_freeze_date: date
+    annualization_days: int = Field(ge=200, le=366)
+    volatility_lookback_days: int = Field(ge=20, le=252)
+    minimum_annualized_volatility: float = Field(gt=0, lt=0.2)
+    minimum_risk_coverage: float = Field(gt=0.8, le=1)
+    minimum_evaluation_observations: int = Field(ge=600, le=800)
+    required_fund_count: int = Field(ge=3, le=20)
+    minimum_positive_funds: int = Field(ge=1)
+    required_subperiods: int = Field(ge=2, le=6)
+    minimum_positive_subperiods: int = Field(ge=1)
+    maximum_risk_weight: Literal[1.0]
+    residual_cash_daily_return: Literal[0.0]
+
+    @model_validator(mode="after")
+    def validate_thresholds(self) -> "G8Evaluation":
+        if self.minimum_positive_funds > self.required_fund_count:
+            raise ValueError("G8 minimum_positive_funds exceeds required_fund_count")
+        if self.minimum_positive_subperiods > self.required_subperiods:
+            raise ValueError("G8 minimum_positive_subperiods exceeds required_subperiods")
+        return self
+
+
 class Crosscheck(BaseModel):
     symbols: list[str] = Field(min_length=4)
     lookback_calendar_days: int = Field(ge=30, le=365)
@@ -229,6 +255,7 @@ class Settings(BaseModel):
     daily: DailyPipeline
     shadow_pipeline: ShadowPipeline
     g1_admission: G1Admission
+    g8_evaluation: G8Evaluation
     crosscheck: Crosscheck
     sentinels: Sentinels
     baseline: Baseline

@@ -42,3 +42,11 @@ def test_frozen_config_loads():
     assert settings.g1_admission.factor_blend_weight == 0.1
     assert settings.g1_admission.slippage_stress_extra_each_side == 0.001
     assert settings.g1_admission.promoted_candidates == 2
+    assert settings.g8_evaluation.spec_version == "g8-v1"
+    assert settings.g8_evaluation.comparator_freeze_date == date(2026, 7, 15)
+    assert settings.g8_evaluation.volatility_lookback_days == 60
+    assert settings.g8_evaluation.minimum_evaluation_observations == 720
+    assert settings.g8_evaluation.required_fund_count == 6
+    assert settings.g8_evaluation.minimum_positive_funds == 4
+    assert settings.g8_evaluation.minimum_positive_subperiods == 2
+    assert settings.g8_evaluation.maximum_risk_weight == 1.0

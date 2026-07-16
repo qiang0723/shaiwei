@@ -69,6 +69,21 @@ g1_admission:
   factor_blend_weight: 0.1          # 现有 Alpha158 排名 90% + 新因子残差排名 10%
   slippage_stress_extra_each_side: 0.001  # 报告 4.5 的保守下界：买卖各加 10bp
   promoted_candidates: 2           # 极小预算预演至少两只，满足 DSR 方差最小证据
+g8_evaluation:
+  # 2026-07-16、任何 G8 三年裁决计算前冻结。详见 docs/G8_SPEC.md。
+  spec_version: "g8-v1"
+  comparator_freeze_date: "2026-07-15"
+  annualization_days: 252
+  volatility_lookback_days: 60     # 仅用 t-1 及以前的日收益估计 t 日风险
+  minimum_annualized_volatility: 0.01
+  minimum_risk_coverage: 0.95
+  minimum_evaluation_observations: 720
+  required_fund_count: 6
+  minimum_positive_funds: 4
+  required_subperiods: 3
+  minimum_positive_subperiods: 2
+  maximum_risk_weight: 1.0         # 只降风险，不为策略或产品虚构杠杆
+  residual_cash_daily_return: 0.0  # 不事后选择现金利率数据源
 crosscheck:
   # 启动前冻结：沪深主板/创业板/科创板各取高流动性代表，AKShare 最近 90 个自然日独立复核。
   symbols: ["000001.SZ", "600519.SH", "300750.SZ", "688981.SH"]
