@@ -95,6 +95,25 @@ class ShadowPipeline(BaseModel):
     trial_trade_days: int = Field(ge=1, le=20)
 
 
+class G1Admission(BaseModel):
+    """Pre-registered Stage-1 factor admission thresholds."""
+
+    spec_version: Literal["g1-v1"]
+    dsr_probability_threshold: float = Field(gt=0.5, lt=1)
+    hac_t_threshold: float = Field(gt=0)
+    hac_lags: int = Field(ge=1, le=60)
+    min_observations: int = Field(ge=60)
+    min_valid_trial_sharpes: int = Field(ge=2)
+    max_expression_tokens: int = Field(ge=1)
+    max_ast_nodes: int = Field(ge=1)
+    min_economic_rationale_chars: int = Field(ge=10)
+    max_library_abs_correlation: float = Field(gt=0, lt=1)
+    min_positive_windows: int = Field(ge=1)
+    min_rank_ic_retention: float = Field(gt=0, le=1)
+    max_stress_drawdown: float = Field(gt=0, lt=1)
+    max_turnover_ratio: float = Field(ge=1)
+
+
 class Crosscheck(BaseModel):
     symbols: list[str] = Field(min_length=4)
     lookback_calendar_days: int = Field(ge=30, le=365)
@@ -197,6 +216,7 @@ class Settings(BaseModel):
     ingest: Ingest
     daily: DailyPipeline
     shadow_pipeline: ShadowPipeline
+    g1_admission: G1Admission
     crosscheck: Crosscheck
     sentinels: Sentinels
     baseline: Baseline

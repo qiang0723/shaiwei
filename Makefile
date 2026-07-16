@@ -1,8 +1,9 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report alphagen-benchmark g0-audit stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report alphagen-benchmark g0-audit g1-schema g1-admit stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-g1-admit docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
 MPLCONFIGDIR ?= $(CURDIR)/data/cache/matplotlib
+G1_EVIDENCE ?=
 export MPLCONFIGDIR
 
 bootstrap:        ## 创建隔离环境、安装依赖并校验配置
@@ -44,6 +45,11 @@ alphagen-benchmark:## AlphaGen 单轮 CPU benchmark（必须先完成 qlib-build
 	$(PYTHON) -m shaiwei.benchmark.alphagen_cpu
 g0-audit:         ## 只汇总冻结 G0 和两项动手证据；永不进入阶段 1
 	$(PYTHON) -m shaiwei.audit.g0
+g1-schema:        ## 打印 G1 候选证据 JSON Schema；不运行研究或准入
+	$(PYTHON) -m shaiwei.research.g1 --print-schema
+g1-admit:         ## 对已记实验总账的候选作 G1 判定；用 G1_EVIDENCE=项目内JSON
+	@test -n "$(G1_EVIDENCE)" || (echo "G1_EVIDENCE is required"; exit 2)
+	$(PYTHON) -m shaiwei.research.g1 --evidence "$(G1_EVIDENCE)"
 stage0-plan:      ## 查看阶段 0 自动流和凭据就绪状态；STAGE0_ARGS 可传 --as-of/步骤范围
 	$(PYTHON) -m shaiwei.pipeline.stage0 --plan $(STAGE0_ARGS)
 stage0-run:       ## 失败即停、可续跑的 Day0-7 全流程
@@ -68,6 +74,9 @@ docker-daily-once: ## 容器内立即对账并补采一次
 	docker compose run --rm shaiwei python -m shaiwei.pipeline.scheduler --once
 docker-shadow-cycle: ## 容器内单独续跑一次前瞻影子闭环
 	docker compose run --rm shaiwei python -m shaiwei.pipeline.shadow_cycle
+docker-g1-admit:  ## 容器内执行冻结 G1 裁决；不启动因子生成
+	@test -n "$(G1_EVIDENCE)" || (echo "G1_EVIDENCE is required"; exit 2)
+	docker compose run --rm shaiwei python -m shaiwei.research.g1 --evidence "$(G1_EVIDENCE)"
 docker-scheduler-up: ## 启动常驻日增量守护（Docker 自动重启）
 	docker compose up -d --build scheduler
 docker-scheduler-status: ## 查看守护容器与健康状态

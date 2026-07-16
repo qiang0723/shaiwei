@@ -32,3 +32,8 @@ def test_frozen_config_loads():
     assert settings.shadow_pipeline.enabled
     assert settings.shadow_pipeline.qlib_versions_to_keep == 2
     assert settings.shadow_pipeline.trial_trade_days == 3
+    assert settings.g1_admission.spec_version == "g1-v1"
+    assert settings.g1_admission.dsr_probability_threshold == 0.95
+    assert settings.g1_admission.hac_t_threshold == 3.0
+    assert settings.g1_admission.hac_lags == 10
+    assert settings.g1_admission.min_observations == 252

@@ -15,6 +15,7 @@ INGEST = LEDGER_DIR / "ingest_batches.csv"
 DAILY_RUNS = LEDGER_DIR / "daily_runs.csv"
 SHADOW_RUNS = LEDGER_DIR / "shadow_runs.csv"
 SHADOW_RECONCILIATIONS = LEDGER_DIR / "shadow_reconciliations.csv"
+FACTOR_ADMISSIONS = LEDGER_DIR / "factor_admissions.csv"
 
 
 def portable_artifact_path(path: str | Path) -> str:
@@ -192,3 +193,13 @@ def append_shadow_reconciliation(**kw: object) -> str:
     kw.setdefault("operator", "docker-scheduler")
     _append(SHADOW_RECONCILIATIONS, kw)
     return str(kw["reconciliation_id"])
+
+
+def append_factor_admission(*, path: Path | None = None, **kw: object) -> str:
+    """Append one immutable G1 decision without inflating experiment trial N."""
+    kw.setdefault("decision_id", uuid.uuid4().hex[:12])
+    kw.setdefault("evaluated_at", datetime.now(timezone.utc).isoformat())
+    if isinstance(kw.get("admitted"), bool):
+        kw["admitted"] = str(kw["admitted"]).lower()
+    _append(path or FACTOR_ADMISSIONS, kw)
+    return str(kw["decision_id"])

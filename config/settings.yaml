@@ -48,6 +48,22 @@ shadow_pipeline:
   signal_deadline_minute: 0
   qlib_versions_to_keep: 2           # G0 缓存不动；前瞻缓存保留当前+上一版便于回滚
   trial_trade_days: 3                # 连续三交易日零人工修数后完成首轮运行验收
+g1_admission:
+  # 2026-07-16、任何阶段 1 因子准入运行前冻结。详见 docs/G1_SPEC.md。
+  spec_version: "g1-v1"
+  dsr_probability_threshold: 0.95   # DSR 是概率，不能与 t=3 混为同一阈值
+  hac_t_threshold: 3.0              # Harvey-Liu-Zhu 多重检验新因子门槛
+  hac_lags: 10                      # 与 10 交易日重叠标签/调仓周期一致
+  min_observations: 252             # 少于一个交易年不作统计准入
+  min_valid_trial_sharpes: 2        # DSR 跨试验方差至少需两个有效 Sharpe
+  max_expression_tokens: 20
+  max_ast_nodes: 80
+  min_economic_rationale_chars: 20
+  max_library_abs_correlation: 0.5  # 严格小于；等于 0.5 也拒绝
+  min_positive_windows: 4           # 固定 6 个滚动窗中至少 4 个同向
+  min_rank_ic_retention: 0.5
+  max_stress_drawdown: 0.2
+  max_turnover_ratio: 1.1           # 不高于同配置基线的 110%
 crosscheck:
   # 启动前冻结：沪深主板/创业板/科创板各取高流动性代表，AKShare 最近 90 个自然日独立复核。
   symbols: ["000001.SZ", "600519.SH", "300750.SZ", "688981.SH"]

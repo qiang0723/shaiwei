@@ -9,6 +9,7 @@ LEDGERS = [
     "ledger/daily_runs.csv",
     "ledger/shadow_runs.csv",
     "ledger/shadow_reconciliations.csv",
+    "ledger/factor_admissions.csv",
 ]
 
 
