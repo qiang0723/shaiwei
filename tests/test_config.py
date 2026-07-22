@@ -24,6 +24,8 @@ def test_frozen_config_loads():
     assert settings.evaluation.g0_windows[-1].test_end == date(2024, 12, 31)
     assert settings.evaluation.forward_oos_start == date(2026, 7, 9)
     assert settings.notifications.timeout_seconds == 10
+    assert settings.notifications.max_attempts == 3
+    assert settings.notifications.retry_base_seconds == 1.0
     assert settings.notifications.heartbeat_seconds == 1800
     assert settings.daily.poll_seconds == 900
     assert settings.daily.ready_hour == 19

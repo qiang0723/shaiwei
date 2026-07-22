@@ -4,6 +4,8 @@ runtime:
 notifications:
   feishu_enabled: false
   timeout_seconds: 10
+  max_attempts: 3                 # 仅瞬时网络/限流/服务端错误重试；同一逻辑消息共用 message_id
+  retry_base_seconds: 1.0         # 最多等待 1+2 秒；不承诺飞书服务端恰好一次
   heartbeat_seconds: 1800
 universe:
   index_code: "000906.SH"       # 中证800

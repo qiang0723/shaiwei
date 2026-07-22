@@ -22,6 +22,8 @@ class Notifications(BaseModel):
     feishu_webhook_url: SecretStr | None = None
     feishu_signing_secret: SecretStr | None = None
     timeout_seconds: float = Field(gt=0, le=60)
+    max_attempts: int = Field(ge=1, le=5)
+    retry_base_seconds: float = Field(ge=0, le=10)
     heartbeat_seconds: int = Field(ge=60, le=86400)
 
     @model_validator(mode="after")
@@ -289,6 +291,10 @@ def load(path: str | Path | None = None) -> Settings:
     notifications["feishu_signing_secret"] = os.getenv("FEISHU_SIGNING_SECRET") or None
     if timeout := os.getenv("FEISHU_TIMEOUT_SECONDS"):
         notifications["timeout_seconds"] = float(timeout)
+    if max_attempts := os.getenv("FEISHU_MAX_ATTEMPTS"):
+        notifications["max_attempts"] = int(max_attempts)
+    if retry_base := os.getenv("FEISHU_RETRY_BASE_SECONDS"):
+        notifications["retry_base_seconds"] = float(retry_base)
     if heartbeat := os.getenv("FEISHU_HEARTBEAT_SECONDS"):
         notifications["heartbeat_seconds"] = int(heartbeat)
     data_root = Path(runtime["data_root"])

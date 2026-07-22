@@ -103,13 +103,13 @@ Web 首版不追求“展示很多数据”，而是让使用者依次回答三�
 - `experiment_summary`：指定实验的版本、窗口、指标、判决和产物引用。
 - `data_quality_summary`：指定交易日的批次、覆盖、异常和门禁。
 - `system_run_summary`：任务、步骤、通知和恢复记录。
-- `notification_delivery_summary`：按事件展示投递状态、错误类型、后续恢复时间与通道健康度。
+- `notification_delivery_summary`：按 `message_id` 聚合同一逻辑消息的逐次投递，展示尝试次数、最终状态、错误类型、是否重试恢复、重复风险与通道健康度。
 
 每个响应都应携带 `as_of`、`generated_at`、`source_refs`、`evidence_hashes` 和 `freshness_status`；若来源之间不一致，接口失败或显式返回不一致状态，不静默拼成一个数字。
 
 `overview_snapshot` 还必须携带 `controlled_code_snapshot` 和 `acceptance_scope`；`shadow_reconciliation` 必须同时返回 `trade_count`、可成交率分子/分母及 `metric_status`，不能只返回一个容易误读的百分比。
 
-`system_run_summary` 中的 `task_status` 与 `notification_status` 不得合并为同一字段；一次通知失败后，只能由后续真实 PASS 事件形成 `recovered_at`，不能覆盖原失败记录，也不能把人工补发伪装成原始事件成功。
+`system_run_summary` 中的 `task_status` 与 `notification_status` 不得合并为同一字段；一次通知失败后，只能由同一 `message_id` 的后续 PASS 尝试或后续真实事件形成恢复证据，不能覆盖原失败记录，也不能把人工补发伪装成原始事件成功。通知明细至少返回 `message_id`、`attempt`、`max_attempts`、`retryable`、`recovered`；飞书无服务端恰好一次承诺，超时重试产生的同 ID 重复消息必须显式标注风险，不能由前端静默折叠为“只投递一次”。
 
 模拟仓三组接口必须携带 `account_id`、`execution_policy_version` 和相关信号/行情/账本哈希。`paper_portfolio_snapshot` 的当前持仓只能由已登记成交与公司行为重放得出；`paper_nav_series` 不得用目标权重或回测净值填补正式模拟仓缺口。
 

@@ -14,7 +14,18 @@ def main() -> int:
     assert args.test
     notifier = FeishuNotifier(load().notifications)
     result = notifier.send("connectivity_test", "告警通道连通性测试", {"status": "正常"})
-    print(json.dumps({"event": result.event, "status": result.status, "error_type": result.error_type}))
+    print(
+        json.dumps(
+            {
+                "event": result.event,
+                "status": result.status,
+                "error_type": result.error_type,
+                "message_id": result.message_id,
+                "attempt": result.attempt,
+                "recovered": result.recovered,
+            }
+        )
+    )
     return 0 if result.status == "PASS" else 2
 
 
