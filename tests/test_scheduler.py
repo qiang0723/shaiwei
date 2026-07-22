@@ -58,3 +58,5 @@ def test_scheduler_runs_paper_as_isolated_subprocess(monkeypatch):
     assert calls[0][1] is True
     assert calls[1][0][-3:] == ["-m", "shaiwei.paper.query", "verify"]
     assert calls[1][1] is True
+    assert calls[2][0][-3:] == ["-m", "shaiwei.paper.query", "acceptance"]
+    assert calls[2][1] is True

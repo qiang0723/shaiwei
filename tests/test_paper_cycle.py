@@ -9,6 +9,7 @@ import pytest
 
 from shaiwei import ledger
 from shaiwei.config import PROJECT_ROOT, load
+from shaiwei.paper import query as paper_query
 from shaiwei.paper.query import (
     PaperQueryError,
     paper_nav_series,
@@ -322,6 +323,72 @@ def test_temporal_contract_rejects_future_and_non_next_session():
         )
 
 
+def test_forward_acceptance_requires_bound_identity_and_notification(monkeypatch, tmp_path: Path):
+    artifact = tmp_path / "forward.json"
+    artifact.write_text("{}\n", encoding="utf-8")
+    run = {
+        "run_id": "forward1",
+        "finished_at": "2026-07-23T12:00:00+00:00",
+        "account_id": "model_baseline",
+        "execution_trade_date": "20260723",
+        "operator": "docker-scheduler",
+        "freshness_status": "PASS",
+        "artifact_sha256": "a" * 64,
+    }
+    document = {
+        "mode": "FORWARD",
+        "execution_policy_version": "paper-v1",
+        "code_snapshot_sha256": "c" * 64,
+        "policy_sha256": "p" * 64,
+    }
+    monkeypatch.setattr(paper_query, "_passed_runs", lambda account_id, path: [run])
+    monkeypatch.setattr(paper_query, "_document", lambda row: (artifact, document))
+    monkeypatch.setattr(
+        paper_query,
+        "verify_paper_replay",
+        lambda *args, **kwargs: {
+            "status": "PASS",
+            "ledger_hashes": {"accounts": "1", "events": "2", "runs": "3"},
+        },
+    )
+    event_rows = [{"account_id": "model_baseline", "ts_code": "600001.SH"}]
+    monkeypatch.setattr(paper_query, "_csv_rows", lambda path: event_rows)
+    notifications = tmp_path / "notifications"
+    notifications.mkdir()
+    records = [
+        {
+            "event": event,
+            "status": "PASS",
+            "delivered_at": "2026-07-23T12:00:01+00:00",
+            "message_id": event,
+            "attempt": 1,
+            "max_attempts": 3,
+            "recovered": False,
+        }
+        for event in ("paper_cycle_started", "paper_cycle_completed")
+    ]
+    (notifications / "feishu_20260723.jsonl").write_text(
+        "".join(json.dumps(record) + "\n" for record in records),
+        encoding="utf-8",
+    )
+    result = paper_query.paper_forward_acceptance(
+        notifications_dir=notifications,
+        expected_code_sha256="c" * 64,
+        expected_policy_sha256="p" * 64,
+    )
+    assert result["status"] == "PASS"
+    assert result["forward_observation_count"] == 1
+    assert set(result["notification_delivery"]) == {
+        "paper_cycle_started",
+        "paper_cycle_completed",
+    }
+    event_rows[0]["ts_code"] = "920001.BJ"
+    with pytest.raises(PaperQueryError, match="forbidden BSE"):
+        paper_query.paper_forward_acceptance(
+            notifications_dir=notifications,
+            expected_code_sha256="c" * 64,
+            expected_policy_sha256="p" * 64,
+        )
 def test_paper_event_append_is_idempotent_and_rejects_key_collision(tmp_path: Path):
     path = tmp_path / "events.csv"
     _header("ledger/paper_events.csv", path)

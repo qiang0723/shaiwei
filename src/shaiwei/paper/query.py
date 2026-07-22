@@ -20,6 +20,7 @@ from shaiwei.ledger import (
 )
 from shaiwei.paper.engine import policy_sha256
 from shaiwei.pipeline.paper_cycle import _verify_paper_document
+from shaiwei.provenance import code_snapshot_sha256
 
 
 class PaperQueryError(RuntimeError):
@@ -367,6 +368,111 @@ def verify_paper_replay(
     }
 
 
+def paper_forward_acceptance(
+    account_id: str = "model_baseline",
+    *,
+    accounts_path: Path = PAPER_ACCOUNTS,
+    events_path: Path = PAPER_EVENTS,
+    runs_path: Path = PAPER_RUNS,
+    notifications_dir: Path = PROJECT_ROOT / "logs" / "notifications",
+    expected_code_sha256: str | None = None,
+    expected_policy_sha256: str | None = None,
+) -> dict[str, object]:
+    """Return NOT_READY or fail-closed evidence for the latest natural FORWARD run."""
+    runs = _passed_runs(account_id, path=runs_path)
+    forward: list[tuple[dict[str, str], Path, dict[str, object]]] = []
+    for run in runs:
+        artifact, document = _document(run)
+        if document.get("mode") == "FORWARD":
+            forward.append((run, artifact, document))
+    if not forward:
+        replay = (
+            verify_paper_replay(
+                account_id,
+                accounts_path=accounts_path,
+                events_path=events_path,
+                runs_path=runs_path,
+            )
+            if runs
+            else None
+        )
+        return {
+            "status": "NOT_READY",
+            "account_id": account_id,
+            "forward_observation_count": 0,
+            "replay_status": None if replay is None else replay["status"],
+        }
+
+    replay = verify_paper_replay(
+        account_id,
+        accounts_path=accounts_path,
+        events_path=events_path,
+        runs_path=runs_path,
+    )
+    run, artifact, document = forward[-1]
+    if not str(document.get("execution_policy_version", "")).strip():
+        raise PaperQueryError("FORWARD artifact does not freeze execution policy version")
+    expected_code = expected_code_sha256 or code_snapshot_sha256()
+    expected_policy = expected_policy_sha256 or policy_sha256(load().paper_portfolio)
+    if document["code_snapshot_sha256"] != expected_code:
+        raise PaperQueryError("FORWARD artifact code snapshot is not current controlled code")
+    if document["policy_sha256"] != expected_policy:
+        raise PaperQueryError("FORWARD artifact policy differs from frozen policy")
+    if run["operator"] != "docker-scheduler" or run["freshness_status"] != "PASS":
+        raise PaperQueryError("FORWARD run is not a fresh Docker scheduler result")
+    events = [row for row in _csv_rows(events_path) if row["account_id"] == account_id]
+    if any(row["ts_code"].endswith(".BJ") for row in events if row["ts_code"]):
+        raise PaperQueryError("paper acceptance found forbidden BSE event")
+
+    notification_records: list[dict[str, object]] = []
+    notification_hashes: dict[str, str] = {}
+    for path in sorted(notifications_dir.glob("feishu_*.jsonl")):
+        notification_hashes[portable_path(path)] = sha256_file(path)
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError as error:
+                raise PaperQueryError("notification evidence contains invalid JSON") from error
+            if str(record.get("delivered_at", ""))[:10] == run["finished_at"][:10]:
+                notification_records.append(record)
+    delivery: dict[str, dict[str, object]] = {}
+    for event in ("paper_cycle_started", "paper_cycle_completed"):
+        passes = [
+            record
+            for record in notification_records
+            if record.get("event") == event
+            and record.get("status") == "PASS"
+            and record.get("message_id")
+        ]
+        if not passes:
+            raise PaperQueryError(f"FORWARD notification delivery missing: {event}")
+        latest = passes[-1]
+        delivery[event] = {
+            "status": latest["status"],
+            "message_id": latest["message_id"],
+            "attempt": latest.get("attempt"),
+            "max_attempts": latest.get("max_attempts"),
+            "recovered": latest.get("recovered"),
+        }
+
+    return {
+        "status": "PASS",
+        "account_id": account_id,
+        "as_of": run["execution_trade_date"],
+        "forward_observation_count": len(forward),
+        "execution_policy_version": document["execution_policy_version"],
+        "code_snapshot_sha256": document["code_snapshot_sha256"],
+        "policy_sha256": document["policy_sha256"],
+        "artifact_path": portable_path(artifact),
+        "artifact_sha256": run["artifact_sha256"],
+        "replay_status": replay["status"],
+        "bse_event_count": 0,
+        "notification_delivery": delivery,
+        "notification_hashes": notification_hashes,
+        "ledger_hashes": replay["ledger_hashes"],
+    }
+
+
 def portable_path(path: Path) -> str:
     try:
         return path.resolve().relative_to(PROJECT_ROOT.resolve()).as_posix()
@@ -376,7 +482,7 @@ def portable_path(path: Path) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("view", choices=("snapshot", "nav", "orders", "verify"))
+    parser.add_argument("view", choices=("snapshot", "nav", "orders", "verify", "acceptance"))
     parser.add_argument("--account-id", default="model_baseline")
     parser.add_argument("--as-of")
     parser.add_argument("--start")
@@ -391,8 +497,10 @@ def main(argv: list[str] | None = None) -> int:
         if not args.signal_sha256:
             parser.error("--signal-sha256 is required for orders")
         document = paper_orders_fills(args.signal_sha256, args.account_id)
-    else:
+    elif args.view == "verify":
         document = verify_paper_replay(args.account_id)
+    else:
+        document = paper_forward_acceptance(args.account_id)
     print(json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 

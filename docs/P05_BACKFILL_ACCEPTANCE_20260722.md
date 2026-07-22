@@ -67,7 +67,8 @@
 - 异常恢复 fixture 在不可变产物已写、首条事件已追加时注入中断：首次运行保留 `FAIL`，下一次运行复用同一产物、幂等补齐事件并写 `PASS`，第三次运行 `NOOP`。
 - 独立只读 `paper-verify` 从三份追加式账本重放四个账户日、150 个事件、30 个订单和 22 个成交；事件身份/序列/载荷哈希、前态链、公司行为、持仓、现金、净值、会计恒等和四份不可变产物逐项一致，Docker 返回 PASS。scheduler 在每轮模拟仓后自动执行 verifier，任何损坏都会使周期进入 `degraded`。
 - 新运行产物显式固化 `execution_policy_version`；既有 BACKFILL 产物仅在其策略 SHA-256 与当前冻结配置一致时解析为 `paper-v1`，配置漂移时查询失败而不是伪报当前版本。
-- 当前受控代码快照为 `aede7ac0ee26dca96e1026c4e11ff17d02c4f51223072380676d312cbf7c9edd`；Docker 专项测试 16 项通过；全量测试 183 项、Ruff、compileall、pip check、追加式账本检查、脱敏和 diff 检查通过。
+- `paper-acceptance` 已预置为首个自然前瞻日机器裁判：当前返回 `NOT_READY` 且 `replay_status=PASS`；出现 `FORWARD` 后将硬核代码/策略身份、Docker operator、新鲜度、`.BJ=0`、账本重放、飞书开始/完成 PASS 及通知/账本/产物哈希，缺一项即失败。scheduler 每轮自动运行该裁判。
+- 当前受控代码快照为 `261f58b858dbc46d49ffb9f623e8868dcb10891cc2dadd2292728da6de7eb4fa`；Docker 专项测试 17 项通过；全量测试 184 项、Ruff、compileall、pip check、追加式账本检查、脱敏和 diff 检查通过。
 - scheduler 容器已加载新流程并处于 `healthy`；影子任务与模拟仓重复轮询均返回 `NOOP`。
 
 ## 下一验收点

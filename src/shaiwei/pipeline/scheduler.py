@@ -42,6 +42,10 @@ def run_paper_cycle(settings: Settings) -> None:
             [sys.executable, "-m", "shaiwei.paper.query", "verify"],
             check=True,
         )
+        subprocess.run(
+            [sys.executable, "-m", "shaiwei.paper.query", "acceptance"],
+            check=True,
+        )
 
 
 def paper_replay_ready(path: Path = PAPER_RUNS) -> bool:
