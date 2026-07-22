@@ -1,9 +1,11 @@
 from decimal import Decimal
 
 import pandas as pd
+import pytest
 
 from shaiwei.config import load
 from shaiwei.paper.engine import (
+    PaperEngineError,
     Position,
     PortfolioState,
     calculate_fees,
@@ -240,6 +242,29 @@ def test_star_target_below_two_hundred_shares_is_rejected_without_fake_position(
     assert result.nav["net_asset"] == "10000.00"
 
 
+def test_bse_instrument_fails_closed_instead_of_being_silently_dropped():
+    code = "920001.BJ"
+    day = "20260717"
+    with pytest.raises(PaperEngineError, match="BSE instrument is forbidden"):
+        execute_day(
+            policy=_policy(initial_cash=10_000),
+            state=None,
+            signal=_signal([code]),
+            signal_sha256="b" * 64,
+            execution_date=day,
+            daily=_daily(day, {code: (10, 10, 10)}),
+            signal_daily=_daily(day, {code: (10, 10, 10)}),
+            index_row=_index(day),
+            stock_basic=_stock(code),
+            namechange=_names(code),
+            suspend=_suspend(),
+            trade_cal=_calendar(day),
+            dividends=pd.DataFrame(),
+            run_id="run-bse",
+            market_batch_id="batch-bse",
+        )
+
+
 def test_dividend_entitlement_is_captured_on_record_date_and_paid_later():
     code = "600001.SH"
     first_day = "20260717"
@@ -257,7 +282,19 @@ def test_dividend_entitlement_is_captured_on_record_date_and_paid_later():
                 "pay_date": second_day,
                 "div_listdate": None,
                 "imp_ann_date": "20260714",
-            }
+            },
+            {
+                "ts_code": code,
+                "end_date": "20251231",
+                "ann_date": "20260501",
+                "div_proc": "实施",
+                "stk_div": 0.0,
+                "cash_div_tax": 0.80,
+                "record_date": first_day,
+                "pay_date": second_day,
+                "div_listdate": None,
+                "imp_ann_date": "20260718",
+            },
         ]
     )
     first_daily = _daily(first_day, {code: (10, 10, 10)})
@@ -279,6 +316,8 @@ def test_dividend_entitlement_is_captured_on_record_date_and_paid_later():
         market_batch_id="batch3",
     )
     assert any(event["event"] == "ENTITLEMENT" for event in first.corporate_actions)
+    entitlement = next(iter(first.state.entitlements.values()))
+    assert entitlement.cash_per_share == "0.08"
     cash_before = Decimal(first.state.cash)
     held = first.state.positions[code].quantity
     second_daily = _daily(second_day, {code: (9.92, 10, 10.1)})

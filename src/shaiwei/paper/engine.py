@@ -303,7 +303,13 @@ def _implemented_actions(
         dividends["div_proc"].astype("string").str.contains("实施", na=False)
         & dividends["ts_code"].astype("string").isin(relevant_codes)
     ].copy()
-    rows["_order"] = rows["imp_ann_date"].fillna(rows["ann_date"]).astype("string")
+    implementation_date = rows["imp_ann_date"].astype("string").str.strip()
+    announcement_date = rows["ann_date"].astype("string").str.strip()
+    rows["_order"] = implementation_date.where(
+        implementation_date.notna() & implementation_date.ne(""),
+        announcement_date,
+    )
+    rows = rows.loc[rows["_order"].notna() & rows["_order"].le(through_date)]
     rows = rows.sort_values("_order").drop_duplicates(["ts_code", "end_date"], keep="last")
     rows = rows.loc[
         rows["record_date"].astype("string").gt(after_date)
@@ -456,7 +462,10 @@ def _target_weights(signal: dict[str, object]) -> tuple[dict[str, Decimal], dict
     for order in orders:
         if not isinstance(order, dict):
             raise PaperEngineError("signal order must be an object")
-        code = tushare_code(str(order["instrument"]))
+        instrument = str(order["instrument"])
+        if instrument.upper().startswith("BJ"):
+            raise PaperEngineError("BSE instrument is forbidden in paper signal")
+        code = tushare_code(instrument)
         if code.endswith(".BJ") or code in weights:
             raise PaperEngineError("paper signal contains forbidden or duplicate instrument")
         weights[code] = _decimal(order["target_weight"])

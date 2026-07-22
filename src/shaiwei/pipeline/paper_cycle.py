@@ -13,6 +13,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterator
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
@@ -84,6 +85,59 @@ def _request(api_name: str, params: dict[str, object]) -> tuple[pd.DataFrame, di
         load_latest_request(f"tushare.{api_name}", public),
         latest_request_evidence(f"tushare.{api_name}", public),
     )
+
+
+def _compact_day(value: object) -> str:
+    digits = "".join(character for character in str(value).strip() if character.isdigit())
+    return digits[:8]
+
+
+def _validate_temporal_contract(
+    *,
+    signal: dict[str, object],
+    signal_date: str,
+    execution_date: str,
+    trade_cal: pd.DataFrame,
+    today: str | None = None,
+) -> None:
+    if _compact_day(signal.get("signal_date", "")) != signal_date:
+        raise PaperCycleError("signal manifest date does not match reconciliation")
+    local_today = today or datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d")
+    if execution_date > local_today:
+        raise PaperCycleError("paper execution date is in the future")
+    if not {"cal_date", "is_open"}.issubset(trade_cal.columns):
+        raise PaperCycleError("trade calendar is incomplete")
+    open_mask = trade_cal["is_open"].astype(str).isin({"1", "1.0"})
+    open_days = sorted({_compact_day(value) for value in trade_cal.loc[open_mask, "cal_date"]})
+    if signal_date not in open_days:
+        raise PaperCycleError("paper signal date is not an open trading day")
+    following = [day for day in open_days if day > signal_date]
+    if not following or following[0] != execution_date:
+        raise PaperCycleError("paper execution is not the next open trading day")
+
+
+def _validate_market_dates(
+    *,
+    daily: pd.DataFrame,
+    signal_daily: pd.DataFrame,
+    suspend: pd.DataFrame,
+    index_daily: pd.DataFrame,
+    signal_date: str,
+    execution_date: str,
+) -> None:
+    for label, frame, expected, allow_empty in (
+        ("execution daily", daily, execution_date, False),
+        ("signal daily", signal_daily, signal_date, False),
+        ("execution suspension", suspend, execution_date, True),
+        ("benchmark daily", index_daily, execution_date, False),
+    ):
+        if frame.empty and allow_empty:
+            continue
+        if frame.empty or "trade_date" not in frame.columns:
+            raise PaperCycleError(f"{label} evidence is empty or missing trade_date")
+        observed = {_compact_day(value) for value in frame["trade_date"].dropna()}
+        if observed != {expected}:
+            raise PaperCycleError(f"{label} evidence does not match requested date")
 
 
 def _latest_passes(path: Path, fields: tuple[str, ...]) -> dict[tuple[str, ...], dict[str, str]]:
@@ -359,12 +413,26 @@ def run_once(settings: Settings | None = None) -> PaperCycleResult:
                 signal = json.loads(signal_path.read_text(encoding="utf-8"))
                 signal_date = reconciliation["signal_trade_date"]
                 execution_date = reconciliation["execution_trade_date"]
+                _validate_temporal_contract(
+                    signal=signal,
+                    signal_date=signal_date,
+                    execution_date=execution_date,
+                    trade_cal=trade_cal,
+                )
                 daily, daily_evidence = _request("daily", {"trade_date": execution_date})
                 signal_daily, signal_evidence = _request("daily", {"trade_date": signal_date})
                 suspend, suspend_evidence = _request("suspend_d", {"trade_date": execution_date})
                 index_daily, index_evidence = _request(
                     "index_daily",
                     {"ts_code": policy.benchmark, "trade_date": execution_date},
+                )
+                _validate_market_dates(
+                    daily=daily,
+                    signal_daily=signal_daily,
+                    suspend=suspend,
+                    index_daily=index_daily,
+                    signal_date=signal_date,
+                    execution_date=execution_date,
                 )
                 if len(index_daily) != 1:
                     raise PaperCycleError("paper benchmark request must contain exactly one row")

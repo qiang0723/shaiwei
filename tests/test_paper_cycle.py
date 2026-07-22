@@ -5,6 +5,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 from shaiwei import ledger
 from shaiwei.config import PROJECT_ROOT, load
@@ -217,6 +218,24 @@ def test_paper_cycle_backfills_once_and_exposes_verified_read_only_queries(monke
         lambda **kwargs: ledger.append_paper_run(path=runs, **kwargs),
     )
 
+    real_journal = paper_cycle._journal
+    journal_attempts = 0
+
+    def interrupt_after_first_event(document, artifact, reconciliation_hash):
+        nonlocal journal_attempts
+        journal_attempts += 1
+        if journal_attempts == 1:
+            paper_cycle.append_paper_event(**paper_cycle._event_rows(document)[0])
+            raise OSError("simulated interruption after first paper event")
+        return real_journal(document, artifact, reconciliation_hash)
+
+    monkeypatch.setattr(paper_cycle, "_journal", interrupt_after_first_event)
+    with pytest.raises(OSError, match="simulated interruption"):
+        paper_cycle.run_once(settings)
+    failed_rows = list(csv.DictReader(runs.open(newline="", encoding="utf-8")))
+    assert [row["status"] for row in failed_rows] == ["FAIL"]
+    assert len(list(csv.DictReader(events.open(newline="", encoding="utf-8")))) == 1
+
     first = paper_cycle.run_once(settings)
     before = (accounts.read_bytes(), events.read_bytes(), runs.read_bytes())
     second = paper_cycle.run_once(settings)
@@ -235,6 +254,36 @@ def test_paper_cycle_backfills_once_and_exposes_verified_read_only_queries(monke
     assert len(orders["fills"]) == 1
     assert nav["forward_status"] == "NOT_READY"
     assert nav["forward_observation_count"] == 0
+
+
+def test_temporal_contract_rejects_future_and_non_next_session():
+    signal = {"signal_date": "2026-07-16"}
+    calendar = pd.DataFrame(
+        {"cal_date": ["20260716", "20260717", "20260720"], "is_open": [1, 1, 1]}
+    )
+    paper_cycle._validate_temporal_contract(
+        signal=signal,
+        signal_date="20260716",
+        execution_date="20260717",
+        trade_cal=calendar,
+        today="20260722",
+    )
+    with pytest.raises(paper_cycle.PaperCycleError, match="next open"):
+        paper_cycle._validate_temporal_contract(
+            signal=signal,
+            signal_date="20260716",
+            execution_date="20260720",
+            trade_cal=calendar,
+            today="20260722",
+        )
+    with pytest.raises(paper_cycle.PaperCycleError, match="future"):
+        paper_cycle._validate_temporal_contract(
+            signal=signal,
+            signal_date="20260716",
+            execution_date="20260717",
+            trade_cal=calendar,
+            today="20260716",
+        )
 
 
 def test_paper_event_append_is_idempotent_and_rejects_key_collision(tmp_path: Path):
