@@ -28,6 +28,15 @@ def run_shadow_cycle(settings: Settings) -> None:
     )
 
 
+def run_paper_cycle(settings: Settings) -> None:
+    if not settings.paper_portfolio.enabled:
+        return
+    subprocess.run(
+        [sys.executable, "-m", "shaiwei.pipeline.paper_cycle"],
+        check=True,
+    )
+
+
 def write_health(status: str, *, detail: str = "", path: Path = HEALTH_PATH) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -69,6 +78,8 @@ def run_scheduler(*, once: bool = False, settings: Settings | None = None) -> in
             result = run_once(settings=settings)
             write_health("shadow", detail=result.eligible_target)
             run_shadow_cycle(settings)
+            write_health("paper", detail=result.eligible_target)
+            run_paper_cycle(settings)
             write_health(result.status.lower(), detail=result.eligible_target)
         except AlreadyRunning:
             write_health("waiting", detail="daily lock is held")

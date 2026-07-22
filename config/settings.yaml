@@ -50,6 +50,23 @@ shadow_pipeline:
   signal_deadline_minute: 0
   qlib_versions_to_keep: 2           # G0 缓存不动；前瞻缓存保留当前+上一版便于回滚
   trial_trade_days: 3                # 连续三交易日零人工修数后完成首轮运行验收
+paper_portfolio:
+  enabled: true
+  account_id: "model_baseline"
+  initial_cash: 500000.0             # 2026-07-22 用户冻结，人民币 50 万元
+  currency: "RMB"
+  benchmark: "000906.SH"
+  execution_policy_version: "paper-v1"
+  forward_start_date: "2026-07-23"   # 7/17-7/22 只作 BACKFILL；此日后才计真实前瞻
+  commission_rate: 0.0003            # 模拟券商佣金假设 3bp，交易规费视为已包含
+  minimum_commission: 5.0
+  stamp_tax_rate: 0.0005             # 2023-08-28 起卖方单边 0.5‰
+  transfer_fee_rate: 0.00001         # 沪深 A 股双边 0.01‰
+  main_board_lot_size: 100
+  star_minimum_lot: 200              # 科创板最低 200 股，超过部分按 1 股递增
+  st_main_ten_percent_effective: "2026-07-06"
+  stale_price_trade_days: 20         # 停牌沿用最后官方收盘，超过 20 交易日显式 STALE
+  accounting_tolerance: 0.01         # 人民币分级恒等式容差
 g1_admission:
   # 2026-07-16、任何阶段 1 因子准入运行前冻结。详见 docs/G1_SPEC.md。
   spec_version: "g1-v1"

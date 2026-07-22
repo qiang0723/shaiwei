@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from shaiwei.config import load
-from shaiwei.pipeline.scheduler import healthcheck, run_shadow_cycle, write_health
+from shaiwei.pipeline.scheduler import healthcheck, run_paper_cycle, run_shadow_cycle, write_health
 
 
 def test_scheduler_health_is_fresh_and_rejects_degraded(tmp_path: Path):
@@ -43,4 +43,15 @@ def test_scheduler_runs_shadow_as_isolated_subprocess(monkeypatch):
     )
     run_shadow_cycle(load())
     assert calls[0][0][-2:] == ["-m", "shaiwei.pipeline.shadow_cycle"]
+    assert calls[0][1] is True
+
+
+def test_scheduler_runs_paper_as_isolated_subprocess(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        "shaiwei.pipeline.scheduler.subprocess.run",
+        lambda argv, check: calls.append((argv, check)),
+    )
+    run_paper_cycle(load())
+    assert calls[0][0][-2:] == ["-m", "shaiwei.pipeline.paper_cycle"]
     assert calls[0][1] is True

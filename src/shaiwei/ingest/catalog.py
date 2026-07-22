@@ -113,3 +113,40 @@ def load_latest_request(
     if verify and sha256_file(path) != entry["content_sha256"]:
         raise CatalogError(f"content hash mismatch: {path}")
     return pd.read_parquet(path)
+
+
+def latest_request_evidence(
+    source_api: str,
+    params: dict[str, object],
+    *,
+    ledger_path: Path = INGEST,
+) -> dict[str, str | int]:
+    """Return and verify the immutable ledger identity for one exact request."""
+    entries = pd.read_csv(ledger_path, dtype=str, keep_default_na=False)
+    entries = entries.loc[entries["source_api"].eq(source_api)].copy()
+    wanted = canonical_params_key(params)
+    entries = entries.loc[
+        entries["params_json"].map(
+            lambda value: canonical_params_key(json.loads(value))
+        ).eq(wanted)
+    ]
+    if entries.empty:
+        raise CatalogError(f"no committed evidence for {source_api} params={wanted}")
+    entries["_time"] = pd.to_datetime(entries["ingest_time"], utc=True, errors="raise")
+    entry = entries.sort_values("_time").iloc[-1]
+    path = resolve_artifact_path(entry["parquet_path"])
+    if not path.is_file():
+        raise CatalogError(f"committed batch file is missing: {path}")
+    metadata = pq.read_metadata(path)
+    if metadata.num_rows != int(entry["row_count"]):
+        raise CatalogError(f"row count mismatch: {path}")
+    if sha256_file(path) != entry["content_sha256"]:
+        raise CatalogError(f"content hash mismatch: {path}")
+    return {
+        "batch_id": str(entry["batch_id"]),
+        "source_api": source_api,
+        "params_json": str(entry["params_json"]),
+        "row_count": int(entry["row_count"]),
+        "content_sha256": str(entry["content_sha256"]),
+        "path": str(entry["parquet_path"]),
+    }

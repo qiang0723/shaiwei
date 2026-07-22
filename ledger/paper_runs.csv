@@ -1,0 +1,1 @@
+run_id,started_at,finished_at,account_id,signal_trade_date,execution_trade_date,status,signal_sha256,reconciliation_sha256,data_snapshot_sha256,code_snapshot_sha256,policy_sha256,artifact_path,artifact_sha256,event_count,order_count,fill_count,net_asset,normalized_nav,benchmark_nav,freshness_status,error_type,operator

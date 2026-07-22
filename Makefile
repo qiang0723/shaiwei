@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-g1-admit docker-stage1-preflight docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-g1-admit docker-stage1-preflight docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -41,6 +41,10 @@ shadow-cycle:     ## 前瞻影子：续跑次日开盘对账并为最新日增�
 	$(PYTHON) -m shaiwei.pipeline.shadow_cycle
 shadow-report:    ## 刷新前瞻影子运行审计报告
 	$(PYTHON) -c "from shaiwei.config import load; from shaiwei.shadow.report import write_forward_report; print(write_forward_report(load()))"
+paper-cycle:      ## 消费已对账信号，推进 model_baseline 模拟组合
+	$(PYTHON) -m shaiwei.pipeline.paper_cycle
+paper-query:      ## 只读打印最新模拟组合快照
+	$(PYTHON) -m shaiwei.paper.query snapshot
 alphagen-benchmark:## AlphaGen 单轮 CPU benchmark（必须先完成 qlib-build）
 	$(PYTHON) -m shaiwei.benchmark.alphagen_cpu
 stage1-gp-preflight: ## 2016-2018 极小预算 GP：40 候选、1 代，只生成并全量记账
@@ -81,6 +85,8 @@ docker-daily-once: ## 容器内立即对账并补采一次
 	docker compose run --rm shaiwei python -m shaiwei.pipeline.scheduler --once
 docker-shadow-cycle: ## 容器内单独续跑一次前瞻影子闭环
 	docker compose run --rm shaiwei python -m shaiwei.pipeline.shadow_cycle
+docker-paper-cycle: ## 容器内单独推进一次模拟组合闭环
+	docker compose run --rm shaiwei python -m shaiwei.pipeline.paper_cycle
 docker-g1-admit:  ## 容器内执行冻结 G1 裁决；不启动因子生成
 	@test -n "$(G1_EVIDENCE)" || (echo "G1_EVIDENCE is required"; exit 2)
 	docker compose run --rm shaiwei python -m shaiwei.research.g1 --evidence "$(G1_EVIDENCE)"

@@ -35,6 +35,19 @@ def test_frozen_config_loads():
     assert settings.shadow_pipeline.enabled
     assert settings.shadow_pipeline.qlib_versions_to_keep == 2
     assert settings.shadow_pipeline.trial_trade_days == 3
+    assert settings.paper_portfolio.enabled
+    assert settings.paper_portfolio.account_id == "model_baseline"
+    assert settings.paper_portfolio.initial_cash == 500_000
+    assert settings.paper_portfolio.currency == "RMB"
+    assert settings.paper_portfolio.execution_policy_version == "paper-v1"
+    assert settings.paper_portfolio.forward_start_date == date(2026, 7, 23)
+    assert settings.paper_portfolio.commission_rate == 0.0003
+    assert settings.paper_portfolio.minimum_commission == 5
+    assert settings.paper_portfolio.stamp_tax_rate == 0.0005
+    assert settings.paper_portfolio.transfer_fee_rate == 0.00001
+    assert settings.paper_portfolio.main_board_lot_size == 100
+    assert settings.paper_portfolio.star_minimum_lot == 200
+    assert settings.paper_portfolio.st_main_ten_percent_effective == date(2026, 7, 6)
     assert settings.g1_admission.spec_version == "g1-v1"
     assert settings.g1_admission.dsr_probability_threshold == 0.95
     assert settings.g1_admission.hac_t_threshold == 3.0

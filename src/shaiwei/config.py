@@ -97,6 +97,25 @@ class ShadowPipeline(BaseModel):
     trial_trade_days: int = Field(ge=1, le=20)
 
 
+class PaperPortfolio(BaseModel):
+    enabled: bool = True
+    account_id: Literal["model_baseline"]
+    initial_cash: float = Field(gt=0)
+    currency: Literal["RMB"]
+    benchmark: str
+    execution_policy_version: Literal["paper-v1"]
+    forward_start_date: date
+    commission_rate: float = Field(ge=0, le=0.003)
+    minimum_commission: float = Field(ge=0)
+    stamp_tax_rate: float = Field(ge=0, le=0.001)
+    transfer_fee_rate: float = Field(ge=0, le=0.001)
+    main_board_lot_size: int = Field(ge=1)
+    star_minimum_lot: int = Field(ge=1)
+    st_main_ten_percent_effective: date
+    stale_price_trade_days: int = Field(ge=1, le=120)
+    accounting_tolerance: float = Field(gt=0, le=1)
+
+
 class G1Admission(BaseModel):
     """Pre-registered Stage-1 factor admission thresholds."""
 
@@ -256,6 +275,7 @@ class Settings(BaseModel):
     ingest: Ingest
     daily: DailyPipeline
     shadow_pipeline: ShadowPipeline
+    paper_portfolio: PaperPortfolio
     g1_admission: G1Admission
     g8_evaluation: G8Evaluation
     crosscheck: Crosscheck

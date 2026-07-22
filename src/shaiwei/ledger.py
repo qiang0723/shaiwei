@@ -16,6 +16,9 @@ DAILY_RUNS = LEDGER_DIR / "daily_runs.csv"
 SHADOW_RUNS = LEDGER_DIR / "shadow_runs.csv"
 SHADOW_RECONCILIATIONS = LEDGER_DIR / "shadow_reconciliations.csv"
 FACTOR_ADMISSIONS = LEDGER_DIR / "factor_admissions.csv"
+PAPER_ACCOUNTS = LEDGER_DIR / "paper_accounts.csv"
+PAPER_EVENTS = LEDGER_DIR / "paper_events.csv"
+PAPER_RUNS = LEDGER_DIR / "paper_runs.csv"
 
 
 def portable_artifact_path(path: str | Path) -> str:
@@ -62,6 +65,30 @@ def _append(path: Path, row: dict) -> None:
         csv.DictWriter(f, fieldnames=header, lineterminator="\n").writerow(row)
         f.flush()
         os.fsync(f.fileno())
+
+
+def _append_idempotent(path: Path, row: dict, *, key: str) -> bool:
+    """Append once by a deterministic key; an existing row must be byte-equivalent."""
+    with path.open("r+", newline="", encoding="utf-8") as handle:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        reader = csv.DictReader(handle)
+        header = reader.fieldnames or []
+        missing = set(header) - set(row)
+        extra = set(row) - set(header)
+        if missing or extra:
+            raise ValueError(f"ledger row schema mismatch: missing={missing}, extra={extra}")
+        normalized = {field: str(row[field]) for field in header}
+        for existing in reader:
+            if existing[key] != normalized[key]:
+                continue
+            if existing != normalized:
+                raise ValueError(f"ledger key collision with different content: {path.name}:{normalized[key]}")
+            return False
+        handle.seek(0, os.SEEK_END)
+        csv.DictWriter(handle, fieldnames=header, lineterminator="\n").writerow(normalized)
+        handle.flush()
+        os.fsync(handle.fileno())
+        return True
 
 
 def _reject_sensitive_params(value: object, path: str = "params") -> None:
@@ -203,3 +230,25 @@ def append_factor_admission(*, path: Path | None = None, **kw: object) -> str:
         kw["admitted"] = str(kw["admitted"]).lower()
     _append(path or FACTOR_ADMISSIONS, kw)
     return str(kw["decision_id"])
+
+
+def append_paper_account(*, path: Path | None = None, **kw: object) -> bool:
+    kw.setdefault("created_at", datetime.now(timezone.utc).isoformat())
+    kw.setdefault("operator", "docker-scheduler")
+    return _append_idempotent(path or PAPER_ACCOUNTS, kw, key="account_id")
+
+
+def append_paper_event(*, path: Path | None = None, **kw: object) -> bool:
+    kw.setdefault("recorded_at", datetime.now(timezone.utc).isoformat())
+    kw.setdefault("operator", "docker-scheduler")
+    if isinstance(kw.get("payload_json"), (dict, list)):
+        kw["payload_json"] = json.dumps(
+            kw["payload_json"], ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        )
+    return _append_idempotent(path or PAPER_EVENTS, kw, key="event_id")
+
+
+def append_paper_run(*, path: Path | None = None, **kw: object) -> bool:
+    kw.setdefault("finished_at", datetime.now(timezone.utc).isoformat())
+    kw.setdefault("operator", "docker-scheduler")
+    return _append_idempotent(path or PAPER_RUNS, kw, key="run_id")

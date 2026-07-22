@@ -1,0 +1,1 @@
+event_id,run_id,recorded_at,account_id,effective_date,sequence,event_type,business_key,signal_sha256,ts_code,side,quantity,price,amount,fee,cash_after,position_after,payload_json,evidence_sha256,operator
