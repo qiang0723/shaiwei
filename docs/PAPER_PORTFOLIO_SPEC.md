@@ -87,7 +87,7 @@
 - `paper_nav_series(account_id, start, end)`：模拟仓、中证800、净超额、回撤、换手和现金拖累。
 - `verify_paper_replay(account_id)`：独立重放追加式账本并返回账户日、事件、订单、成交和账本哈希验收摘要；只用于系统审计，不向前端提供自由改参能力。
 
-接口只读且必须返回 `as_of`、`generated_at`、`execution_policy_version`、`source_refs`、`evidence_hashes` 和 `freshness_status`。来源不完整时返回显式状态，不拼接或前填。
+接口只读且必须返回 `as_of`、`generated_at`、`execution_policy_version`、`source_refs`、`evidence_hashes` 和 `freshness_status`。执行策略版本必须来自运行产物；兼容早期产物时仅允许在产物策略哈希与当前冻结配置一致后解析，禁止直接把当前配置版本冒充历史证据。来源不完整时返回显式状态，不拼接或前填。
 
 ## 8. 已冻结的执行数值
 

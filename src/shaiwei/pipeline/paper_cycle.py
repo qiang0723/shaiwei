@@ -489,6 +489,7 @@ def run_once(settings: Settings | None = None) -> PaperCycleResult:
                         "execution_trade_date": execution_date,
                         "signal_sha256": reconciliation["signal_sha256"],
                         "reconciliation_sha256": reconciliation["artifact_sha256"],
+                        "execution_policy_version": policy.execution_policy_version,
                         "policy_sha256": policy_hash,
                         "code_snapshot_sha256": code_hash,
                         "data_snapshot_sha256": data_hash,

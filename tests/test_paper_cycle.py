@@ -256,6 +256,8 @@ def test_paper_cycle_backfills_once_and_exposes_verified_read_only_queries(monke
     assert first.completed_trade_dates == ("20260717",)
     assert second.status == "NOOP"
     assert before == after
+    artifact_document = json.loads(Path(first.latest_artifact_path).read_text(encoding="utf-8"))
+    assert artifact_document["execution_policy_version"] == settings.paper_portfolio.execution_policy_version
 
     snapshot = paper_portfolio_snapshot(runs_path=runs)
     orders = paper_orders_fills(signal_hash, runs_path=runs)

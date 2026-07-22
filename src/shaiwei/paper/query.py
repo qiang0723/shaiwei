@@ -18,6 +18,7 @@ from shaiwei.ledger import (
     resolve_artifact_path,
     sha256_file,
 )
+from shaiwei.paper.engine import policy_sha256
 from shaiwei.pipeline.paper_cycle import _verify_paper_document
 
 
@@ -60,12 +61,21 @@ def _document(row: dict[str, str]) -> tuple[Path, dict[str, object]]:
     return path, _verify_paper_document(path)
 
 
+def _execution_policy_version(document: dict[str, object]) -> str:
+    if version := str(document.get("execution_policy_version", "")).strip():
+        return version
+    policy = load().paper_portfolio
+    if document.get("policy_sha256") != policy_sha256(policy):
+        raise PaperQueryError("legacy paper artifact policy cannot be resolved from current config")
+    return policy.execution_policy_version
+
+
 def _common(document: dict[str, object], artifact: Path) -> dict[str, object]:
     return {
         "as_of": document["execution_trade_date"],
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "account_id": document["account_id"],
-        "execution_policy_version": load().paper_portfolio.execution_policy_version,
+        "execution_policy_version": _execution_policy_version(document),
         "source_refs": document["source_refs"],
         "evidence_hashes": {
             "artifact_sha256": sha256_file(artifact),
@@ -147,8 +157,10 @@ def paper_nav_series(
         raise PaperQueryError("paper portfolio has no NAV observations in range")
     series: list[dict[str, object]] = []
     artifacts: list[str] = []
+    policy_versions: set[str] = set()
     for row in rows:
         artifact, document = _document(row)
+        policy_versions.add(_execution_policy_version(document))
         nav = dict(dict(document["result"])["nav"])
         series.append(
             {
@@ -165,12 +177,14 @@ def paper_nav_series(
             }
         )
         artifacts.append(portable_path(artifact))
+    if len(policy_versions) != 1:
+        raise PaperQueryError("paper NAV range spans multiple execution policy versions")
     forward_count = sum(row["mode"] == "FORWARD" for row in series)
     return {
         "as_of": series[-1]["trade_date"],
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "account_id": account_id,
-        "execution_policy_version": load().paper_portfolio.execution_policy_version,
+        "execution_policy_version": next(iter(policy_versions)),
         "freshness_status": (
             "STALE" if any(row["freshness_status"] == "STALE" for row in series) else "PASS"
         ),
@@ -235,6 +249,11 @@ def verify_paper_replay(
             or document["policy_sha256"] != account["policy_sha256"]
         ):
             raise PaperQueryError("paper replay account or policy identity mismatch")
+        document_version = str(
+            document.get("execution_policy_version", account["execution_policy_version"])
+        )
+        if document_version != account["execution_policy_version"]:
+            raise PaperQueryError("paper replay execution policy version mismatch")
         expected_prior = hashlib.sha256(_canonical(previous_state)).hexdigest()
         if document["prior_state_sha256"] != expected_prior:
             raise PaperQueryError("paper replay prior-state chain mismatch")
