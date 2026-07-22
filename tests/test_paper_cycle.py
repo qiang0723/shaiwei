@@ -9,7 +9,13 @@ import pytest
 
 from shaiwei import ledger
 from shaiwei.config import PROJECT_ROOT, load
-from shaiwei.paper.query import paper_nav_series, paper_orders_fills, paper_portfolio_snapshot
+from shaiwei.paper.query import (
+    PaperQueryError,
+    paper_nav_series,
+    paper_orders_fills,
+    paper_portfolio_snapshot,
+    verify_paper_replay,
+)
 from shaiwei.pipeline import paper_cycle
 from shaiwei.shadow.manifest import write_signal_manifest
 
@@ -235,6 +241,12 @@ def test_paper_cycle_backfills_once_and_exposes_verified_read_only_queries(monke
     failed_rows = list(csv.DictReader(runs.open(newline="", encoding="utf-8")))
     assert [row["status"] for row in failed_rows] == ["FAIL"]
     assert len(list(csv.DictReader(events.open(newline="", encoding="utf-8")))) == 1
+    with pytest.raises(PaperQueryError, match="no completed runs"):
+        verify_paper_replay(
+            accounts_path=accounts,
+            events_path=events,
+            runs_path=runs,
+        )
 
     first = paper_cycle.run_once(settings)
     before = (accounts.read_bytes(), events.read_bytes(), runs.read_bytes())
@@ -248,12 +260,34 @@ def test_paper_cycle_backfills_once_and_exposes_verified_read_only_queries(monke
     snapshot = paper_portfolio_snapshot(runs_path=runs)
     orders = paper_orders_fills(signal_hash, runs_path=runs)
     nav = paper_nav_series(runs_path=runs)
+    replay = verify_paper_replay(
+        accounts_path=accounts,
+        events_path=events,
+        runs_path=runs,
+    )
     assert snapshot["mode"] == "BACKFILL"
     assert snapshot["net_asset"] == "10174.91"
     assert len(orders["orders"]) == 1
     assert len(orders["fills"]) == 1
     assert nav["forward_status"] == "NOT_READY"
     assert nav["forward_observation_count"] == 0
+    assert replay["status"] == "PASS"
+    assert replay["run_count"] == 1
+    assert replay["event_count"] == 5
+
+    tampered = tmp_path / "tampered_events.csv"
+    tampered_rows = list(csv.DictReader(events.open(newline="", encoding="utf-8")))
+    tampered_rows[0]["evidence_sha256"] = "0" * 64
+    with tampered.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(tampered_rows[0]))
+        writer.writeheader()
+        writer.writerows(tampered_rows)
+    with pytest.raises(PaperQueryError, match="evidence hash mismatch"):
+        verify_paper_replay(
+            accounts_path=accounts,
+            events_path=tampered,
+            runs_path=runs,
+        )
 
 
 def test_temporal_contract_rejects_future_and_non_next_session():

@@ -65,7 +65,8 @@
 - 飞书 `paper_cycle_started` 与 `paper_cycle_completed` 均在第 1 次尝试投递 PASS；第二次 `NOOP` 不重复通知。
 - 完成审计后补入五个 fail-closed 时间闸门：执行日不得晚于 UTC+8 当日、必须为信号后首个开市日、manifest 日期必须与对账一致、行情/停牌/基准批次日期必须与请求一致、公司行为实施公告不得晚于执行日；北交所代码在订单解析时显式拒绝。
 - 异常恢复 fixture 在不可变产物已写、首条事件已追加时注入中断：首次运行保留 `FAIL`，下一次运行复用同一产物、幂等补齐事件并写 `PASS`，第三次运行 `NOOP`。
-- 当前受控代码快照为 `3ba8b1d8e84c926c89ecce20fd55e24f768d656d9ee0feb3e634b0b225d90fb8`；Docker 专项测试 16 项通过；全量测试 183 项、Ruff、compileall、pip check、追加式账本检查、脱敏和 diff 检查通过。
+- 独立只读 `paper-verify` 从三份追加式账本重放四个账户日、150 个事件、30 个订单和 22 个成交；事件身份/序列/载荷哈希、前态链、公司行为、持仓、现金、净值、会计恒等和四份不可变产物逐项一致，Docker 返回 PASS。scheduler 在每轮模拟仓后自动执行 verifier，任何损坏都会使周期进入 `degraded`。
+- 当前受控代码快照为 `f1e8b9808d86147795158f8a06869271105c348bd43ab3ca14042774fb21ba99`；Docker 专项测试 16 项通过；全量测试 183 项、Ruff、compileall、pip check、追加式账本检查、脱敏和 diff 检查通过。
 - scheduler 容器已加载新流程并处于 `healthy`；影子任务与模拟仓重复轮询均返回 `NOOP`。
 
 ## 下一验收点

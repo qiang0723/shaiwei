@@ -315,7 +315,12 @@ def test_dividend_entitlement_is_captured_on_record_date_and_paid_later():
         run_id="run3",
         market_batch_id="batch3",
     )
-    assert any(event["event"] == "ENTITLEMENT" for event in first.corporate_actions)
+    entitlement_event = next(
+        event for event in first.corporate_actions if event["event"] == "ENTITLEMENT"
+    )
+    assert entitlement_event["record_date"] == first_day
+    assert entitlement_event["pay_date"] == second_day
+    assert entitlement_event["cash_per_share"] == "0.08"
     entitlement = next(iter(first.state.entitlements.values()))
     assert entitlement.cash_per_share == "0.08"
     cash_before = Decimal(first.state.cash)

@@ -113,7 +113,7 @@ Web 首版不追求“展示很多数据”，而是让使用者依次回答三�
 
 模拟仓三组接口必须携带 `account_id`、`execution_policy_version` 和相关信号/行情/账本哈希。`paper_portfolio_snapshot` 的当前持仓只能由已登记成交与公司行为重放得出；`paper_nav_series` 不得用目标权重或回测净值填补正式模拟仓缺口。
 
-2026-07-22 实现状态：`src/shaiwei/paper/query.py` 已提供 `snapshot`、`orders`、`nav` 三个只读入口，对应上述 `paper_portfolio_snapshot`、`paper_orders_fills`、`paper_nav_series`。Docker 回放验证其账户、策略版本、来源引用、证据哈希、新鲜度和 `BACKFILL/FORWARD` 状态可稳定返回；其余六组页面查询仍为草案，前端不得绕过这些入口直接扫描账本或 Parquet。
+2026-07-22 实现状态：`src/shaiwei/paper/query.py` 已提供 `snapshot`、`orders`、`nav` 三个只读入口，对应上述 `paper_portfolio_snapshot`、`paper_orders_fills`、`paper_nav_series`；同模块 `verify` 会从追加式账本独立重放全部账户日，供系统运行页展示最近验证状态和账本哈希。Docker 回放验证其账户、策略版本、来源引用、证据哈希、新鲜度和 `BACKFILL/FORWARD` 状态可稳定返回；其余六组页面查询仍为草案，前端不得绕过这些入口直接扫描账本或 Parquet。
 
 ## 5. 总览低保真线框
 

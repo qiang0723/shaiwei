@@ -77,6 +77,7 @@
 - 每条结果绑定 `code_snapshot_sha256`、`data_snapshot_sha256`、`signal_sha256`、行情批次和执行策略哈希。
 - 同一账户、信号和执行日只能形成一个确定结果；重复运行验证产物和账本不变。
 - 每日必须机械验证“净资产 = 现金 + 持仓市值”以及前后状态连续性；差异非零即失败停止。
+- 每轮模拟仓完成后，独立只读 verifier 必须从账户、事件和运行账本重放全部账户日，核对事件序列与载荷哈希、前态链、订单/成交/公司行为/持仓/现金/NAV、账户恒等和不可变产物；不一致使 scheduler 进入 `degraded`。
 - 不完整行情、公司行为歧义、证据哈希不一致或账本断链时，不得补零或沿用旧净值。
 
 ## 7. 首批只读查询契约
@@ -84,6 +85,7 @@
 - `paper_portfolio_snapshot(account_id, as_of)`：实际持仓、现金、净资产、累计成本、状态与证据。
 - `paper_orders_fills(account_id, signal_sha256)`：订单、成交、未成交原因、价格、数量、费用和持仓变化。
 - `paper_nav_series(account_id, start, end)`：模拟仓、中证800、净超额、回撤、换手和现金拖累。
+- `verify_paper_replay(account_id)`：独立重放追加式账本并返回账户日、事件、订单、成交和账本哈希验收摘要；只用于系统审计，不向前端提供自由改参能力。
 
 接口只读且必须返回 `as_of`、`generated_at`、`execution_policy_version`、`source_refs`、`evidence_hashes` 和 `freshness_status`。来源不完整时返回显式状态，不拼接或前填。
 

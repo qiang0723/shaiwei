@@ -52,6 +52,9 @@ def test_scheduler_runs_paper_as_isolated_subprocess(monkeypatch):
         "shaiwei.pipeline.scheduler.subprocess.run",
         lambda argv, check: calls.append((argv, check)),
     )
+    monkeypatch.setattr("shaiwei.pipeline.scheduler.paper_replay_ready", lambda: True)
     run_paper_cycle(load())
     assert calls[0][0][-2:] == ["-m", "shaiwei.pipeline.paper_cycle"]
     assert calls[0][1] is True
+    assert calls[1][0][-3:] == ["-m", "shaiwei.paper.query", "verify"]
+    assert calls[1][1] is True

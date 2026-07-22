@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 import signal
@@ -13,6 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from shaiwei.config import PROJECT_ROOT, Settings, load
+from shaiwei.ledger import PAPER_RUNS
 from shaiwei.notify.feishu import FeishuNotifier
 from shaiwei.pipeline.daily import AlreadyRunning, run_once
 
@@ -35,6 +37,18 @@ def run_paper_cycle(settings: Settings) -> None:
         [sys.executable, "-m", "shaiwei.pipeline.paper_cycle"],
         check=True,
     )
+    if paper_replay_ready():
+        subprocess.run(
+            [sys.executable, "-m", "shaiwei.paper.query", "verify"],
+            check=True,
+        )
+
+
+def paper_replay_ready(path: Path = PAPER_RUNS) -> bool:
+    if not path.is_file():
+        return False
+    with path.open(newline="", encoding="utf-8") as handle:
+        return any(row["status"] == "PASS" for row in csv.DictReader(handle))
 
 
 def write_health(status: str, *, detail: str = "", path: Path = HEALTH_PATH) -> None:
