@@ -6,6 +6,10 @@
 
 本结论只证明系统能按冻结规则稳定记账，**不是前瞻收益结论**。查询接口必须继续返回 `forward_status=NOT_READY`、`forward_observation_count=0`；最早从 2026-07-23 的自然执行开始计 `FORWARD`。
 
+> 后续状态：2026-07-23 首个自然 `FORWARD` 已完整通过，见
+> `docs/P05_FORWARD_ACCEPTANCE_20260723.md`。本文件保留为四日初始化回放
+> 的不可变历史说明，不以新结果改写当时的 `NOT_READY` 结论。
+
 ## 冻结身份
 
 | 项目 | 冻结值 |
