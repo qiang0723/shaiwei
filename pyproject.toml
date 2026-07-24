@@ -12,6 +12,7 @@ dependencies = [
   "lightgbm>=4.3", "pyqlib>=0.9.5",
   "torch==2.13.0",
   "joblib", "psutil>=5", "pyyaml", "pydantic>=2", "python-dateutil", "python-dotenv",
+  "pypdf>=6.0",
 ]
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff"]

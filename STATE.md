@@ -5,7 +5,7 @@
 ## 当前阶段
 阶段 0（基线）已完成；阶段 1 已完成有界 GP 预演和 `p1-moneyflow-v1` 首个正式数据增强家族，二者均按冻结 `g1-v1` 结论 REJECT，正式因子库仍为 0 插入。锁竞争修复后当前代码版本连续三次完整“信号 → 下一交易日开盘对账”已于 2026-07-22 完成 3/3，核心任务验收 PASS、通知通道 WARN；同日完成飞书通知健壮性修复。P0.5 模拟组合的工程、Docker 接入、四日 BACKFILL 和 2026-07-23 首个自然 `FORWARD` 已全部 PASS，当前进入持续前瞻观察。
 
-结果路线现为：P0.5 持续积累真实前瞻观察；P1 首批六个简单资金流候选已全部 REJECT 且停止本家族追加变体；生产 scheduler 与开发工作树的发布快照隔离已于 2026-07-24 完整 PASS。P2-0 已在任何策略效果查看前冻结 `p2-star50-protocol-v1` 并完成 `000688.SH` 数据/PIT 门禁：原始接口采集可行，但首份权重按 T+1 仅能从 2020-08-03 生效，冻结起点缺 7 个交易日，且 Tushare 无历史版本/修订字段，机器结论 NO-GO，不进入 qlib、模型、回测或信号。Web 可继续视觉与信息架构旁路设计；真实 API、Docker profile 和生产代码施工仍须另立目标，不能因隔离门通过而自动开工。完整目标、输出、通过条件和禁止事项见 `docs/ROADMAP.md`。
+结果路线现为：P0.5 持续积累真实前瞻观察；P1 首批六个简单资金流候选已全部 REJECT 且停止本家族追加变体；生产 scheduler 与开发工作树的发布快照隔离已于 2026-07-24 完整 PASS。P2-0 的 `p2-star50-protocol-v1` 永久保留 NO-GO：Tushare 首份权重按 T+1 仅能从 2020-08-03 生效，冻结起点缺 7 个交易日且无历史版本/修订字段。主控随后在任何策略效果查看前另立 `p2-star50-protocol-v2`，以官方首批名单和全量调整公告重建 `000688.SH` 成员谱系；1,456 个交易日每日均为 50 只，和 72/72 个 Tushare 月度集合完全一致，官方谱系数据门 GO。该 GO 只表示 PIT 成员集合可施工，`engineering_complete=false`、`strategy_results_inspected=false`、`production_authorization=none`，不进入 qlib、模型、回测或信号。Web 可继续视觉与信息架构旁路设计；真实 API、Docker profile 和生产代码施工仍须另立目标，不能因隔离门通过而自动开工。完整目标、输出、通过条件和禁止事项见 `docs/ROADMAP.md`。
 
 2026-07-19 用户明确后台仍为主线，同时授权 Web 方案旁路持续优化。P0.5 三组模拟仓只读查询已于 2026-07-22 稳定，Web 技术栈与页面原型评审闸门已打开；Web 代码仍须在不影响首个 `FORWARD` 验收和后台主线的前提下另立目标。初版方案见 `docs/WEB_DESIGN.md`。
 
@@ -75,6 +75,7 @@
 - [x] 2026-07-23 生产快照失配故障闭环：两次日周期在 `paper_forward_acceptance` 因 FORWARD 产物与当前受控代码快照不一致而失败，scheduler 后续恢复 healthy/PASS；现有不可变证据不能还原具体漂移文件，但能确认整仓开发目录挂载使无发布动作的受控文件变化可能进入生产运行时。RCA 已入 `docs/INCIDENT_20260723_CODE_SNAPSHOT_MISMATCH.md`；P2 与 Web 后端施工前必须先通过不可变 release 快照、显式只读挂载、发布前哈希门和回滚证据组成的生产/开发隔离门禁。
 - [x] 生产 scheduler / 开发工作树发布隔离门禁（2026-07-24）：生产改为内容寻址不可变镜像、只读根和仅 `data/ledger/logs` 三处持久化挂载，无整仓、`.git` 或 Docker socket；开发探针证明既有镜像身份不受宿主改动影响，跨快照启动在无新交易日时 fail closed。首次真实运行暴露镜像无 `.git` 而哨兵仍调用 Git 的兼容故障，失败账本与飞书告警保留；最小修复后 previous D/current E 均同时绑定代码快照与嵌入 Git 提交并完成 E→D→E 回滚。`20260724` 最终 daily、对账、S1-S10、信号、模拟仓第 2 个 FORWARD、独立重放、acceptance、通知恢复和全链 NOOP 幂等均 PASS；scheduler healthy。完整验收与 RCA 见 `docs/SCHEDULER_RELEASE_ACCEPTANCE_20260724.md`、`docs/INCIDENT_20260724_RELEASE_GIT_IDENTITY.md`。
 - [x] P2-0 科创50历史数据/PIT 可施工性门禁（2026-07-24，NO-GO）：结果前提交并推送 `e524f04`，冻结 `000688.SH`、独立 dataset/config/model/benchmark/signal/ledger、Top10/n_drop2、10 日调仓、成本/流动性/集中度/暴露和三个年度 OOS 窗。Docker 串行采集 8 个年度日线分片 + 80 个月度权重分片，88 项各双查一致后新增 88 个不可变批次、5,190 行，复跑 0 追加；日线 2020-07-23 后 1,456/1,456 覆盖，权重 72 个已完成月快照均 50 只、权重和 99.996%~100.005%，重复、未知代码、`.BJ` 和即时修订均 0。源端首份权重 2020-07-31，按 T+1 最早 2020-08-03 生效，冻结起点缺 7 个交易日；接口又无发布时间/版本/修订原因，PIT 数据结论 NO-GO。未建 qlib、未看策略效果、未改生产 scheduler。证据见 `docs/P2_STAR50_DATA_FEASIBILITY_ACCEPTANCE_20260724.md`。
+- [x] P2-0 科创50官方成员谱系数据门（2026-07-24，v2 GO）：永久保留 v1 NO-GO 后，在联网取证前提交并推送 `3013710` 冻结 `p2-star50-protocol-v2`；Tushare `index_weight` 只作集合对账，不使用权重数值或月末日期代替官方生效日。串行取得并哈希固化 10 页上交所公告归档、25 个候选页面和 22 个附件；官方首批 XLSX 完整给出 50 只，发布证据允许最早可用日 2020-07-23。24 期调整公告含 23 期共 82 对替换、1 期明确无变动；按公告日/生效时点重建 2020-07-23~2026-07-24 的 1,456 个交易日、72,800 行，每日严格 50 只，`.BJ=0`，与 72/72 个 Tushare 月度成员集合精确一致。机器分层为 `official_lineage_complete=true`、`tushare_crosscheck_pass=true`、`pit_constructible=true`、`engineering_complete=false`、`strategy_results_inspected=false`、`production_authorization=none`。未建 qlib、未看策略效果、未改生产 scheduler；证据见 `docs/P2_STAR50_OFFICIAL_LINEAGE_ACCEPTANCE_20260724.md`。
 
 ## 后台任务
 运行态以 `logs/pipeline/stage0_20260715.jsonl` 和 `ledger/ingest_batches.csv` 为准；自动流按 as-of+代码+数据快照及逐批文件哈希安全续跑。
@@ -96,8 +97,8 @@
 - LLM 持续研究线的公开参考已扩展为 Alpha-GPT、AlphaAgent、RD-Agent-Quant、Chain-of-Alpha、CogAlpha、QuantaAlpha、FactorEngine 与 AlphaQT-Bench。当前判断为“研究范式与开源组件已较完整、公开长期实盘证据仍不足”；只借鉴可验证组件，成熟度和作者收益不得替代筛微 G1 与真实影子结果。详见 `docs/LLM_RESEARCH.md`。
 
 ## 待答点
-- P2-0 的 `p2-star50-protocol-v1` 已 NO-GO 并停止：原始接口采集 PASS 不等于 PIT 数据可行。若继续，须主控另立 v2，把最早历史起点改为不早于 2020-08-03，并取得可审计的官方历史成分公告/版本源；或者显式裁决接受 Tushare 只有 `trade_date`、无历史版本字段的剩余修订风险。任何选择都必须在查看策略效果前重新预注册，不能静默改写 v1。
-- 后台结果路线已完成 P0 → P0-R → P0.5 → P1 → 生产/开发发布隔离 → P2-0。P1 六候选均 REJECT，本家族停止追加变体；P2 v1 数据/PIT 门禁 NO-GO，未经新的结果前协议与主控裁决不得进入策略施工。Web 技术栈和视觉原型可旁路评审，真实 API/Docker 代码仍须另立目标。
+- P2-0 已完成两条不互相覆盖的裁决：`p2-star50-protocol-v1` 永久 NO-GO，证明 Tushare 无历史版本字段且不能单独充当 PIT 真身；`p2-star50-protocol-v2` 官方成员谱系数据门 GO，允许起点为 2020-07-23。v2 只证明数据可行，不代表工程完成或策略有效；若主控决定继续，须另立 P2-1 并在任何效果查看前复核独立工程边界，不能沿用数据门 GO 自动开工。
+- 后台结果路线已完成 P0 → P0-R → P0.5 → P1 → 生产/开发发布隔离 → P2-0。P1 六候选均 REJECT，本家族停止追加变体；P2 v2 当前停在官方谱系数据门 GO，qlib、模型、回测、IC、收益、排名和信号均未开始。Web 技术栈和视觉原型可旁路评审，真实 API/Docker 代码仍须另立目标。
 - P0.5 初始资金人民币 50 万元的自然 `FORWARD` 已累计 2 个账户日，后续由 scheduler 持续追加。50 万元下首个真实信号有 8 个目标因主板 100 股/科创板 200 股门槛无法买入；这是实际账户约束结果，不允许用碎股或目标权重补齐。两日前瞻仍只证明工程运行，不把四日 BACKFILL 或短样本净值用于策略裁决。
 - P1 已于 2026-07-24 完整结束：长期主源仍为 `tushare.moneyflow`，`moneyflow-pit-v1` 固定下一交易日可用；46 个稳定失败日继续按 `moneyflow-quality-v2` 整日隔离。六候选同预算比较均未在 Alpha158 之外形成可准入增量，全部 REJECT，正式库 0 插入；不增加本家族变体、不看结果调门槛、不接生产。数据层可作为未来独立预注册家族的只读输入，但须把既有 N=18 纳入多重检验背景。详见 `docs/P1_MONEYFLOW_EXPERIMENT_ACCEPTANCE_20260724.md`。
 - 官方规则复核发现沪深主板风险警示股票自 2026-07-06 起均由 5% 调整为 10%。当前中证800正式信号不含 ST，故不推翻 P0 三次结果；P0.5 以按板块和日期分段的 `paper-v1` 执行规则处理，不回改冻结的历史模型与 G0 门禁。后续若生产信号范围允许 ST，须另立数据/门禁修订评审，不能沿用旧 `limit_rules.st=0.045` 冒充现行实盘规则。
