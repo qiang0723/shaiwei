@@ -64,3 +64,21 @@ def test_release_manifest_rejects_added_controlled_file(tmp_path: Path):
 
     with pytest.raises(RuntimeError, match="file set differs"):
         provenance.verify_release_manifest(manifest, root=tmp_path)
+
+
+def test_release_git_head_uses_valid_embedded_revision_without_git(monkeypatch):
+    monkeypatch.setenv(provenance.RELEASE_GIT_HEAD_ENV, "A" * 40)
+    monkeypatch.setattr(
+        provenance.subprocess,
+        "run",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("Git must not run")),
+    )
+
+    assert provenance.git_head() == "a" * 40
+
+
+def test_release_git_head_rejects_invalid_embedded_revision(monkeypatch):
+    monkeypatch.setenv(provenance.RELEASE_GIT_HEAD_ENV, "not-a-commit")
+
+    with pytest.raises(RuntimeError, match="revision is invalid"):
+        provenance.git_head()

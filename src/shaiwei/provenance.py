@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import uuid
 
@@ -20,6 +21,7 @@ CONTROLLED_FILES = {
     "requirements.lock",
 }
 RELEASE_MANIFEST_ENV = "SHAIWEI_RELEASE_MANIFEST"
+RELEASE_GIT_HEAD_ENV = "SHAIWEI_RELEASE_GIT_HEAD"
 RELEASE_MANIFEST_SCHEMA = "shaiwei-release-manifest-v1"
 _IGNORED_TREE_PARTS = {"__pycache__", ".pytest_cache", ".ruff_cache"}
 
@@ -132,9 +134,17 @@ def verify_release_manifest(path: Path, *, root: Path | None = None) -> str:
 
 
 def git_head() -> str:
-    return subprocess.run(
+    release_head = os.getenv(RELEASE_GIT_HEAD_ENV, "").strip().lower()
+    if release_head:
+        if re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", release_head) is None:
+            raise RuntimeError("embedded release Git revision is invalid")
+        return release_head
+    head = subprocess.run(
         ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
-    ).stdout.strip()
+    ).stdout.strip().lower()
+    if re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", head) is None:
+        raise RuntimeError("Git returned an invalid revision")
+    return head
 
 
 def code_snapshot_sha256() -> str:

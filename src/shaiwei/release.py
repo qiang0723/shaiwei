@@ -26,6 +26,8 @@ CURRENT_ALIAS = "shaiwei:scheduler-current"
 PREVIOUS_ALIAS = "shaiwei:scheduler-previous"
 CONTENT_TAG_PREFIX = "shaiwei:scheduler-"
 SNAPSHOT_LABEL = "io.shaiwei.code_snapshot_sha256"
+REVISION_LABEL = "org.opencontainers.image.revision"
+RELEASE_GIT_HEAD_ENV = "SHAIWEI_RELEASE_GIT_HEAD"
 STATE_SCHEMA = "shaiwei-scheduler-release-state-v1"
 AUDIT_SCHEMA = "shaiwei-scheduler-release-audit-v1"
 
@@ -152,13 +154,26 @@ def _image_metadata(image: str) -> dict[str, str]:
         labels = {}
     image_id = str(document.get("Id", ""))
     snapshot = str(labels.get(SNAPSHOT_LABEL, ""))
-    if not image_id.startswith("sha256:") or len(snapshot) != 64:
+    revision = str(labels.get(REVISION_LABEL, ""))
+    if (
+        not image_id.startswith("sha256:")
+        or len(snapshot) != 64
+        or len(revision) not in {40, 64}
+    ):
         raise ReleaseError(f"image lacks immutable scheduler release metadata: {image}")
-    return {"image": image, "image_id": image_id, "code_snapshot_sha256": snapshot}
+    return {
+        "image": image,
+        "image_id": image_id,
+        "code_snapshot_sha256": snapshot,
+        "git_head": revision,
+    }
 
 
-def _image_runtime_snapshot(image: str) -> str:
-    code = "from shaiwei.provenance import code_snapshot_sha256; print(code_snapshot_sha256())"
+def _image_runtime_identity(image: str) -> dict[str, str]:
+    code = (
+        "import json; from shaiwei.provenance import code_snapshot_sha256,git_head; "
+        "print(json.dumps({'code_snapshot_sha256':code_snapshot_sha256(),'git_head':git_head()}))"
+    )
     result = _run(
         [
             "docker",
@@ -175,16 +190,27 @@ def _image_runtime_snapshot(image: str) -> str:
         ]
     )
     lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
-    if not lines or len(lines[-1]) != 64:
-        raise ReleaseError(f"image did not return a valid runtime snapshot: {image}")
-    return lines[-1]
+    try:
+        identity = json.loads(lines[-1]) if lines else None
+    except json.JSONDecodeError as error:
+        raise ReleaseError(f"image returned invalid runtime identity: {image}") from error
+    if (
+        not isinstance(identity, dict)
+        or len(str(identity.get("code_snapshot_sha256", ""))) != 64
+        or len(str(identity.get("git_head", ""))) not in {40, 64}
+    ):
+        raise ReleaseError(f"image did not return a valid runtime identity: {image}")
+    return {key: str(identity[key]) for key in ("code_snapshot_sha256", "git_head")}
 
 
 def verify_image(image: str) -> dict[str, str]:
     metadata = _image_metadata(image)
-    runtime_snapshot = _image_runtime_snapshot(image)
-    if runtime_snapshot != metadata["code_snapshot_sha256"]:
-        raise ReleaseError("image label and verified runtime snapshot differ")
+    runtime = _image_runtime_identity(image)
+    if runtime != {
+        "code_snapshot_sha256": metadata["code_snapshot_sha256"],
+        "git_head": metadata["git_head"],
+    }:
+        raise ReleaseError("image labels and verified runtime identity differ")
     return metadata
 
 
@@ -196,6 +222,7 @@ def _require_clean_worktree() -> None:
 def build_image() -> dict[str, object]:
     _require_clean_worktree()
     snapshot = code_snapshot_sha256()
+    revision = git_head()
     image = f"{CONTENT_TAG_PREFIX}{snapshot[:16]}"
     _run(
         [
@@ -204,7 +231,9 @@ def build_image() -> dict[str, object]:
             "--label",
             f"{SNAPSHOT_LABEL}={snapshot}",
             "--label",
-            f"org.opencontainers.image.revision={git_head()}",
+            f"{REVISION_LABEL}={revision}",
+            "--build-arg",
+            f"{RELEASE_GIT_HEAD_ENV}={revision}",
             "--tag",
             image,
             ".",
@@ -347,22 +376,30 @@ def _container_contract(expected: dict[str, str]) -> dict[str, object]:
         raise ReleaseError("scheduler persistence mounts must remain writable")
     if any(str(mount.get("Destination")) == "/workspace" for mount in mounts):
         raise ReleaseError("scheduler still mounts a host directory over /workspace")
-    runtime_snapshot = _run(
+    runtime_identity = _run(
         [
             "docker",
             "exec",
             container_id,
             "python",
             "-c",
-            "from shaiwei.provenance import code_snapshot_sha256; print(code_snapshot_sha256())",
+            "import json; from shaiwei.provenance import code_snapshot_sha256,git_head; "
+            "print(json.dumps({'code_snapshot_sha256':code_snapshot_sha256(),'git_head':git_head()}))",
         ]
     ).stdout.strip()
-    if runtime_snapshot != expected["code_snapshot_sha256"]:
+    try:
+        runtime = json.loads(runtime_identity)
+    except json.JSONDecodeError as error:
+        raise ReleaseError("running scheduler identity is invalid JSON") from error
+    if runtime.get("code_snapshot_sha256") != expected["code_snapshot_sha256"]:
         raise ReleaseError("running scheduler snapshot differs from the promoted release")
+    if runtime.get("git_head") != expected["git_head"]:
+        raise ReleaseError("running scheduler Git revision differs from the promoted release")
     return {
         "container_id": container_id,
         "image_id": expected["image_id"],
-        "code_snapshot_sha256": runtime_snapshot,
+        "code_snapshot_sha256": str(runtime["code_snapshot_sha256"]),
+        "git_head": str(runtime["git_head"]),
         "read_only_rootfs": True,
         "mount_destinations": sorted(destinations),
     }
