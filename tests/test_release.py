@@ -62,3 +62,44 @@ def test_scheduler_compose_has_no_development_tree_or_docker_socket():
     }
     assert "/workspace" not in destinations
     assert all("docker.sock" not in json.dumps(volume) for volume in scheduler["volumes"])
+
+
+def test_no_start_promote_and_rollback_swap_distinct_content_images(monkeypatch, tmp_path):
+    monkeypatch.setattr(release, "STATE_PATH", tmp_path / "scheduler_state.json")
+    monkeypatch.setattr(release, "AUDIT_PATH", tmp_path / "scheduler_releases.jsonl")
+    monkeypatch.setattr(release, "git_head", lambda: "c" * 40)
+    tagged = []
+    monkeypatch.setattr(release, "_tag", lambda source, target: tagged.append((source, target)))
+    images = {
+        "shaiwei:scheduler-a": {
+            "image": "shaiwei:scheduler-a",
+            "image_id": "sha256:a",
+            "code_snapshot_sha256": "a" * 64,
+        },
+        "shaiwei:scheduler-b": {
+            "image": "shaiwei:scheduler-b",
+            "image_id": "sha256:b",
+            "code_snapshot_sha256": "b" * 64,
+        },
+    }
+    monkeypatch.setattr(release, "verify_image", lambda image: images[image])
+
+    release.promote("shaiwei:scheduler-a", start=False)
+    release.promote("shaiwei:scheduler-b", start=False)
+    promoted = release._load_state()
+    assert promoted["current"] == images["shaiwei:scheduler-b"]
+    assert promoted["previous"] == images["shaiwei:scheduler-a"]
+
+    release.rollback(start=False)
+    rolled_back = release._load_state()
+    assert rolled_back["current"] == images["shaiwei:scheduler-a"]
+    assert rolled_back["previous"] == images["shaiwei:scheduler-b"]
+    assert tagged[-2:] == [
+        ("shaiwei:scheduler-a", release.CURRENT_ALIAS),
+        ("shaiwei:scheduler-b", release.PREVIOUS_ALIAS),
+    ]
+    assert [record["event"] for record in release._validate_audit_chain()] == [
+        "PROMOTE_PASS",
+        "PROMOTE_PASS",
+        "ROLLBACK_PASS",
+    ]
