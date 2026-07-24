@@ -1,0 +1,317 @@
+{
+  "artifact_hashes": {
+    "determinism_replay_bundle_sha256": "d9d0185517696e6404331596c95ed27eae59c0ae20e4138022f539ce00518d77",
+    "holding_bundle_sha256": "f2c6b1da630309879d90cf431fe9d0470664a71d86df0538dc2ce750aaa0ade4",
+    "model_bundle_sha256": "577822fcaf6025d49bd3fb8c3d3c8c4e7e5c4c8f5d1f305b6bbd2ba9b3f3028b",
+    "nav_bundle_sha256": "9e90420d43624c329705804cc90a253f4f1dce211e809a1745a315a0cf58b50c",
+    "original_p2_2_result_tree_sha256": "98637864c9e341f1af413c300e922b9e80a02589c5fc91fec8eadb315bd5f3a6",
+    "pooled_base_daily_sha256": "76d2ef186d8da1fceaf741f0f94110268aec780bf217bce6fbd6ffafe603addc",
+    "prediction_bundle_sha256": "a21995b98bd7f738f7f5843abea21e531ef9c28e4b458125cd523e017d74529d",
+    "trade_bundle_sha256": "13b4d20ce594905f4670b8fd1b62579649c6f8210ac700314e5f3e08324dddd7"
+  },
+  "authoritative_historical_effect_gate": "NO_GO",
+  "correction_code_sha256": "66666772f2a7a46c51a7eda2c9bbc90e018f4a2de6ae1374d1d0d4d4428559f7",
+  "correction_scope": [
+    "train_valid_label_maturity_purge",
+    "execution_open_limit_and_prior_close_clock",
+    "bilateral_signal_date_five_percent_order_capacity"
+  ],
+  "decision": {
+    "cost_gate_pass": false,
+    "determinism_pass": true,
+    "diversification_gate_pass": false,
+    "diversification_gate_status": "NOT_EVALUABLE",
+    "drawdown_gate_pass": false,
+    "historical_effect_gate": "NO_GO",
+    "observations_gate_pass": true,
+    "pooled_base_gate_pass": false,
+    "pooled_double_cost_gate_pass": false,
+    "pooled_extra_slippage_gate_pass": false,
+    "positive_base_net_excess_window_count": 0,
+    "positive_windows_gate_pass": false,
+    "production_authorization": "none",
+    "rebalance_gate_pass": true,
+    "strategy_effective": "REJECT",
+    "strategy_results_inspected": true,
+    "window_gate_pass": false
+  },
+  "diversification": {
+    "common_return_trade_days": 0,
+    "joint_star50_risk_contribution": null,
+    "pass": false,
+    "reason": "no preregistered CSI800 2023-2025 daily return and holding-weight truth",
+    "return_correlation": null,
+    "status": "NOT_EVALUABLE",
+    "weighted_name_overlap": null
+  },
+  "effect_correction_report": {
+    "path": "data/research/star50/p2-star50-effect-correction-v1/effect_correction_report.json",
+    "sha256": "d80d129480914c87448c5fa372d2ed061bbdbd164b5eb65b65a9fe17455b9b75"
+  },
+  "freeze_commit": "c6fbbaf0f4720ae5be821d75cca11cfcb3628897",
+  "input_manifest_sha256": "8aca90da0d096e080fbbf5191c7c9be72c5e0b079e04337aec6e67d01434eb41",
+  "input_quality": {
+    "label_maturity": {
+      "all_original_unpurged_segments_demonstrably_leak": true,
+      "all_purged_maturities_within_original_segments": true,
+      "label": "Ref($open,-11)/Ref($open,-1)-1",
+      "label_horizon_trade_days": 11,
+      "required_purged_last_signal_dates": {
+        "STAR-W1": {
+          "train": "2022-06-15",
+          "valid": "2022-12-15"
+        },
+        "STAR-W2": {
+          "train": "2023-06-13",
+          "valid": "2023-12-14"
+        },
+        "STAR-W3": {
+          "train": "2024-06-13",
+          "valid": "2024-12-16"
+        }
+      },
+      "windows": {
+        "STAR-W1": {
+          "first_test_trade_date": "20230103",
+          "label_horizon_trade_days": 11,
+          "original_unpurged_train_would_cross_boundary": true,
+          "original_unpurged_valid_would_cross_boundary": true,
+          "train": {
+            "original_calendar_end": "20220630",
+            "original_start": "20200723",
+            "purged_label_maturity": "20220630",
+            "purged_last_signal": "20220615",
+            "purged_signal_date_count": 11,
+            "unpurged_label_maturity": "20220715",
+            "unpurged_last_signal": "20220630"
+          },
+          "train_label_maturity_within_original_segment": true,
+          "valid": {
+            "original_calendar_end": "20221230",
+            "original_start": "20220701",
+            "purged_label_maturity": "20221230",
+            "purged_last_signal": "20221215",
+            "purged_signal_date_count": 11,
+            "unpurged_label_maturity": "20230117",
+            "unpurged_last_signal": "20221230"
+          },
+          "valid_label_maturity_before_test": true,
+          "valid_label_maturity_within_original_segment": true,
+          "window": "STAR-W1"
+        },
+        "STAR-W2": {
+          "first_test_trade_date": "20240102",
+          "label_horizon_trade_days": 11,
+          "original_unpurged_train_would_cross_boundary": true,
+          "original_unpurged_valid_would_cross_boundary": true,
+          "train": {
+            "original_calendar_end": "20230630",
+            "original_start": "20210101",
+            "purged_label_maturity": "20230630",
+            "purged_last_signal": "20230613",
+            "purged_signal_date_count": 11,
+            "unpurged_label_maturity": "20230717",
+            "unpurged_last_signal": "20230630"
+          },
+          "train_label_maturity_within_original_segment": true,
+          "valid": {
+            "original_calendar_end": "20231229",
+            "original_start": "20230701",
+            "purged_label_maturity": "20231229",
+            "purged_last_signal": "20231214",
+            "purged_signal_date_count": 11,
+            "unpurged_label_maturity": "20240116",
+            "unpurged_last_signal": "20231229"
+          },
+          "valid_label_maturity_before_test": true,
+          "valid_label_maturity_within_original_segment": true,
+          "window": "STAR-W2"
+        },
+        "STAR-W3": {
+          "first_test_trade_date": "20250102",
+          "label_horizon_trade_days": 11,
+          "original_unpurged_train_would_cross_boundary": true,
+          "original_unpurged_valid_would_cross_boundary": true,
+          "train": {
+            "original_calendar_end": "20240628",
+            "original_start": "20220101",
+            "purged_label_maturity": "20240628",
+            "purged_last_signal": "20240613",
+            "purged_signal_date_count": 11,
+            "unpurged_label_maturity": "20240715",
+            "unpurged_last_signal": "20240628"
+          },
+          "train_label_maturity_within_original_segment": true,
+          "valid": {
+            "original_calendar_end": "20241231",
+            "original_start": "20240701",
+            "purged_label_maturity": "20241231",
+            "purged_last_signal": "20241216",
+            "purged_signal_date_count": 11,
+            "unpurged_label_maturity": "20250116",
+            "unpurged_last_signal": "20241231"
+          },
+          "valid_label_maturity_before_test": true,
+          "valid_label_maturity_within_original_segment": true,
+          "window": "STAR-W3"
+        }
+      }
+    },
+    "member_listing_lead": {
+      "forbidden_bj_member_day_count": 0,
+      "maximum_first_member_bar_lead_trade_days": 1377,
+      "member_code_count": 128,
+      "minimum_first_member_bar_lead_trade_days": 74,
+      "minimum_lead_codes": [
+        "688271.SH"
+      ],
+      "missing_first_valid_bar_count": 0
+    },
+    "opening_flag_baseline": {
+      "all_market": {
+        "buy_flag_mismatch_count": 283,
+        "row_count": 105561,
+        "sell_flag_mismatch_count": 35,
+        "valid_open_row_count": 105561
+      },
+      "official": {
+        "buy_flag_mismatch_count": 90,
+        "row_count": 42089,
+        "sell_flag_mismatch_count": 3
+      },
+      "period": [
+        "2023-01-01",
+        "2026-06-30"
+      ]
+    },
+    "original_capacity_baseline": {
+      "original_base_buy_count": 498,
+      "original_base_sell_count": 395,
+      "original_base_trade_count": 893,
+      "original_buy_capacity_violation_count": 0,
+      "original_maximum_buy_capacity_ratio": 0.04997739565415287,
+      "original_maximum_sell_capacity_ratio": 0.11303799663393785,
+      "original_sell_capacity_violation_count": 14,
+      "original_sell_capacity_violations_by_window": {
+        "STAR-W1": 7,
+        "STAR-W2": 4,
+        "STAR-W3": 3
+      },
+      "original_sell_minimum_valid_amount_days": 20
+    }
+  },
+  "ledger": {
+    "admissions_path": "ledger/p2_star50_effect_correction_admissions.csv",
+    "admissions_sha256": "a298bb99ff43c4d94ac87addf9edb58ce0fde0b15de4f3886b3c40eeb716ec86",
+    "runs_path": "ledger/p2_star50_effect_correction_runs.csv",
+    "runs_sha256": "953fd315a0ce198c10a40eca42031e91a7417b46fee9603b942868818c7cf463"
+  },
+  "model_retrained": true,
+  "original_p2_2_execution_valid": false,
+  "original_p2_2_model_valid": false,
+  "pooled": {
+    "base_net_excess": -0.5296871788992266,
+    "cost_1_5x_net_excess": -0.5459459807717432,
+    "double_cost_net_excess": -0.5619019166263851,
+    "extra_slippage_net_excess": -0.5601709840607471,
+    "trade_days": 727
+  },
+  "predictions_recomputed": true,
+  "pressure_metrics": [
+    {
+      "base_maximum_drawdown": 0.11216362061494001,
+      "base_net_excess": 0.009128644657908636,
+      "frozen_model_window": "STAR-W1",
+      "maximum_capacity_utilization": 0.9999910652437611,
+      "period": "star_2023_drawdown",
+      "rebalance_count": 4,
+      "trade_days": 35
+    },
+    {
+      "base_maximum_drawdown": 0.20592125665278949,
+      "base_net_excess": 0.014769694021075086,
+      "frozen_model_window": "STAR-W2",
+      "maximum_capacity_utilization": 0.9999906924692779,
+      "period": "microcap_2024",
+      "rebalance_count": 3,
+      "trade_days": 28
+    },
+    {
+      "base_maximum_drawdown": 0.1553373700399553,
+      "base_net_excess": -0.5340540461301166,
+      "frozen_model_window": "STAR-W3",
+      "maximum_capacity_utilization": 0.9999792075957957,
+      "period": "volume_price_2026h1",
+      "rebalance_count": 12,
+      "trade_days": 116
+    }
+  ],
+  "production_authorization": "none",
+  "protocol_sha256": "232e1a4c2effd9f1925e7fb326a88aeb689ee07829a275aa72cea544e0bf2eb5",
+  "research_family": "p2-star50-effect-correction-v1",
+  "results_known_before_correction": true,
+  "schema_version": "p2-star50-effect-correction-manifest-v1",
+  "strategy_effective": "REJECT",
+  "window_metrics": [
+    {
+      "base_cost_rmb": 1147785.2638087836,
+      "base_maximum_drawdown": 0.30201909636054847,
+      "base_net_excess": -0.0850921046827251,
+      "base_strategy_return": -0.1975054594741582,
+      "base_trade_count": 305,
+      "benchmark_return": -0.1124133547914331,
+      "blocked_invalid_execution_bar_count": 0,
+      "blocked_open_limit_count": 0,
+      "blocked_sell_capacity_count": 0,
+      "cost_1_5x_net_excess": -0.09028060948518624,
+      "double_cost_net_excess": -0.09543719242530602,
+      "extra_slippage_net_excess": -0.09482138573518495,
+      "maximum_capacity_utilization": 0.9999993808690506,
+      "maximum_selected_names": 10,
+      "minimum_selected_names": 10,
+      "rebalance_count": 25,
+      "trade_days": 242,
+      "window": "STAR-W1"
+    },
+    {
+      "base_cost_rmb": 1146177.5654136143,
+      "base_maximum_drawdown": 0.3181142980488637,
+      "base_net_excess": -0.19253380029430078,
+      "base_strategy_return": -0.03182318876663681,
+      "base_trade_count": 301,
+      "benchmark_return": 0.16071061152766397,
+      "blocked_invalid_execution_bar_count": 0,
+      "blocked_open_limit_count": 7,
+      "blocked_sell_capacity_count": 0,
+      "cost_1_5x_net_excess": -0.19871260681350655,
+      "double_cost_net_excess": -0.20485212237269224,
+      "extra_slippage_net_excess": -0.20422741468549166,
+      "maximum_capacity_utilization": 0.999999955336607,
+      "maximum_selected_names": 10,
+      "minimum_selected_names": 10,
+      "rebalance_count": 25,
+      "trade_days": 242,
+      "window": "STAR-W2"
+    },
+    {
+      "base_cost_rmb": 1295744.6584761345,
+      "base_maximum_drawdown": 0.22153198395624796,
+      "base_net_excess": -0.23865598184453396,
+      "base_strategy_return": 0.12058727937317903,
+      "base_trade_count": 303,
+      "benchmark_return": 0.359243261217713,
+      "blocked_invalid_execution_bar_count": 1,
+      "blocked_open_limit_count": 0,
+      "blocked_sell_capacity_count": 0,
+      "cost_1_5x_net_excess": -0.24531719257293694,
+      "double_cost_net_excess": -0.25193737168768404,
+      "extra_slippage_net_excess": -0.2512374117694345,
+      "maximum_capacity_utilization": 0.9999999187220057,
+      "maximum_selected_names": 10,
+      "minimum_selected_names": 10,
+      "rebalance_count": 25,
+      "trade_days": 243,
+      "window": "STAR-W3"
+    }
+  ]
+}

@@ -118,11 +118,13 @@
   `original_p2_2_model_valid=false`、`original_p2_2_execution_valid=false`；旧 `NO_GO/REJECT` 不是权威
   历史效果裁决，旧提交/报告/账本/产物不得删除或重写。失效说明见
   `docs/P2_STAR50_EFFECT_INVALIDATION_ADDENDUM_20260725.md`。
-- P2-2C 已在纠错结果前冻结 `p2-star50-effect-correction-v1`，且披露旧结果和主控敏感性已可见，
-  不是盲预注册或新变体。纠错范围严格只有：train/valid 标签 t+11 成熟 purge；执行日 raw
-  open/pre_close/tick 与 prior-close 时钟；买卖双向信号日中位 amount 5% 容量。其余模型、窗口、
-  test、组合、成本与门槛逐字段不变；冻结提交推送成功前不运行真实训练/效果。协议见
-  `docs/P2_STAR50_EFFECT_CORRECTION_PROTOCOL_20260725.md`。
+- P2-2C 已在纠错结果前提交并推送 `c6fbbaf`，且披露旧结果和主控敏感性已可见，明确不是盲预注册
+  或新变体。纠错范围严格只有 train/valid 标签 t+11 成熟 purge、执行日 raw open/pre_close/tick 与
+  prior-close 时钟、买卖双向信号日中位 amount 5% 容量；其余模型、窗口、test、组合、成本与门槛
+  逐字段不变。三窗基础净超额 -8.51%/-19.25%/-23.87%，pooled 基础/2x/额外滑点 -52.97%/
+  -56.19%/-56.02%，三测试窗和 microcap_2024 回撤超过 20%；分散化仍 `NOT_EVALUABLE`。两遍 54
+  份可比产物逐哈希一致，权威结论 `NO_GO/REJECT`、生产授权 none；本基线停止。证据见
+  `docs/P2_STAR50_EFFECT_CORRECTION_ACCEPTANCE_20260725.md`。
 
 ### 施工输出
 
@@ -212,6 +214,6 @@ P0.5 完整通过并冻结独立研究账户边界后，召开一次方案
 | P0-R | 验收后健壮性复核 | 已完成；有界重试、稳定消息 ID、逐次留痕和恢复标识通过 | 2026-07-22 已通过 |
 | P0.5 | R0.5 模拟组合与前瞻绩效闭环 | 已完成；四日 BACKFILL + 首个自然 FORWARD PASS | 2026-07-23 已通过 |
 | P1 | R1 主力资金流候选 | 已完成；六候选同预算 G1 全部 REJECT，正式库 0 插入 | 不追加变体、不调门槛；证据见 `P1_MONEYFLOW_EXPERIMENT_ACCEPTANCE_20260724.md` |
-| P2 | R2 科创50独立策略臂 | P2-0 v1 永久 NO-GO；v2 官方谱系数据门 GO；P2-1 工程门 GO；原 P2-2 方法失效；P2-2C 已结果前冻结、待权威纠错 | 仅执行三项方法纠错；不调参、不追加变体、不进入前瞻或生产；中证800仍是唯一生产主策略 |
+| P2 | R2 科创50独立策略臂 | P2-0 v1 永久 NO-GO；v2 官方谱系数据门 GO；P2-1 工程门 GO；原 P2-2 方法失效；P2-2C 权威历史 NO-GO/REJECT | 基线停止；不调参、不追加变体、不进入前瞻或生产；中证800仍是唯一生产主策略 |
 | P3 | R3 专业只读 Web | v1.0 架构基线已冻结；代码未启动 | 隔离门禁已通过；真实 API/Docker 施工仍须另立目标 |
 | D1 | L1 LLM 持续因子研究方案评审 | 已记录、未施工 | P0.5 完整通过；独立研究账户边界已冻结 |

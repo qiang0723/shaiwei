@@ -1,0 +1,133 @@
+{
+  "artifact_hashes": {
+    "holding_bundle_sha256": "f2c6b1da630309879d90cf431fe9d0470664a71d86df0538dc2ce750aaa0ade4",
+    "model_bundle_sha256": "577822fcaf6025d49bd3fb8c3d3c8c4e7e5c4c8f5d1f305b6bbd2ba9b3f3028b",
+    "nav_bundle_sha256": "9e90420d43624c329705804cc90a253f4f1dce211e809a1745a315a0cf58b50c",
+    "pooled_base_daily_sha256": "76d2ef186d8da1fceaf741f0f94110268aec780bf217bce6fbd6ffafe603addc",
+    "prediction_bundle_sha256": "a21995b98bd7f738f7f5843abea21e531ef9c28e4b458125cd523e017d74529d",
+    "trade_bundle_sha256": "13b4d20ce594905f4670b8fd1b62579649c6f8210ac700314e5f3e08324dddd7"
+  },
+  "capacity_recalculation": {
+    "base_buy_count": 495,
+    "base_buy_over_capacity_count": 0,
+    "base_maximum_buy_capacity_utilization": 0.9999984789143452,
+    "base_maximum_sell_capacity_utilization": 0.999999955336607,
+    "base_sell_count": 414,
+    "base_sell_over_capacity_count": 0,
+    "base_trade_count": 909,
+    "names_sold_on_multiple_signal_dates": 84,
+    "all_scenarios_and_pressure_buy_over_capacity_count": 0,
+    "all_scenarios_and_pressure_sell_over_capacity_count": 0,
+    "all_scenarios_and_pressure_trade_count": 3856
+  },
+  "decision_recalculation": {
+    "authoritative_historical_effect_gate": "NO_GO",
+    "cost_gate_pass": false,
+    "diversification_gate_status": "NOT_EVALUABLE",
+    "drawdown_gate_pass": false,
+    "observations_gate_pass": true,
+    "positive_base_net_excess_window_count": 0,
+    "production_authorization": "none",
+    "strategy_effective": "REJECT",
+    "window_gate_pass": false
+  },
+  "determinism_recalculation": {
+    "all_54_comparable_physical_file_sha256_equal": true,
+    "comparable_physical_file_count": 54,
+    "holding_bundle_equal": true,
+    "model_bundle_equal": true,
+    "nav_bundle_equal": true,
+    "prediction_bundle_equal": true,
+    "trade_bundle_equal": true
+  },
+  "evidence_identity": {
+    "correction_code_sha256": "66666772f2a7a46c51a7eda2c9bbc90e018f4a2de6ae1374d1d0d4d4428559f7",
+    "effect_correction_report_sha256": "d80d129480914c87448c5fa372d2ed061bbdbd164b5eb65b65a9fe17455b9b75",
+    "freeze_commit": "c6fbbaf0f4720ae5be821d75cca11cfcb3628897",
+    "input_manifest_sha256": "8aca90da0d096e080fbbf5191c7c9be72c5e0b079e04337aec6e67d01434eb41",
+    "original_p2_2_result_tree_sha256": "98637864c9e341f1af413c300e922b9e80a02589c5fc91fec8eadb315bd5f3a6",
+    "protocol_sha256": "232e1a4c2effd9f1925e7fb326a88aeb689ee07829a275aa72cea544e0bf2eb5",
+    "tracked_manifest_sha256": "155ca8b4cdda2166118e6f4f0b6247f3b326d86e4b0e24a7d8d930343fb356a8"
+  },
+  "independent_recalculation": {
+    "all_values_match_machine_report": true,
+    "pooled": {
+      "base_net_excess": -0.5296871788992266,
+      "cost_1_5x_net_excess": -0.5459459807717432,
+      "double_cost_net_excess": -0.5619019166263851,
+      "extra_slippage_net_excess": -0.5601709840607471,
+      "trade_days": 727
+    },
+    "pressure": [
+      {
+        "maximum_drawdown": 0.11216362061494001,
+        "net_excess": 0.009128644657908636,
+        "period": "star_2023_drawdown",
+        "trade_days": 35
+      },
+      {
+        "maximum_drawdown": 0.20592125665278949,
+        "net_excess": 0.014769694021075086,
+        "period": "microcap_2024",
+        "trade_days": 28
+      },
+      {
+        "maximum_drawdown": 0.1553373700399553,
+        "net_excess": -0.5340540461301166,
+        "period": "volume_price_2026h1",
+        "trade_days": 116
+      }
+    ],
+    "windows": [
+      {
+        "base_maximum_drawdown": 0.30201909636054847,
+        "base_net_excess": -0.0850921046827251,
+        "base_strategy_return": -0.1975054594741582,
+        "benchmark_return": -0.1124133547914331,
+        "cost_1_5x_net_excess": -0.09028060948518624,
+        "double_cost_net_excess": -0.09543719242530602,
+        "extra_slippage_net_excess": -0.09482138573518495,
+        "trade_count": 305,
+        "trade_days": 242,
+        "window": "STAR-W1"
+      },
+      {
+        "base_maximum_drawdown": 0.3181142980488637,
+        "base_net_excess": -0.19253380029430078,
+        "base_strategy_return": -0.03182318876663681,
+        "benchmark_return": 0.16071061152766397,
+        "cost_1_5x_net_excess": -0.19871260681350655,
+        "double_cost_net_excess": -0.20485212237269224,
+        "extra_slippage_net_excess": -0.20422741468549166,
+        "trade_count": 301,
+        "trade_days": 242,
+        "window": "STAR-W2"
+      },
+      {
+        "base_maximum_drawdown": 0.22153198395624796,
+        "base_net_excess": -0.23865598184453396,
+        "base_strategy_return": 0.12058727937317903,
+        "benchmark_return": 0.359243261217713,
+        "cost_1_5x_net_excess": -0.24531719257293694,
+        "double_cost_net_excess": -0.25193737168768404,
+        "extra_slippage_net_excess": -0.2512374117694345,
+        "trade_count": 303,
+        "trade_days": 243,
+        "window": "STAR-W3"
+      }
+    ]
+  },
+  "method_status": {
+    "correction_scope": [
+      "train_valid_label_maturity_purge",
+      "execution_open_limit_and_prior_close_clock",
+      "bilateral_signal_date_five_percent_order_capacity"
+    ],
+    "model_retrained": true,
+    "original_p2_2_execution_valid": false,
+    "original_p2_2_model_valid": false,
+    "predictions_recomputed": true,
+    "results_known_before_correction": true
+  },
+  "schema_version": "p2-star50-effect-correction-independent-verification-v1"
+}
