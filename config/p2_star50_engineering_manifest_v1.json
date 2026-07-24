@@ -1,0 +1,80 @@
+{
+  "artifacts": {
+    "benchmark_dataset": {
+      "path": "data/research/star50/p2-star50-engineering-v1/dataset/benchmark.parquet",
+      "row_count": 1556,
+      "sha256": "e659bcbc042fb56bd50482428daa8eb88dfc8bb674d91d7b4551a07e8a945c42"
+    },
+    "engineering_report": {
+      "path": "data/research/star50/p2-star50-engineering-v1/engineering_report.json",
+      "sha256": "a4cfad049e36914fcec76f05c9dc6f5c24b55d85fe4213a37a3e8f7ae9909401"
+    },
+    "market_dataset": {
+      "path": "data/research/star50/p2-star50-engineering-v1/dataset/market.parquet",
+      "row_count": 170343,
+      "sha256": "a1e1d99a9de8cce0dada33389f3588d96ec6e1ecd5f5a1738e7105353901c289"
+    },
+    "member_day_dataset": {
+      "path": "data/research/star50/p2-star50-engineering-v1/dataset/member_days.parquet",
+      "row_count": 72800,
+      "sha256": "a6fb10532bba9de9504fc4be0bfe6e45e50621a761ae29fbaa1cf9ba39356061"
+    },
+    "quality_report": {
+      "path": "data/research/star50/p2-star50-engineering-v1/quality_report.json",
+      "sha256": "3074bac232442f1e862c09d529a35f42fd2aa086422b337d1e72e780b569a990"
+    },
+    "qlib_provider": {
+      "artifact_byte_count": 6908091,
+      "artifact_file_count": 1293,
+      "artifact_sha256": "b8f736ef9bc9e31cc236a81ca281a23e904789fb5ec87caa9195b572c6b78729",
+      "build_identity_sha256": "dca65a090284de044346bcea7f6ff7364f9a23e3479c9f77c1832f45b2fd26e6",
+      "path": "data/research/star50/p2-star50-engineering-v1/qlib_bin"
+    },
+    "synthetic_smoke_report": {
+      "path": "data/research/star50/p2-star50-engineering-v1/synthetic_smoke/smoke_report.json",
+      "sha256": "7d30d9024ccdf20487cf432e8fda6f8449c522f1b4afc8ac1cfa649a730c19b1"
+    }
+  },
+  "code": {
+    "contract.py": "7b3c55856b90283cd84ebb251b62a884916bff6935a980ba256b0ca19079117b",
+    "data.py": "604952fc8e8f13715a91c7d1601a231544680fae12748f02028ba6eeb8ded6d3",
+    "ledger.py": "e8c790ff88c49bc01fa090f179ffa8fbf48d46150f9b1a4b487e9dbedbf30113",
+    "run.py": "98ff94203dc3ada143cafeebd06c6cbea6963ef428234136e0f299616cc3bf63",
+    "synthetic.py": "58c59c641d0e03e7371ba0cf410f155413e78846cb55ec2b6aa6cfa924aabd48"
+  },
+  "frozen_protocol": {
+    "config_path": "config/p2_star50_engineering_v1.yaml",
+    "config_sha256": "3e259f9f763400f232a671d6aa0c64b8dec77b61fedddb7b789ef8bac3760f03",
+    "document_path": "docs/P2_STAR50_ENGINEERING_PROTOCOL_20260724.md",
+    "document_sha256": "2e073812597b605edf80b9a40a69d4c46ab26773667b053f3fd2856d2143a3ce"
+  },
+  "ledgers": {
+    "admissions": {
+      "path": "ledger/p2_star50_engineering_admissions.csv",
+      "row_count_excluding_header": 3,
+      "sha256": "9e79231fef8d4bbc51aea0d13f28b0413d8a014fee450552557e502eaf3a3bbc"
+    },
+    "runs": {
+      "path": "ledger/p2_star50_engineering_runs.csv",
+      "row_count_excluding_header": 3,
+      "sha256": "ed6a5e56f4bff83542a95e9ddf8b6cb2d511614219e92572406125ed815c896a"
+    }
+  },
+  "production_authorization": "none",
+  "research_family": "p2-star50-engineering-v1",
+  "schema_version": "p2-star50-engineering-manifest-v1",
+  "strategy_effective": "NOT_EVALUATED",
+  "strategy_results_inspected": false,
+  "synthetic_fixture": {
+    "path": "tools/p2_star50_engineering/fixtures/synthetic_v1.json",
+    "sha256": "33824d58f59419657c7a0a2fc62cd19d177fd085ff23e1e9eb3852bb88f91220"
+  },
+  "upstream_v2": {
+    "daily_membership_sha256": "91e9d48421d2a577176488d792c63f5d33bceee953a4532cdb8a8f6317d82644",
+    "initial_set_sha256": "fe960ccc0b86592c02d082a7f9fda18bb6032b4c263458850cc7deb709a95d4c",
+    "manifest_sha256": "387514f25d9f883c7ebe84e386ba6dbca4644bb204628004cee4991dc316e112",
+    "membership_events_sha256": "ee5b6ac2a3ee608067bcca51cc21da152b754ec2b96c52c2be4db184c55cdf6a",
+    "quality_report_sha256": "51bfe33aa21162007961d9fb0fd8a6fe91d45ce7593bddac7c9ff0c2fda2df93"
+  },
+  "verdict": "GO"
+}

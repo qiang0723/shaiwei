@@ -104,3 +104,24 @@ def test_verify_ingest_batches_rehashes_every_committed_file(tmp_path: Path):
     artifact.write_bytes(b"tampered")
     with pytest.raises((ValueError, OSError)):
         ledger.verify_ingest_batches(path)
+
+
+def test_p2_engineering_ledger_is_idempotent_and_fail_closed_on_collision(tmp_path: Path):
+    path = tmp_path / "p2_runs.csv"
+    path.write_text("run_id,status,finished_at,operator\n", encoding="utf-8")
+    row = {
+        "run_id": "p2-1",
+        "status": "GO",
+        "finished_at": "2026-07-25T00:00:00+08:00",
+        "operator": "test",
+    }
+    assert ledger.append_p2_star50_engineering_run(path=path, **row)
+    assert not ledger.append_p2_star50_engineering_run(path=path, **row)
+    with pytest.raises(ValueError, match="collision"):
+        ledger.append_p2_star50_engineering_run(
+            path=path,
+            run_id="p2-1",
+            status="NO_GO",
+            finished_at="2026-07-25T00:00:00+08:00",
+            operator="test",
+        )

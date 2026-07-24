@@ -19,6 +19,8 @@ FACTOR_ADMISSIONS = LEDGER_DIR / "factor_admissions.csv"
 PAPER_ACCOUNTS = LEDGER_DIR / "paper_accounts.csv"
 PAPER_EVENTS = LEDGER_DIR / "paper_events.csv"
 PAPER_RUNS = LEDGER_DIR / "paper_runs.csv"
+P2_STAR50_ENGINEERING_RUNS = LEDGER_DIR / "p2_star50_engineering_runs.csv"
+P2_STAR50_ENGINEERING_ADMISSIONS = LEDGER_DIR / "p2_star50_engineering_admissions.csv"
 
 
 def portable_artifact_path(path: str | Path) -> str:
@@ -252,3 +254,21 @@ def append_paper_run(*, path: Path | None = None, **kw: object) -> bool:
     kw.setdefault("finished_at", datetime.now(timezone.utc).isoformat())
     kw.setdefault("operator", "docker-scheduler")
     return _append_idempotent(path or PAPER_RUNS, kw, key="run_id")
+
+
+def append_p2_star50_engineering_run(*, path: Path | None = None, **kw: object) -> bool:
+    """Append one sanitized P2-1 engineering-only outcome."""
+    kw.setdefault("finished_at", datetime.now(timezone.utc).isoformat())
+    kw.setdefault("operator", "p2-star50-engineering")
+    return _append_idempotent(path or P2_STAR50_ENGINEERING_RUNS, kw, key="run_id")
+
+
+def append_p2_star50_engineering_admission(*, path: Path | None = None, **kw: object) -> bool:
+    """Append one P2-1 boundary decision; this never authorizes production."""
+    kw.setdefault("evaluated_at", datetime.now(timezone.utc).isoformat())
+    kw.setdefault("operator", "p2-star50-engineering")
+    return _append_idempotent(
+        path or P2_STAR50_ENGINEERING_ADMISSIONS,
+        kw,
+        key="decision_id",
+    )

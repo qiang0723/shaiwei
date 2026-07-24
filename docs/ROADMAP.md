@@ -105,6 +105,13 @@
   当前仍为 `engineering_complete=false`、`strategy_results_inspected=false`、
   `production_authorization=none`，证据见
   `docs/P2_STAR50_OFFICIAL_LINEAGE_ACCEPTANCE_20260724.md`。
+- P2-1 已在真实效果查看前冻结并推送 `p2-star50-engineering-v1`，显式枚举 72 个预期月份并以
+  缺月/双快照对抗 fixture 补强输入门。official daily membership 唯一驱动 72,800 个成员日、独立
+  数据集和动态 qlib instruments；真实 qlib 结构、覆盖、哈希和幂等 PASS，完全 synthetic 的
+  Alpha158/LightGBM/TopK/backtest 六阶段 PASS。机器结论 `engineering_complete=true`，
+  `strategy_results_inspected=false`、`strategy_effective=NOT_EVALUATED`、
+  `production_authorization=none`；证据见
+  `docs/P2_STAR50_ENGINEERING_ACCEPTANCE_20260724.md`。
 
 ### 施工输出
 
@@ -194,6 +201,6 @@ P0.5 完整通过并冻结独立研究账户边界后，召开一次方案
 | P0-R | 验收后健壮性复核 | 已完成；有界重试、稳定消息 ID、逐次留痕和恢复标识通过 | 2026-07-22 已通过 |
 | P0.5 | R0.5 模拟组合与前瞻绩效闭环 | 已完成；四日 BACKFILL + 首个自然 FORWARD PASS | 2026-07-23 已通过 |
 | P1 | R1 主力资金流候选 | 已完成；六候选同预算 G1 全部 REJECT，正式库 0 插入 | 不追加变体、不调门槛；证据见 `P1_MONEYFLOW_EXPERIMENT_ACCEPTANCE_20260724.md` |
-| P2 | R2 科创50独立策略臂 | P2-0 v1 永久 NO-GO；v2 官方成员谱系数据门 GO，工程与效果未启动 | 停在数据门；若继续须主控另立 P2-1，保持等权、独立账本和生产隔离，结果前复核工程协议 |
+| P2 | R2 科创50独立策略臂 | P2-0 v1 永久 NO-GO；v2 官方谱系数据门 GO；P2-1 独立工程门 GO；策略效果未评估 | 停在 P2-2 前；须主控另立真实效果协议，绑定 P2-1 终版哈希，禁止结果后改门槛或自动接生产 |
 | P3 | R3 专业只读 Web | v1.0 架构基线已冻结；代码未启动 | 隔离门禁已通过；真实 API/Docker 施工仍须另立目标 |
 | D1 | L1 LLM 持续因子研究方案评审 | 已记录、未施工 | P0.5 完整通过；独立研究账户边界已冻结 |

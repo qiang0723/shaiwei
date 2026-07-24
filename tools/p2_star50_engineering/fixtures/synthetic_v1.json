@@ -1,0 +1,21 @@
+{
+  "benchmark_code": "099999.SH",
+  "calendar_start": "2021-01-04",
+  "calendar_trade_days": 520,
+  "fixture_id": "p2-star50-synthetic-engineering-v1",
+  "instrument_count": 16,
+  "instrument_file": "p2_star50_synthetic_v1",
+  "instrument_symbol_start": 699001,
+  "model": {
+    "early_stopping_rounds": 5,
+    "learning_rate": 0.05,
+    "num_boost_round": 12,
+    "num_leaves": 15,
+    "seed": 42
+  },
+  "segments": {
+    "test": [390, 509],
+    "train": [80, 309],
+    "valid": [310, 389]
+  }
+}
