@@ -1,0 +1,122 @@
+schema_version: p2-star50-protocol-v2
+frozen_at: "2026-07-24T23:05:00+08:00"
+scope: official_membership_lineage_gate_only
+production_authorization: none
+
+identity:
+  parent_protocol: p2-star50-protocol-v1
+  parent_verdict: NO_GO
+  research_family: p2-star50-v2
+  dataset_id: star50-official-lineage-v2
+  config_id: p2-star50-protocol-v2
+  index_code: 000688.SH
+  weighting_for_future_research: equal_weight
+  parser_version: star50-membership-parser-v2
+  source_manifest: config/p2_star50_official_sources_v2.json
+  raw_source_root: data/research/star50/p2-star50-v2/official_sources
+  initial_set_artifact: data/research/star50/p2-star50-v2/initial_set.parquet
+  membership_events_artifact: data/research/star50/p2-star50-v2/membership_events.parquet
+  daily_membership_artifact: data/research/star50/p2-star50-v2/daily_membership.parquet
+  quality_report: data/research/star50/p2-star50-v2/quality_report.json
+
+source_policy:
+  primary_domains:
+    - sse.com.cn
+    - www.sse.com.cn
+    - csindex.com.cn
+    - www.csindex.com.cn
+    - oss-ch.csindex.com.cn
+  third_party_source_allowed: false
+  initial_publication_url: https://www.sse.com.cn/market/sseindex/diclosure/c/c_20200619_5130634.shtml
+  retrieval_execution: serial
+  minimum_request_interval_seconds: 1.0
+  maximum_attempts: 3
+  retry_base_seconds: 1.0
+  maximum_file_bytes: 52428800
+  redirect_must_remain_official: true
+  immutable_storage: content_addressed_sha256
+  overwrite_existing_content: false
+  retrieve_to_project_only: true
+  source_cutoff_date: "2026-07-24"
+
+initial_set_contract:
+  required_member_count: 50
+  required_fields: [code, source_url, source_file_sha256, retrieved_at, parser_version]
+  publication_must_be_no_later_than: "2020-07-22"
+  strategy_usable_date_if_complete: "2020-07-23"
+  fallback_usable_date_if_incomplete: "2020-08-03"
+  bse_suffix_forbidden: ".BJ"
+  current_constituent_backfill_forbidden: true
+
+event_contract:
+  grain: one_row_per_out_in_replacement_pair
+  required_fields:
+    - announcement_date
+    - effective_date
+    - out_code
+    - in_code
+    - source_url
+    - source_file_sha256
+    - retrieved_at
+    - parser_version
+  event_types: [regular_adjustment, temporary_adjustment]
+  announcement_after_effective_forbidden: true
+  missing_pair_forbidden: true
+  manual_membership_edit_forbidden: true
+  future_announcement_backfill_forbidden: true
+  apply_on_effective_date: true
+  member_count_after_every_event: 50
+
+completeness_contract:
+  discovery_queries:
+    - "上证科创板50成份指数 调整样本"
+    - "科创50 指数 临时调整"
+    - "000688 调整样本"
+  official_initial_attachment_required: true
+  official_regular_adjustment_materials_required: true
+  official_temporary_adjustment_materials_required: true
+  unexplained_event_gap_maximum: 0
+  ambiguous_announcement_or_effective_date_maximum: 0
+  unparsed_official_attachment_maximum: 0
+
+crosscheck_contract:
+  secondary_source: tushare.index_weight
+  secondary_weight_values_usable: false
+  secondary_trade_date_as_official_effective_date: false
+  completed_snapshot_start: "2020-07-31"
+  completed_snapshot_end: "2026-06-30"
+  expected_snapshot_count: 72
+  comparison: exact_constituent_set_on_snapshot_trade_date
+  set_difference_maximum: 0
+  missing_snapshot_maximum: 0
+  bse_row_count_maximum: 0
+
+verdict_contract:
+  required_report_fields:
+    - official_lineage_complete
+    - tushare_crosscheck_pass
+    - pit_constructible
+    - engineering_complete
+    - strategy_results_inspected
+    - production_authorization
+    - verdict
+  go_requires:
+    - official_lineage_complete
+    - tushare_crosscheck_pass
+    - pit_constructible
+  engineering_complete: false
+  strategy_results_inspected: false
+  production_authorization: none
+  any_failed_required_gate: NO_GO
+
+prohibited_actions:
+  - qlib_build
+  - model_training
+  - backtest
+  - ic_calculation
+  - return_calculation
+  - ranking
+  - signal_generation
+  - csi800_change
+  - scheduler_image_change
+  - production_config_change
