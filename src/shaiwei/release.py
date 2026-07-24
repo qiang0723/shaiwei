@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import csv
+from collections.abc import Callable
 import hashlib
 import json
 import os
@@ -13,6 +15,7 @@ import uuid
 from datetime import datetime, timezone
 
 from shaiwei.config import PROJECT_ROOT
+from shaiwei.ledger import DAILY_RUNS, PAPER_RUNS
 from shaiwei.provenance import code_snapshot_sha256, git_head
 
 
@@ -237,6 +240,81 @@ def _compose_container_id() -> str:
     return container_id
 
 
+def _latest_pass(path: Path, date_field: str) -> dict[str, str] | None:
+    if not path.is_file():
+        return None
+    with path.open(newline="", encoding="utf-8") as handle:
+        passed = [row for row in csv.DictReader(handle) if row.get("status") == "PASS"]
+    return max(
+        passed,
+        key=lambda row: (row.get(date_field, ""), row.get("finished_at", "")),
+        default=None,
+    )
+
+
+def release_start_readiness(
+    expected_code_snapshot_sha256: str,
+    *,
+    paper_runs_path: Path = PAPER_RUNS,
+    daily_runs_path: Path = DAILY_RUNS,
+    plan_loader: Callable[[], object] | None = None,
+) -> dict[str, object]:
+    """Prevent a cross-snapshot start that can only invalidate the latest FORWARD artifact."""
+    latest_paper = _latest_pass(paper_runs_path, "execution_trade_date")
+    if latest_paper is None:
+        return {
+            "status": "PASS",
+            "mode": "INITIAL_RELEASE",
+            "latest_paper_execution_date": "",
+            "available_new_trade_dates": [],
+        }
+    paper_snapshot = str(latest_paper.get("code_snapshot_sha256", ""))
+    paper_date = str(latest_paper.get("execution_trade_date", ""))
+    if len(paper_snapshot) != 64 or len(paper_date) != 8:
+        raise ReleaseError("latest PASS paper run lacks a valid snapshot/date binding")
+    if paper_snapshot == expected_code_snapshot_sha256:
+        return {
+            "status": "PASS",
+            "mode": "SAME_RELEASE_RESTART",
+            "latest_paper_execution_date": paper_date,
+            "available_new_trade_dates": [],
+        }
+
+    latest_daily = _latest_pass(daily_runs_path, "target_trade_date")
+    completed_date = (
+        str(latest_daily.get("target_trade_date", "")) if latest_daily is not None else ""
+    )
+    if plan_loader is None:
+        from shaiwei.config import load
+        from shaiwei.pipeline.daily import _local_plan
+
+        def load_plan() -> object:
+            return _local_plan(load(), datetime.now(timezone.utc))
+
+        plan_loader = load_plan
+    plan = plan_loader()
+    missing = tuple(str(value) for value in getattr(plan, "missing_trade_dates", ()))
+    available = sorted(
+        {
+            date
+            for date in (completed_date, *missing)
+            if len(date) == 8 and date > paper_date
+        }
+    )
+    if not available:
+        raise ReleaseError(
+            "cross-snapshot scheduler start is unsafe before a newer eligible or completed "
+            "daily trade date"
+        )
+    return {
+        "status": "PASS",
+        "mode": "CROSS_SNAPSHOT_WITH_NEW_DATA",
+        "latest_paper_execution_date": paper_date,
+        "latest_paper_code_snapshot_sha256": paper_snapshot,
+        "available_new_trade_dates": available,
+    }
+
+
 def _container_contract(expected: dict[str, str]) -> dict[str, object]:
     container_id = _compose_container_id()
     result = _run(["docker", "inspect", container_id])
@@ -327,6 +405,7 @@ def start_current() -> dict[str, object]:
     if state is None or not isinstance(state.get("current"), dict):
         raise ReleaseError("no promoted scheduler release exists")
     expected = dict(state["current"])
+    readiness = release_start_readiness(str(expected["code_snapshot_sha256"]))
     _tag(str(expected["image"]), CURRENT_ALIAS)
     _run(
         [
@@ -340,8 +419,9 @@ def start_current() -> dict[str, object]:
         ]
     )
     contract = _wait_scheduler_contract(expected)
-    record = _append_audit("START_PASS", contract)
-    return {**contract, "audit_record_sha256": record["record_sha256"]}
+    evidence = {**contract, "start_readiness": readiness}
+    record = _append_audit("START_PASS", evidence)
+    return {**evidence, "audit_record_sha256": record["record_sha256"]}
 
 
 def promote(image: str, *, start: bool) -> dict[str, object]:

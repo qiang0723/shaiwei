@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import yaml
@@ -103,3 +104,118 @@ def test_no_start_promote_and_rollback_swap_distinct_content_images(monkeypatch,
         "PROMOTE_PASS",
         "ROLLBACK_PASS",
     ]
+
+
+def _runtime_csv(path, header, rows):
+    path.write_text(
+        ",".join(header)
+        + "\n"
+        + "".join(",".join(row.get(field, "") for field in header) + "\n" for row in rows),
+        encoding="utf-8",
+    )
+
+
+def test_cross_snapshot_start_requires_a_newer_trade_date(tmp_path):
+    paper = tmp_path / "paper_runs.csv"
+    daily = tmp_path / "daily_runs.csv"
+    _runtime_csv(
+        paper,
+        ["status", "execution_trade_date", "finished_at", "code_snapshot_sha256"],
+        [
+            {
+                "status": "PASS",
+                "execution_trade_date": "20260723",
+                "finished_at": "2026-07-23T12:00:00+00:00",
+                "code_snapshot_sha256": "a" * 64,
+            }
+        ],
+    )
+    _runtime_csv(
+        daily,
+        ["status", "target_trade_date", "finished_at"],
+        [
+            {
+                "status": "PASS",
+                "target_trade_date": "20260723",
+                "finished_at": "2026-07-23T11:00:00+00:00",
+            }
+        ],
+    )
+
+    with pytest.raises(release.ReleaseError, match="unsafe before a newer"):
+        release.release_start_readiness(
+            "b" * 64,
+            paper_runs_path=paper,
+            daily_runs_path=daily,
+            plan_loader=lambda: SimpleNamespace(missing_trade_dates=()),
+        )
+    evidence = release.release_start_readiness(
+        "b" * 64,
+        paper_runs_path=paper,
+        daily_runs_path=daily,
+        plan_loader=lambda: SimpleNamespace(missing_trade_dates=("20260724",)),
+    )
+    assert evidence["mode"] == "CROSS_SNAPSHOT_WITH_NEW_DATA"
+    assert evidence["available_new_trade_dates"] == ["20260724"]
+
+
+def test_cross_snapshot_restart_can_resume_after_daily_pass(tmp_path):
+    paper = tmp_path / "paper_runs.csv"
+    daily = tmp_path / "daily_runs.csv"
+    _runtime_csv(
+        paper,
+        ["status", "execution_trade_date", "finished_at", "code_snapshot_sha256"],
+        [
+            {
+                "status": "PASS",
+                "execution_trade_date": "20260723",
+                "finished_at": "2026-07-23T12:00:00+00:00",
+                "code_snapshot_sha256": "a" * 64,
+            }
+        ],
+    )
+    _runtime_csv(
+        daily,
+        ["status", "target_trade_date", "finished_at"],
+        [
+            {
+                "status": "PASS",
+                "target_trade_date": "20260724",
+                "finished_at": "2026-07-24T12:00:00+00:00",
+            }
+        ],
+    )
+
+    evidence = release.release_start_readiness(
+        "b" * 64,
+        paper_runs_path=paper,
+        daily_runs_path=daily,
+        plan_loader=lambda: SimpleNamespace(missing_trade_dates=()),
+    )
+    assert evidence["available_new_trade_dates"] == ["20260724"]
+
+
+def test_same_release_restart_does_not_require_new_data(tmp_path):
+    paper = tmp_path / "paper_runs.csv"
+    daily = tmp_path / "daily_runs.csv"
+    _runtime_csv(
+        paper,
+        ["status", "execution_trade_date", "finished_at", "code_snapshot_sha256"],
+        [
+            {
+                "status": "PASS",
+                "execution_trade_date": "20260723",
+                "finished_at": "2026-07-23T12:00:00+00:00",
+                "code_snapshot_sha256": "a" * 64,
+            }
+        ],
+    )
+    _runtime_csv(daily, ["status", "target_trade_date", "finished_at"], [])
+
+    evidence = release.release_start_readiness(
+        "a" * 64,
+        paper_runs_path=paper,
+        daily_runs_path=daily,
+        plan_loader=lambda: (_ for _ in ()).throw(AssertionError("plan must not load")),
+    )
+    assert evidence["mode"] == "SAME_RELEASE_RESTART"
