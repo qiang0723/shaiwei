@@ -1,0 +1,136 @@
+schema_version: p2-star50-protocol-v1
+frozen_at: "2026-07-24T22:25:00+08:00"
+scope: research_only
+production_authorization: none
+
+identity:
+  research_family: p2-star50-v1
+  dataset_id: star50-pit-v1
+  config_id: p2-star50-protocol-v1
+  model_id: p2-star50-alpha158-lightgbm-v1
+  benchmark_source_code: 000688.SH
+  benchmark_qlib_code: SH000688
+  instrument_id: star50
+  signal_namespace: p2-star50-signal-v1
+  run_ledger: ledger/p2_star50_runs.csv
+  admission_ledger: ledger/p2_star50_admissions.csv
+  qlib_provider: data/research/star50/datasets/star50-pit-v1/qlib_bin
+  artifact_root: data/research/star50/p2-star50-v1
+
+availability:
+  historical_index_release_after_close: "2020-07-22"
+  first_realtime_publication_date: "2020-07-23"
+  earliest_strategy_usable_date: "2020-07-23"
+  pre_release_history_policy: benchmark_description_only
+  weight_snapshot_lag_open_trade_days: 1
+  weight_forward_fill: until_next_lagged_snapshot
+  unknown_publication_time_policy: next_official_trade_day
+  missing_or_untraceable_snapshot_policy: fail_closed
+
+collection:
+  start_date: "2019-12-31"
+  index_daily_partition: calendar_year
+  index_weight_partition: calendar_month
+  request_execution: serial
+  raw_storage: immutable_project_local_parquet
+  idempotency_key: source_api_plus_canonical_public_params
+  source_row_limit_exclusive: 6000
+  revision_probe: immediate_full_requery
+  forbid_bse_suffix: ".BJ"
+
+portfolio:
+  topk: 10
+  n_drop: 2
+  rebalance_trade_days: 10
+  deal_price: open
+  weighting: equal_weight
+  maximum_single_name_weight: 0.10
+  maximum_top3_weight: 0.30
+  maximum_pit_sw_l1_industry_weight: 0.30
+  minimum_valid_industry_coverage: 0.95
+  liquidity_lookback_trade_days: 20
+  minimum_valid_liquidity_days: 15
+  minimum_median_daily_amount_rmb: 20000000
+  maximum_order_to_median_daily_amount: 0.05
+  maximum_weighted_name_overlap_with_csi800: 0.35
+  maximum_return_correlation_with_csi800: 0.80
+  maximum_star50_risk_contribution_in_joint_portfolio: 0.25
+
+execution:
+  feature_clock: signal_date_close
+  execution_clock: next_official_trade_day_open
+  suspended_policy: no_trade_keep_actual_position
+  directional_limit_policy: no_trade_keep_actual_position
+  st_policy: exclude_using_pit_name_state
+  delisting_policy: no_future_delist_date_filter_and_fail_if_cash_realization_is_unmodeled
+  missing_price_policy: no_fill_and_no_trade
+  star_price_limit_ratio: 0.195
+  price_tick_tolerance: 0.01
+  minimum_star_purchase_lot: 200
+  open_cost: 0.0006
+  close_cost: 0.0016
+  minimum_cost_rmb: 5
+  cost_multipliers: [1.0, 1.5, 2.0]
+  extra_slippage_each_side: 0.001
+
+model:
+  feature_set: Alpha158
+  label: "Ref($open,-11)/Ref($open,-1)-1"
+  seed: 42
+  learning_rate: 0.05
+  num_leaves: 31
+  max_depth: -1
+  colsample_bytree: 0.8879
+  subsample: 0.8789
+  reg_alpha: 0.0421
+  reg_lambda: 0.0220
+  num_boost_round: 1000
+  early_stopping_rounds: 50
+
+evaluation:
+  windows:
+    - name: STAR-W1
+      train: ["2020-07-23", "2022-06-30"]
+      valid: ["2022-07-01", "2022-12-31"]
+      test: ["2023-01-01", "2023-12-31"]
+    - name: STAR-W2
+      train: ["2021-01-01", "2023-06-30"]
+      valid: ["2023-07-01", "2023-12-31"]
+      test: ["2024-01-01", "2024-12-31"]
+    - name: STAR-W3
+      train: ["2022-01-01", "2024-06-30"]
+      valid: ["2024-07-01", "2024-12-31"]
+      test: ["2025-01-01", "2025-12-31"]
+  pressure_periods:
+    - {name: star_2023_drawdown, start: "2023-08-28", end: "2023-10-23"}
+    - {name: microcap_2024, start: "2024-01-02", end: "2024-02-08"}
+    - {name: volume_price_2026h1, start: "2026-01-01", end: "2026-06-30"}
+  minimum_test_trade_days_per_window: 220
+  minimum_rebalances_per_window: 20
+  minimum_positive_net_excess_windows: 2
+  require_pooled_net_excess_positive: true
+  require_double_cost_pooled_excess_nonnegative: true
+  require_extra_slippage_pooled_excess_nonnegative: true
+  maximum_test_or_pressure_drawdown: 0.20
+  minimum_forward_trade_days_before_production_review: 252
+  minimum_forward_rebalances_before_production_review: 20
+
+data_gate:
+  index_daily_official_calendar_coverage_minimum: 0.995
+  index_daily_duplicate_key_count_maximum: 0
+  index_weight_duplicate_key_count_maximum: 0
+  index_weight_month_coverage_minimum: 1.0
+  index_weight_constituent_count_minimum: 45
+  index_weight_constituent_count_maximum: 50
+  index_weight_sum_minimum: 99.0
+  index_weight_sum_maximum: 101.0
+  missing_month_policy: fail_closed
+  bse_row_count_maximum: 0
+  immediate_revision_mismatch_count_maximum: 0
+  long_term_revision_semantics_required_for_strategy_go: documented_or_versioned
+
+strategy_gate:
+  data_feasible_is_not_engineering_complete: true
+  engineering_complete_is_not_strategy_effective: true
+  strategy_effective_is_not_production_authorized: true
+  all_data_engineering_strategy_and_forward_gates_required: true
