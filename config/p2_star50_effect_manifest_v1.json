@@ -1,0 +1,137 @@
+{
+  "artifact_hashes": {
+    "determinism_replay_bundle_sha256": "6baa4137723f21d6d8f39120885b09bfe1dbd1573b157457732c0b689412cc0d",
+    "holding_bundle_sha256": "3d46f2c032665145a167b21f4c0cd22f22ff2c6a273fd0dac0861cf7dad04b8b",
+    "model_bundle_sha256": "4b087b1254abd943bf34f31896eb794700eaccc7274328ba68a96f915fee024a",
+    "nav_bundle_sha256": "16b65b5bffae0c24ecdf18dcc596e303620cb6aa20aadb3317916b5c4475fb80",
+    "prediction_bundle_sha256": "0a79e6e47def633c8d87ec86dcfe9303b40771b8f163f77a389f80cf7a6ffa0b"
+  },
+  "decision": {
+    "cost_gate_pass": false,
+    "determinism_pass": true,
+    "diversification_gate_pass": false,
+    "diversification_gate_status": "NOT_EVALUABLE",
+    "drawdown_gate_pass": false,
+    "historical_effect_gate": "NO_GO",
+    "observations_gate_pass": true,
+    "pooled_base_gate_pass": false,
+    "pooled_double_cost_gate_pass": false,
+    "pooled_extra_slippage_gate_pass": false,
+    "positive_base_net_excess_window_count": 0,
+    "positive_windows_gate_pass": false,
+    "production_authorization": "none",
+    "rebalance_gate_pass": true,
+    "strategy_effective": "REJECT",
+    "strategy_results_inspected": true,
+    "window_gate_pass": false
+  },
+  "diversification": {
+    "common_return_trade_days": 0,
+    "joint_star50_risk_contribution": null,
+    "pass": false,
+    "reason": "no preregistered CSI800 2023-2025 daily return and holding-weight truth",
+    "return_correlation": null,
+    "status": "NOT_EVALUABLE",
+    "weighted_name_overlap": null
+  },
+  "effect_report": {
+    "path": "data/research/star50/p2-star50-effect-v1/effect_report.json",
+    "sha256": "94c458ae908e77af7808e27a41de2b386e920ad910c05a24718de621896f5ce9"
+  },
+  "freeze_commit": "ed5b1b0d59bd18186ef99c9844123af473897fcb",
+  "input_manifest_sha256": "b43a7fa3e77f89e7854cc826aff4f4c6e0b77b700380026a2dbf4de753c63a1c",
+  "ledger": {
+    "admissions_path": "ledger/p2_star50_effect_admissions.csv",
+    "admissions_sha256": "454aeacf58c7e35899de15934f49c4f4e95715025bef8ba6133727d3c6db897f",
+    "runs_path": "ledger/p2_star50_effect_runs.csv",
+    "runs_sha256": "13492b897448921be0308708572ccf9452c150600f078b0572a57f6d32e2c4ce"
+  },
+  "pooled": {
+    "base_net_excess": -0.5039602276299635,
+    "cost_1_5x_net_excess": -0.5033101907936116,
+    "double_cost_net_excess": -0.5198187045896474,
+    "extra_slippage_net_excess": -0.5179255166531582,
+    "trade_days": 727
+  },
+  "pressure_metrics": [
+    {
+      "base_maximum_drawdown": 0.09805492392466453,
+      "base_net_excess": 0.02281258179053902,
+      "frozen_model_window": "STAR-W1",
+      "period": "star_2023_drawdown",
+      "rebalance_count": 4,
+      "trade_days": 35
+    },
+    {
+      "base_maximum_drawdown": 0.26825866209851656,
+      "base_net_excess": -0.021943833157851644,
+      "frozen_model_window": "STAR-W2",
+      "period": "microcap_2024",
+      "rebalance_count": 3,
+      "trade_days": 28
+    },
+    {
+      "base_maximum_drawdown": 0.26448881736822216,
+      "base_net_excess": -0.7035963164305747,
+      "frozen_model_window": "STAR-W3",
+      "period": "volume_price_2026h1",
+      "rebalance_count": 12,
+      "trade_days": 116
+    }
+  ],
+  "production_authorization": "none",
+  "protocol_sha256": "6fb1141f8801c88e6ba10a2358e54cac309a2e856e49992fbc90ca1c798aa32c",
+  "research_family": "p2-star50-effect-v1",
+  "schema_version": "p2-star50-effect-manifest-v1",
+  "training_code_sha256": "8ede986d4921edb357d58320f0f4c8fd7dd893ee94abc5bf2136a41816062659",
+  "window_metrics": [
+    {
+      "base_cost_rmb": 1171868.424204865,
+      "base_maximum_drawdown": 0.27030175723485494,
+      "base_net_excess": -0.048516631012085476,
+      "base_strategy_return": -0.16092998580351858,
+      "base_trade_count": 298,
+      "benchmark_return": -0.1124133547914331,
+      "cost_1_5x_net_excess": -0.0374100818814006,
+      "double_cost_net_excess": -0.04262449440276106,
+      "extra_slippage_net_excess": -0.04204284907955813,
+      "maximum_selected_names": 10,
+      "minimum_selected_names": 10,
+      "rebalance_count": 25,
+      "trade_days": 242,
+      "window": "STAR-W1"
+    },
+    {
+      "base_cost_rmb": 1053445.8396941503,
+      "base_maximum_drawdown": 0.36127885685473615,
+      "base_net_excess": -0.327332374468154,
+      "base_strategy_return": -0.16662176294049003,
+      "base_trade_count": 297,
+      "benchmark_return": 0.16071061152766397,
+      "cost_1_5x_net_excess": -0.3323736058604857,
+      "double_cost_net_excess": -0.33738620537799935,
+      "extra_slippage_net_excess": -0.33676603348419865,
+      "maximum_selected_names": 10,
+      "minimum_selected_names": 10,
+      "rebalance_count": 25,
+      "trade_days": 242,
+      "window": "STAR-W2"
+    },
+    {
+      "base_cost_rmb": 1463114.0236795715,
+      "base_maximum_drawdown": 0.15169002146316157,
+      "base_net_excess": -0.0773578501798382,
+      "base_strategy_return": 0.2818854110378748,
+      "base_trade_count": 298,
+      "benchmark_return": 0.359243261217713,
+      "cost_1_5x_net_excess": -0.08548152670285014,
+      "double_cost_net_excess": -0.09354819520681712,
+      "extra_slippage_net_excess": -0.09265343876949594,
+      "maximum_selected_names": 10,
+      "minimum_selected_names": 10,
+      "rebalance_count": 25,
+      "trade_days": 243,
+      "window": "STAR-W3"
+    }
+  ]
+}
