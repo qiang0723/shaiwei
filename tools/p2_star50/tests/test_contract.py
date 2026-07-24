@@ -12,6 +12,7 @@ from tools.p2_star50.contract import (
     canonical_frame_sha256,
     validate_response,
 )
+from tools.p2_star50.audit import _completed_month_end
 
 
 def _daily() -> pd.DataFrame:
@@ -46,6 +47,11 @@ def test_build_plan_uses_year_and_month_bounded_requests():
     assert plan[0].start_date == "20191231"
     assert plan[-1].end_date == "20200201"
     assert all(item.params.get("ts_code", item.params.get("index_code")) == INDEX_CODE for item in plan)
+
+
+def test_only_completed_weight_months_are_due():
+    assert _completed_month_end("20260724") == "2026-06-30"
+    assert _completed_month_end("20260731") == "2026-07-31"
 
 
 def test_canonical_hash_ignores_provider_row_order():

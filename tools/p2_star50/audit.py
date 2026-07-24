@@ -26,6 +26,13 @@ def _months(start: str, end: str) -> list[str]:
     return [item.strftime("%Y-%m") for item in pd.period_range(start, end, freq="M")]
 
 
+def _completed_month_end(end_date: str) -> str:
+    parsed = pd.to_datetime(end_date, format="%Y%m%d", errors="raise")
+    if parsed.is_month_end:
+        return parsed.strftime("%Y-%m-%d")
+    return (parsed.replace(day=1) - pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+
+
 def _open_dates(calendar: pd.DataFrame, start: str, end: str) -> list[str]:
     frame = calendar.loc[
         calendar["exchange"].astype(str).eq("SSE")
@@ -144,7 +151,11 @@ def main(argv: list[str] | None = None) -> int:
         ).sum()
     )
 
-    expected_months = _months("2020-07-01", args.end_date)
+    completed_month_end = _completed_month_end(args.end_date)
+    expected_months = _months("2020-07-01", completed_month_end)
+    pending_months = sorted(
+        set(_months("2020-07-01", args.end_date)) - set(expected_months)
+    )
     observed_months = sorted(set(weights["trade_date"].str[:6].str.replace(r"(\d{4})(\d{2})", r"\1-\2", regex=True)))
     missing_months = sorted(set(expected_months) - set(observed_months))
     snapshot = (
@@ -188,6 +199,10 @@ def main(argv: list[str] | None = None) -> int:
         effective_dates[snapshot_date] = later[0]
         if open_index.get(later[0], -1) < 0:
             lag_failures.append(snapshot_date)
+    first_effective_date = min(effective_dates.values()) if effective_dates else None
+    uncovered_pit_dates = (
+        [day for day in official_dates if first_effective_date is None or day < first_effective_date]
+    )
 
     revision_mismatches = int(collection.get("revision_mismatch_count", -1))
     long_term_revision_documented = False
@@ -207,6 +222,7 @@ def main(argv: list[str] | None = None) -> int:
             revision_mismatches <= gate["immediate_revision_mismatch_count_maximum"]
         ),
         "pit_one_trade_day_lag_constructible": bool(effective_dates) and not lag_failures,
+        "pit_coverage_from_frozen_start": not uncovered_pit_dates,
         "long_term_revision_semantics": long_term_revision_documented,
     }
     blocking_checks = [
@@ -217,6 +233,21 @@ def main(argv: list[str] | None = None) -> int:
     data_feasible = not [
         name for name in blocking_checks if name != "long_term_revision_semantics"
     ]
+    source_collection_checks = (
+        "permission_index_daily",
+        "permission_index_weight",
+        "daily_coverage",
+        "daily_duplicate_keys",
+        "daily_validity",
+        "weight_month_coverage",
+        "weight_duplicate_keys",
+        "weight_snapshot_counts",
+        "weight_sums",
+        "weight_reference_integrity",
+        "bse_exclusion",
+        "immediate_revision_stability",
+    )
+    source_collection_feasible = all(checks[name] for name in source_collection_checks)
     strategy_history_go = not blocking_checks
     verdict = "GO" if strategy_history_go else "NO_GO"
     payload = {
@@ -263,6 +294,7 @@ def main(argv: list[str] | None = None) -> int:
             "observed_month_count": len(set(expected_months) & set(observed_months)),
             "missing_month_count": len(missing_months),
             "missing_months": missing_months,
+            "pending_not_due_months": pending_months,
             "snapshot_count": len(snapshot),
             "constituent_count_minimum": int(snapshot["constituent_count"].min()) if not snapshot.empty else 0,
             "constituent_count_maximum": int(snapshot["constituent_count"].max()) if not snapshot.empty else 0,
@@ -275,7 +307,9 @@ def main(argv: list[str] | None = None) -> int:
             "unknown_constituent_count": len(unknown_constituents),
             "unknown_constituents": unknown_constituents,
             "distinct_constituent_set_count": distinct_constituent_sets,
-            "first_lagged_effective_date": min(effective_dates.values()) if effective_dates else None,
+            "first_lagged_effective_date": first_effective_date,
+            "uncovered_pit_trade_date_count": len(uncovered_pit_dates),
+            "uncovered_pit_trade_dates": uncovered_pit_dates,
             "canonical_sha256": canonical_frame_sha256("index_weight", weights),
         },
         "revision": {
@@ -291,6 +325,7 @@ def main(argv: list[str] | None = None) -> int:
         },
         "checks": checks,
         "blocking_checks": blocking_checks,
+        "source_collection_feasible": source_collection_feasible,
         "data_feasible": data_feasible,
         "engineering_complete": False,
         "strategy_effective": False,
