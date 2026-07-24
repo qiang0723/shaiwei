@@ -65,6 +65,36 @@ def test_scheduler_compose_has_no_development_tree_or_docker_socket():
     assert all("docker.sock" not in json.dumps(volume) for volume in scheduler["volumes"])
 
 
+def test_image_verification_binds_runtime_snapshot_and_revision(monkeypatch):
+    metadata = {
+        "image": "shaiwei:scheduler-fixed",
+        "image_id": "sha256:fixed",
+        "code_snapshot_sha256": "a" * 64,
+        "git_head": "b" * 40,
+    }
+    monkeypatch.setattr(release, "_image_metadata", lambda _image: metadata)
+    monkeypatch.setattr(
+        release,
+        "_image_runtime_identity",
+        lambda _image: {
+            "code_snapshot_sha256": "a" * 64,
+            "git_head": "b" * 40,
+        },
+    )
+    assert release.verify_image("shaiwei:scheduler-fixed") == metadata
+
+    monkeypatch.setattr(
+        release,
+        "_image_runtime_identity",
+        lambda _image: {
+            "code_snapshot_sha256": "a" * 64,
+            "git_head": "c" * 40,
+        },
+    )
+    with pytest.raises(release.ReleaseError, match="runtime identity differ"):
+        release.verify_image("shaiwei:scheduler-fixed")
+
+
 def test_no_start_promote_and_rollback_swap_distinct_content_images(monkeypatch, tmp_path):
     monkeypatch.setattr(release, "STATE_PATH", tmp_path / "scheduler_state.json")
     monkeypatch.setattr(release, "AUDIT_PATH", tmp_path / "scheduler_releases.jsonl")
