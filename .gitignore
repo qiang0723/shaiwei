@@ -14,5 +14,6 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .venv/
+.release/
 .DS_Store
 !ledger/*.csv

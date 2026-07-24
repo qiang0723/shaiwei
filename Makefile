@@ -1,9 +1,10 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
 MPLCONFIGDIR ?= $(CURDIR)/data/cache/matplotlib
 G1_EVIDENCE ?=
+RELEASE_IMAGE ?=
 export MPLCONFIGDIR
 
 bootstrap:        ## 创建隔离环境、安装依赖并校验配置
@@ -101,8 +102,19 @@ docker-g1-admit:  ## 容器内执行冻结 G1 裁决；不启动因子生成
 docker-stage1-preflight: ## 容器内极小预算 GP → 自动证据 → G1 REJECT/PASS；零自动入库
 	docker compose run --rm shaiwei python -m shaiwei.benchmark.alphagen_cpu --research-family stage1-gp-preflight-v1 --instrument csi800 --index-code 000906.SH --train-start 2016-01-01 --train-end 2018-12-31 --population-size 40 --tournament-size 10
 	docker compose run --rm shaiwei python -m shaiwei.research.g1_pipeline --research-family stage1-gp-preflight-v1
-docker-scheduler-up: ## 启动常驻日增量守护（Docker 自动重启）
-	docker compose up -d --build scheduler
+docker-release-build: ## 从干净工作树构建并验证内容寻址 scheduler 镜像
+	$(PYTHON) -m shaiwei.release build
+docker-release-promote: ## 提升 RELEASE_IMAGE；默认重建 scheduler 并验收隔离契约
+	@test -n "$(RELEASE_IMAGE)" || (echo "RELEASE_IMAGE is required"; exit 2)
+	$(PYTHON) -m shaiwei.release promote --image "$(RELEASE_IMAGE)"
+docker-release-rollback: ## 回滚到上一不可变 scheduler 镜像并验收
+	$(PYTHON) -m shaiwei.release rollback
+docker-release-start: ## 启动已提升的 current 镜像并验收挂载/快照/健康
+	$(PYTHON) -m shaiwei.release start
+docker-release-status: ## 校验本地发布状态与哈希链审计
+	$(PYTHON) -m shaiwei.release status
+docker-scheduler-up: ## 启动已提升的不可变 scheduler 镜像；不隐式构建
+	docker compose up -d scheduler
 docker-scheduler-status: ## 查看守护容器与健康状态
 	docker compose ps scheduler
 docker-scheduler-logs: ## 查看最近 100 行脱敏守护日志

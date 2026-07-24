@@ -12,7 +12,7 @@ x-shaiwei-environment: &shaiwei_environment
   NO_PROXY: &domestic_data_hosts "api.waditu.com,.waditu.com,finance.sina.com.cn,stock.finance.sina.com.cn,.sina.com.cn,.eastmoney.com,.baostock.com,localhost,127.0.0.1"
   no_proxy: *domestic_data_hosts
 
-x-shaiwei-common: &shaiwei_common
+x-shaiwei-dev: &shaiwei_dev
   image: shaiwei:local
   build:
     context: .
@@ -21,26 +21,61 @@ x-shaiwei-common: &shaiwei_common
   working_dir: /workspace
   env_file:
     - .env
-  environment: *shaiwei_environment
+  environment:
+    <<: *shaiwei_environment
+    # The development container intentionally consumes the current worktree.
+    # Disable the image's embedded release manifest in this service only.
+    SHAIWEI_RELEASE_MANIFEST: ""
   volumes:
     - .:/workspace
 
 services:
   shaiwei:
-    <<: *shaiwei_common
+    <<: *shaiwei_dev
     command: ["python", "-m", "shaiwei.pipeline.stage0", "--plan"]
 
   scheduler:
-    <<: *shaiwei_common
+    image: shaiwei:scheduler-current
+    init: true
+    working_dir: /workspace
+    env_file:
+      - .env
     restart: unless-stopped
     stop_grace_period: 30s
     environment:
       <<: *shaiwei_environment
       TZ: Asia/Shanghai
+    # Production code/config/tests/templates are baked into the image.
+    # Only explicit persistent runtime state may cross the host boundary.
+    volumes:
+      - type: bind
+        source: ./data
+        target: /workspace/data
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger
+        target: /workspace/ledger
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./logs
+        target: /workspace/logs
+        bind:
+          create_host_path: false
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=1g,mode=1777
+      - /root/.cache:rw,noexec,nosuid,size=512m,mode=0700
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     command: ["python", "-m", "shaiwei.pipeline.scheduler"]
     healthcheck:
       test: ["CMD", "python", "-m", "shaiwei.pipeline.scheduler", "--healthcheck"]
       interval: 5m
+      start_interval: 10s
       timeout: 15s
       retries: 3
       start_period: 2m

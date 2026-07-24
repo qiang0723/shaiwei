@@ -1,9 +1,11 @@
 .env
 .git
 .venv
+.release
 .pytest_cache
 .ruff_cache
 __pycache__
+.DS_Store
 *.py[cod]
 *.parquet
 data
@@ -13,4 +15,3 @@ mlruns
 signals
 vendor
 docs
-

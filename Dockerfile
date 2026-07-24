@@ -15,8 +15,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 WORKDIR /workspace
 
-COPY requirements.lock pyproject.toml ./
+COPY .dockerignore .env.example Dockerfile Makefile compose.yaml pyproject.toml requirements.lock ./
 COPY src ./src
+COPY config ./config
+COPY templates ./templates
+COPY tests ./tests
 # PyPI publishes pyqlib 0.9.7 Linux wheels only for x86_64. Build the exact
 # signed v0.9.7 release commit natively for Apple Silicon instead.
 ARG QLIB_COMMIT=da920b7f954f48ab1bb64117c976710de198373e
@@ -30,6 +33,10 @@ RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
     && python -c "import qlib; assert qlib.__version__ == '0.9.7', qlib.__version__" \
     && python -m pip install --no-deps -e .
 
-COPY config ./config
+RUN mkdir -p /opt/shaiwei /workspace/data /workspace/ledger /workspace/logs \
+    && python -m shaiwei.provenance \
+       --write-release-manifest /opt/shaiwei/release-manifest.json
+
+ENV SHAIWEI_RELEASE_MANIFEST=/opt/shaiwei/release-manifest.json
 
 CMD ["python", "-m", "shaiwei.pipeline.stage0", "--plan"]
