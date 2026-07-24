@@ -21,6 +21,8 @@ PAPER_EVENTS = LEDGER_DIR / "paper_events.csv"
 PAPER_RUNS = LEDGER_DIR / "paper_runs.csv"
 P2_STAR50_ENGINEERING_RUNS = LEDGER_DIR / "p2_star50_engineering_runs.csv"
 P2_STAR50_ENGINEERING_ADMISSIONS = LEDGER_DIR / "p2_star50_engineering_admissions.csv"
+P2_STAR50_EFFECT_RUNS = LEDGER_DIR / "p2_star50_effect_runs.csv"
+P2_STAR50_EFFECT_ADMISSIONS = LEDGER_DIR / "p2_star50_effect_admissions.csv"
 
 
 def portable_artifact_path(path: str | Path) -> str:
@@ -272,3 +274,17 @@ def append_p2_star50_engineering_admission(*, path: Path | None = None, **kw: ob
         kw,
         key="decision_id",
     )
+
+
+def append_p2_star50_effect_run(*, path: Path | None = None, **kw: object) -> bool:
+    """Append one sanitized P2-2 result with a real runtime UTC timestamp."""
+    kw.setdefault("run_finished_at", datetime.now(timezone.utc).isoformat())
+    kw.setdefault("operator", "p2-star50-effect")
+    return _append_idempotent(path or P2_STAR50_EFFECT_RUNS, kw, key="run_id")
+
+
+def append_p2_star50_effect_admission(*, path: Path | None = None, **kw: object) -> bool:
+    """Append one P2-2 historical decision; this never authorizes production."""
+    kw.setdefault("evaluated_at", datetime.now(timezone.utc).isoformat())
+    kw.setdefault("operator", "p2-star50-effect")
+    return _append_idempotent(path or P2_STAR50_EFFECT_ADMISSIONS, kw, key="decision_id")

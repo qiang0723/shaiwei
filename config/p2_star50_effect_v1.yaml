@@ -1,0 +1,221 @@
+schema_version: p2-star50-effect-protocol-v1
+frozen_at: "2026-07-25T00:50:00+08:00"
+scope: one_preregistered_historical_effect_decision_only
+production_authorization: none
+
+upstream_evidence:
+  p2_1_final_commit: ea225cdaf06b951932ca5155ede7b61676fe0847
+  p2_1_manifest_sha256: 4e946aa7d3e3c3da31ca8ad700bee2587a189dddfcf62b83054bc6804c163986
+  p2_1_quality_report_sha256: 3074bac232442f1e862c09d529a35f42fd2aa086422b337d1e72e780b569a990
+  p2_1_engineering_report_sha256: a4cfad049e36914fcec76f05c9dc6f5c24b55d85fe4213a37a3e8f7ae9909401
+  market_parquet_sha256: a1e1d99a9de8cce0dada33389f3588d96ec6e1ecd5f5a1738e7105353901c289
+  member_days_parquet_sha256: a6fb10532bba9de9504fc4be0bfe6e45e50621a761ae29fbaa1cf9ba39356061
+  benchmark_parquet_sha256: e659bcbc042fb56bd50482428daa8eb88dfc8bb674d91d7b4551a07e8a945c42
+  qlib_tree_sha256: b8f736ef9bc9e31cc236a81ca281a23e904789fb5ec87caa9195b572c6b78729
+  qlib_build_identity_sha256: dca65a090284de044346bcea7f6ff7364f9a23e3479c9f77c1832f45b2fd26e6
+  v2_manifest_sha256: 387514f25d9f883c7ebe84e386ba6dbca4644bb204628004cee4991dc316e112
+  v2_quality_report_sha256: 51bfe33aa21162007961d9fb0fd8a6fe91d45ce7593bddac7c9ff0c2fda2df93
+  v2_initial_set_sha256: fe960ccc0b86592c02d082a7f9fda18bb6032b4c263458850cc7deb709a95d4c
+  v2_membership_events_sha256: ee5b6ac2a3ee608067bcca51cc21da152b754ec2b96c52c2be4db184c55cdf6a
+  v2_daily_membership_sha256: 91e9d48421d2a577176488d792c63f5d33bceee953a4532cdb8a8f6317d82644
+  p2_1_report_recalculation_forbidden: true
+  p2_1_ledger_rows_immutable: true
+
+identity:
+  research_family: p2-star50-effect-v1
+  dataset_id: star50-official-pit-engineering-v1
+  config_id: p2-star50-effect-protocol-v1
+  model_id: p2-star50-alpha158-lightgbm-effect-v1
+  benchmark_source_code: 000688.SH
+  benchmark_qlib_code: SH000688
+  instrument_id: star50_official_pit_v1
+  signal_namespace: p2-star50-effect-v1-local-research-only
+  signal_persistence_scope: ignored_reproducibility_artifact_only
+  run_ledger: ledger/p2_star50_effect_runs.csv
+  admission_ledger: ledger/p2_star50_effect_admissions.csv
+  result_root: data/research/star50/p2-star50-effect-v1
+  result_report: data/research/star50/p2-star50-effect-v1/effect_report.json
+  tracked_manifest: config/p2_star50_effect_manifest_v1.json
+  qlib_provider: data/research/star50/p2-star50-engineering-v1/qlib_bin
+  market_dataset: data/research/star50/p2-star50-engineering-v1/dataset/market.parquet
+  member_day_dataset: data/research/star50/p2-star50-engineering-v1/dataset/member_days.parquet
+  benchmark_dataset: data/research/star50/p2-star50-engineering-v1/dataset/benchmark.parquet
+
+pre_run_contract:
+  freeze_commit_must_be_pushed_before_real_execution: true
+  git_head_must_equal_origin_main: true
+  git_worktree_must_be_clean: true
+  verify_every_frozen_input_sha256: true
+  run_count_exact: 1
+  deterministic_replay_count: 1
+  execute_high_load_tasks_serially: true
+  inspect_real_results_only_after_freeze_push: true
+
+p2_1_timestamp_addendum:
+  document: docs/P2_STAR50_P21_LEDGER_TIMESTAMP_ADDENDUM_20260725.md
+  legacy_finished_at_semantics: protocol_frozen_at
+  legacy_evaluated_at_semantics: protocol_frozen_at
+  mutate_legacy_rows: false
+  new_run_time_field: run_finished_at
+  new_evaluation_time_field: evaluated_at
+
+portfolio:
+  account_rmb: 100000000
+  topk: 10
+  n_drop: 2
+  rebalance_trade_days: 10
+  deal_price: open
+  weighting: equal_weight
+  target_weight_per_name: 0.10
+  maximum_single_name_weight: 0.10
+  maximum_top3_weight: 0.30
+  maximum_pit_sw_l1_industry_weight: 0.30
+  minimum_valid_industry_coverage: 0.95
+  liquidity_lookback_trade_days: 20
+  minimum_valid_liquidity_days: 15
+  minimum_median_daily_amount_rmb: 20000000
+  maximum_order_to_median_daily_amount: 0.05
+  insufficient_names_policy: keep_cash
+  hard_ineligible_names_removed_before_rank_dropout: true
+  ranking_dropout_limit_applies_after_hard_exclusions: 2
+
+execution:
+  feature_clock: signal_date_close
+  execution_clock: next_official_trade_day_open
+  signal_schedule_anchor: first_official_trade_day_in_each_evaluation_period
+  pressure_periods_start_with_cash: true
+  target_selection: greedy_score_descending_with_pit_industry_and_liquidity_constraints
+  liquidity_observation_clock: signal_date_close
+  order_capacity_policy: cap_partial_fill_to_five_percent_of_signal_date_median_amount
+  suspended_policy: no_trade_keep_actual_position
+  directional_limit_policy: no_trade_keep_actual_position
+  st_policy: exclude_using_pit_name_state
+  missing_price_policy: no_fill_for_signal_or_execution_and_no_trade
+  suspended_valuation_policy: carry_last_observed_close_for_nav_only
+  delisting_policy: fail_if_held_position_has_no_future_price_and_cash_realization_is_unmodeled
+  star_price_limit_ratio: 0.195
+  price_tick_tolerance: 0.01
+  minimum_star_purchase_lot: 200
+  additional_purchase_increment_shares: 1
+  sell_remainder_allowed: true
+  open_cost: 0.0006
+  close_cost: 0.0016
+  minimum_cost_rmb: 5
+  cost_multipliers: [1.0, 1.5, 2.0]
+  extra_slippage_each_side: 0.001
+  benchmark_return: pct_chg_divided_by_100
+
+model:
+  feature_set: Alpha158
+  label: "Ref($open,-11)/Ref($open,-1)-1"
+  seed: 42
+  learning_rate: 0.05
+  num_leaves: 31
+  max_depth: -1
+  colsample_bytree: 0.8879
+  subsample: 0.8789
+  reg_alpha: 0.0421
+  reg_lambda: 0.0220
+  num_boost_round: 1000
+  early_stopping_rounds: 50
+  early_stopping_segment: valid
+  num_threads: 1
+  deterministic: true
+  force_col_wise: true
+  retrain_on_test_forbidden: true
+  retune_forbidden: true
+
+evaluation:
+  windows:
+    - name: STAR-W1
+      train: ["2020-07-23", "2022-06-30"]
+      valid: ["2022-07-01", "2022-12-31"]
+      test: ["2023-01-01", "2023-12-31"]
+    - name: STAR-W2
+      train: ["2021-01-01", "2023-06-30"]
+      valid: ["2023-07-01", "2023-12-31"]
+      test: ["2024-01-01", "2024-12-31"]
+    - name: STAR-W3
+      train: ["2022-01-01", "2024-06-30"]
+      valid: ["2024-07-01", "2024-12-31"]
+      test: ["2025-01-01", "2025-12-31"]
+  pressure_periods:
+    - name: star_2023_drawdown
+      start: "2023-08-28"
+      end: "2023-10-23"
+      frozen_model_window: STAR-W1
+    - name: microcap_2024
+      start: "2024-01-02"
+      end: "2024-02-08"
+      frozen_model_window: STAR-W2
+    - name: volume_price_2026h1
+      start: "2026-01-01"
+      end: "2026-06-30"
+      frozen_model_window: STAR-W3
+  pooled_base_definition: chronological_concatenation_2023_2024_2025_compound_strategy_minus_compound_benchmark
+  minimum_test_trade_days_per_window: 220
+  minimum_rebalances_per_window: 20
+  minimum_positive_net_excess_windows: 2
+  require_pooled_base_net_excess_positive: true
+  require_pooled_double_cost_net_excess_nonnegative: true
+  require_pooled_extra_slippage_net_excess_nonnegative: true
+  maximum_test_or_pressure_strategy_nav_drawdown: 0.20
+  minimum_forward_trade_days_before_production_review: 252
+  minimum_forward_rebalances_before_production_review: 20
+
+diversification_gate:
+  comparator_inventory: config/p2_star50_csi800_comparator_inventory_v1.json
+  comparator_inventory_sha256: a1c940272bc94aeec9b85a9d35b4148fac3548f0da563a3d660b15ad8d825002
+  bound_comparator: null
+  missing_comparator_policy: NOT_EVALUABLE_AND_NO_GO
+  temporary_proxy_forbidden: true
+  weighted_name_overlap:
+    definition: daily_sum_minimum_star_and_csi_name_weights
+    aggregation: maximum_over_common_trade_days
+    maximum: 0.35
+  return_correlation:
+    return_field: base_cost_daily_net_return
+    period: ["2023-01-01", "2025-12-31"]
+    minimum_common_trade_days: 660
+    method: pearson
+    maximum: 0.80
+  joint_risk_contribution:
+    csi800_capital_weight: 0.75
+    star50_capital_weight: 0.25
+    definition: "w_star*(Sigma*w)_star/(w_prime*Sigma*w)"
+    maximum: 0.25
+    nonfinite_or_nonpositive_denominator_policy: fail_closed
+
+diagnostics:
+  allowed: [RankIC, ICIR, turnover, industry_exposure, capacity_utilization]
+  may_create_post_hoc_gate: false
+
+verdict_contract:
+  strategy_results_inspected: true
+  go_requires:
+    - all_three_windows_minimum_observations
+    - all_three_windows_minimum_rebalances
+    - at_least_two_positive_base_net_excess_windows
+    - pooled_base_net_excess_positive
+    - pooled_double_cost_net_excess_nonnegative
+    - pooled_extra_slippage_net_excess_nonnegative
+    - every_test_and_pressure_drawdown_at_or_below_maximum
+    - diversification_gate_pass
+    - determinism_pass
+  historical_go_effective_label: HISTORICAL_GO_FOR_FORWARD_ONLY
+  reject_effective_label: REJECT
+  not_evaluable_effect_gate: NO_GO
+  production_authorization: none
+
+prohibited_actions:
+  - threshold_change_after_result
+  - seed_change
+  - test_driven_retrain
+  - comparator_proxy_creation
+  - production_signal_generation
+  - paper_portfolio_change
+  - csi800_provider_model_signal_or_gate_change
+  - shared_or_forward_qlib_change
+  - scheduler_image_or_config_change
+  - production_ledger_change
+  - automatic_forward_or_production_authorization

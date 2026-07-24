@@ -1,0 +1,123 @@
+{
+  "bound_comparator": null,
+  "conclusion": "NO_LEGAL_COMPARATOR_TRUTH_FOUND",
+  "inventory_policy": {
+    "inspection_scope": [
+      "file_existence",
+      "schema",
+      "sha256"
+    ],
+    "required_base_cost_daily_net_return_field": true,
+    "required_daily_holding_weight_field": true,
+    "required_period": [
+      "2023-01-01",
+      "2025-12-31"
+    ],
+    "temporary_proxy_forbidden": true
+  },
+  "rejected_candidates": [
+    {
+      "artifact_kind": "stage0_summary_json",
+      "deficits": [
+        "summary_only",
+        "no_daily_net_return_series",
+        "no_daily_holding_weights"
+      ],
+      "files": [
+        {
+          "path": "logs/backtest/stage0_baseline_20260715T165611.961226Z.json",
+          "sha256": "34a5d527c8689ed801a233471f247f0b73219295085120b843b01d1131b9e598"
+        },
+        {
+          "path": "logs/backtest/stage0_baseline_20260715T170717.185062Z.json",
+          "sha256": "c58b14af635ece768d90a8732354f9b0e1ba847a30484400972d3739e8c021da"
+        },
+        {
+          "path": "logs/backtest/stage0_baseline_20260715T171928.727627Z.json",
+          "sha256": "266f95ad9578ba949b9c449fbba013c96037d28a13eb1fa1e7b49edbb3cc397a"
+        },
+        {
+          "path": "logs/backtest/stage0_baseline_20260715T174030.948815Z.json",
+          "sha256": "90222a6e5ea1fc69e7cf87364d8441efe560d05c6fdcc742da8a5123eac9f784"
+        },
+        {
+          "path": "logs/backtest/stage0_baseline_20260716T042319.589755Z.json",
+          "sha256": "b329600d2f730520b9b456ae90540e0a9f9a4437e7bf3b4e352d2663d9f32bc2"
+        }
+      ],
+      "schema": [
+        "code_snapshot_sha256",
+        "data_snapshot_sha256",
+        "forward_label",
+        "g0_backtest",
+        "generated_at",
+        "windows"
+      ]
+    },
+    {
+      "artifact_kind": "p1_daily_net_excess_parquet",
+      "deficits": [
+        "net_excess_only_not_base_cost_strategy_daily_net_return",
+        "no_daily_holding_weights"
+      ],
+      "files": [
+        {
+          "path": "data/research/moneyflow/experiments/p1-moneyflow-daily-returns-v1-6dbe01ce4abc5d8a.parquet",
+          "sha256": "6dbe01ce4abc5d8aeb55d386b73bd4351e910c7d19c112f4938a6c2caa04cd4d"
+        },
+        {
+          "path": "data/research/moneyflow/experiments/p1-moneyflow-daily-returns-v1-c40afe00d15edbd4.parquet",
+          "sha256": "c40afe00d15edbd413cbb66018abe78bafbd14e31efe34b4a270e889b3e2a97b"
+        },
+        {
+          "path": "data/research/moneyflow/experiments/p1-moneyflow-daily-returns-v1-c94321441eb0360b.parquet",
+          "sha256": "c94321441eb0360b90892d8c67f20009d33a537ffa0f3984836c059162c03ca8"
+        }
+      ],
+      "schema": [
+        "candidate",
+        "window",
+        "scenario",
+        "trade_date",
+        "daily_net_excess_return",
+        "cumulative_excess",
+        "turnover",
+        "max_drawdown"
+      ]
+    },
+    {
+      "artifact_kind": "p1_baseline_predictions_parquet",
+      "deficits": [
+        "predictions_are_not_executed_portfolio_truth",
+        "no_daily_net_return_series",
+        "no_daily_holding_weights"
+      ],
+      "files": [
+        {
+          "path": "data/research/moneyflow/residuals/p1-moneyflow-alpha158-predictions-v1-46a24aad0c21e2df.parquet",
+          "sha256": "46a24aad0c21e2df054b2f4ba9d58ffebbadaf8bf9a811318fedd836663cc38a"
+        }
+      ],
+      "schema": [
+        "window",
+        "ts_code",
+        "trade_date",
+        "instrument",
+        "baseline_score"
+      ]
+    },
+    {
+      "artifact_kind": "forward_shadow_and_paper_artifacts",
+      "deficits": [
+        "forward_2026_only",
+        "not_historical_2023_2025_oos_truth"
+      ],
+      "path_prefixes": [
+        "data/shadow",
+        "data/paper"
+      ]
+    }
+  ],
+  "schema_version": "p2-star50-csi800-comparator-inventory-v1",
+  "strategy_results_inspected": false
+}

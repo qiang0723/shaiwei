@@ -125,3 +125,21 @@ def test_p2_engineering_ledger_is_idempotent_and_fail_closed_on_collision(tmp_pa
             finished_at="2026-07-25T00:00:00+08:00",
             operator="test",
         )
+
+
+def test_p2_effect_ledger_separates_protocol_and_real_runtime_timestamps(tmp_path: Path):
+    path = tmp_path / "p2_effect_runs.csv"
+    path.write_text(
+        "run_id,protocol_frozen_at,run_finished_at,status,operator\n",
+        encoding="utf-8",
+    )
+    row = {
+        "run_id": "p2-2-one",
+        "protocol_frozen_at": "2026-07-25T00:50:00+08:00",
+        "run_finished_at": "2026-07-24T18:30:00+00:00",
+        "status": "NO_GO",
+        "operator": "test",
+    }
+    assert row["protocol_frozen_at"] != row["run_finished_at"]
+    assert ledger.append_p2_star50_effect_run(path=path, **row)
+    assert not ledger.append_p2_star50_effect_run(path=path, **row)
