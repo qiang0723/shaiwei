@@ -97,6 +97,36 @@ def main(argv: list[str] | None = None) -> int:
                 request.public_params,
             )
         )
+    if existing_report is not None and not pending:
+        if evidence != existing_report.get("request_evidence"):
+            raise SystemExit("committed request evidence differs from immutable collection report")
+        recorded_pairs = {
+            (item["api_name"], item["params_key"])
+            for item in existing_report.get("revision_probes", [])
+            if item.get("stable") is True
+        }
+        planned_pairs = {
+            (request.api_name, canonical_params_key(request.public_params))
+            for request in plan
+        }
+        if recorded_pairs != planned_pairs:
+            raise SystemExit("immutable collection report lacks a stable probe for the full plan")
+        print(
+            json.dumps(
+                {
+                    "status": "REUSED_IMMUTABLE_COLLECTION",
+                    "request_count": len(plan),
+                    "new_request_count": 0,
+                    "row_count": sum(int(item["row_count"]) for item in evidence),
+                    "revision_mismatch_count": existing_report["revision_mismatch_count"],
+                    "report": str(report_path.relative_to(PROJECT_ROOT)),
+                    "report_created": False,
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
+        return 0
     payload = {
         "schema_version": "p2-star50-collection-v1",
         "protocol_sha256": sha256_file(PROTOCOL_PATH),
