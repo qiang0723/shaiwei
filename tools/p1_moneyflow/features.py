@@ -8,6 +8,7 @@ from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
+from threadpoolctl import threadpool_limits
 
 from tools.p1_moneyflow.contract import MONEYFLOW_FIELDS
 
@@ -24,6 +25,7 @@ FORMAL_CANDIDATES = (
     "mf_net_innovation_5_20",
     "mf_net_persistence_10d",
 )
+RESIDUAL_SERIALIZATION_DECIMALS = 12
 
 FEATURE_POLICY: dict[str, object] = {
     "version": "p1-moneyflow-v1",
@@ -269,6 +271,10 @@ def residualize_moneyflow_candidates(
     )
     if merged.empty:
         raise MoneyflowFeatureError("features and exposures have no common observations")
+    # DuckDB joins are intentionally free to return rows in any order.  Freeze the
+    # cross-sectional row order before fitting so identical inputs cannot change
+    # the floating-point reduction order between runs.
+    merged = merged.sort_values(["trade_date", "ts_code"], kind="stable").reset_index(drop=True)
     _finite_numeric(merged, FORMAL_CANDIDATES, name="features")
     continuous_fields = ["market_cap", "amount", "turnover_rate"]
     if include_baseline_score:
@@ -320,8 +326,17 @@ def residualize_moneyflow_candidates(
             if int(valid.sum()) >= min_cross_section and base_valid.loc[valid, candidate].nunique() >= 2:
                 candidate_matrix = matrix[valid.to_numpy()]
                 values = base_valid.loc[valid, candidate].to_numpy(dtype=float)
-                coefficients, *_ = np.linalg.lstsq(candidate_matrix, values, rcond=None)
-                residual.loc[valid] = values - candidate_matrix @ coefficients
+                # LAPACK may otherwise reduce the same cross-section in a different
+                # order across worker threads, which changes a few last-bit values
+                # and breaks byte-identical immutable artifacts.
+                with threadpool_limits(limits=1, user_api="blas"):
+                    coefficients, *_ = np.linalg.lstsq(
+                        candidate_matrix, values, rcond=None
+                    )
+                    fitted = candidate_matrix @ coefficients
+                residual.loc[valid] = np.round(
+                    values - fitted, decimals=RESIDUAL_SERIALIZATION_DECIMALS
+                )
                 has_candidate = True
             day[candidate] = residual
         if has_candidate:

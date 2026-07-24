@@ -23,6 +23,7 @@ from tools.p1_moneyflow.feature_builder import (
 )
 from tools.p1_moneyflow.features import (
     FORMAL_CANDIDATES,
+    RESIDUAL_SERIALIZATION_DECIMALS,
     feature_policy_sha256,
     residualize_moneyflow_candidates,
 )
@@ -146,6 +147,7 @@ def _residual_data_sha256(
         "formal_artifact_sha256": formal_artifact_sha256,
         "prediction_artifact_sha256": prediction_artifact_sha256,
         "feature_policy_sha256": feature_policy_sha256(),
+        "residual_serialization_decimal_places": RESIDUAL_SERIALIZATION_DECIMALS,
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()

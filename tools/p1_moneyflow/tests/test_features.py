@@ -5,6 +5,7 @@ import pytest
 from tools.p1_moneyflow.contract import MONEYFLOW_FIELDS
 from tools.p1_moneyflow.features import (
     FORMAL_CANDIDATES,
+    RESIDUAL_SERIALIZATION_DECIMALS,
     MoneyflowFeatureError,
     audit_feature_lineage,
     build_moneyflow_features,
@@ -130,7 +131,13 @@ def test_residualization_requires_complete_exposure_and_is_deterministic():
     exposure_frame = pd.DataFrame(exposures)
     first = residualize_moneyflow_candidates(features, exposure_frame, min_cross_section=30)
     second = residualize_moneyflow_candidates(features, exposure_frame, min_cross_section=30)
+    shuffled = residualize_moneyflow_candidates(
+        features.sample(frac=1, random_state=7),
+        exposure_frame.sample(frac=1, random_state=11),
+        min_cross_section=30,
+    )
     pd.testing.assert_frame_equal(first, second)
+    pd.testing.assert_frame_equal(first, shuffled)
     assert first.duplicated(["ts_code", "trade_date"]).sum() == 0
     assert set(FORMAL_CANDIDATES) <= set(first.columns)
     assert first["mf_net_intensity_20d"].notna().any()
@@ -143,6 +150,85 @@ def test_residualization_requires_complete_exposure_and_is_deterministic():
         include_baseline_score=False,
     )
     assert core["mf_net_intensity_20d"].notna().any()
+
+
+def test_incremental_residual_matches_fwl_projection():
+    codes = tuple(f"{index:06d}.SZ" for index in range(1, 51))
+    moneyflow, daily, calendar = _frames(codes=codes)
+    features = build_moneyflow_features(moneyflow, daily, calendar, min_cross_section=30)
+    trade_date = calendar[-1]
+    features = features.loc[features["trade_date"].eq(trade_date)].copy()
+    exposures = pd.DataFrame(
+        [
+            {
+                "ts_code": code,
+                "trade_date": trade_date,
+                "industry": f"I{index % 5}",
+                "market_cap": 1000.0 + index**2,
+                "amount": 100.0 + index * 3,
+                "turnover_rate": 0.3 + index / 100,
+                "baseline_score": np.sin(index / 3) + index / 50,
+            }
+            for index, code in enumerate(codes, start=1)
+        ]
+    )
+    actual = residualize_moneyflow_candidates(
+        features,
+        exposures,
+        min_cross_section=30,
+        include_baseline_score=True,
+    )
+
+    merged = features.merge(exposures, on=["ts_code", "trade_date"], validate="one_to_one")
+    merged["log_market_cap"] = np.log(merged["market_cap"])
+    merged["log_amount"] = np.log(merged["amount"])
+
+    def standardize(series: pd.Series) -> pd.Series:
+        lower, upper = series.quantile([0.01, 0.99])
+        clipped = series.clip(float(lower), float(upper))
+        return (clipped - clipped.mean()) / clipped.std(ddof=0)
+
+    core_design = pd.concat(
+        [
+            pd.Series(1.0, index=merged.index, name="intercept"),
+            standardize(merged["log_market_cap"]).rename("log_market_cap"),
+            standardize(merged["log_amount"]).rename("log_amount"),
+            standardize(merged["turnover_rate"]).rename("turnover_rate"),
+            pd.get_dummies(
+                merged["industry"].astype(str),
+                prefix="industry",
+                drop_first=True,
+                dtype=float,
+            ),
+        ],
+        axis=1,
+    ).to_numpy(dtype=float)
+    candidate = merged["mf_net_intensity_1d"].to_numpy(dtype=float)
+    baseline = standardize(merged["baseline_score"]).to_numpy(dtype=float)
+    candidate_core = candidate - core_design @ np.linalg.lstsq(
+        core_design, candidate, rcond=None
+    )[0]
+    baseline_core = baseline - core_design @ np.linalg.lstsq(
+        core_design, baseline, rcond=None
+    )[0]
+    expected = candidate_core - baseline_core * (
+        (baseline_core @ candidate_core) / (baseline_core @ baseline_core)
+    )
+    observed = (
+        actual.set_index("ts_code")
+        .loc[merged["ts_code"], "mf_net_intensity_1d"]
+        .to_numpy(dtype=float)
+    )
+    np.testing.assert_allclose(
+        observed,
+        np.round(expected, decimals=RESIDUAL_SERIALIZATION_DECIMALS),
+        atol=10 ** (-RESIDUAL_SERIALIZATION_DECIMALS),
+        rtol=0,
+    )
+    np.testing.assert_array_equal(
+        observed,
+        np.round(observed, decimals=RESIDUAL_SERIALIZATION_DECIMALS),
+    )
 
 
 def test_lineage_audit_rejects_same_day_use():
