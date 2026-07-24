@@ -1,0 +1,298 @@
+schema_version: p2-star50-engineering-protocol-v1
+frozen_at: "2026-07-25T00:00:00+08:00"
+scope: engineering_only_no_real_strategy_results
+production_authorization: none
+
+upstream_evidence:
+  v1_protocol_sha256: 31cb4bd33e7eaa0bcb3c23f937c52357778cad5704894e79061f32f4909da2d1
+  v1_verdict: NO_GO
+  v2_protocol_sha256: 54e9d49d295c26c19898e716873a333d85f581d02c914c2d4affaa23072c4183
+  v2_verdict: GO
+  v2_manifest_sha256: 387514f25d9f883c7ebe84e386ba6dbca4644bb204628004cee4991dc316e112
+  v2_quality_report_sha256: 51bfe33aa21162007961d9fb0fd8a6fe91d45ce7593bddac7c9ff0c2fda2df93
+  v2_initial_set_sha256: fe960ccc0b86592c02d082a7f9fda18bb6032b4c263458850cc7deb709a95d4c
+  v2_membership_events_sha256: ee5b6ac2a3ee608067bcca51cc21da152b754ec2b96c52c2be4db184c55cdf6a
+  v2_daily_membership_sha256: 91e9d48421d2a577176488d792c63f5d33bceee953a4532cdb8a8f6317d82644
+  v2_report_recalculation_forbidden: true
+
+identity:
+  research_family: p2-star50-engineering-v1
+  dataset_id: star50-official-pit-engineering-v1
+  config_id: p2-star50-engineering-protocol-v1
+  model_id: p2-star50-alpha158-lightgbm-engineering-v1
+  model_execution_scope: synthetic_fixture_only
+  benchmark_source_code: 000688.SH
+  benchmark_qlib_code: SH000688
+  instrument_id: star50_official_pit_v1
+  signal_namespace: p2-star50-engineering-smoke-v1
+  signal_scope: synthetic_fixture_only
+  run_ledger: ledger/p2_star50_engineering_runs.csv
+  admission_ledger: ledger/p2_star50_engineering_admissions.csv
+  dataset_root: data/research/star50/p2-star50-engineering-v1/dataset
+  qlib_provider: data/research/star50/p2-star50-engineering-v1/qlib_bin
+  synthetic_root: data/research/star50/p2-star50-engineering-v1/synthetic_smoke
+  quality_report: data/research/star50/p2-star50-engineering-v1/quality_report.json
+  engineering_report: data/research/star50/p2-star50-engineering-v1/engineering_report.json
+  tracked_manifest: config/p2_star50_engineering_manifest_v1.json
+
+input_gate:
+  official_daily_membership_is_only_instrument_truth: true
+  current_constituent_backfill_forbidden: true
+  future_announcement_backfill_forbidden: true
+  tushare_role: secondary_monthly_set_crosscheck_only
+  tushare_weight_values_usable: false
+  tushare_trade_date_as_official_effective_date: false
+  expected_months:
+    - "2020-07"
+    - "2020-08"
+    - "2020-09"
+    - "2020-10"
+    - "2020-11"
+    - "2020-12"
+    - "2021-01"
+    - "2021-02"
+    - "2021-03"
+    - "2021-04"
+    - "2021-05"
+    - "2021-06"
+    - "2021-07"
+    - "2021-08"
+    - "2021-09"
+    - "2021-10"
+    - "2021-11"
+    - "2021-12"
+    - "2022-01"
+    - "2022-02"
+    - "2022-03"
+    - "2022-04"
+    - "2022-05"
+    - "2022-06"
+    - "2022-07"
+    - "2022-08"
+    - "2022-09"
+    - "2022-10"
+    - "2022-11"
+    - "2022-12"
+    - "2023-01"
+    - "2023-02"
+    - "2023-03"
+    - "2023-04"
+    - "2023-05"
+    - "2023-06"
+    - "2023-07"
+    - "2023-08"
+    - "2023-09"
+    - "2023-10"
+    - "2023-11"
+    - "2023-12"
+    - "2024-01"
+    - "2024-02"
+    - "2024-03"
+    - "2024-04"
+    - "2024-05"
+    - "2024-06"
+    - "2024-07"
+    - "2024-08"
+    - "2024-09"
+    - "2024-10"
+    - "2024-11"
+    - "2024-12"
+    - "2025-01"
+    - "2025-02"
+    - "2025-03"
+    - "2025-04"
+    - "2025-05"
+    - "2025-06"
+    - "2025-07"
+    - "2025-08"
+    - "2025-09"
+    - "2025-10"
+    - "2025-11"
+    - "2025-12"
+    - "2026-01"
+    - "2026-02"
+    - "2026-03"
+    - "2026-04"
+    - "2026-05"
+    - "2026-06"
+  expected_month_count: 72
+  snapshot_trade_dates_per_month_exact: 1
+  snapshot_rows_per_month_exact: 50
+  snapshot_unique_constituents_per_month_exact: 50
+  unexpected_month_count_maximum: 0
+  duplicate_snapshot_key_count_maximum: 0
+  set_difference_maximum: 0
+  missing_month_plus_duplicate_month_fixture_must_fail: true
+  bse_row_count_maximum: 0
+
+dataset_contract:
+  strategy_usable_start: "2020-07-23"
+  source_cutoff_date: "2026-07-24"
+  feature_warmup_trade_days: 100
+  official_member_count_per_trade_date: 50
+  official_membership_duplicate_key_count_maximum: 0
+  member_before_listing_count_maximum: 0
+  member_on_or_after_delisting_count_maximum: 0
+  market_bar_or_full_day_suspend_coverage_minimum: 1.0
+  full_day_suspend_requires_empty_suspend_timing: true
+  intraday_suspend_cannot_explain_missing_bar: true
+  adj_factor_bar_coverage_minimum: 1.0
+  daily_basic_member_bar_coverage_minimum: 0.95
+  pit_sw_l1_industry_coverage_minimum: 0.95
+  st_flags_source: tushare.namechange_pit
+  suspended_price_policy: nan_no_forward_fill
+  bse_suffix_forbidden: ".BJ"
+  duplicate_market_key_count_maximum: 0
+  duplicate_factor_key_count_maximum: 0
+  duplicate_basic_key_count_maximum: 0
+  qlib_fields:
+    - open
+    - high
+    - low
+    - close
+    - volume
+    - vwap
+    - factor
+    - change
+    - limit_buy
+    - limit_sell
+  qlib_instruments_derive_only_from_official_daily_membership: true
+  qlib_atomic_build: true
+  qlib_content_hash_required: true
+  qlib_rebuild_same_input_must_reuse: true
+
+portfolio:
+  topk: 10
+  n_drop: 2
+  rebalance_trade_days: 10
+  deal_price: open
+  weighting: equal_weight
+  maximum_single_name_weight: 0.10
+  maximum_top3_weight: 0.30
+  maximum_pit_sw_l1_industry_weight: 0.30
+  minimum_valid_industry_coverage: 0.95
+  liquidity_lookback_trade_days: 20
+  minimum_valid_liquidity_days: 15
+  minimum_median_daily_amount_rmb: 20000000
+  maximum_order_to_median_daily_amount: 0.05
+  maximum_weighted_name_overlap_with_csi800: 0.35
+  maximum_return_correlation_with_csi800: 0.80
+  maximum_star50_risk_contribution_in_joint_portfolio: 0.25
+
+execution:
+  feature_clock: signal_date_close
+  execution_clock: next_official_trade_day_open
+  suspended_policy: no_trade_keep_actual_position
+  directional_limit_policy: no_trade_keep_actual_position
+  st_policy: exclude_using_pit_name_state
+  delisting_policy: no_future_delist_date_filter_and_fail_if_cash_realization_is_unmodeled
+  missing_price_policy: no_fill_and_no_trade
+  star_price_limit_ratio: 0.195
+  price_tick_tolerance: 0.01
+  minimum_star_purchase_lot: 200
+  open_cost: 0.0006
+  close_cost: 0.0016
+  minimum_cost_rmb: 5
+  cost_multipliers: [1.0, 1.5, 2.0]
+  extra_slippage_each_side: 0.001
+
+model:
+  feature_set: Alpha158
+  label: "Ref($open,-11)/Ref($open,-1)-1"
+  seed: 42
+  learning_rate: 0.05
+  num_leaves: 31
+  max_depth: -1
+  colsample_bytree: 0.8879
+  subsample: 0.8789
+  reg_alpha: 0.0421
+  reg_lambda: 0.0220
+  num_boost_round: 1000
+  early_stopping_rounds: 50
+  real_data_training_forbidden_in_p2_1: true
+
+evaluation:
+  windows:
+    - name: STAR-W1
+      train: ["2020-07-23", "2022-06-30"]
+      valid: ["2022-07-01", "2022-12-31"]
+      test: ["2023-01-01", "2023-12-31"]
+    - name: STAR-W2
+      train: ["2021-01-01", "2023-06-30"]
+      valid: ["2023-07-01", "2023-12-31"]
+      test: ["2024-01-01", "2024-12-31"]
+    - name: STAR-W3
+      train: ["2022-01-01", "2024-06-30"]
+      valid: ["2024-07-01", "2024-12-31"]
+      test: ["2025-01-01", "2025-12-31"]
+  pressure_periods:
+    - {name: star_2023_drawdown, start: "2023-08-28", end: "2023-10-23"}
+    - {name: microcap_2024, start: "2024-01-02", end: "2024-02-08"}
+    - {name: volume_price_2026h1, start: "2026-01-01", end: "2026-06-30"}
+  minimum_test_trade_days_per_window: 220
+  minimum_rebalances_per_window: 20
+  minimum_positive_net_excess_windows: 2
+  require_pooled_net_excess_positive: true
+  require_double_cost_pooled_excess_nonnegative: true
+  require_extra_slippage_pooled_excess_nonnegative: true
+  maximum_test_or_pressure_drawdown: 0.20
+  minimum_forward_trade_days_before_production_review: 252
+  minimum_forward_rebalances_before_production_review: 20
+  real_window_execution_forbidden_in_p2_1: true
+
+synthetic_pipeline_contract:
+  fixture_id: p2-star50-synthetic-engineering-v1
+  required_stages: [dataset, qlib, alpha158, lightgbm, topk_executor, backtest]
+  use_real_member_codes: false
+  use_real_market_data: false
+  use_real_benchmark_data: false
+  result_metric_persistence_forbidden: true
+  prediction_or_ranking_persistence_forbidden: true
+  selected_name_persistence_forbidden: true
+  allowed_report_fields:
+    - fixture_id
+    - fixture_sha256
+    - stage_status
+    - row_counts
+    - artifact_sha256
+    - pipeline_fixture_pass
+
+verdict_contract:
+  required_report_fields:
+    - input_gate_pass
+    - dataset_complete
+    - qlib_complete
+    - pipeline_fixture_pass
+    - idempotency_pass
+    - engineering_complete
+    - strategy_results_inspected
+    - strategy_effective
+    - production_authorization
+    - verdict
+  go_requires:
+    - input_gate_pass
+    - dataset_complete
+    - qlib_complete
+    - pipeline_fixture_pass
+    - idempotency_pass
+    - engineering_complete
+  strategy_results_inspected: false
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+  any_failed_required_gate: NO_GO
+
+prohibited_actions:
+  - real_star50_model_training
+  - real_star50_backtest
+  - real_star50_ic_calculation
+  - real_star50_return_calculation
+  - real_star50_drawdown_calculation
+  - real_star50_ranking
+  - real_star50_selection_output
+  - real_star50_signal_generation
+  - csi800_dataset_change
+  - csi800_model_or_signal_change
+  - shared_or_forward_qlib_change
+  - scheduler_image_or_config_change
+  - production_ledger_change
+  - v2_report_recalculation
