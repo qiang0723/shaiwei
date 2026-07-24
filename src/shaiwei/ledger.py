@@ -23,6 +23,8 @@ P2_STAR50_ENGINEERING_RUNS = LEDGER_DIR / "p2_star50_engineering_runs.csv"
 P2_STAR50_ENGINEERING_ADMISSIONS = LEDGER_DIR / "p2_star50_engineering_admissions.csv"
 P2_STAR50_EFFECT_RUNS = LEDGER_DIR / "p2_star50_effect_runs.csv"
 P2_STAR50_EFFECT_ADMISSIONS = LEDGER_DIR / "p2_star50_effect_admissions.csv"
+P2_STAR50_EFFECT_CORRECTION_RUNS = LEDGER_DIR / "p2_star50_effect_correction_runs.csv"
+P2_STAR50_EFFECT_CORRECTION_ADMISSIONS = LEDGER_DIR / "p2_star50_effect_correction_admissions.csv"
 
 
 def portable_artifact_path(path: str | Path) -> str:
@@ -288,3 +290,23 @@ def append_p2_star50_effect_admission(*, path: Path | None = None, **kw: object)
     kw.setdefault("evaluated_at", datetime.now(timezone.utc).isoformat())
     kw.setdefault("operator", "p2-star50-effect")
     return _append_idempotent(path or P2_STAR50_EFFECT_ADMISSIONS, kw, key="decision_id")
+
+
+def append_p2_star50_effect_correction_run(*, path: Path | None = None, **kw: object) -> bool:
+    """Append one P2-2C run with distinct protocol and real-runtime timestamps."""
+    kw.setdefault("run_finished_at", datetime.now(timezone.utc).isoformat())
+    kw.setdefault("operator", "p2-star50-effect-correction")
+    return _append_idempotent(path or P2_STAR50_EFFECT_CORRECTION_RUNS, kw, key="run_id")
+
+
+def append_p2_star50_effect_correction_admission(
+    *, path: Path | None = None, **kw: object
+) -> bool:
+    """Append the authoritative corrected historical decision; never authorize production."""
+    kw.setdefault("evaluated_at", datetime.now(timezone.utc).isoformat())
+    kw.setdefault("operator", "p2-star50-effect-correction")
+    return _append_idempotent(
+        path or P2_STAR50_EFFECT_CORRECTION_ADMISSIONS,
+        kw,
+        key="decision_id",
+    )

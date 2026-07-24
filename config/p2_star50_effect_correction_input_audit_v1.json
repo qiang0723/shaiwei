@@ -1,0 +1,144 @@
+{
+  "audit_scope": "pre-freeze same-class label/clock/capacity boundary audit only",
+  "label_maturity": {
+    "all_original_unpurged_segments_demonstrably_leak": true,
+    "all_purged_maturities_within_original_segments": true,
+    "label": "Ref($open,-11)/Ref($open,-1)-1",
+    "label_horizon_trade_days": 11,
+    "required_purged_last_signal_dates": {
+      "STAR-W1": {
+        "train": "2022-06-15",
+        "valid": "2022-12-15"
+      },
+      "STAR-W2": {
+        "train": "2023-06-13",
+        "valid": "2023-12-14"
+      },
+      "STAR-W3": {
+        "train": "2024-06-13",
+        "valid": "2024-12-16"
+      }
+    },
+    "windows": {
+      "STAR-W1": {
+        "train": {
+          "original_calendar_end": "20220630",
+          "purged_label_maturity": "20220630",
+          "purged_last_signal": "20220615",
+          "unpurged_label_maturity": "20220715"
+        },
+        "valid": {
+          "first_test_trade_date": "20230103",
+          "original_calendar_end": "20221230",
+          "purged_label_maturity": "20221230",
+          "purged_last_signal": "20221215",
+          "unpurged_label_maturity": "20230117"
+        }
+      },
+      "STAR-W2": {
+        "train": {
+          "original_calendar_end": "20230630",
+          "purged_label_maturity": "20230630",
+          "purged_last_signal": "20230613",
+          "unpurged_label_maturity": "20230717"
+        },
+        "valid": {
+          "first_test_trade_date": "20240102",
+          "original_calendar_end": "20231229",
+          "purged_label_maturity": "20231229",
+          "purged_last_signal": "20231214",
+          "unpurged_label_maturity": "20240116"
+        }
+      },
+      "STAR-W3": {
+        "train": {
+          "original_calendar_end": "20240628",
+          "purged_label_maturity": "20240628",
+          "purged_last_signal": "20240613",
+          "unpurged_label_maturity": "20240715"
+        },
+        "valid": {
+          "first_test_trade_date": "20250102",
+          "original_calendar_end": "20241231",
+          "purged_label_maturity": "20241231",
+          "purged_last_signal": "20241216",
+          "unpurged_label_maturity": "20250116"
+        }
+      }
+    }
+  },
+  "method_defect_baselines": {
+    "forbidden_bj_member_day_count": 0,
+    "maximum_first_member_bar_lead_trade_days": 1377,
+    "minimum_first_member_bar_lead_trade_days": 74,
+    "minimum_lead_codes": [
+      "688271.SH"
+    ],
+    "missing_first_valid_bar_count": 0,
+    "open_flag_audit_2023_through_2026h1": {
+      "all_market": {
+        "buy_flag_mismatch_count": 283,
+        "row_count": 105561,
+        "sell_flag_mismatch_count": 35,
+        "valid_open_row_count": 105561
+      },
+      "official_member_days": {
+        "buy_flag_mismatch_count": 90,
+        "row_count": 42089,
+        "sell_flag_mismatch_count": 3
+      }
+    },
+    "original_base_buy_count": 498,
+    "original_base_sell_count": 395,
+    "original_base_trade_count": 893,
+    "original_buy_capacity_violation_count": 0,
+    "original_maximum_buy_capacity_ratio": 0.04997739565415287,
+    "original_maximum_sell_capacity_ratio": 0.11303799663393785,
+    "original_sell_capacity_violation_count": 14,
+    "original_sell_capacity_violations_by_window": {
+      "STAR-W1": 7,
+      "STAR-W2": 4,
+      "STAR-W3": 3
+    },
+    "original_sell_minimum_valid_amount_days": 20
+  },
+  "original_p2_2_immutable_evidence": {
+    "admission_ledger_sha256": "454aeacf58c7e35899de15934f49c4f4e95715025bef8ba6133727d3c6db897f",
+    "effect_report_sha256": "94c458ae908e77af7808e27a41de2b386e920ad910c05a24718de621896f5ce9",
+    "executor_code_sha256": "a5d6baef84582a206317276595ea8ac40024911896f4b0ba2d379b9b98bd5717",
+    "final_commit": "13d219dee6ff305d71c8bc0243b9bf5740828f03",
+    "freeze_commit": "ed5b1b0d59bd18186ef99c9844123af473897fcb",
+    "metrics_code_sha256": "7a9828393008d314e8701ed355718b52fe92bc3d08ede0d2770fb2ffa4834bd8",
+    "model_bundle_sha256": "4b087b1254abd943bf34f31896eb794700eaccc7274328ba68a96f915fee024a",
+    "model_code_sha256": "3c5617939e1c1f7e6145f5bde255f7ef14540a3d9817c8662c31ff575072f0a4",
+    "original_result_byte_count": 1551575,
+    "original_result_canonical_tree_sha256": "98637864c9e341f1af413c300e922b9e80a02589c5fc91fec8eadb315bd5f3a6",
+    "original_result_file_count": 115,
+    "prediction_bundle_sha256": "0a79e6e47def633c8d87ec86dcfe9303b40771b8f163f77a389f80cf7a6ffa0b",
+    "protocol_sha256": "6fb1141f8801c88e6ba10a2358e54cac309a2e856e49992fbc90ca1c798aa32c",
+    "run_code_sha256": "6445cf3c5ebf8252af939c467bf3adb19cfd342e536d6b652e2e17ce7bcd0fd3",
+    "run_ledger_sha256": "13492b897448921be0308708572ccf9452c150600f078b0572a57f6d32e2c4ce",
+    "tracked_manifest_sha256": "c12b9404899b94873b7923e20920b02e1a795fc0d75b8fc60d863327f7bf64cd"
+  },
+  "preflight_conclusion": {
+    "additional_same_class_blocker_found": false,
+    "audit_correction_not_blind_preregistration": true,
+    "early_stopping_uses_purged_valid_only": true,
+    "feature_clock_remains_signal_date_close": true,
+    "model_hyperparameters_seed_and_windows_unchanged": true,
+    "only_three_authorized_corrections": true,
+    "original_p2_2_execution_valid": false,
+    "original_p2_2_model_valid": false,
+    "original_results_and_master_sensitivities_known_before_correction": true,
+    "pressure_model_mapping_unchanged": true,
+    "production_authorization": "none",
+    "test_intervals_are_not_moved": true
+  },
+  "results_known_disclosure": {
+    "master_open_clock_only_w2_base_net_excess_approximate": -0.323002,
+    "original_w2_base_net_excess": -0.327332374468154,
+    "sensitivity_is_not_authoritative_correction_result": true,
+    "statement": "P2-2C corrects audited method defects after the original P2-2 results and a master-side open-clock-only sensitivity were visible; it is not a blind preregistration or a new strategy variant."
+  },
+  "schema_version": "p2-star50-effect-correction-input-audit-v1"
+}
