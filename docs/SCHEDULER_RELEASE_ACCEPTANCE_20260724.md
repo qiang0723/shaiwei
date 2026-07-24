@@ -2,11 +2,11 @@
 
 ## 1. 当前裁决
 
-状态：**PRE_CUTOVER_PASS / RUNTIME_PENDING**。
+状态：**PASS**。
 
-不可变镜像、开发隔离、挂载白名单、回滚状态机和离线只读查询已经通过；最终生产裁决仍必须等待
-2026-07-24 19:30 后的真实交易日周期。未取得新快照下的日增量、影子、模拟仓、通知和幂等证据前，
-不得把本文件改写为完整 PASS。
+不可变镜像、开发隔离、挂载白名单、双身份验证、跨快照启动门、回滚状态机和 2026-07-24 真实
+交易日周期全部通过。首次真实运行发现“镜像无 `.git`、哨兵仍调用 Git”的兼容故障；失败证据完整
+保留，按最小修复恢复后，current/previous 均为已修复镜像，完整闭环和幂等复跑 PASS。
 
 ## 2. 迁移前根因证据
 
@@ -24,11 +24,11 @@
 
 | 角色 | Git 提交 | 代码快照 | image ID |
 |---|---|---|---|
-| previous B | `d42c742` | `a5a36691f9de5d281685fdc03bc80c628cb3ef1a4bff9228bfceeaccc81b6481` | `e192b338a3bfdfda4c2456dc95ebdf6a97ff47e6ebe71e2e3997b5daaf251d55` |
-| current C | `c4f4596` | `4c5f3b9906c4a44049b12e30268457fca5a5b3dcf175f5546f17273c2d9b5b86` | `c63023e0522d1ca822781cb9bb812af59cb83bba6648f0b94c7e3d5e589153ff` |
+| previous D | `2ea5343` | `2b6816c459310e83e9c9b9de412a7d507d10d8b69e402ce400d1561e6ded7577` | `a36452873110facef465369cc9b42d90bbafbff8a5ad584124a4685bb5646b31` |
+| current E | `ecda815` | `eb8e752132ac1fbe6a9557d26b4c7a65df36f6169d617b6e1e10db88d46b7fbd` | `de87ec740981166b032b394fb256a978acdc8d35e999a369f1debc3466aa0261` |
 
-两个镜像均通过：干净 Git 工作树快照、镜像 OCI 标签、镜像内发布清单逐文件重算三者完全一致。
-实现提交已推送 `origin/main`；current C 额外包含跨快照启动安全门禁。
+两个镜像均通过：干净 Git 工作树、镜像 OCI 标签、镜像内发布清单逐文件重算和镜像内嵌 Git 提交
+身份四者一致。D/E 均不包含或挂载 `.git`；实现和回归测试提交均已推送 `origin/main`。
 
 ## 4. 开发工作树隔离探针
 
@@ -44,40 +44,43 @@
 
 ## 5. 发布与回滚证据
 
-未启动生产服务时，先以 A/B 完成首轮发布回滚，再以最终 B/C 完成：
+未启动生产服务时，先以 A/B、B/C 完成机制演练；发现 C 的运行身份兼容故障并修复后，又以最终
+D/E 完成：
 
-1. promote C；
-2. rollback B；
-3. re-promote C。
+1. promote D；
+2. promote E；
+3. rollback D；
+4. re-promote E。
 
 `.release/scheduler_state.json` 最终 current/previous 与上表一致；
-`logs/releases/scheduler_releases.jsonl` 当前 10 条记录，哈希链 tip 为
-`7d69a1062ae8ae0d54767104d063f605c6e3de77dd757c73fb3613e8a2d30b46`，完整校验 PASS。
+`logs/releases/scheduler_releases.jsonl` 当前 18 条记录，哈希链 tip 为
+`a17053888070010ec009cfea94acbb1199cda51952cd5255b4d2e9dab5400db2`，完整校验 PASS。
 发布工具没有删除失败候选或覆盖运行 ledger。
 
 ## 6. 最终容器静态契约
 
-最终 current 容器已创建但未启动，Docker 实际状态为：
+最终 current E 容器已启动并完成真实周期，Docker 实际状态为 healthy：
 
-- image ID 精确为 current C 的 `c63023e0...153ff`；
+- image ID 精确为 current E 的 `de87ec74...a0261`；
+- 运行时 Git 提交精确为 `ecda815409fae323eee8254d13e9d19f9fdeaf24`；
 - root filesystem `readonly=true`；
 - capability drop：`ALL`；
 - security option：`no-new-privileges:true`；
 - 挂载只有 `/workspace/data`、`/workspace/ledger`、`/workspace/logs`；
 - 没有 `/workspace` 整仓挂载，没有 Docker socket；
-- 容器状态为 `created`，未提前运行 scheduler。
+- 无 Docker socket、整仓或 `.git` 挂载。
 
 最终镜像在同一挂载白名单下的只读预检：
 
-- 发布快照重算：`4c5f3b99...b5b86`；
+- 发布快照重算：`eb8e7521...b7fbd`；
 - 对 `/workspace/src` 的写入被只读根文件系统拒绝；
-- 16:14 本地日计划：watermark/eligible target 均为 `20260723`，缺口 0；
-- 模拟仓独立重放：5 个账户日、174 个事件、30 个订单、22 个成交，PASS；
-- 账本与数据未因预检改变。
+- 窗口前本地日计划：watermark/eligible target 均为 `20260723`，缺口 0；
+- 窗口前模拟仓独立重放：5 个账户日、174 个事件、30 个订单、22 个成交，PASS；
+- 窗口后启动门识别 `20260724` 为新可用交易日才允许跨快照启动。
 
 ## 7. 跨快照启动安全门
 
-current C 在启动生产容器前比较最新 PASS 模拟仓的交易日/代码快照与当前发布快照：
+current 镜像在启动生产容器前比较最新 PASS 模拟仓的交易日/代码快照与当前发布快照：
 
 - 同快照重启允许直接恢复；
 - 跨快照启动必须已有或计划处理一个晚于最新模拟仓日的新交易日；
@@ -87,26 +90,46 @@ current C 在启动生产容器前比较最新 PASS 模拟仓的交易日/代码
 `REJECT`。这证明数据窗口前不会为追求“容器在线”而提前制造新一轮快照失配。测试同时覆盖
 初始发布、同快照重启、跨快照无新日拒绝、计划新交易日放行和新日 daily PASS 后故障恢复。
 
-## 8. 质量门
+20:05 日计划出现 `missing_trade_dates=[20260724]` 后，门禁以
+`CROSS_SNAPSHOT_WITH_NEW_DATA/PASS` 放行；修复后的 E 再启动时使用已完成的 `20260724` daily PASS
+作为恢复凭据，同样 PASS。两次均未绕过门禁。
+
+## 8. 真实故障与恢复
+
+首次 current C 真实运行中，daily 和次日对账 PASS，影子在哨兵末端以 `ForwardQlibError` 失败。
+同镜像独立复跑证明根因为不可变镜像没有 `.git`，旧 `git_head()` 仍执行
+`git rev-parse HEAD` 并退出 128。容器没有 OOM，数据哨兵未得出规则 FAIL。
+
+修复把干净提交号同时绑定进 OCI revision 标签和只读运行元数据，发布工具在构建镜像、候选镜像与
+运行容器三处复核；没有恢复 `.git` 挂载。失败运行、飞书告警、修复和恢复均保留。完整 RCA 见
+`docs/INCIDENT_20260724_RELEASE_GIT_IDENTITY.md`。
+
+## 9. 质量门
 
 - 核心实现后全仓 189 项测试 PASS；
 - 最终双镜像回滚契约加入后全仓 190 项测试 PASS；
 - 跨快照启动门禁加入后全仓 193 项测试 PASS；
+- 发布 Git 身份修复后全仓 195 项测试 PASS；
+- 镜像标签/运行时双身份回归加入后全仓 196 项测试 PASS；
 - Ruff、compileall、`pip check`、Compose 解析和 `git diff --check` PASS；
 - 受控提交不含 `.env`、Token、Webhook、签名、绝对本机路径、数据或运行日志。
 
-## 9. 待完成的真实运行证据
+## 10. 真实运行证据
 
-2026-07-24 是官方交易日；迁移前最新 daily/shadow/reconciliation/paper PASS 均停在 `20260723`。
-19:30 后必须以 current 镜像完成并留痕：
+2026-07-24 最终恢复周期取得：
 
-1. 实际容器运行契约与健康检查；
-2. `20260724` 日增量 PASS、实际原始批次 `.BJ=0`；
-3. S1-S9 PASS、S10 NOT_APPLICABLE；
-4. `20260723 → 20260724` 次日开盘对账和 `20260724` 新信号；
-5. current 快照下的新模拟仓 FORWARD、独立重放和 acceptance；
-6. 飞书开始/完成投递；
-7. 完整周期重复运行 NOOP，账本/产物/通知幂等；
-8. 发布审计、Git 脱敏与远端同步。
+1. `20260724` daily PASS：5 个市场批次、15,613 行；当日共 8 个新原始批次、21,148 行，逐文件
+   行数与 SHA-256 重算一致，`.BJ=0`；
+2. `20260723 → 20260724` 对账 PASS：30 个目标、0 交易腿、平均绝对开盘偏差 1.8210%；
+3. current E 哨兵：S1-S9 PASS、S10 NOT_APPLICABLE，数据/代码/Git 身份匹配；
+4. `20260724` 信号 PASS：`on_time=true`、`rebalance_due=false`，信号绑定 current E；
+5. 模拟仓新增第 2 个自然 FORWARD：账户事件 198、订单 30、成交 22，净资产 471,824.90 元；
+6. 独立重放 PASS，机器 acceptance PASS，`.BJ` 事件 0；
+7. 飞书日增量、对账、信号、模拟仓开始/完成最终均 PASS；模拟仓完成首次网络超时，第 2 次自动
+   恢复；
+8. 受控完整重复周期返回 shadow/paper NOOP，7 类 ledger、通知、哨兵、信号、对账、模拟仓产物和
+   qlib 指针的行数/哈希不变。可覆盖汇总 `forward_report.json` 仅刷新生成时间，业务统计不变；
+9. 运行 operator 均为 `docker-scheduler`，零人工修数；scheduler 最终 healthy。
 
-以上全部通过后，才把状态改为 `PASS` 并解除 P2/Web 后端的隔离门禁。
+据此生产/开发发布快照隔离门禁 PASS，可按 ROADMAP 另立 P2；本裁决不自动授权 P2、Web 后端或
+模型变更。

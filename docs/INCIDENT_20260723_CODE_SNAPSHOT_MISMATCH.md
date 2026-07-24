@@ -41,3 +41,13 @@
 
 在该门禁通过前：P2 与 Web 后端不得修改或启动生产 `src/config/tests/compose` 路径；Web 只允许继续
 文档、视觉原型和不接真实数据的设计工作。
+
+## 关闭记录（2026-07-24）
+
+上述门禁已由内容寻址不可变镜像、只读根、显式 `data/ledger/logs` 挂载、代码快照与嵌入 Git
+提交双身份验证、跨快照启动门和 current/previous 回滚链完整实现，并以 `20260724` 真实日周期、
+模拟仓 FORWARD 与 NOOP 幂等复跑验收 PASS。完整证据见
+`docs/SCHEDULER_RELEASE_ACCEPTANCE_20260724.md`。施工中发现并关闭的镜像 Git 身份兼容故障见
+`docs/INCIDENT_20260724_RELEASE_GIT_IDENTITY.md`。
+
+本事件至此关闭。解除的是结构性隔离阻断，不等于自动授权 P2 或 Web 后端施工；两者仍须另立目标。

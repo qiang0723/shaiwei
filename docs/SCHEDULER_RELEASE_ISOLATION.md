@@ -54,6 +54,11 @@ Docker 构建会把冻结快照涵盖的 `src/`、`config/`、`templates/`、`te
 哈希和总快照；缺文件、增文件、内容变化或清单损坏全部失败即停。镜像标签
 `io.shaiwei.code_snapshot_sha256` 必须与运行时重算值、干净工作树值三者一致。
 
+不可变镜像不包含、也不挂载 `.git`。构建工具把干净工作树提交号同时写入
+`org.opencontainers.image.revision` 与只读 `SHAIWEI_RELEASE_GIT_HEAD`，运行时 `git_head()` 优先读取并
+严格校验该嵌入值。发布验证必须同时证明“镜像标签提交号 = 镜像内运行时提交号”和“镜像标签代码
+快照 = 镜像内逐文件重算快照”；不能用恢复 `.git` 挂载代替发布身份元数据。
+
 ## 4. 受控发布
 
 发布仅允许从干净 Git 工作树执行：
@@ -65,12 +70,12 @@ make docker-release-promote RELEASE_IMAGE=shaiwei:scheduler-<snapshot-prefix>
 
 `build` 生成内容寻址镜像并在一次性只读容器中验证发布清单。`promote`：
 
-1. 复核候选镜像标签与运行时快照；
+1. 复核候选镜像标签与运行时代码快照、Git 提交身份；
 2. 将现 current 保存为 previous；
 3. 将候选提升为 `shaiwei:scheduler-current`；
 4. 原子更新 `.release/scheduler_state.json`；
 5. 重建 scheduler；
-6. 核对实际 image ID、只读根、挂载白名单、运行时快照和健康状态；
+6. 核对实际 image ID、只读根、挂载白名单、运行时快照、提交身份和健康状态；
 7. 向 `logs/releases/scheduler_releases.jsonl` 追加哈希链记录。
 
 `docker-scheduler-up` 不再隐式构建镜像；没有受控 current 镜像时应失败。
@@ -97,7 +102,7 @@ promote → rollback → re-promote；最终只在真实交易日数据窗口执
 本门禁只有同时满足以下证据才 PASS：
 
 - 迁移前 `docker inspect` 证明旧容器确有 `.:/workspace` 可写挂载；
-- 镜像快照与干净工作树快照相同，镜像内精确复核 PASS；
+- 镜像代码快照/提交身份与干净工作树相同，镜像内精确复核 PASS；
 - scheduler 实际挂载只有 `data/ledger/logs`，根文件系统只读且无 Docker socket；
 - 在宿主开发树制造受控探针时，运行容器看不到该文件且代码快照不变；
 - 两个不同内容快照完成无启动 promote/rollback/re-promote，状态与审计哈希链一致；
