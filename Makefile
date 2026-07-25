@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-up docker-web-status docker-web-logs docker-web-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -121,3 +121,13 @@ docker-scheduler-logs: ## 查看最近 100 行脱敏守护日志
 	docker compose logs --tail=100 scheduler
 docker-scheduler-down: ## 停止日增量守护，不删除本地数据
 	docker compose stop scheduler
+docker-web-build: ## 构建隔离的 P3-0 只读 Web 镜像，不启动服务
+	docker compose -f compose.web.yaml --profile web build web-query
+docker-web-up: ## 显式启动两个 Web 服务；不会启动或重建 scheduler
+	docker compose -f compose.web.yaml --profile web up -d web-query web-ui
+docker-web-status: ## 查看隔离 Web 服务状态
+	docker compose -f compose.web.yaml --profile web ps web-query web-ui
+docker-web-logs: ## 查看 Web 最近 100 行脱敏运行日志
+	docker compose -f compose.web.yaml --profile web logs --tail=100 web-query web-ui
+docker-web-down: ## 仅停止隔离 Web 服务
+	docker compose -f compose.web.yaml --profile web down

@@ -1,0 +1,131 @@
+name: shaiwei-web
+
+x-web-security: &web-security
+  image: shaiwei:web-v1
+  profiles: [web]
+  init: true
+  user: "10001:10001"
+  read_only: true
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+  pids_limit: 128
+  mem_limit: 384m
+  cpus: 0.75
+  restart: unless-stopped
+
+services:
+  web-query:
+    <<: *web-security
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    command:
+      - uvicorn
+      - shaiwei.web.api:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --workers
+      - "1"
+      - --limit-concurrency
+      - "32"
+      - --timeout-keep-alive
+      - "5"
+      - --no-access-log
+    expose:
+      - "8000"
+    volumes:
+      - type: bind
+        source: ./ledger
+        target: /workspace/ledger
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/paper
+        target: /workspace/data/paper
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/shadow/signals
+        target: /workspace/data/shadow/signals
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/shadow/reconciliations
+        target: /workspace/data/shadow/reconciliations
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./logs/notifications
+        target: /workspace/logs/notifications
+        read_only: true
+        bind:
+          create_host_path: false
+    networks: [web-internal]
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen("http://127.0.0.1:8000/healthz", timeout=3).read()
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  web-ui:
+    <<: *web-security
+    command:
+      - uvicorn
+      - shaiwei.web.ui:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --workers
+      - "1"
+      - --limit-concurrency
+      - "32"
+      - --timeout-keep-alive
+      - "5"
+      - --no-access-log
+    environment:
+      WEB_QUERY_BASE_URL: http://web-query:8000
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      web-query:
+        condition: service_healthy
+    networks:
+      - web-loopback
+      - web-internal
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen("http://127.0.0.1:8080/healthz", timeout=3).read()
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  web-internal:
+    internal: true
+  web-loopback:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"

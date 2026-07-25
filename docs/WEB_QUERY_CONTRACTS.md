@@ -1,10 +1,12 @@
 # Web 1.0 查询契约映射（v1.0）
 
-> 本文区分“已实现 Python 只读查询”和“Web 需求提案”。名字出现在提案区不代表 API 已存在。
+> 本文区分“已实现只读查询”和“Web 需求提案”。2026-07-25 P3-0 已将 P-WEB-01/02/03/03A
+> 落地为 HTTP 只读契约；P-WEB-04—07 仍只是提案。
 
 ## 1. 已实现契约
 
-权威实现：`src/shaiwei/paper/query.py`。当前无 HTTP 路由。
+原 Python 权威实现：`src/shaiwei/paper/query.py`。P3-0 原子投影与 HTTP 适配分别位于
+`src/shaiwei/web/query.py`、`src/shaiwei/web/api.py`；部署边界见 `compose.web.yaml`。
 
 ### 1.1 `paper_portfolio_snapshot(account_id="model_baseline", as_of=None)`
 
@@ -47,20 +49,20 @@
 
 | 页面模块 | 已实现查询 | 可否真实接入 | 缺口 |
 |---|---|---|---|
-| 总览组合摘要 | snapshot + nav + acceptance | 否，须原子总览契约 | 多请求可能跨快照；缺信号/运行/门禁/FORWARD 专属锚点 |
-| 模拟组合净值 | nav | 是，代码目标获批后 | HTTP 适配、字段 schema、错误码 |
-| 模拟组合当前账户 | snapshot | 是，代码目标获批后 | HTTP 适配、持仓字段说明 |
+| 总览组合摘要 | `GET /api/v1/overview` | 是 | P3-0 原子快照；完整页面待 P3-1 |
+| 模拟组合净值 | `GET /api/v1/paper/nav`、`paper/forward` | 是 | 官方日历覆盖率暂为 NOT_EVALUATED |
+| 模拟组合当前账户 | `GET /api/v1/paper/portfolio` | 是 | 已含实际权重、未实现盈亏与陈旧度 |
 | 账户日执行 | orders | 是，需 signal hash | 页面需先从受控来源取得 signal hash |
-| 组合重放 | verify | 是，代码目标获批后 | 统一包络和新鲜度说明 |
-| 股票池/信号 | 无 | 否 | `latest_signal` |
+| 组合重放 | `GET /api/v1/paper/replay` | 是 | 独立事件/状态链重放 |
+| 股票池/信号 | `GET /api/v1/signals/latest`、`signals/reconciliation` | 是 | 正式页面与原因展示待 P3-1 |
 | 因子目录与 tear sheet | 无 | 否 | `factor_catalog/factor_detail/factor_compare/factor_admission_history` |
 | 模型/回测 | 无 | 否 | `experiment_summary` |
 | 数据质量 | 无 | 否 | `data_quality_summary` |
 | 系统运行/通知 | 无 | 否 | `system_run_summary`、`notification_delivery_summary` |
 
-## 3. 需求提案（不得视为已存在）
+## 3. P3-0 已实现契约与后续提案
 
-### P-WEB-01 `overview_snapshot(as_of)`
+### P-WEB-01 `overview_snapshot(as_of)`（已实现）
 
 目的：由后台原子地产生首页一致性快照，绑定 `snapshot_id`、受控代码、数据快照和验收范围。
 
@@ -75,7 +77,7 @@
 
 禁止：前端把多个端点响应按“最新”拼起来；BACKFILL 回报进入主结果卡。
 
-### P-WEB-02 `latest_signal(as_of)`
+### P-WEB-02 `latest_signal(as_of)`（已实现）
 
 目的：一次返回不可变信号身份、目标明细和信号生成时已经存在的实际账户参照；不得提前陈述执行日可成交性。
 
@@ -83,13 +85,13 @@
 
 执行日前只返回 `execution_evidence_status=NOT_DUE`。停牌、方向性涨跌停、真实开盘、实际交易腿和成本不属于本契约。
 
-### P-WEB-03 `shadow_reconciliation(signal_sha256)`
+### P-WEB-03 `shadow_reconciliation(signal_sha256)`（已实现）
 
 目的：返回信号后次日开盘对账，不与模拟成交混为一谈。
 
 最小字段：`executed_trade_leg_count/tradable_numerator/tradable_denominator/metric_status/open_gap/turnover/estimated_cost/reasons`，并绑定信号、执行日、行情批次和代码快照。执行证据未到时返回 `NOT_DUE`，不得预测。
 
-### P-WEB-03A FORWARD 业绩投影
+### P-WEB-03A FORWARD 业绩投影（已实现，覆盖率 fail closed）
 
 目的：从连续账户日中固化最后一个 BACKFILL 锚点，返回 FORWARD 专属组合/基准净值、累计净值差、覆盖率、调仓周期和表现成熟度。现有 `paper_nav_series.net_excess` 保持全账户审计语义，不得在前端重新命名成 FORWARD 结果。
 

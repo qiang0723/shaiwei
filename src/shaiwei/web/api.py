@@ -1,0 +1,230 @@
+"""FastAPI transport for the P3-0 read-only query contracts."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+from typing import Awaitable, Callable
+
+from fastapi import FastAPI, Query, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import Response
+
+from shaiwei.web.query import (
+    SCHEMA_VERSION,
+    SnapshotBundle,
+    WebQueryError,
+    build_snapshot,
+    nav_range,
+    reconciliation_for,
+)
+
+
+MAX_RESPONSE_BYTES = 1_048_576
+ALLOWED_METHODS = {"GET", "HEAD"}
+
+
+def _request_id(request: Request, snapshot_id: str = "") -> str:
+    payload = (
+        f"{request.method}|{request.url.path}|{request.url.query}|{snapshot_id}"
+    ).encode()
+    return hashlib.sha256(payload).hexdigest()[:20]
+
+
+def _json_response(
+    request: Request,
+    payload: dict[str, object],
+    *,
+    status_code: int = 200,
+    etag: str | None = None,
+) -> Response:
+    body = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    if len(body) > MAX_RESPONSE_BYTES:
+        raise WebQueryError("CONFLICT", "响应超过 P3-0 固定上限")
+    headers = {
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "no-referrer",
+        "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+    }
+    if etag is not None:
+        headers["ETag"] = f'"{etag}"'
+    if request.method == "HEAD":
+        return Response(
+            status_code=status_code,
+            headers=headers,
+            media_type="application/json",
+        )
+    return Response(
+        content=body,
+        status_code=status_code,
+        headers=headers,
+        media_type="application/json",
+    )
+
+
+def _success(
+    request: Request,
+    bundle: SnapshotBundle,
+    data: dict[str, object],
+) -> Response:
+    return _json_response(
+        request,
+        {
+            "schema_version": SCHEMA_VERSION,
+            "request_id": _request_id(request, bundle.snapshot_id),
+            "data": data,
+            "meta": bundle.meta,
+        },
+        etag=bundle.snapshot_id,
+    )
+
+
+def _error(request: Request, error: WebQueryError) -> Response:
+    return _json_response(
+        request,
+        {
+            "schema_version": SCHEMA_VERSION,
+            "request_id": _request_id(request),
+            "error": {
+                "code": error.code,
+                "message": error.message,
+                "retryable": error.retryable,
+            },
+        },
+        status_code=error.status_code,
+    )
+
+
+def create_app(project_root: Path | None = None) -> FastAPI:
+    root = None if project_root is None else Path(project_root).resolve()
+    app = FastAPI(
+        title="",
+        docs_url=None,
+        redoc_url=None,
+        openapi_url=None,
+        redirect_slashes=False,
+    )
+
+    @app.middleware("http")
+    async def read_only_boundary(
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
+        if request.method not in ALLOWED_METHODS:
+            return _error(
+                request,
+                WebQueryError(
+                    "INVALID_ARGUMENT",
+                    "P3-0 只允许 GET/HEAD",
+                    status_code=405,
+                ),
+            )
+        return await call_next(request)
+
+    @app.exception_handler(WebQueryError)
+    async def web_query_error(request: Request, error: WebQueryError) -> Response:
+        return _error(request, error)
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_error(
+        request: Request,
+        _error_value: RequestValidationError,
+    ) -> Response:
+        return _error(
+            request,
+            WebQueryError(
+                "INVALID_ARGUMENT",
+                "查询参数无效或缺失",
+                status_code=422,
+            ),
+        )
+
+    @app.exception_handler(Exception)
+    async def internal_error(request: Request, _error_value: Exception) -> Response:
+        return _error(
+            request,
+            WebQueryError(
+                "INTERNAL_ERROR",
+                "只读查询发生内部错误",
+                status_code=500,
+            ),
+        )
+
+    def snapshot(as_of: str | None) -> SnapshotBundle:
+        return build_snapshot(as_of, project_root=root)
+
+    @app.api_route("/healthz", methods=["GET", "HEAD"])
+    async def health(request: Request) -> Response:
+        return _json_response(
+            request,
+            {
+                "schema_version": SCHEMA_VERSION,
+                "request_id": _request_id(request),
+                "data": {
+                    "status": "PASS",
+                    "service": "web-query",
+                    "read_only": True,
+                },
+            },
+        )
+
+    @app.api_route("/api/v1/overview", methods=["GET", "HEAD"])
+    async def overview(request: Request, as_of: str | None = None) -> Response:
+        bundle = snapshot(as_of)
+        return _success(request, bundle, bundle.overview)
+
+    @app.api_route("/api/v1/paper/portfolio", methods=["GET", "HEAD"])
+    async def paper_portfolio(request: Request, as_of: str | None = None) -> Response:
+        bundle = snapshot(as_of)
+        return _success(request, bundle, bundle.paper_portfolio)
+
+    @app.api_route("/api/v1/paper/nav", methods=["GET", "HEAD"])
+    async def paper_nav(
+        request: Request,
+        as_of: str | None = None,
+        start: str | None = None,
+        end: str | None = None,
+    ) -> Response:
+        bundle = snapshot(as_of)
+        return _success(request, bundle, nav_range(bundle, start=start, end=end))
+
+    @app.api_route("/api/v1/paper/forward", methods=["GET", "HEAD"])
+    async def paper_forward(request: Request, as_of: str | None = None) -> Response:
+        bundle = snapshot(as_of)
+        return _success(request, bundle, bundle.paper_forward)
+
+    @app.api_route("/api/v1/paper/replay", methods=["GET", "HEAD"])
+    async def paper_replay(request: Request, as_of: str | None = None) -> Response:
+        bundle = snapshot(as_of)
+        return _success(request, bundle, bundle.paper_replay)
+
+    @app.api_route("/api/v1/signals/latest", methods=["GET", "HEAD"])
+    async def latest_signal(request: Request, as_of: str | None = None) -> Response:
+        bundle = snapshot(as_of)
+        return _success(request, bundle, bundle.latest_signal)
+
+    @app.api_route("/api/v1/signals/reconciliation", methods=["GET", "HEAD"])
+    async def signal_reconciliation(
+        request: Request,
+        signal_sha256: str = Query(..., min_length=64, max_length=64),
+        as_of: str | None = None,
+    ) -> Response:
+        bundle = snapshot(as_of)
+        return _success(
+            request,
+            bundle,
+            reconciliation_for(bundle, signal_sha256),
+        )
+
+    return app
+
+
+app = create_app()

@@ -1,0 +1,27 @@
+FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/workspace/src
+
+WORKDIR /workspace
+
+COPY requirements.web.lock pyproject.toml ./
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
+    python -m pip install --no-deps -r requirements.web.lock
+
+COPY src ./src
+RUN groupadd --gid 10001 shaiwei \
+    && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin shaiwei \
+    && mkdir -p \
+       /workspace/data/paper \
+       /workspace/data/shadow/signals \
+       /workspace/data/shadow/reconciliations \
+       /workspace/ledger \
+       /workspace/logs/notifications \
+    && chown -R 10001:10001 /workspace
+
+USER 10001:10001
+
+CMD ["uvicorn", "shaiwei.web.api:app", "--host", "0.0.0.0", "--port", "8000"]
