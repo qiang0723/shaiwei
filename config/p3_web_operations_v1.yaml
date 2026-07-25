@@ -1,0 +1,106 @@
+protocol_id: p3-web-operations-v1
+schema_version: web-v1
+timezone: Asia/Shanghai
+read_only: true
+
+endpoints:
+  - /api/v1/data-quality
+  - /api/v1/system/runs
+  - /api/v1/notifications/{message_id}
+
+as_of:
+  anchor: latest_terminal_daily_run_not_after_requested_date
+  accepted_formats: [YYYY-MM-DD, YYYYMMDD]
+  notification_message_id_pattern: "^[0-9a-f]{16}$"
+
+evidence:
+  fixed_ledger_files:
+    - ledger/daily_runs.csv
+    - ledger/ingest_batches.csv
+    - ledger/shadow_runs.csv
+    - ledger/shadow_reconciliations.csv
+    - ledger/paper_runs.csv
+  allowed_artifact_prefixes:
+    - data/shadow/signals/
+    - logs/sentinels/
+    - logs/notifications/
+    - logs/releases/
+    - logs/scheduler/
+  ingest_snapshot_reconstruction:
+    cutoff: daily_run.finished_at
+    canonical_fields:
+      - batch_id
+      - source_api
+      - params_json
+      - row_count
+      - content_sha256
+  raw_parquet_rehash_status: NOT_EVALUATED
+  raw_parquet_mount_allowed: false
+  forbidden_suffix: .BJ
+  atomic_cut_retries: 2
+
+data_quality:
+  required_sentinels: [S1, S2, S3, S4, S5, S6, S7, S8, S9, S10]
+  accepted_statuses:
+    S1: [PASS]
+    S2: [PASS]
+    S3: [PASS]
+    S4: [PASS]
+    S5: [PASS]
+    S6: [PASS]
+    S7: [PASS]
+    S8: [PASS]
+    S9: [PASS]
+    S10: [PASS, NOT_APPLICABLE]
+  expose_anomaly_rows: false
+  max_sentinel_metric_bytes: 65536
+  max_incremental_batch_rows: 32
+
+system_run:
+  stages:
+    - daily_increment
+    - sentinels
+    - next_open_reconciliation
+    - shadow_signal
+    - paper_cycle
+    - paper_replay
+  status_precedence: [FAIL, STALE, WARN, NOT_READY, PASS]
+  preserve_failed_attempts: true
+  notification_status_separate: true
+  scheduler_health_scope: RECORDED_HEARTBEAT_ONLY
+  live_container_identity_scope: NOT_EVALUATED
+  release_identity_scope: LAST_REGISTERED_START_BEFORE_RUN
+  max_stage_attempts: 64
+
+notifications:
+  expose_fields:
+    - attempt
+    - delivered_at
+    - error_type
+    - event
+    - max_attempts
+    - message_id
+    - recovered
+    - retryable
+    - status
+  expose_message_body: false
+  expose_webhook: false
+  expose_signature: false
+  max_attempts_per_message: 16
+
+http:
+  allowed_methods: [GET, HEAD]
+  max_response_bytes: 1048576
+  cache_control: no-store
+
+docker:
+  compose_file: compose.web.yaml
+  query_service: web-query
+  additional_read_only_mounts:
+    - logs/sentinels
+    - logs/releases
+    - logs/scheduler
+  load_dotenv: false
+  docker_socket: false
+  raw_data_mount: false
+
