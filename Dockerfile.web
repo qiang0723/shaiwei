@@ -1,3 +1,14 @@
+FROM node:22-bookworm-slim@sha256:6c74791e557ce11fc957704f6d4fe134a7bc8d6f5ca4403205b2966bd488f6b3 AS web-ui-build
+
+WORKDIR /ui
+
+COPY web-ui/package.json web-ui/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm ci --ignore-scripts
+
+COPY web-ui ./
+RUN npm run build
+
 FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -12,6 +23,7 @@ RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
     python -m pip install --no-deps -r requirements.web.lock
 
 COPY src ./src
+COPY --from=web-ui-build /ui/dist ./web-ui/dist
 RUN groupadd --gid 10001 shaiwei \
     && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin shaiwei \
     && mkdir -p \
@@ -20,6 +32,7 @@ RUN groupadd --gid 10001 shaiwei \
        /workspace/data/shadow/reconciliations \
        /workspace/ledger \
        /workspace/logs/notifications \
+       /workspace/web-ui/dist \
     && chown -R 10001:10001 /workspace
 
 USER 10001:10001

@@ -16,4 +16,12 @@ __pycache__/
 .venv/
 .release/
 .DS_Store
+web-ui/node_modules/
+web-ui/dist/
+web-ui/coverage/
+web-ui/playwright-report/
+web-ui/test-results/
+web-ui/test-results-real/
+web-ui/.cache/
+web-ui/*.tsbuildinfo
 !ledger/*.csv
