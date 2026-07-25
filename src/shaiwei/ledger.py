@@ -25,6 +25,7 @@ P2_STAR50_EFFECT_RUNS = LEDGER_DIR / "p2_star50_effect_runs.csv"
 P2_STAR50_EFFECT_ADMISSIONS = LEDGER_DIR / "p2_star50_effect_admissions.csv"
 P2_STAR50_EFFECT_CORRECTION_RUNS = LEDGER_DIR / "p2_star50_effect_correction_runs.csv"
 P2_STAR50_EFFECT_CORRECTION_ADMISSIONS = LEDGER_DIR / "p2_star50_effect_correction_admissions.csv"
+LLM_FACTOR_ATTEMPTS = LEDGER_DIR / "llm_factor_attempts.csv"
 
 
 def portable_artifact_path(path: str | Path) -> str:
@@ -236,6 +237,25 @@ def append_factor_admission(*, path: Path | None = None, **kw: object) -> str:
         kw["admitted"] = str(kw["admitted"]).lower()
     _append(path or FACTOR_ADMISSIONS, kw)
     return str(kw["decision_id"])
+
+
+def append_llm_factor_attempt(*, path: Path | None = None, **kw: object) -> bool:
+    """Append one terminal D1 attempt; raw prompts/responses never belong in this ledger."""
+    kw.setdefault("operator", "docker-d1-research")
+    return _append_idempotent(path or LLM_FACTOR_ATTEMPTS, kw, key="attempt_id")
+
+
+def append_llm_factor_experiment(*, path: Path | None = None, **kw: object) -> bool:
+    """Append the deterministic experiment-ledger counterpart of one D1 attempt."""
+    for field in ("params_json", "result_json"):
+        if isinstance(kw.get(field), (dict, list)):
+            _reject_sensitive_params(kw[field], path=field)
+            kw[field] = json.dumps(
+                kw[field], ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            )
+    if isinstance(kw.get("admitted"), bool):
+        kw["admitted"] = str(kw["admitted"]).lower()
+    return _append_idempotent(path or EXPERIMENTS, kw, key="experiment_id")
 
 
 def append_paper_account(*, path: Path | None = None, **kw: object) -> bool:

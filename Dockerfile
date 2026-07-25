@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 WORKDIR /workspace
 
-COPY .dockerignore .env.example Dockerfile Makefile compose.yaml pyproject.toml requirements.lock ./
+COPY .dockerignore .env.example Dockerfile Makefile compose.yaml compose.research.yaml pyproject.toml requirements.lock ./
 COPY src ./src
 COPY config ./config
 COPY templates ./templates

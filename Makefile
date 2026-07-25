@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-up docker-web-status docker-web-logs docker-web-down
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-d1-fixture docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-up docker-web-status docker-web-logs docker-web-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -102,6 +102,8 @@ docker-g1-admit:  ## 容器内执行冻结 G1 裁决；不启动因子生成
 docker-stage1-preflight: ## 容器内极小预算 GP → 自动证据 → G1 REJECT/PASS；零自动入库
 	docker compose run --rm shaiwei python -m shaiwei.benchmark.alphagen_cpu --research-family stage1-gp-preflight-v1 --instrument csi800 --index-code 000906.SH --train-start 2016-01-01 --train-end 2018-12-31 --population-size 40 --tournament-size 10
 	docker compose run --rm shaiwei python -m shaiwei.research.g1_pipeline --research-family stage1-gp-preflight-v1
+docker-d1-fixture: ## D1-1 断网 mock/schema/DSL/账本 fixture；不加载 .env、不读市场数据
+	docker compose -f compose.research.yaml --profile research run --rm d1-fixture
 docker-release-build: ## 从干净工作树构建并验证内容寻址 scheduler 镜像
 	$(PYTHON) -m shaiwei.release build
 docker-release-promote: ## 提升 RELEASE_IMAGE；默认重建 scheduler 并验收隔离契约

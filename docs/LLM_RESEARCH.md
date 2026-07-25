@@ -1,10 +1,11 @@
-# LLM 持续因子研究线（D1-0 方案评审完成）
+# LLM 持续因子研究线（D1-1 零调用工程门完成）
 
-> 状态：2026-07-25 已完成 D1-0 架构裁决和首轮协议草案，仍未授权调用 LLM 或运行因子效果。
-> 当前只允许下一阶段 D1-1 零调用工程门；详见
+> 状态：2026-07-25 已完成 D1-0 架构裁决和 D1-1 零调用工程门，仍未授权调用 LLM 或运行因子效果。
+> D1-2 须重新冻结提示/知识与核对模型价格，并由用户另行授权；详见
 > `docs/D1_LLM_FACTOR_RESEARCH_ARCHITECTURE_20260725.md`、
 > `docs/D1_LLM_FACTOR_RESEARCH_PROTOCOL_DRAFT_20260725.md` 和
-> `config/d1_llm_factor_research_v1.yaml`。
+> `config/d1_llm_factor_research_v1.yaml` 和
+> `docs/D1_LLM_FACTOR_ENGINEERING_ACCEPTANCE_20260725.md`。
 
 ## 定位
 
@@ -88,7 +89,7 @@ LLM 因子研究不得局限于观象，候选输入包括：
 - 未通过只形成可复现 REJECT 和失败经验，不修改门槛追求通过。
 
 首轮模型建议固定为 `deepseek-v4-pro` thinking/high，40 次全 cache miss 的协议理论费用
-$0.5568、硬熔断 $0.75；当前仅为待用户确认的机器草案。旧 GP 最终报告虽为 40 个候选，但
+$0.5568、硬熔断 $0.75；当前仍为 D1-2 启动前待重新核对和确认的机器合同。旧 GP 最终报告虽为 40 个候选，但
 `g1-v1` 已按同家族历史纠错机械计入 166 次，禁止新建“干净 GP 家族”重置 N。比较分生成层、
 组合层和各自真实 N 的裁决层，不宣称两者 DSR 完全配对。
 
@@ -101,3 +102,9 @@ $0.5568、硬熔断 $0.75；当前仅为待用户确认的机器草案。旧 GP 
 - Top2 在 W1-W6 解盲前经过人工经济解释闸，LLM 解释不替代 G1 人工解释，拒绝后不递补；
 - D1-1 先实现账本、schema、mock provider、沙箱和 synthetic fixture，保持零真实 API 调用；
 - 观象桥、常驻知识雷达、任意 Python 因子和自动生产接入全部后置并另立授权。
+
+## D1-1 工程终态
+
+2026-07-25 已完成严格 candidate schema、确定性 40 次排程、追加式尝试账本、与实验总账一一对应、
+DSL parser/sandbox、敏感输出隔离、mock provider 和断网只读 Docker fixture。全程 API 调用为 0，未读取
+市场数据或运行 G1；工程结论为 `GO_ENGINEERING_ONLY`，不代表策略有效。D1-2 真实生成仍无授权。

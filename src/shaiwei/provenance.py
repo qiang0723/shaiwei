@@ -17,6 +17,7 @@ CONTROLLED_FILES = {
     "Dockerfile",
     "Makefile",
     "compose.yaml",
+    "compose.research.yaml",
     "pyproject.toml",
     "requirements.lock",
 }

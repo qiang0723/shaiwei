@@ -1,0 +1,42 @@
+name: shaiwei-research
+
+services:
+  d1-fixture:
+    image: shaiwei:d1-engineering-v1
+    pull_policy: never
+    profiles: [research]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    init: true
+    user: "10001:10001"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=512m,mode=1777
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 2.0
+    environment:
+      HOME: /tmp
+      MPLCONFIGDIR: /tmp/matplotlib
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+    volumes:
+      - type: bind
+        source: ./vendor/alphagen
+        target: /workspace/vendor/alphagen
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.llm_factor
+      - --fixture
+      - --protocol
+      - /workspace/config/d1_llm_factor_research_v1.yaml
+      - --output-dir
+      - /tmp/shaiwei-d1-fixture

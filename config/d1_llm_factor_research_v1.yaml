@@ -1,7 +1,9 @@
 schema_version: d1-llm-factor-research-protocol-draft-v1
 protocol_id: d1-llm-dsl-v1
 prepared_at: "2026-07-25T14:02:23+08:00"
-status: DRAFT_FOR_USER_REVIEW
+status: D1_1_ENGINEERING_COMPLETE_D1_2_NOT_AUTHORIZED
+d1_1_engineering_authorized: true
+d1_1_engineering_complete: true
 execution_authorized: false
 production_authorization: none
 strategy_results_inspected: false
@@ -23,7 +25,7 @@ identity:
   raw_response_root: data/research/d1/d1-llm-dsl-v1/raw
   sanitized_manifest: config/d1_llm_factor_research_manifest_v1.json
   experiment_ledger: ledger/experiments.csv
-  llm_attempt_ledger_proposed: ledger/llm_factor_attempts.csv
+  llm_attempt_ledger: ledger/llm_factor_attempts.csv
   factor_admission_ledger: ledger/factor_admissions.csv
 
 frozen_reference:
@@ -160,7 +162,7 @@ cost_budget:
 knowledge_contract:
   live_web_search_during_first_arm: false
   source_manifest_required_before_execution: true
-  source_manifest_status: PENDING_D1_1
+  source_manifest_status: PENDING_D1_2_PREEXECUTION_FREEZE
   source_types:
     - primary_research_paper
     - official_exchange_or_regulator_rule
@@ -186,6 +188,10 @@ memory_contract:
   model_self_judgment_is_verdict: false
   failure_classes:
     - provider_transport
+    - model_identity_mismatch
+    - usage_missing_or_invalid
+    - cost_budget_exceeded
+    - sensitive_output
     - empty_or_truncated_output
     - schema_invalid
     - syntax_invalid
