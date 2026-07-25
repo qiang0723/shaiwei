@@ -1,0 +1,68 @@
+protocol_id: p3-web-query-v1
+schema_version: web-v1
+timezone: Asia/Shanghai
+account_id: model_baseline
+read_only: true
+
+status_precedence:
+  - FAIL
+  - STALE
+  - WARN
+  - NOT_READY
+  - PASS
+
+endpoints:
+  - /healthz
+  - /api/v1/overview
+  - /api/v1/paper/portfolio
+  - /api/v1/paper/nav
+  - /api/v1/paper/forward
+  - /api/v1/paper/replay
+  - /api/v1/signals/latest
+  - /api/v1/signals/reconciliation
+
+http:
+  allowed_methods: [GET, HEAD]
+  docs_enabled: false
+  max_response_bytes: 1048576
+  max_nav_observations: 1000
+  request_timeout_seconds: 5
+
+evidence:
+  allowed_ledger_files:
+    - ledger/shadow_runs.csv
+    - ledger/shadow_reconciliations.csv
+    - ledger/paper_accounts.csv
+    - ledger/paper_events.csv
+    - ledger/paper_runs.csv
+  allowed_artifact_prefixes:
+    - data/shadow/signals/
+    - data/shadow/reconciliations/
+    - data/paper/
+  allowed_notification_prefix: logs/notifications/
+  forbidden_suffix: .BJ
+  atomic_cut_retries: 2
+
+forward_performance:
+  anchor: last_backfill_before_first_forward
+  annualized_min_observations: 252
+  annualized_min_months: 12
+  risk_adjusted_min_observations: 504
+  risk_adjusted_min_months: 24
+  risk_adjusted_min_rebalances: 40
+  evaluation_min_observations: 720
+  official_calendar_coverage_available: false
+
+docker:
+  compose_file: compose.web.yaml
+  profile: web
+  query_service: web-query
+  ui_service: web-ui
+  ui_host_bind: 127.0.0.1
+  ui_host_port: 8080
+  query_host_port: null
+  load_dotenv: false
+  root_read_only: true
+  run_as_non_root: true
+  docker_socket: false
+
