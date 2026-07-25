@@ -122,3 +122,71 @@ services:
       - /workspace/config/d1_llm_factor_execution_recovery_v1.yaml
       - --output-root
       - /workspace/data/research/d1/d1-llm-dsl-v1
+
+  d1-review-live:
+    image: shaiwei:d1-review-live-v1
+    pull_policy: never
+    profiles: [research-review-live]
+    init: true
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=512m,mode=1777
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 2.0
+    environment:
+      - DEEPSEEK_API_KEY
+      - HOME=/tmp
+      - MPLCONFIGDIR=/tmp/matplotlib
+      - PYTHONPYCACHEPREFIX=/tmp/pycache
+    volumes:
+      - type: bind
+        source: ./vendor/alphagen
+        target: /workspace/vendor/alphagen
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data
+        target: /workspace/data
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/d1/d1-llm-dsl-v1/d1_3_reviews
+        target: /workspace/data/research/d1/d1-llm-dsl-v1/d1_3_reviews
+        read_only: false
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger
+        target: /workspace/ledger
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/llm_factor_reviews.csv
+        target: /workspace/ledger/llm_factor_reviews.csv
+        read_only: false
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/llm_factor_review_transports.csv
+        target: /workspace/ledger/llm_factor_review_transports.csv
+        read_only: false
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.llm_factor_review
+      - --protocol
+      - /workspace/config/d1_llm_factor_review_v1.yaml
+      - --execution-release
+      - /workspace/config/d1_llm_factor_review_execution_v1.yaml
+      - --output-root
+      - /workspace/data/research/d1/d1-llm-dsl-v1/d1_3_reviews

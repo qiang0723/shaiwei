@@ -1,0 +1,81 @@
+schema_version: d1-llm-factor-review-execution-release-v1
+release_id: d1-llm-review-v1-batch-001
+prepared_at: "2026-07-25T19:42:00+08:00"
+status: D1_3A_RESULT_BLIND_EXECUTION_FROZEN
+execution_authorized: true
+production_authorization: none
+
+authorization:
+  source: user_explicit_instruction_in_primary_codex_thread
+  user_instruction: DeepSeek price is low and may be used more for the next goal
+  bounded_interpretation: exactly_8_blind_adversarial_reviews_not_new_candidates
+  completed_responses_exact: 8
+  d1_3a_review_hard_ceiling_usd: 0.25
+  d1_total_authorization_usd: 10.0
+  unused_budget_is_not_automatic_authority: true
+
+frozen_contract:
+  protocol_path: config/d1_llm_factor_review_v1.yaml
+  protocol_sha256: ad5ab9720198a2bab41912391a25cb09c5ca38c7accb37bef3904824c943f6da
+  prompt_path: config/d1_llm_factor_review_prompt_v1.yaml
+  prompt_sha256: 0ac012fecc596624bc3e2617f2e41f7d7d012d7f9edeab4f6edd88432546cc4a
+  d1_2b_execution_manifest_path: config/d1_llm_factor_execution_manifest_v1.json
+  d1_2b_execution_manifest_sha256: e972dfb28670fbbe922742b479366b795545f50ea33f262d5d7540606dce5da8
+  d1_2b_run_report_sha256: 70cd8160c956513537a885a4a5f2e65b72d55c0d3371a46b3e208f370e8949e6
+  candidate_count: 2
+  candidate_ids: [6ade2d0f6d103613, 3bf9d418202afc20]
+  selection_and_candidate_identity_immutable: true
+
+scope:
+  new_candidate_generation: false
+  formula_or_direction_change: false
+  discovery_metrics_read_or_sent: false
+  W1_W6_read_or_sent: false
+  stress_results_read_or_sent: false
+  g1_read_run_or_sent: false
+  forward_or_production_read_or_sent: false
+  scheduler_changes: false
+  guanxiang_access: false
+  web_changes: false
+
+egress:
+  scheme: https
+  host: api.deepseek.com
+  port: 443
+  path: /chat/completions
+  trust_environment_proxy: false
+
+provider_contract:
+  model: deepseek-v4-pro
+  response_model_field: deepseek-v4-pro
+  thinking: enabled
+  reasoning_effort: high
+  input_cache_hit_per_million_usd: 0.003625
+  input_cache_miss_per_million_usd: 0.435
+  output_per_million_usd: 0.87
+  price_change_policy: fail_closed_before_first_request
+
+failure_policy:
+  concurrency: 1
+  transport_retries_per_review: 2
+  billing_uncertain: stop_without_automatic_retry
+  completed_invalid_response: count_and_continue
+  model_or_usage_mismatch: count_and_stop
+  cost_preflight: reserve_worst_case_before_each_request
+
+ledgers:
+  review: ledger/llm_factor_reviews.csv
+  transport: ledger/llm_factor_review_transports.csv
+  d1_2b_ledgers_are_read_only: true
+
+pre_execution_gates:
+  release_commit_pushed_and_HEAD_equals_origin_main: true
+  clean_worktree: true
+  immutable_container_release_manifest: true
+  only_DEEPSEEK_API_KEY_passed_to_container: true
+  TLS_hostname_probe_before_secret_read: true
+  outbound_payload_forbidden_field_scan: true
+  d1_2b_manifest_and_top2_artifacts_rehashed: true
+  scheduler_identity_unchanged_and_healthy: true
+  independent_human_gate_not_run_in_this_release: true
+  primary_window_not_used_as_human_adjudicator: true

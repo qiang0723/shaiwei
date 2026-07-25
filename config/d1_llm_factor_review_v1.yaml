@@ -1,0 +1,168 @@
+schema_version: d1-llm-factor-review-protocol-v1
+protocol_id: d1-top2-blind-review-v1
+prepared_at: "2026-07-25T19:35:00+08:00"
+status: D1_3A_RESULT_BLIND_PROTOCOL_FROZEN
+research_family: d1-llm-dsl-v1
+production_authorization: none
+
+source_binding:
+  execution_manifest_path: config/d1_llm_factor_execution_manifest_v1.json
+  execution_manifest_sha256: e972dfb28670fbbe922742b479366b795545f50ea33f262d5d7540606dce5da8
+  run_report_path: data/research/d1/d1-llm-dsl-v1/d1_2b_run_report.json
+  run_report_sha256: 70cd8160c956513537a885a4a5f2e65b72d55c0d3371a46b3e208f370e8949e6
+  release_id: d1-llm-dsl-v1-batch-001
+  completed_responses: 40
+  selection_rule_reopened: false
+  third_place_replacement_allowed: false
+
+prompt:
+  path: config/d1_llm_factor_review_prompt_v1.yaml
+  sha256: 0ac012fecc596624bc3e2617f2e41f7d7d012d7f9edeab4f6edd88432546cc4a
+  schema_version: d1-review-prompt-v1
+  prompt_id: d1-top2-blind-adversarial-review-v1
+
+candidates:
+  - candidate_id: 6ade2d0f6d103613
+    global_ordinal: 18
+    topic: volatility_range
+    evolution_mode: independent
+    formula: Std(Log(Div($high,$low)),20d)
+    expression_sha256: cdd9107b9f665a6e45061335e9d9b89852afa10e229d30ee18e31f9ce25d2f02
+    expression_tokens: 6
+    ast_nodes: 6
+    max_lookback_days: 20
+    expected_direction: negative
+    original_hypothesis: A higher recent range-based volatility, measured as the standard deviation of daily log(high/low) over 20 days, is associated with lower subsequent returns.
+    original_rationale_is_non_authoritative: true
+    original_rationale: Parkinson range efficiency is cited as motivation; dispersion of daily log range is claimed to proxy stress and uncertainty, with a negative future-return direction.
+    manifest_sha256: 189800369dff3f69e3843e4c7748991474133083935302410e622f386bfdbe45
+    raw_response_sha256: 4405f6df497148e876feedb4892328e61788548d900241c3335336de904325f1
+  - candidate_id: 3bf9d418202afc20
+    global_ordinal: 23
+    topic: volatility_range
+    evolution_mode: mutation
+    parent_attempt_ids: [999d26f9f84ef02f]
+    formula: Std(Div(Sub($high,$low),$close),20d)
+    expression_sha256: d24c2968a5f1a677c521408521f27fcb3593671691f75516019661cb31737904
+    expression_tokens: 8
+    ast_nodes: 7
+    max_lookback_days: 20
+    expected_direction: negative
+    original_hypothesis: Dispersion of the high-low range relative to close may proxy uncertainty, with higher values associated with lower subsequent returns.
+    original_rationale_is_non_authoritative: true
+    original_rationale: Parkinson range measurement and uncertainty are cited; a higher required risk premium is also invoked to justify a negative future-return direction.
+    manifest_sha256: dd23b18ddcf58755a0120f1bddf6a2e01575ea0f3ea5ac25353d3654c5b2e248
+    raw_response_sha256: ceaaa87ce021c267c5005169808e5b2d6c7e8b5a98a82671dd37ce1dd0af3d9a
+
+blindness:
+  formula_and_non_authoritative_draft_visible: true
+  deepseek_payloads_are_result_blind: true
+  discovery_rank_ic_visible: false
+  discovery_coverage_visible: false
+  discovery_ordering_score_visible: false
+  W1_W6_visible: false
+  stress_results_visible: false
+  g1_results_visible: false
+  forward_results_visible: false
+  production_results_visible: false
+  primary_window_contamination:
+    occurred_before_protocol_freeze: true
+    candidate_id: 6ade2d0f6d103613
+    exposed_fields: [discovery_rank_ic, discovery_coverage]
+    exposed_values_must_not_be_repeated_or_exported: true
+    W1_W6_or_stress_or_g1_exposed: false
+  primary_window_may_adjudicate_human_gate: false
+  independent_result_blind_adjudicator_required: true
+  independent_adjudicator_authorization_deferred_to_D1_3B: true
+  violation_policy: invalidate_D1_3_and_stop_before_G1
+
+review_schedule:
+  candidate_order: [6ade2d0f6d103613, 3bf9d418202afc20]
+  role_order: [construct_validity, economic_sign, pit_execution, redundancy_falsifiability]
+  completed_responses_exact: 8
+  early_stop: false
+  invalid_or_truncated_response_counts: true
+  invalid_response_replacement: false
+  concurrency: 1
+
+provider:
+  provider: deepseek
+  model: deepseek-v4-pro
+  response_model_field: deepseek-v4-pro
+  base_url: https://api.deepseek.com
+  endpoint: /chat/completions
+  thinking: enabled
+  reasoning_effort: high
+  response_format: json_object
+  maximum_prompt_tokens_per_attempt: 16000
+  maximum_output_tokens: 3000
+  request_timeout_seconds: 180
+  maximum_transport_retries_per_review: 2
+  trust_environment_proxy: false
+  api_key_environment_variable: DEEPSEEK_API_KEY
+  only_project_gitignored_env_allowed: true
+
+attempt_budget:
+  maximum_transport_retries_per_attempt: 2
+
+cost_budget:
+  d1_total_authorization_usd: 10.0
+  d1_2b_used_usd: 0.076626207
+  d1_3a_review_hard_ceiling_usd: 0.25
+  future_review_or_generation_requires_new_protocol: true
+  unused_budget_is_not_automatic_authority: true
+  pro_input_cache_hit_per_million: 0.003625
+  pro_input_cache_miss_per_million: 0.435
+  pro_output_per_million: 0.87
+  reserve_worst_case_before_each_request: true
+
+local_gate:
+  g1_spec: g1-v1
+  human_rationale_minimum_characters: 80
+  formula_change_allowed: false
+  expected_direction_change_allowed: false
+  lookback_change_allowed: false
+  candidate_replacement_allowed: false
+  deepseek_reviews_are_advisory_not_authoritative: true
+  required_checks:
+    - frozen_identity_and_DSL_safety
+    - construct_matches_exact_formula
+    - economic_direction_is_logically_coherent
+    - PIT_and_next_open_execution_are_coherent
+    - claim_is_falsifiable_without_performance_peeking
+    - structural_redundancy_rule
+  construct_interpretation:
+    outer_operator: rolling_time_series_standard_deviation
+    measured_quantity: dispersion_of_daily_range_proxy
+    forbidden_misstatement: Parkinson_volatility_level_or_idiosyncratic_volatility_without_residualization
+  direction_rule:
+    frozen_direction: negative
+    required_rationale_type: coherent_mispricing_or_behavioral_mechanism
+    forbidden_logic: higher_required_risk_premium_or_lower_current_price_implies_lower_future_return
+  structural_redundancy_rule:
+    compare_without_performance: true
+    same_outer_operator_and_lookback: true
+    first_order_equivalent_range_proxies: Log(high/low)_approximately_equals_(high-low)/close_for_small_ranges
+    if_confirmed_keep: lower_expression_tokens_then_lower_ast_nodes_then_lower_global_ordinal
+    loser_verdict: REJECT_STRUCTURAL_REDUNDANCY
+  pass_rule: all_required_checks_pass_and_human_rationale_frozen_before_any_W1_W6_read
+  fail_rule: any_required_check_fails
+
+post_review:
+  all_8_valid_reviews_required_for_human_gate: true
+  deepseek_review_execution_does_not_authorize_human_gate: true
+  independent_result_blind_adjudicator_required_for_human_gate: true
+  each_candidate_is_independently_adjudicated: true
+  rejected_candidate_is_not_replaced: true
+  no_candidate_passes: stop_D1_3_without_G1
+  passing_candidates: freeze_D1_3B_G1_input_before_reading_W1_W6
+  g1_rules_unchanged: true
+  g1_failure_no_retry_or_variant: true
+  automatic_production_admission: false
+
+artifacts:
+  output_root: data/research/d1/d1-llm-dsl-v1/d1_3_reviews
+  review_ledger: ledger/llm_factor_reviews.csv
+  transport_ledger: ledger/llm_factor_review_transports.csv
+  raw_prompts_and_responses_gitignored: true
+  tracked_summary_contains_no_formula_performance_or_secret: true

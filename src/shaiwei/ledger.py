@@ -29,6 +29,8 @@ LLM_FACTOR_ATTEMPTS = LEDGER_DIR / "llm_factor_attempts.csv"
 LLM_FACTOR_TRANSPORTS = LEDGER_DIR / "llm_factor_transports.csv"
 LLM_FACTOR_ATTEMPTS_V2 = LEDGER_DIR / "llm_factor_attempts_v2.csv"
 LLM_FACTOR_TRANSPORTS_V2 = LEDGER_DIR / "llm_factor_transports_v2.csv"
+LLM_FACTOR_REVIEWS = LEDGER_DIR / "llm_factor_reviews.csv"
+LLM_FACTOR_REVIEW_TRANSPORTS = LEDGER_DIR / "llm_factor_review_transports.csv"
 
 
 def portable_artifact_path(path: str | Path) -> str:
@@ -252,6 +254,12 @@ def append_llm_factor_transport(*, path: Path | None = None, **kw: object) -> bo
     """Append one immutable D1 provider-transport event without request or response content."""
     kw.setdefault("operator", "docker-d1-research")
     return _append_idempotent(path or LLM_FACTOR_TRANSPORTS, kw, key="event_id")
+
+
+def append_llm_factor_review(*, path: Path | None = None, **kw: object) -> bool:
+    """Append one terminal D1-3 adversarial review without storing prompt content."""
+    kw.setdefault("operator", "docker-d1-review")
+    return _append_idempotent(path or LLM_FACTOR_REVIEWS, kw, key="review_id")
 
 
 def append_llm_factor_experiment(*, path: Path | None = None, **kw: object) -> bool:

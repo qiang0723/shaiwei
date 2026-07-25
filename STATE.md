@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-07-25 · D1-3A Top2 盲态对抗复核结果前冻结
+
+- D1-2B 机械 Top2 的身份、原始表达式、冻结方向与不可变证据已绑定；D1-3A 只授权恰好 8 份
+  DeepSeek 对抗复核、专项 `$0.25` 硬上限，不生成新候选、不改公式/方向/窗口，不读或外发
+  W1—W6、压力期、G1、前瞻和生产结果。
+- 主窗口在协议冻结前核对候选 18 身份时误见其发现期 RankIC 与覆盖率；该污染已永久登记，数值不
+  重复、不外发。DeepSeek 请求本身仍为结果盲态，但主窗口不得承担最终人工闸；独立盲审须另立
+  D1-3B 授权，未获授权前最多停在 `GO_INDEPENDENT_HUMAN_GATE`，不得运行 G1。
+- 已建立专属追加式 review/transport ledger、严格 JSON schema、费用预留、不可变请求/响应/manifest
+  和独立 `d1-review-live` Docker 边界；协议见
+  `docs/D1_LLM_FACTOR_REVIEW_PROTOCOL_20260725.md`。当前尚未发出 D1-3A 请求，新增费用为 0。
+
 ## 2026-07-25 · D1-2B 首批 40 份真实响应完成
 
 - `d1-llm-dsl-v1-batch-001` 已取得恰好 40/40 份完成响应，估算费用
@@ -109,6 +121,7 @@
 - [x] P2-2C 科创50综合方法纠错（2026-07-25，权威 NO-GO/REJECT）：结果前提交并推送 `c6fbbaf`，只修复 train/valid 最后 11 个信号日 purge、执行日 raw open/pre_close/tick 与 prior-close 时钟、买卖双向信号日 20 日中位 amount 5% 容量；其他 Alpha158/LightGBM seed42 超参、窗口/test、压力映射、Top10/n_drop2、调仓、成本和门槛逐字段不变。三窗 242/242/243 日、各 25 次调仓，基础净超额 -8.51%/-19.25%/-23.87%；727 日 pooled 基础/1.5x/2x/额外双边10bp 为 -52.97%/-54.59%/-56.19%/-56.02%，正窗 0/3；W1/W2/W3 与 microcap_2024 回撤越过 20%。纠错基础 909 笔和全部场景/压力 3,856 笔的买卖容量违规均为 0；84 个名字跨信号日继续卖出。合法 CSI800 对照缺失使分散化 `NOT_EVALUABLE`。两遍 54 份 model/prediction/NAV/trade/holding 物理哈希完全一致；机器终态 `authoritative_historical_effect_gate=NO_GO`、`strategy_effective=REJECT`、`production_authorization=none`。完整证据见 `docs/P2_STAR50_EFFECT_CORRECTION_ACCEPTANCE_20260725.md`。
 - [x] D1-2A LLM 真实调用前冻结（2026-07-25，GO_PREEXECUTION_ONLY）：官方模型/价格和请求/响应/错误合同、system prompt、五主题模板、同主题全历史反馈、10 条知识 manifest、受限 DeepSeek 适配层、累计费用熔断和 transport 恢复账本均已冻结。当前 `execution_authorized=false` 时真实 transport、运行时 secret 加载和网络在创建前被拒绝；宿主脱敏测试仅作 `.env` 秘密与 Git 跟踪文件的不回显比对。断网 Docker 同时证明成功恢复不二次请求、429 有界恢复和读超时后 `BILLING_UNCERTAIN` 禁止重发。全仓 247 PASS、Docker 对抗 29 PASS；API/行情/G1/生产授权均为 0。证据见 `docs/D1_LLM_FACTOR_PREEXECUTION_ACCEPTANCE_20260725.md`。
 - [x] D1-2B 首批真实生成（2026-07-25，GO_D1_3_REVIEW）：结果前冻结总授权 `$10`、本批恰好 40 个完成响应和 `$1` 熔断，只读 2016-06-01—2018-12-31 发现期，W1—W6/压力期/G1/前瞻/生产禁读禁跑。首份完成后控制流 fail closed；恢复附录锁定原响应、账本字节前缀与产物哈希，仅修独立反馈和连续恢复，从序号 2 完成剩余 39 份，无重发或计费不确定性。终态 40/40：36 `DISCOVERY_EVALUATED`、2 `duplicate_ast`、2 `sandbox_rejected`，费用 `$0.076626207`；无密钥、断网、只读重放为 `idempotent_reuse=true / external_api_calls_this_run=0` 且 160 文件证据束哈希不变。机械 Top2 已锁定但未解盲 W1—W6或运行 G1；`strategy_effective=NOT_EVALUATED`、`production_authorization=none`。证据见 `docs/D1_LLM_FACTOR_EXECUTION_ACCEPTANCE_20260725.md`。
+- [ ] D1-3A Top2 盲态对抗复核（2026-07-25，结果前冻结待执行）：固定 Top2、四角色×两候选、恰好 8 份完成响应和 `$0.25` 专项熔断；DeepSeek 出站保持结果盲态。主窗口已登记候选 18 发现期数值污染，禁止承担最终人工闸；D1-3B 独立盲审未授权，W1—W6/G1 仍禁读禁跑。
 
 ## 后台任务
 运行态以 `logs/pipeline/stage0_20260715.jsonl` 和 `ledger/ingest_batches.csv` 为准；自动流按 as-of+代码+数据快照及逐批文件哈希安全续跑。

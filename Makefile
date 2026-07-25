@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-d1-fixture docker-d1-live docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-up docker-web-status docker-web-logs docker-web-down
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-d1-fixture docker-d1-live docker-d1-review-live docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-up docker-web-status docker-web-logs docker-web-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -107,6 +107,8 @@ docker-d1-fixture: ## D1-2A 断网 prompt/知识/mock传输/schema/DSL/账本 fi
 
 docker-d1-live: ## D1-2B 受控真实40次生成；调用前须冻结提交、显式导出唯一 DeepSeek secret
 	docker compose -f compose.research.yaml --profile research-live run --rm d1-live
+docker-d1-review-live: ## D1-3A 恰好8次盲态对抗复核；不生成候选、不读W1-W6或运行G1
+	docker compose -f compose.research.yaml --profile research-review-live run --rm d1-review-live
 docker-release-build: ## 从干净工作树构建并验证内容寻址 scheduler 镜像
 	$(PYTHON) -m shaiwei.release build
 docker-release-promote: ## 提升 RELEASE_IMAGE；默认重建 scheduler 并验收隔离契约
