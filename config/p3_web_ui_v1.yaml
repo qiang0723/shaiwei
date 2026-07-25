@@ -1,0 +1,97 @@
+protocol_id: p3-web-ui-v1
+schema_version: web-v1
+timezone: Asia/Shanghai
+account_id: model_baseline
+read_only: true
+
+routes:
+  - /overview
+  - /paper
+  - /signals
+
+api_mapping:
+  overview:
+    - /api/v1/overview
+  paper:
+    - /api/v1/paper/portfolio
+    - /api/v1/paper/nav
+    - /api/v1/paper/forward
+    - /api/v1/paper/replay
+  signals:
+    - /api/v1/signals/latest
+
+status_values:
+  - PASS
+  - WARN
+  - FAIL
+  - STALE
+  - NOT_READY
+  - NOT_APPLICABLE
+  - NO_DATA
+  - OBSERVING
+  - NOT_DUE
+  - NOT_EVALUATED
+
+responsive_viewports:
+  desktop: [1440, 900]
+  laptop: [1024, 768]
+  tablet: [768, 1024]
+  mobile: [390, 844]
+  minimum_reflow_width: 320
+  zoom_percent: 400
+
+accessibility:
+  target: WCAG-2.2-AA
+  axe_critical_max: 0
+  axe_serious_max: 0
+  minimum_target_css_px: 24
+  keyboard_required: true
+  reduced_motion_required: true
+
+performance:
+  initial_gzip_bytes_max: 614400
+  all_route_gzip_bytes_max: 2621440
+  localhost_first_content_seconds_max: 2
+  api_timeout_seconds: 5
+  automatic_retry_count: 0
+
+dependencies:
+  node_image: node:22-bookworm-slim@sha256:6c74791e557ce11fc957704f6d4fe134a7bc8d6f5ca4403205b2966bd488f6b3
+  react: 19.2.8
+  react_dom: 19.2.8
+  react_router_dom: 7.18.1
+  antd: 6.5.2
+  ant_design_icons: 6.3.2
+  ant_design_charts: 2.6.7
+  tanstack_react_query: 5.101.4
+  typescript: 7.0.2
+  vite: 8.1.5
+  vite_react_plugin: 6.0.4
+  vitest: 4.1.10
+  testing_library_react: 16.3.2
+  testing_library_jest_dom: 7.0.0
+  jsdom: 29.1.1
+  playwright: 1.62.0
+  axe_playwright: 4.12.1
+
+security:
+  external_assets: false
+  inline_script: false
+  inline_style: false
+  unsafe_eval: false
+  ui_host_bind: 127.0.0.1
+  ui_host_port: 8080
+  query_host_port: null
+  load_dotenv: false
+  root_read_only: true
+  run_as_non_root: true
+  docker_socket: false
+
+forbidden:
+  - research_metric_recalculation
+  - cross_snapshot_rendering
+  - browser_file_scan
+  - order_or_trade_controls
+  - execution_fact_prediction
+  - bse_security
+  - remote_access
