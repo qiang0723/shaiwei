@@ -377,6 +377,231 @@ export const notification = {
   ]
 };
 
-export function response(data: unknown) {
-  return { schema_version: "web-v1", request_id: "e2e-request", data, meta };
+export const FACTOR_A = "1".repeat(64);
+export const FACTOR_B = "2".repeat(64);
+export const FACTOR_HISTORICAL = "3".repeat(64);
+export const VERSION_A = "a1".repeat(6);
+export const VERSION_B = "b2".repeat(6);
+export const VERSION_OLD = "c3".repeat(6);
+
+export const factorCatalog = {
+  items: [
+    {
+      factor_id: FACTOR_A,
+      identity_kind: "FAMILY_SCOPED_EXACT_FORMULA_SHA256",
+      research_family: "p1-moneyflow-v1",
+      data_category: "moneyflow",
+      lifecycle_status: "REJECTED",
+      authority_status: "AUTHORITATIVE_CURRENT",
+      version_count: 2,
+      current_factor_version: VERSION_A,
+      experiment_attempt_n: 18,
+      latest_recorded_decision: "REJECTED",
+      evidence_status: "VERIFIED"
+    },
+    {
+      factor_id: FACTOR_B,
+      identity_kind: "FAMILY_SCOPED_EXACT_FORMULA_SHA256",
+      research_family: "p1-moneyflow-v1",
+      data_category: "moneyflow",
+      lifecycle_status: "REJECTED",
+      authority_status: "AUTHORITATIVE_CURRENT",
+      version_count: 2,
+      current_factor_version: VERSION_B,
+      experiment_attempt_n: 18,
+      latest_recorded_decision: "REJECTED",
+      evidence_status: "VERIFIED"
+    },
+    {
+      factor_id: FACTOR_HISTORICAL,
+      identity_kind: "FAMILY_SCOPED_EXACT_FORMULA_SHA256",
+      research_family: "stage1-gp-preflight-v1",
+      data_category: "price_volume",
+      lifecycle_status: "REJECTED",
+      authority_status: "HISTORICAL_NON_AUTHORITATIVE",
+      version_count: 1,
+      current_factor_version: null,
+      experiment_attempt_n: 82,
+      latest_recorded_decision: "REJECTED",
+      evidence_status: "VERIFIED"
+    }
+  ],
+  counters: {
+    formal_library_count: 0,
+    researched_factor_count: 10,
+    authoritative_rejected_count: 8,
+    historical_only_count: 2
+  },
+  sort: ["research_family", "factor_id"],
+  historical_response_banner: null
+};
+
+const factorStatistics = {
+  direction: 1,
+  dsr_probability: 0.63,
+  expected_maximum_periodic_sharpe: 0.014,
+  hac_t: 0.59,
+  kurtosis: 5.24,
+  mean_oriented_oos_rank_ic: 0.0047,
+  observed_periodic_sharpe: 0.022,
+  positive_oos_windows: 4,
+  rank_ic_retention: 0.356,
+  skewness: -0.028,
+  trial_count: 18,
+  turnover_ratio: 0.865,
+  valid_trial_sharpes: 18,
+  z_score: 0.332
+};
+
+const factorGates = Object.fromEntries([
+  ["complexity", { actual: { ast_nodes: 11, expression_tokens: 9 }, passed: true, rule: "tokens<=20; ast_nodes<=80" }],
+  ["cost_2x", { actual: 0.1663, passed: true, rule: "net excess at cost +100% >= 0" }],
+  ["deflated_sharpe", { actual: 0.63, passed: false, rule: "DSR probability>=0.95" }],
+  ["economic_rationale", { actual: 36, passed: true, rule: "human rationale length>=20" }],
+  ["hac_t", { actual: 0.59, passed: false, rule: "Newey-West(10) t>=3.0" }],
+  ["incremental_net_excess", { actual: -0.317, passed: false, rule: "incremental net excess > 0" }],
+  ["incremental_net_icir", { actual: -0.011, passed: false, rule: "incremental net ICIR > 0" }],
+  ["library_correlation", { actual: 0, passed: true, rule: "max |rho|<0.5" }],
+  ["pit_and_shift", { actual: { pit: true, shift: true }, passed: true, rule: "PIT and shift PASS" }],
+  ["rank_ic_retention", { actual: 0.356, passed: false, rule: "retention>=0.5" }],
+  ["rolling_window_sign", { actual: 4, passed: true, rule: "positive windows>=4/6" }],
+  ["slippage_2x", { actual: 0.1661, passed: true, rule: "doubled slippage >= 0" }],
+  ["stress_drawdown", { actual: 0.1138, passed: true, rule: "every stress drawdown<=0.2" }],
+  ["turnover", { actual: 0.865, passed: true, rule: "candidate/base turnover<=1.1" }],
+  ["valid_trial_sharpes", { actual: 18, passed: true, rule: "valid trial Sharpes>=2" }]
+]);
+
+const factorWindows = { W1: -0.0124, W2: 0.0342, W3: -0.0098, W4: 0.0043, W5: 0.0061, W6: 0.0061 };
+const factorStress = { style_shift_2017: 0.0219, microcap_crash_2024: 0.0635, volume_price_drawdown_2026h1: 0.1138 };
+const factorPortfolio = {
+  baseline_net_excess: 0.5182,
+  baseline_net_icir: 0.389,
+  baseline_turnover: 34.049,
+  candidate_net_excess: 0.2012,
+  candidate_net_icir: 0.378,
+  candidate_turnover: 29.469
+};
+const factorCosts = { cost_2x_net_excess: 0.1664, slippage_2x_net_excess: 0.1661 };
+
+export const factorDetail = {
+  factor_id: FACTOR_A,
+  identity_kind: "FAMILY_SCOPED_EXACT_FORMULA_SHA256",
+  factor_version: VERSION_A,
+  authority_status: "AUTHORITATIVE_CURRENT",
+  lifecycle_status: "REJECTED",
+  recorded_decision: "REJECTED",
+  fallback_to_latest_historical: false,
+  sections: {
+    identity: { candidate_experiment_id: VERSION_A, research_family: "p1-moneyflow-v1", data_category: "moneyflow" },
+    frozen_definition_and_direction: {
+      feature_or_formula: "sum(net_mf_amount, 20) / sum(daily.amount / 10, 20)",
+      direction: 1,
+      economic_rationale: "二十个连续交易日累计净流入强度检验月度资金压力是否稳定并能覆盖交易成本。"
+    },
+    pit_shift_and_complexity: {
+      pit_sentinel_pass: true,
+      shift_sentinel_pass: true,
+      ast_nodes: 11,
+      expression_tokens: 9,
+      max_lookback_days: null,
+      required_backtrack_days: null,
+      shift_compared_values: null
+    },
+    g1_statistics_and_all_gates: { statistics: factorStatistics, gates: factorGates },
+    six_oos_window_rank_ic: factorWindows,
+    stress_max_drawdown: factorStress,
+    turnover_and_incremental_portfolio: factorPortfolio,
+    cost_and_slippage_stress: factorCosts,
+    library_max_abs_correlation: 0,
+    coverage_ratio: { status: "NOT_EVALUATED", recomputed: false },
+    quantile_returns_and_monotonicity: { status: "NOT_EVALUATED", recomputed: false },
+    factor_autocorrelation: { status: "NOT_EVALUATED", recomputed: false },
+    candidate_pool_correlation: { status: "NOT_EVALUATED", recomputed: false }
+  },
+  source_refs: [`experiment:${VERSION_A}`, "factor_admission:1853210f3504"],
+  evidence_hashes: [A, B, C],
+  historical_response_banner: null
+};
+
+export const factorHistory = {
+  factor_id: FACTOR_A,
+  items: [
+    {
+      decision_id: "111111111111",
+      recorded_at: "2026-07-22T12:00:00+00:00",
+      factor_version: VERSION_OLD,
+      recorded_decision: "REJECTED",
+      authority_status: "SUPERSEDED_ENGINEERING_GENERATION",
+      trial_count: 18,
+      failed_gates: ["hac_t", "incremental_net_excess"],
+      decision_rule_version: "g1-v1",
+      evidence_sha256: B,
+      report_sha256: C
+    },
+    {
+      decision_id: "222222222222",
+      recorded_at: "2026-07-24T12:00:00+00:00",
+      factor_version: VERSION_A,
+      recorded_decision: "REJECTED",
+      authority_status: "AUTHORITATIVE_CURRENT",
+      trial_count: 18,
+      failed_gates: ["deflated_sharpe", "hac_t", "incremental_net_excess", "incremental_net_icir", "rank_ic_retention"],
+      decision_rule_version: "g1-v1",
+      evidence_sha256: A,
+      report_sha256: B
+    }
+  ],
+  append_only: true,
+  historical_response_banner: null
+};
+
+export const factorCompare = {
+  factor_versions: [VERSION_A, VERSION_B],
+  fingerprint: {
+    universe_id: "csi800-pit-v1",
+    benchmark_id: "000906.SH",
+    label_id: "t11-vwap",
+    horizon_id: "10d",
+    neutralization_id: "industry-size-v1",
+    window_set_id: "w1-w6-v1",
+    stress_set_id: "stress-v1",
+    portfolio_policy_id: "top30-equal-v1",
+    cost_policy_id: "cost-v1",
+    decision_rule_version: "g1-v1",
+    candidate_code_sha256: A,
+    data_snapshot_sha256: B,
+    comparison_policy_id: C
+  },
+  items: [
+    {
+      factor_id: FACTOR_A,
+      factor_version: VERSION_A,
+      recorded_decision: "REJECTED",
+      statistics: factorStatistics,
+      six_oos_window_rank_ic: factorWindows,
+      stress_max_drawdown: factorStress,
+      portfolio: factorPortfolio,
+      cost_and_slippage: factorCosts
+    },
+    {
+      factor_id: FACTOR_B,
+      factor_version: VERSION_B,
+      recorded_decision: "REJECTED",
+      statistics: { ...factorStatistics, dsr_probability: 0.51, hac_t: 0.41 },
+      six_oos_window_rank_ic: { W1: 0.004, W2: 0.009, W3: -0.006, W4: 0.002, W5: 0.001, W6: 0.003 },
+      stress_max_drawdown: { style_shift_2017: 0.041, microcap_crash_2024: 0.091, volume_price_drawdown_2026h1: 0.142 },
+      portfolio: { ...factorPortfolio, candidate_net_excess: 0.131, candidate_net_icir: 0.301 },
+      cost_and_slippage: { cost_2x_net_excess: 0.102, slippage_2x_net_excess: 0.099 }
+    }
+  ],
+  sorted_by_performance: false
+};
+
+export function response(data: unknown, asOf?: string | null) {
+  return {
+    schema_version: "web-v1",
+    request_id: "e2e-request",
+    data,
+    meta: { ...meta, as_of: asOf ?? meta.as_of }
+  };
 }

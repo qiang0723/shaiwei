@@ -1,8 +1,8 @@
 # Web 1.0 查询契约映射（v1.0）
 
-> 本文区分“已实现只读查询”和“Web 需求提案”。2026-07-25 P3-0 已将 P-WEB-01/02/03/03A
-> 落地为 HTTP 只读契约；P3-2A 已落地 P-WEB-05/06。2026-07-25 P3-3A 已冻结
-> P-WEB-04/07 的证据、身份、权威覆盖与查询契约，但尚未实现 HTTP 或页面。
+> 本文区分“已实现只读查询”和“Web 需求提案”。P3-0 已将 P-WEB-01/02/03/03A 落地为 HTTP
+> 只读契约，P3-2A 已落地 P-WEB-05/06；P3-3B 已落地 P-WEB-04/07 的类型化 HTTP 与安全投影，
+> P3-3C 已完成 P-WEB-07 四层页面。P-WEB-04 仍缺 `experiment_catalog`，尚不支持完整模型/回测页。
 
 ## 1. 已实现契约
 
@@ -56,7 +56,7 @@
 | 账户日执行 | orders | 是，需 signal hash | 页面需先从受控来源取得 signal hash |
 | 组合重放 | `GET /api/v1/paper/replay` | 是 | 独立事件/状态链重放 |
 | 股票池/信号 | `GET /api/v1/signals/latest`、`signals/reconciliation` | 是 | 正式页面与原因展示待 P3-1 |
-| 因子目录与 tear sheet | 无 | 否 | P3-3A 契约已冻结；待 P3-3B 类型化只读后端 |
+| 因子目录与 tear sheet | `GET /api/v1/factors`、详情、比较、准入历史 | 是，P3-3C 页面已完成 | 四类历史未统一登记指标固定 `NOT_EVALUATED` |
 | 模型/回测 | 无 | 否 | `experiment_summary` 详情契约已冻结；完整页面还缺 `experiment_catalog` |
 | 数据质量 | `GET /api/v1/data-quality` | 是，P3-2B 页面已完成 | 哨兵报告尚未历史哈希绑定，证据状态固定 WARN；原始 Parquet 重哈希 NOT_EVALUATED |
 | 系统运行/通知 | `GET /api/v1/system/runs`、`GET /api/v1/notifications/{message_id}` | 是，P3-2B 页面已完成 | 实时 Docker 身份 NOT_EVALUATED；旧通知 schema 只计数、不可按消息寻址 |
@@ -98,7 +98,7 @@
 
 后端门槛和公式见 `WEB_ARCHITECTURE_RULINGS_20260723.md` R5。任何跨策略版本、缺锚点、缺账户日或哈希断链均失败。
 
-### P-WEB-04 `experiment_summary(experiment_kind, experiment_id)`（P3-3A 已冻结，未实现）
+### P-WEB-04 `experiment_summary(experiment_kind, experiment_id)`（P3-3B 已实现详情）
 
 目的：返回类型化实验身份、证据层级、窗口、受控参数摘要、指标、判决、失败原因和产物引用；失败、
 provisional、被替代和失效实验必须可查。
@@ -136,7 +136,7 @@ release 审计链会逐条验哈希并返回运行前最后一个已登记 `STAR
 因此实时容器身份保持 `NOT_EVALUATED`。2026-07-23 前无 message ID 的 legacy 通知只计数，不合成
 ID，也不进入当前重试统计。
 
-### P-WEB-07 因子工厂四组契约（P3-3A 已冻结，未实现）
+### P-WEB-07 因子工厂四组契约（P3-3B 后端、P3-3C 页面已实现）
 
 - `factor_catalog(status, family, data_category, as_of)`：只收录曾进入 G1 的因子；稳定
   `factor_id` 与实验版 `factor_version` 分离，返回生命周期、权威状态、实验尝试 N、最新记录判决与证据
@@ -156,9 +156,9 @@ ID，也不进入当前重试统计。
 哈希绑定的 `data/web/research_snapshots/`；web-query 只读挂载该投影，禁止直接挂整个
 `data/research`。完整协议见 `P3_FACTOR_EXPERIMENT_QUERY_PROTOCOL_20260725.md`。
 
-## 4. HTTP 适配层候选包络
+## 4. HTTP 适配层包络（已实现）
 
-主控已原则批准只读 HTTP 层；只有另立代码目标并完成隔离验收后才能采用：
+P3-0 已实现只读 HTTP 层，P3-2A 与 P3-3B 在同一包络下扩展运维和研究投影：
 
 ```json
 {

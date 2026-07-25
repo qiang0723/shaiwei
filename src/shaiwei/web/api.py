@@ -88,6 +88,8 @@ def _success(
     request: Request,
     bundle: SnapshotBundle | OperationsBundle | ResearchProjectionBundle,
     data: dict[str, object],
+    *,
+    meta: dict[str, object] | None = None,
 ) -> Response:
     return _json_response(
         request,
@@ -95,7 +97,7 @@ def _success(
             "schema_version": SCHEMA_VERSION,
             "request_id": _request_id(request, bundle.snapshot_id),
             "data": data,
-            "meta": bundle.meta,
+            "meta": bundle.meta if meta is None else meta,
         },
         etag=bundle.snapshot_id,
     )
@@ -263,6 +265,7 @@ def create_app(project_root: Path | None = None) -> FastAPI:
                 data_category=data_category,
                 as_of=as_of,
             ),
+            meta=bundle.meta_for(as_of),
         )
 
     @app.api_route("/api/v1/factors/compare", methods=["GET", "HEAD"])
@@ -284,6 +287,7 @@ def create_app(project_root: Path | None = None) -> FastAPI:
             request,
             bundle,
             factor_admission_history(bundle, factor_id, as_of=as_of),
+            meta=bundle.meta_for(as_of),
         )
 
     @app.api_route("/api/v1/factors/{factor_id}", methods=["GET", "HEAD"])
@@ -298,6 +302,7 @@ def create_app(project_root: Path | None = None) -> FastAPI:
             request,
             bundle,
             factor_detail(bundle, factor_id, version=version, as_of=as_of),
+            meta=bundle.meta_for(as_of),
         )
 
     @app.api_route(
@@ -320,6 +325,7 @@ def create_app(project_root: Path | None = None) -> FastAPI:
                 experiment_id,
                 as_of=as_of,
             ),
+            meta=bundle.meta_for(as_of),
         )
 
     @app.api_route("/api/v1/data-quality", methods=["GET", "HEAD"])

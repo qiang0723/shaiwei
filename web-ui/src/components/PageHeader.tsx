@@ -12,7 +12,9 @@ export function PageHeader({
   status,
   asOf,
   generatedAt,
-  evidence
+  evidence,
+  asOfLabel = "数据截至",
+  generatedAtLabel = "证据生成"
 }: {
   eyebrow: string;
   title: string;
@@ -21,6 +23,8 @@ export function PageHeader({
   asOf: string;
   generatedAt: string;
   evidence: EvidencePayload;
+  asOfLabel?: string;
+  generatedAtLabel?: string;
 }) {
   const { openEvidence } = useEvidence();
   return (
@@ -35,11 +39,11 @@ export function PageHeader({
       </div>
       <div className="page-header-meta">
         <div>
-          <span>数据截至</span>
+          <span>{asOfLabel}</span>
           <strong>{displayDate(asOf)}</strong>
         </div>
         <div>
-          <span>证据生成</span>
+          <span>{generatedAtLabel}</span>
           <strong>{formatDateTime(generatedAt)}</strong>
         </div>
         <Button icon={<FileSearchOutlined />} onClick={() => openEvidence(evidence)}>

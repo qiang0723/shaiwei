@@ -4,7 +4,7 @@ import re
 from fastapi.testclient import TestClient
 import yaml
 
-from shaiwei.web.ui import _allowed_api_path, create_app
+from shaiwei.web.ui import _allowed_api_path, _allowed_ui_path, create_app
 
 
 def _static_fixture(root: Path) -> Path:
@@ -23,7 +23,12 @@ def _static_fixture(root: Path) -> Path:
 
 def test_ui_serves_only_frozen_routes_and_hashed_assets(tmp_path: Path) -> None:
     client = TestClient(create_app(static_root=_static_fixture(tmp_path)))
-    for route in ("/", "/overview", "/paper", "/signals", "/data-quality", "/system-runs"):
+    factor_id = "a" * 64
+    for route in (
+        "/", "/overview", "/paper", "/signals", "/data-quality", "/system-runs",
+        "/factors", "/factors/compare", f"/factors/{factor_id}",
+        f"/factors/{factor_id}/admissions",
+    ):
         response = client.get(route)
         assert response.status_code == 200
         assert response.headers["cache-control"] == "no-store"
@@ -95,6 +100,18 @@ def test_p3_ui_machine_protocol_matches_runtime_boundary() -> None:
     assert operations["status_rules"]["core_status_separate_from_notification_status"] is True
     assert operations["security"]["ui_host_bind"] == "127.0.0.1"
 
+    factors = yaml.safe_load(
+        Path("config/p3_factor_factory_ui_v1.yaml").read_text(encoding="utf-8")
+    )
+    assert factors["protocol_id"] == "p3-factor-factory-ui-v1"
+    assert factors["status"] == "FROZEN_BEFORE_IMPLEMENTATION"
+    assert factors["page_contract"]["formal_library_empty_is_primary_fact"] is True
+    assert factors["page_contract"]["historical_as_of_compare_enabled"] is False
+    assert factors["comparison"]["sorted_by_performance"] is False
+    assert factors["navigation"]["mobile_primary_routes"] == [
+        "/overview", "/factors", "/paper"
+    ]
+
 
 def test_operations_proxy_paths_are_exact_and_notification_ids_are_bounded() -> None:
     assert _allowed_api_path("/api/v1/data-quality")
@@ -104,3 +121,20 @@ def test_operations_proxy_paths_are_exact_and_notification_ids_are_bounded() -> 
     assert not _allowed_api_path("/api/v1/notifications/CE3BFBF96E9EC474")
     assert not _allowed_api_path("/api/v1/notifications/ce3bfbf96e9ec474/extra")
     assert not _allowed_api_path("/api/v1/notifications/../../.env")
+
+
+def test_factor_ui_and_proxy_paths_are_exact_and_bounded() -> None:
+    factor_id = "a" * 64
+    assert _allowed_ui_path("/factors")
+    assert _allowed_ui_path("/factors/compare")
+    assert _allowed_ui_path(f"/factors/{factor_id}")
+    assert _allowed_ui_path(f"/factors/{factor_id}/admissions")
+    assert not _allowed_ui_path("/factors/not-a-factor")
+    assert not _allowed_ui_path(f"/factors/{factor_id}/extra")
+
+    assert _allowed_api_path("/api/v1/factors")
+    assert _allowed_api_path("/api/v1/factors/compare")
+    assert _allowed_api_path(f"/api/v1/factors/{factor_id}")
+    assert _allowed_api_path(f"/api/v1/factors/{factor_id}/admissions")
+    assert not _allowed_api_path("/api/v1/factors/not-a-factor")
+    assert not _allowed_api_path(f"/api/v1/factors/{factor_id}/extra")

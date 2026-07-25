@@ -322,6 +322,11 @@ def test_projection_loader_api_and_invalidated_experiment_are_typed(tmp_path: Pa
     response = client.get("/api/v1/factors")
     assert response.status_code == 200
     assert response.json()["data"]["counters"]["researched_factor_count"] == 2
+    assert response.json()["meta"]["as_of"] == "2026-07-24"
+    historical_response = client.get("/api/v1/factors?as_of=2026-07-23")
+    assert historical_response.status_code == 200
+    assert historical_response.json()["meta"]["as_of"] == "2026-07-23"
+    assert historical_response.json()["data"]["historical_response_banner"]
     assert client.head("/api/v1/factors").status_code == 200
     assert client.post("/api/v1/factors").status_code == 405
     raw = response.text.lower()

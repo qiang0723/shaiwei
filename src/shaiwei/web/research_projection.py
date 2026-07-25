@@ -768,10 +768,15 @@ class ResearchProjectionBundle:
     data: dict[str, Any]
     source_hashes: dict[str, str]
 
-    @property
-    def meta(self) -> dict[str, object]:
+    def meta_for(self, as_of: str | None = None) -> dict[str, object]:
+        compact = _normalize_as_of(as_of)
+        if compact is None:
+            compact = _parse_timestamp(self.generated_at).astimezone(
+                ZoneInfo(TIMEZONE)
+            ).strftime("%Y%m%d")
+        normalized_as_of = f"{compact[:4]}-{compact[4:6]}-{compact[6:8]}"
         return {
-            "as_of": None,
+            "as_of": normalized_as_of,
             "generated_at": self.generated_at,
             "timezone": TIMEZONE,
             "freshness_status": "PASS",
@@ -780,6 +785,10 @@ class ResearchProjectionBundle:
             "evidence_hashes": {"bundle": _sha256(self.data)},
             "protocol_id": self.protocol_id,
         }
+
+    @property
+    def meta(self) -> dict[str, object]:
+        return self.meta_for()
 
 
 def _projection_root(project_root: Path | None, output_root: Path | None) -> Path:

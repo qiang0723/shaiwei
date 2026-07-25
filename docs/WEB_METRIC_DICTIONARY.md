@@ -6,8 +6,9 @@
 > 2026-07-25 更新：P3-0 已实现原子总览、逐仓投影、FORWARD 锚点、最新信号和次日对账。
 > 本表原 `P` 标记保留设计来源；实际可用性以 `WEB_QUERY_CONTRACTS.md`、
 > `P3_WEB_QUERY_ACCEPTANCE_20260725.md` 和 `P3_WEB_OPERATIONS_ACCEPTANCE_20260725.md` 为准。
-> 数据质量与系统运行查询和页面已由 P3-2A/P3-2B 完成；P3-3A 已冻结实验与因子工厂查询契约，
-> 但 HTTP 与页面仍未实现。
+> 数据质量与系统运行查询和页面已由 P3-2A/P3-2B 完成；P3-3B/P3-3C 已实现实验详情、因子工厂
+> 四组 HTTP 查询和四层页面。下表旧 `H/F` 仍用于标识具体字段的历史来源或缺失状态，当前可用性
+> 以 P3-3C 协议与验收为准；四类缺证据指标继续固定 `NOT_EVALUATED`。
 
 ## 1. 通用字段
 
@@ -87,10 +88,10 @@
 
 | 机器名 | 展示名 | 定义 | 空值与状态 | 来源 | 状态 |
 |---|---|---|---|---|---|
-| `factor_lifecycle_status` | 因子阶段 | `CANDIDATE/TESTING/REJECTED/ADMITTED/RETIRED/HISTORICAL_ONLY`，由后台按 G1 判决与权威覆盖返回 | 未登记=`NO_DATA`；不能只读 `experiments.admitted` | `factor_catalog` 冻结契约 | H/F |
-| `factor_authority_status` | 因子判决权威 | `AUTHORITATIVE_CURRENT/HISTORICAL_NON_AUTHORITATIVE/SUPERSEDED_ENGINEERING_GENERATION/INVALIDATED` | 必须与记录判决分列 | P3-3A 权威覆盖 | H/F |
-| `factor_direction` | 冻结方向 | 研究前冻结的预测方向 | 不得观察结果后翻转 | `factor_detail` 冻结契约 | H/F |
-| `experiment_attempt_n` | 研究尝试数 | 同研究家族总账全部尝试，含失败 | 缺总账不得计算 DSR | 实验总账聚合冻结契约 | H/F |
+| `factor_lifecycle_status` | 因子阶段 | `CANDIDATE/TESTING/REJECTED/ADMITTED/RETIRED`，由后台按 G1 判决与权威覆盖返回；仅历史由 authority 单独表达 | 未登记=`NO_DATA`；不能只读 `experiments.admitted` | `GET /api/v1/factors` | I |
+| `factor_authority_status` | 因子判决权威 | `AUTHORITATIVE_CURRENT/HISTORICAL_NON_AUTHORITATIVE/SUPERSEDED_ENGINEERING_GENERATION/INVALIDATED` | 必须与记录判决分列 | 因子目录/详情/历史查询 | I |
+| `factor_direction` | 冻结方向 | 研究前冻结的预测方向 | 不得观察结果后翻转 | `GET /api/v1/factors/{factor_id}` | I |
+| `experiment_attempt_n` | 研究尝试数 | 同研究家族总账全部尝试，含失败 | 缺总账不得计算 DSR | 因子目录/详情查询 | I |
 | `coverage_ratio` | 因子覆盖率 | 有效因子值证券日 / 应评估证券日 | 当前历史 G1 没有统一分子/分母，固定 `NOT_EVALUATED` | `factor_detail` 冻结契约 | F |
 | `rank_ic` | RankIC | 因子值与冻结 forward return 的日频 Spearman 相关 | 方向、horizon、中性化常驻显示 | G1 历史证据/冻结契约 | H/F |
 | `rank_ic_mean` | 平均 RankIC | 选定冻结范围内日频 RankIC 均值 | 不跨范围比较 | G1 历史证据/冻结契约 | H/F |

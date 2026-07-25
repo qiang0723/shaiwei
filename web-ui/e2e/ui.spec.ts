@@ -2,6 +2,12 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import {
   dataQuality,
+  factorCatalog,
+  factorCompare,
+  factorDetail,
+  factorHistory,
+  FACTOR_A,
+  FACTOR_B,
   forward,
   nav,
   notification,
@@ -10,7 +16,9 @@ import {
   replay,
   response,
   signal,
-  systemRuns
+  systemRuns,
+  VERSION_A,
+  VERSION_B
 } from "./fixtures";
 
 test.beforeEach(async ({ page }) => {
@@ -21,7 +29,31 @@ async function mockApi(page: Page, requests: string[] = []) {
   await page.route("**/api/v1/**", async (route) => {
     const url = new URL(route.request().url());
     requests.push(url.pathname);
-    const data = url.pathname.endsWith("/data-quality")
+    const requestedVersion = url.searchParams.get("version");
+    const historicalBanner = url.searchParams.has("as_of")
+      ? "CURRENT_AUTHORITY_APPLIED_TO_HISTORICAL_RECORDS"
+      : null;
+    const data = url.pathname === "/api/v1/factors/compare"
+      ? factorCompare
+      : url.pathname.endsWith("/admissions")
+        ? { ...factorHistory, historical_response_banner: historicalBanner }
+        : /^\/api\/v1\/factors\/[0-9a-f]{64}$/.test(url.pathname)
+          ? {
+              ...factorDetail,
+              factor_id: url.pathname.split("/").at(-1),
+              factor_version: requestedVersion ?? factorDetail.factor_version,
+              sections: {
+                ...factorDetail.sections,
+                identity: {
+                  ...factorDetail.sections.identity,
+                  candidate_experiment_id: requestedVersion ?? factorDetail.factor_version
+                }
+              },
+              historical_response_banner: historicalBanner
+            }
+          : url.pathname === "/api/v1/factors"
+            ? { ...factorCatalog, historical_response_banner: historicalBanner }
+            : url.pathname.endsWith("/data-quality")
       ? dataQuality
       : url.pathname.endsWith("/system/runs")
         ? systemRuns
@@ -41,7 +73,7 @@ async function mockApi(page: Page, requests: string[] = []) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(response(data))
+      body: JSON.stringify(response(data, url.searchParams.get("as_of")))
     });
   });
 }
@@ -149,6 +181,86 @@ test("system runs preserves recovery and opens notification as a separate snapsh
   await expectNoPageOverflow(page);
 });
 
+test("factor catalog tells the zero-library truth and launches a strict comparison", async ({ page }, testInfo) => {
+  const requests: string[] = [];
+  await mockApi(page, requests);
+  await page.goto("/factors");
+  await expect(page.getByRole("heading", { name: "当前有什么可用因子，为什么还没有入库" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /正式因子库 0/ })).toBeVisible();
+  await expect(page.getByText("10", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("8", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("2", { exact: true }).first()).toBeVisible();
+  expect(requests).toEqual(["/api/v1/factors"]);
+
+  await page.getByLabel("生命周期筛选").click();
+  await page.getByLabel("生命周期筛选").press("ArrowDown");
+  await page.getByLabel("生命周期筛选").press("Enter");
+  await expect(page.locator("strong:visible", { hasText: "正式因子库仍为 0" })).toBeVisible();
+  await page.locator("button:visible", { hasText: "查看全部研究证据" }).click();
+
+  await page.getByRole("checkbox", { name: /111111111111/ }).check();
+  await page.getByRole("checkbox", { name: /222222222222/ }).check();
+  await page.getByRole("button", { name: "严格比较所选因子" }).click();
+  await expect(page).toHaveURL(comparePathForTest([VERSION_A, VERSION_B]));
+  await expect(page.getByRole("heading", { name: "只比较同口径的当前权威版本" })).toBeVisible();
+  expect(requests).toEqual(["/api/v1/factors", "/api/v1/factors/compare"]);
+  await captureVisual(page, testInfo, "factor-compare");
+  await expectNoPageOverflow(page);
+});
+
+test("factor tear sheet keeps fifteen gates, unavailable evidence and append-only history", async ({ page }, testInfo) => {
+  const requests: string[] = [];
+  await mockApi(page, requests);
+  await page.goto(`/factors/${FACTOR_A}?version=${VERSION_A}`);
+  await expect(page.getByRole("heading", { name: "单因子研究证据" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "全部准入门" })).toBeVisible();
+  await expect(page.getByText(/未通过：/)).toContainText("Newey-West(10) t");
+  await expect(page.getByText("NOT_EVALUATED · recomputed=false")).toHaveCount(4);
+  expect(requests).toEqual([`/api/v1/factors/${FACTOR_A}`]);
+  await captureVisual(page, testInfo, "factor-detail");
+
+  await page.getByRole("link", { name: /准入历史/ }).click();
+  await expect(page).toHaveURL(`/factors/${FACTOR_A}/admissions`);
+  await expect(page.getByRole("heading", { name: "旧判决保留，当前权威另列" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /2 条准入判决/ })).toBeVisible();
+  expect(requests).toEqual([
+    `/api/v1/factors/${FACTOR_A}`,
+    `/api/v1/factors/${FACTOR_A}/admissions`
+  ]);
+  await expectNoPageOverflow(page);
+});
+
+test("historical factor view applies the authority banner and sends no compare request", async ({ page }) => {
+  const requests: string[] = [];
+  await mockApi(page, requests);
+  await page.goto("/factors?as_of=2026-07-23");
+  await expect(page.getByText("历史记录已应用当前权威覆盖")).toBeVisible();
+  await expect(page.getByText("历史查询不允许因子比较")).toBeVisible();
+  await expect(page.getByLabel("研究查询截止日期，留空表示最新")).toHaveValue("2026-07-23");
+  await expect(page.getByRole("checkbox", { name: /111111111111/ })).toBeDisabled();
+  expect(requests).toEqual(["/api/v1/factors"]);
+});
+
+test("factor comparison conflict keeps selections and renders no charts", async ({ page }) => {
+  await page.route("**/api/v1/factors/compare**", async (route) => {
+    await route.fulfill({
+      status: 409,
+      contentType: "application/json",
+      body: JSON.stringify({
+        schema_version: "web-v1",
+        request_id: "factor-conflict",
+        error: { code: "CONFLICT", message: "因子版本不具备严格可比性", retryable: false }
+      })
+    });
+  });
+  await page.goto(comparePathForTest([VERSION_A, VERSION_B]));
+  await expect(page.getByRole("heading", { name: "所选因子不具备严格可比性" })).toBeVisible();
+  await expect(page.getByText(VERSION_A)).toBeVisible();
+  await expect(page.getByText(VERSION_B)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "六窗口 RankIC 稳定性" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "压力期最大回撤" })).toHaveCount(0);
+});
+
 test("refresh keeps old evidence visible and an error blocks stale numbers before retry", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-1440");
   let attempt = 0;
@@ -191,9 +303,15 @@ test("refresh keeps old evidence visible and an error blocks stale numbers befor
 test("primary routes have no serious or critical axe violations", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-1440" && testInfo.project.name !== "mobile-390");
   await mockApi(page);
-  for (const route of ["/overview", "/paper", "/signals", "/data-quality", "/system-runs"]) {
+  for (const route of ["/overview", "/factors", "/paper", "/signals", "/data-quality", "/system-runs"]) {
     await page.goto(route);
     await page.locator("h1").waitFor();
     await expectNoCriticalAccessibilityViolations(page);
   }
 });
+
+function comparePathForTest(versions: string[]) {
+  const search = new URLSearchParams();
+  versions.forEach((version) => search.append("version", version));
+  return `/factors/compare?${search.toString()}`;
+}

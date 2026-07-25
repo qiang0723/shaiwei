@@ -14,8 +14,15 @@ import { Button, Drawer, Tooltip } from "antd";
 import { useMemo, useState, type ReactNode } from "react";
 import { RouterLink, useRouter } from "../routing";
 
-const primary = [
-  { path: "/overview", label: "总览", short: "总览", icon: <FundProjectionScreenOutlined /> },
+const overview = [
+  { path: "/overview", label: "总览", short: "总览", icon: <FundProjectionScreenOutlined /> }
+];
+
+const research = [
+  { path: "/factors", label: "因子工厂", short: "因子", icon: <ExperimentOutlined /> }
+];
+
+const decisions = [
   { path: "/paper", label: "模拟组合", short: "组合", icon: <BarChartOutlined /> },
   { path: "/signals", label: "股票池 / 信号", short: "信号", icon: <StockOutlined /> }
 ];
@@ -26,17 +33,23 @@ const operations = [
 ];
 
 const deferred = [
-  { label: "因子工厂", icon: <ExperimentOutlined /> },
   { label: "模型 / 回测", icon: <ApartmentOutlined /> }
 ];
 
-const mobile = [...primary, ...operations];
+const mobile = [...overview, ...research, decisions[0]!];
+
+function pathIsActive(current: string, target: string): boolean {
+  return target === "/factors" ? current.startsWith("/factors") : current === target;
+}
 
 export function useAsOf() {
   const { location, navigate } = useRouter();
   const asOf = useMemo(() => new URLSearchParams(location.search).get("as_of") ?? "", [location.search]);
   const setAsOf = (value: string) => {
-    const query = value ? `?as_of=${encodeURIComponent(value)}` : "";
+    const parameters = new URLSearchParams(location.search);
+    if (value) parameters.set("as_of", value);
+    else parameters.delete("as_of");
+    const query = parameters.size ? `?${parameters.toString()}` : "";
     navigate(`${location.pathname}${query}`);
   };
   const link = (path: string) => `${path}${asOf ? `?as_of=${encodeURIComponent(asOf)}` : ""}`;
@@ -48,14 +61,40 @@ function Navigation({ close }: { close?: () => void }) {
   const { link } = useAsOf();
   return (
     <nav aria-label="主导航" className="sidebar-nav">
-      <div className="nav-group-label">决策工作台</div>
-      {primary.map((item) => (
+      <div className="nav-group-label">全局结论</div>
+      {overview.map((item) => (
         <RouterLink
           key={item.path}
           to={link(item.path)}
           onClick={close}
-          className={location.pathname === item.path ? "nav-item active" : "nav-item"}
-          aria-current={location.pathname === item.path ? "page" : undefined}
+          className={pathIsActive(location.pathname, item.path) ? "nav-item active" : "nav-item"}
+          aria-current={pathIsActive(location.pathname, item.path) ? "page" : undefined}
+        >
+          {item.icon}
+          <span>{item.label}</span>
+        </RouterLink>
+      ))}
+      <div className="nav-group-label deferred-label">研究</div>
+      {research.map((item) => (
+        <RouterLink
+          key={item.path}
+          to={link(item.path)}
+          onClick={close}
+          className={pathIsActive(location.pathname, item.path) ? "nav-item active" : "nav-item"}
+          aria-current={pathIsActive(location.pathname, item.path) ? "page" : undefined}
+        >
+          {item.icon}
+          <span>{item.label}</span>
+        </RouterLink>
+      ))}
+      <div className="nav-group-label deferred-label">组合与行动</div>
+      {decisions.map((item) => (
+        <RouterLink
+          key={item.path}
+          to={link(item.path)}
+          onClick={close}
+          className={pathIsActive(location.pathname, item.path) ? "nav-item active" : "nav-item"}
+          aria-current={pathIsActive(location.pathname, item.path) ? "page" : undefined}
         >
           {item.icon}
           <span>{item.label}</span>
@@ -67,8 +106,8 @@ function Navigation({ close }: { close?: () => void }) {
           key={item.path}
           to={link(item.path)}
           onClick={close}
-          className={location.pathname === item.path ? "nav-item active" : "nav-item"}
-          aria-current={location.pathname === item.path ? "page" : undefined}
+          className={pathIsActive(location.pathname, item.path) ? "nav-item active" : "nav-item"}
+          aria-current={pathIsActive(location.pathname, item.path) ? "page" : undefined}
         >
           {item.icon}
           <span>{item.label}</span>
@@ -92,6 +131,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [mobileMenu, setMobileMenu] = useState(false);
   const { asOf, setAsOf, link } = useAsOf();
   const { location } = useRouter();
+  const researchContext = location.pathname.startsWith("/factors");
 
   return (
     <div className="app-shell">
@@ -131,12 +171,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="readonly-pill">READ ONLY</span>
           </div>
           <div className="asof-control">
-            <label htmlFor="as-of-date">证据日期</label>
+            <label htmlFor="as-of-date">{researchContext ? "查询截止" : "证据日期"}</label>
             <input
               id="as-of-date"
               type="date"
               value={asOf}
-              aria-label="证据日期，留空表示最新"
+              aria-label={researchContext ? "研究查询截止日期，留空表示最新" : "证据日期，留空表示最新"}
               onChange={(event) => setAsOf(event.target.value)}
             />
             {asOf ? (
@@ -156,13 +196,23 @@ export function AppShell({ children }: { children: ReactNode }) {
             <RouterLink
               key={item.path}
               to={link(item.path)}
-              className={location.pathname === item.path ? "active" : ""}
-              aria-current={location.pathname === item.path ? "page" : undefined}
+              className={pathIsActive(location.pathname, item.path) ? "active" : ""}
+              aria-current={pathIsActive(location.pathname, item.path) ? "page" : undefined}
             >
               {item.icon}
               <span>{item.short}</span>
             </RouterLink>
           ))}
+          <button
+            type="button"
+            className={mobile.some((item) => pathIsActive(location.pathname, item.path)) ? "" : "active"}
+            aria-label="打开更多页面"
+            aria-current={mobile.some((item) => pathIsActive(location.pathname, item.path)) ? undefined : "page"}
+            onClick={() => setMobileMenu(true)}
+          >
+            <MenuOutlined />
+            <span>更多</span>
+          </button>
         </nav>
       </div>
 

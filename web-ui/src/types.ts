@@ -422,6 +422,154 @@ export interface NotificationData {
   attempts: NotificationAttempt[];
 }
 
+export type FactorLifecycleStatus =
+  | "CANDIDATE"
+  | "TESTING"
+  | "REJECTED"
+  | "ADMITTED"
+  | "RETIRED";
+
+export type FactorAuthorityStatus =
+  | "AUTHORITATIVE_CURRENT"
+  | "HISTORICAL_NON_AUTHORITATIVE"
+  | "SUPERSEDED_ENGINEERING_GENERATION"
+  | "INVALIDATED";
+
+export interface FactorCatalogItem {
+  factor_id: string;
+  identity_kind: "FAMILY_SCOPED_EXACT_FORMULA_SHA256";
+  research_family: string;
+  data_category: string;
+  lifecycle_status: FactorLifecycleStatus;
+  authority_status: FactorAuthorityStatus;
+  version_count: number;
+  current_factor_version: string | null;
+  experiment_attempt_n: number;
+  latest_recorded_decision: "ADMITTED" | "REJECTED";
+  evidence_status: "VERIFIED";
+}
+
+export interface FactorCatalogData {
+  items: FactorCatalogItem[];
+  counters: {
+    formal_library_count: number;
+    researched_factor_count: number;
+    authoritative_rejected_count: number;
+    historical_only_count: number;
+  };
+  sort: ["research_family", "factor_id"];
+  historical_response_banner: string | null;
+}
+
+export interface G1GateEvidence {
+  actual: JsonMetric;
+  passed: boolean;
+  rule: string;
+}
+
+export interface FactorDetailSections {
+  identity: {
+    candidate_experiment_id: string;
+    research_family: string;
+    data_category: string;
+  };
+  frozen_definition_and_direction: {
+    feature_or_formula: string;
+    direction: number;
+    economic_rationale: string;
+    normalized_expression?: string | null;
+  };
+  pit_shift_and_complexity: {
+    pit_sentinel_pass: boolean;
+    shift_sentinel_pass: boolean;
+    ast_nodes: number;
+    expression_tokens: number;
+    max_lookback_days: number | null;
+    required_backtrack_days: number | null;
+    shift_compared_values: number | null;
+  };
+  g1_statistics_and_all_gates: {
+    statistics: Record<string, number>;
+    gates: Record<string, G1GateEvidence>;
+  };
+  six_oos_window_rank_ic: Record<"W1" | "W2" | "W3" | "W4" | "W5" | "W6", number>;
+  stress_max_drawdown: Record<string, number>;
+  turnover_and_incremental_portfolio: {
+    baseline_net_excess: number;
+    baseline_net_icir: number;
+    baseline_turnover: number;
+    candidate_net_excess: number;
+    candidate_net_icir: number;
+    candidate_turnover: number;
+  };
+  cost_and_slippage_stress: {
+    cost_2x_net_excess: number;
+    slippage_2x_net_excess: number;
+  };
+  library_max_abs_correlation: number;
+  coverage_ratio: UnavailableResearchSection;
+  quantile_returns_and_monotonicity: UnavailableResearchSection;
+  factor_autocorrelation: UnavailableResearchSection;
+  candidate_pool_correlation: UnavailableResearchSection;
+}
+
+export interface UnavailableResearchSection {
+  status: "NOT_EVALUATED";
+  recomputed: false;
+}
+
+export interface FactorDetailData {
+  factor_id: string;
+  identity_kind: "FAMILY_SCOPED_EXACT_FORMULA_SHA256";
+  factor_version: string;
+  authority_status: FactorAuthorityStatus;
+  lifecycle_status: FactorLifecycleStatus;
+  recorded_decision: "ADMITTED" | "REJECTED";
+  fallback_to_latest_historical: boolean;
+  sections: FactorDetailSections;
+  source_refs: string[];
+  evidence_hashes: string[];
+  historical_response_banner: string | null;
+}
+
+export interface FactorAdmissionItem {
+  decision_id: string;
+  recorded_at: string;
+  factor_version: string;
+  recorded_decision: "ADMITTED" | "REJECTED";
+  authority_status: FactorAuthorityStatus;
+  trial_count: number;
+  failed_gates: string[];
+  decision_rule_version: string;
+  evidence_sha256: string;
+  report_sha256: string;
+}
+
+export interface FactorAdmissionHistoryData {
+  factor_id: string;
+  items: FactorAdmissionItem[];
+  append_only: true;
+  historical_response_banner: string | null;
+}
+
+export interface FactorCompareItem {
+  factor_id: string;
+  factor_version: string;
+  recorded_decision: "ADMITTED" | "REJECTED";
+  statistics: Record<string, number>;
+  six_oos_window_rank_ic: Record<"W1" | "W2" | "W3" | "W4" | "W5" | "W6", number>;
+  stress_max_drawdown: Record<string, number>;
+  portfolio: FactorDetailSections["turnover_and_incremental_portfolio"];
+  cost_and_slippage: FactorDetailSections["cost_and_slippage_stress"];
+}
+
+export interface FactorCompareData {
+  factor_versions: string[];
+  fingerprint: Record<string, string>;
+  items: FactorCompareItem[];
+  sorted_by_performance: false;
+}
+
 export interface EvidencePayload {
   title: string;
   snapshotId?: string;

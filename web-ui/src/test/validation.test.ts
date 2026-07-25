@@ -1,15 +1,29 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchPaperBundle } from "../api";
+import { fetchFactorCompare, fetchPaperBundle } from "../api";
 import { formatMoney, formatPercentagePoints, formatPercent } from "../format";
 import { dataVerdictCopy, notificationCopy, systemCoreCopy } from "../operationsPresentation";
 import {
   assertDataQuality,
+  assertFactorAdmissionHistory,
+  assertFactorCatalog,
+  assertFactorCompare,
+  assertFactorDetail,
   assertNotification,
   assertReplay,
   assertSignal,
   assertSystemRun
 } from "../validation";
-import { dataQuality, notification, systemRuns } from "../../e2e/fixtures";
+import {
+  dataQuality,
+  factorCatalog,
+  factorCompare,
+  factorDetail,
+  factorHistory,
+  notification,
+  systemRuns,
+  VERSION_A,
+  VERSION_B
+} from "../../e2e/fixtures";
 
 const HASH = "a".repeat(64);
 
@@ -290,5 +304,63 @@ describe("P3-2B operational evidence contract", () => {
     expect(systemCoreCopy("FAIL").title).toContain("仍处于失败");
     expect(notificationCopy("PASS").title).toContain("已完成");
     expect(notificationCopy("NOT_READY").title).toContain("尚未就绪");
+  });
+});
+
+describe("P3-3C factor factory evidence contract", () => {
+  it("accepts the four frozen factor query shapes", () => {
+    expect(() => assertFactorCatalog(structuredClone(factorCatalog))).not.toThrow();
+    expect(() => assertFactorDetail(structuredClone(factorDetail))).not.toThrow();
+    expect(() => assertFactorAdmissionHistory(structuredClone(factorHistory))).not.toThrow();
+    expect(() => assertFactorCompare(structuredClone(factorCompare))).not.toThrow();
+  });
+
+  it("requires all fifteen gates and preserves explicit unavailable evidence", () => {
+    const missingGate = structuredClone(factorDetail);
+    delete (missingGate.sections.g1_statistics_and_all_gates.gates as Record<string, unknown>).hac_t;
+    expect(() => assertFactorDetail(missingGate)).toThrow("15 项门");
+
+    const recomputed = structuredClone(factorDetail);
+    recomputed.sections.coverage_ratio.recomputed = true;
+    expect(() => assertFactorDetail(recomputed)).toThrow("不得补算");
+  });
+
+  it("rejects performance reordering, raw payloads and BSE content", () => {
+    const ranked = structuredClone(factorCompare);
+    ranked.sorted_by_performance = true;
+    expect(() => assertFactorCompare(ranked)).toThrow("禁止按表现排序");
+
+    const raw = structuredClone(factorDetail) as typeof factorDetail & { params_json?: object };
+    raw.params_json = { hidden: true };
+    expect(() => assertFactorDetail(raw)).toThrow("禁止字段");
+
+    const bse = structuredClone(factorDetail);
+    bse.sections.frozen_definition_and_direction.economic_rationale = "920001.BJ";
+    expect(() => assertFactorDetail(bse)).toThrow("北交所");
+  });
+
+  it("rejects mismatched stress-period sets instead of filling missing evidence with zero", () => {
+    const mismatch = structuredClone(factorCompare);
+    delete (mismatch.items[1]!.stress_max_drawdown as Record<string, number>).style_shift_2017;
+    expect(() => assertFactorCompare(mismatch)).toThrow("压力期集合不一致");
+  });
+
+  it("sends repeated versions in user order and validates the response order", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = new URL(String(input), "http://localhost");
+        expect(url.searchParams.getAll("version")).toEqual([VERSION_A, VERSION_B]);
+        return new Response(JSON.stringify(envelope(factorCompare)), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
+      })
+    );
+    const result = await fetchFactorCompare(
+      [VERSION_A, VERSION_B],
+      new AbortController().signal
+    );
+    expect(result.data.sorted_by_performance).toBe(false);
   });
 });

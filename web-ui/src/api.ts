@@ -3,6 +3,10 @@ import type {
   ApiErrorEnvelope,
   ApiMeta,
   DataQualityData,
+  FactorAdmissionHistoryData,
+  FactorCatalogData,
+  FactorCompareData,
+  FactorDetailData,
   ForwardData,
   NavData,
   NotificationData,
@@ -16,6 +20,10 @@ import type {
 import {
   assertDataQuality,
   assertEnvelope,
+  assertFactorAdmissionHistory,
+  assertFactorCatalog,
+  assertFactorCompare,
+  assertFactorDetail,
   assertForward,
   assertNav,
   assertNotification,
@@ -44,21 +52,22 @@ export class UiQueryError extends Error {
   }
 }
 
-function endpoint(path: string, asOf?: string): string {
-  if (!asOf) return path;
-  const search = new URLSearchParams({ as_of: asOf });
-  return `${path}?${search.toString()}`;
+function endpoint(path: string, asOf?: string, parameters?: URLSearchParams): string {
+  const search = new URLSearchParams(parameters);
+  if (asOf) search.set("as_of", asOf);
+  return search.size ? `${path}?${search.toString()}` : path;
 }
 
 async function getEnvelope<T>(
   path: string,
   asOf: string | undefined,
   signal: AbortSignal,
-  validate: (value: unknown) => asserts value is T
+  validate: (value: unknown) => asserts value is T,
+  parameters?: URLSearchParams
 ): Promise<ApiEnvelope<T>> {
   let response: Response;
   try {
-    response = await fetch(endpoint(path, asOf), {
+    response = await fetch(endpoint(path, asOf, parameters), {
       method: "GET",
       cache: "no-store",
       headers: { Accept: "application/json" },
@@ -184,6 +193,119 @@ export async function fetchNotification(
   );
   if (envelope.data.message_id !== messageId) {
     throw new UiQueryError("EVIDENCE_MISMATCH", "通知响应与请求身份不一致", {
+      requestId: envelope.request_id
+    });
+  }
+  return envelope;
+}
+
+const FACTOR_ID = /^[0-9a-f]{64}$/;
+const FACTOR_VERSION = /^[0-9a-f]{12}$/;
+const FACTOR_FILTER = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+
+function requireFactorId(value: string): void {
+  if (!FACTOR_ID.test(value)) throw new UiQueryError("INVALID_ARGUMENT", "因子身份格式无效");
+}
+
+function requireFactorVersion(value: string): void {
+  if (!FACTOR_VERSION.test(value)) throw new UiQueryError("INVALID_ARGUMENT", "因子版本格式无效");
+}
+
+export async function fetchFactorCatalog(
+  filters: {
+    status: "ALL" | "ADMITTED" | "REJECTED" | "HISTORICAL_ONLY";
+    family?: string;
+    dataCategory?: string;
+    asOf?: string;
+  },
+  signal: AbortSignal
+): Promise<ApiEnvelope<FactorCatalogData>> {
+  if (filters.family && !FACTOR_FILTER.test(filters.family)) {
+    throw new UiQueryError("INVALID_ARGUMENT", "研究家族筛选格式无效");
+  }
+  if (filters.dataCategory && !FACTOR_FILTER.test(filters.dataCategory)) {
+    throw new UiQueryError("INVALID_ARGUMENT", "数据类别筛选格式无效");
+  }
+  const parameters = new URLSearchParams({ status: filters.status });
+  if (filters.family) parameters.set("family", filters.family);
+  if (filters.dataCategory) parameters.set("data_category", filters.dataCategory);
+  return getEnvelope(
+    "/api/v1/factors",
+    filters.asOf,
+    signal,
+    assertFactorCatalog,
+    parameters
+  );
+}
+
+export async function fetchFactorDetail(
+  factorId: string,
+  version: string | undefined,
+  asOf: string | undefined,
+  signal: AbortSignal
+): Promise<ApiEnvelope<FactorDetailData>> {
+  requireFactorId(factorId);
+  const parameters = new URLSearchParams();
+  if (version) {
+    requireFactorVersion(version);
+    parameters.set("version", version);
+  }
+  const envelope = await getEnvelope(
+    `/api/v1/factors/${factorId}`,
+    asOf,
+    signal,
+    assertFactorDetail,
+    parameters
+  );
+  if (envelope.data.factor_id !== factorId || (version && envelope.data.factor_version !== version)) {
+    throw new UiQueryError("EVIDENCE_MISMATCH", "因子详情响应与请求身份不一致", {
+      requestId: envelope.request_id
+    });
+  }
+  return envelope;
+}
+
+export async function fetchFactorAdmissionHistory(
+  factorId: string,
+  asOf: string | undefined,
+  signal: AbortSignal
+): Promise<ApiEnvelope<FactorAdmissionHistoryData>> {
+  requireFactorId(factorId);
+  const envelope = await getEnvelope(
+    `/api/v1/factors/${factorId}/admissions`,
+    asOf,
+    signal,
+    assertFactorAdmissionHistory
+  );
+  if (envelope.data.factor_id !== factorId) {
+    throw new UiQueryError("EVIDENCE_MISMATCH", "准入历史响应与请求身份不一致", {
+      requestId: envelope.request_id
+    });
+  }
+  return envelope;
+}
+
+export async function fetchFactorCompare(
+  versions: string[],
+  signal: AbortSignal
+): Promise<ApiEnvelope<FactorCompareData>> {
+  if (versions.length < 2 || versions.length > 3 || new Set(versions).size !== versions.length) {
+    throw new UiQueryError("INVALID_ARGUMENT", "比较必须选择 2—3 个不同版本");
+  }
+  const parameters = new URLSearchParams();
+  versions.forEach((version) => {
+    requireFactorVersion(version);
+    parameters.append("version", version);
+  });
+  const envelope = await getEnvelope(
+    "/api/v1/factors/compare",
+    undefined,
+    signal,
+    assertFactorCompare,
+    parameters
+  );
+  if (envelope.data.factor_versions.some((version, index) => version !== versions[index])) {
+    throw new UiQueryError("EVIDENCE_MISMATCH", "因子比较响应改变了选择顺序", {
       requestId: envelope.request_id
     });
   }
