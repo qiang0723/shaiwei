@@ -1,0 +1,80 @@
+schema_version: d1-llm-factor-execution-recovery-v1
+recovery_id: d1-llm-dsl-v1-batch-001-control-flow-recovery-001
+prepared_at: "2026-07-25T17:10:00+08:00"
+status: D1_2B_ENGINEERING_RECOVERY_FROZEN
+research_protocol_changed: false
+production_authorization: none
+
+original_release:
+  path: config/d1_llm_factor_execution_v1.yaml
+  release_id: d1-llm-dsl-v1-batch-001
+  sha256: 439fa7a279d3766fd3ff0829e5bcb15d14f3904e6345d4e43cb87d440d8189e6
+  completed_responses_exact: 40
+  batch_hard_ceiling_usd: 1.0
+  total_authorization_usd: 10.0
+
+observed_partial_batch:
+  completed_response_count: 1
+  first_attempt_id: 5abfdfdfa449d003
+  first_global_ordinal: 1
+  first_request_sha256: 8ddb033eac5a8b2d0595868ed38f8fb424afb9404c56353e1cfa08d0fb14e21c
+  first_response_sha256: 072a2e91e18262d03dbfdea2fa5c4faf99afd32dc71b53dfec20a18ca6a161bb
+  first_code_snapshot_sha256: 67e5d426ffb93bde96b680393d6718a7c308002b210611da8851497dc72e58d9
+  first_estimated_cost_usd: 0.0013746
+  first_candidate_status: DISCOVERY_EVALUATED
+  first_failure_class: ""
+  formula_or_rank_ic_inspected_before_recovery_freeze: false
+  duplicate_or_second_request_sent: false
+
+immutable_prefixes:
+  ledger/llm_factor_attempts_v2.csv:
+    byte_count: 2108
+    sha256: 381956babc981f9b3e6683fc61eebdc123b872839fc5e5d635bbe6ad4b2ea056
+  ledger/llm_factor_transports_v2.csv:
+    byte_count: 1147
+    sha256: 0a922ddbdfd3233af4a9ddf393d4ab15219eb9a45b56fbdb336568218410fe60
+  ledger/experiments.csv:
+    byte_count: 712680
+    sha256: 2bb58a52b7d54046c895883ab69928291e8049096f9ad150d9c5fa849d8bd893
+
+immutable_first_attempt_artifacts:
+  data/research/d1/d1-llm-dsl-v1/artifacts/manifests/5abfdfdfa449d003.json:
+    sha256: 2bcd597b9e5ce31953688904753a84d6d22302b3b98d9bddc20e1730a4a8e754
+  data/research/d1/d1-llm-dsl-v1/artifacts/provider/responses/5abfdfdfa449d003-8ddb033eac5a.json:
+    sha256: dc6fe042e3b933c06d5e958be3f87c9041b50aada3935af0af97e94f453cf5fa
+  data/research/d1/d1-llm-dsl-v1/artifacts/raw/5abfdfdfa449d003-072a2e91e182.json:
+    sha256: 072a2e91e18262d03dbfdea2fa5c4faf99afd32dc71b53dfec20a18ca6a161bb
+  data/research/d1/d1-llm-dsl-v1/artifacts/discovery/5abfdfdfa449d003.json:
+    sha256: f867918a2f084f5e6e79041f71f23d9261477c50c913546d16ddce69451f314a
+
+root_cause:
+  failure_point: before ordinal 2 provider construction
+  external_api_calls_before_stop: 1
+  issue_1: independent attempts incorrectly rejected prior same-topic rows instead of ignoring them
+  issue_2: partial-batch restart loop incorrectly began at ordinal 1 instead of the next missing ordinal
+  billing_uncertainty: false
+
+authorized_correction:
+  allowed_code_changes:
+    - independent attempts return an empty feedback packet even when prior same-topic rows exist
+    - a contiguous partial batch resumes at completed_response_count + 1
+    - require and validate this recovery addendum before any partial-batch resume
+  forbidden_changes:
+    - prompt
+    - knowledge packet
+    - topic schedule
+    - model or thinking mode
+    - response schema
+    - discovery evaluator
+    - selection rule
+    - cost rates or ceilings
+    - completed response target
+    - existing ledgers or artifacts
+  resume_global_ordinals: [2, 40]
+  first_response_remains_counted: true
+  remaining_completed_responses: 39
+  retry_global_ordinal_1: false
+  W1_W6_access: false
+  stress_period_access: false
+  g1_run: false
+  scheduler_changes: false

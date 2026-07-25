@@ -16,11 +16,12 @@ from shaiwei.research.llm_factor import (
     execute_completed_attempt,
     plan_attempt,
 )
-from shaiwei.research.llm_factor_live import feedback_for_attempt
+from shaiwei.research.llm_factor_live import D1RecoveryAddendum, feedback_for_attempt
 
 
 PROTOCOL_PATH = PROJECT_ROOT / "config/d1_llm_factor_research_v1.yaml"
 RELEASE_PATH = PROJECT_ROOT / "config/d1_llm_factor_execution_v1.yaml"
+RECOVERY_PATH = PROJECT_ROOT / "config/d1_llm_factor_execution_recovery_v1.yaml"
 
 
 def _proposal() -> dict:
@@ -165,10 +166,46 @@ def test_feedback_is_derived_only_from_bound_ledger_fields():
     )
 
 
+def test_independent_attempt_ignores_prior_same_topic_rows():
+    protocol = D1Protocol.load(PROTOCOL_PATH)
+    row = {field: "" for field in ATTEMPT_LEDGER_HEADER_V2}
+    row.update(
+        {
+            "attempt_id": "attempt-1",
+            "global_ordinal": "1",
+            "topic": "trend_momentum",
+        }
+    )
+    assert plan_attempt(protocol, 2).evolution_mode == "independent"
+    assert feedback_for_attempt([row], plan_attempt(protocol, 2)) == []
+
+
+def test_recovery_addendum_binds_first_response_and_append_only_prefixes(tmp_path: Path):
+    protocol = D1Protocol.load(PROTOCOL_PATH)
+    release = D1ExecutionRelease.load(RELEASE_PATH, protocol)
+    with (PROJECT_ROOT / "ledger/llm_factor_attempts_v2.csv").open(
+        newline="", encoding="utf-8"
+    ) as handle:
+        rows = list(__import__("csv").DictReader(handle))
+    recovery = D1RecoveryAddendum.load(
+        RECOVERY_PATH,
+        release=release,
+        batch_rows=rows,
+    )
+    assert recovery.recovery_id.endswith("control-flow-recovery-001")
+
+    document = yaml.safe_load(RECOVERY_PATH.read_text(encoding="utf-8"))
+    document["immutable_prefixes"]["ledger/llm_factor_attempts_v2.csv"]["byte_count"] -= 1
+    tampered = tmp_path / "recovery.yaml"
+    tampered.write_text(yaml.safe_dump(document), encoding="utf-8")
+    with pytest.raises(D1ControlError, match="ledger prefix differs"):
+        D1RecoveryAddendum.load(tampered, release=release, batch_rows=rows)
+
+
 def test_live_compose_has_narrow_secret_and_mount_boundary():
     compose = yaml.safe_load((PROJECT_ROOT / "compose.research.yaml").read_text(encoding="utf-8"))
     service = compose["services"]["d1-live"]
-    assert service["image"] == "shaiwei:d1-live-v1"
+    assert service["image"] == "shaiwei:d1-live-v1-r1"
     assert service["pull_policy"] == "never"
     assert service["read_only"] is True
     assert service["cap_drop"] == ["ALL"]
@@ -177,6 +214,7 @@ def test_live_compose_has_narrow_secret_and_mount_boundary():
     assert "ports" not in service
     assert service.get("restart") is None
     assert "DEEPSEEK_API_KEY" in service["environment"]
+    assert "/workspace/config/d1_llm_factor_execution_recovery_v1.yaml" in service["command"]
     assert not any(
         marker in str(item)
         for marker in ("TUSHARE_TOKEN", "FEISHU_WEBHOOK", "FEISHU_SIGNING")

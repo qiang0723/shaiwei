@@ -42,7 +42,7 @@ services:
       - /tmp/shaiwei-d1-fixture
 
   d1-live:
-    image: shaiwei:d1-live-v1
+    image: shaiwei:d1-live-v1-r1
     pull_policy: never
     profiles: [research-live]
     init: true
@@ -118,5 +118,7 @@ services:
       - /workspace/config/d1_llm_factor_research_v1.yaml
       - --execution-release
       - /workspace/config/d1_llm_factor_execution_v1.yaml
+      - --recovery-addendum
+      - /workspace/config/d1_llm_factor_execution_recovery_v1.yaml
       - --output-root
       - /workspace/data/research/d1/d1-llm-dsl-v1

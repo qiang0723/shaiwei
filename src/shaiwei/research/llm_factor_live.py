@@ -17,6 +17,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import torch
+import yaml
 
 from shaiwei.backtest.qlib_runtime import initialize_qlib
 from shaiwei.benchmark.alphagen_cpu import (
@@ -91,6 +92,114 @@ def _optional_int(value: str) -> int | None:
     return int(value) if value else None
 
 
+@dataclass(frozen=True)
+class D1RecoveryAddendum:
+    """Bound a post-response engineering recovery without changing research choices."""
+
+    path: Path
+    document: dict[str, Any]
+    sha256: str
+    recovery_id: str
+
+    @classmethod
+    def load(
+        cls,
+        path: Path,
+        *,
+        release: D1ExecutionRelease,
+        batch_rows: list[dict[str, str]],
+    ) -> "D1RecoveryAddendum":
+        try:
+            document = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except OSError as error:
+            raise D1ControlError("D1 partial batch requires its frozen recovery addendum") from error
+        if not isinstance(document, dict):
+            raise D1ControlError("D1 recovery addendum must be a YAML object")
+        if (
+            document.get("schema_version") != "d1-llm-factor-execution-recovery-v1"
+            or document.get("status") != "D1_2B_ENGINEERING_RECOVERY_FROZEN"
+            or document.get("research_protocol_changed") is not False
+            or document.get("production_authorization") != "none"
+        ):
+            raise D1ControlError("D1 recovery addendum identity or scope differs")
+        original = document.get("original_release", {})
+        if original != {
+            "path": "config/d1_llm_factor_execution_v1.yaml",
+            "release_id": release.release_id,
+            "sha256": release.sha256,
+            "completed_responses_exact": 40,
+            "batch_hard_ceiling_usd": release.batch_hard_ceiling_usd,
+            "total_authorization_usd": release.total_authorization_usd,
+        }:
+            raise D1ControlError("D1 recovery addendum changes the original release")
+        observed = document.get("observed_partial_batch", {})
+        if len(batch_rows) < 1:
+            raise D1ControlError("D1 recovery addendum cannot authorize a fresh batch")
+        first = batch_rows[0]
+        expected_first = {
+            "completed_response_count": 1,
+            "first_attempt_id": first["attempt_id"],
+            "first_global_ordinal": int(first["global_ordinal"]),
+            "first_request_sha256": first["request_sha256"],
+            "first_response_sha256": first["response_sha256"],
+            "first_code_snapshot_sha256": first["code_snapshot_sha256"],
+            "first_estimated_cost_usd": float(first["estimated_cost_usd"]),
+            "first_candidate_status": first["candidate_status"],
+            "first_failure_class": first["failure_class"],
+            "formula_or_rank_ic_inspected_before_recovery_freeze": False,
+            "duplicate_or_second_request_sent": False,
+        }
+        if observed != expected_first:
+            raise D1ControlError("D1 recovery addendum differs from the immutable first response")
+        root = PROJECT_ROOT.resolve()
+        for relative, identity in document.get("immutable_prefixes", {}).items():
+            candidate = (root / relative).resolve()
+            try:
+                candidate.relative_to(root)
+            except ValueError as error:
+                raise D1ControlError("D1 recovery prefix path escapes the project") from error
+            payload = candidate.read_bytes()
+            byte_count = int(identity["byte_count"])
+            if len(payload) < byte_count:
+                raise D1ControlError("D1 recovery ledger prefix was truncated")
+            if hashlib.sha256(payload[:byte_count]).hexdigest() != identity["sha256"]:
+                raise D1ControlError("D1 recovery ledger prefix differs")
+        for relative, identity in document.get("immutable_first_attempt_artifacts", {}).items():
+            candidate = (root / relative).resolve()
+            try:
+                candidate.relative_to(root)
+            except ValueError as error:
+                raise D1ControlError("D1 recovery artifact path escapes the project") from error
+            if sha256_file(candidate) != identity["sha256"]:
+                raise D1ControlError("D1 recovery first-attempt artifact differs")
+        correction = document.get("authorized_correction", {})
+        if (
+            correction.get("resume_global_ordinals") != [2, 40]
+            or correction.get("first_response_remains_counted") is not True
+            or int(correction.get("remaining_completed_responses", -1)) != 39
+            or correction.get("retry_global_ordinal_1") is not False
+            or any(
+                correction.get(key) is not False
+                for key in (
+                    "W1_W6_access",
+                    "stress_period_access",
+                    "g1_run",
+                    "scheduler_changes",
+                )
+            )
+        ):
+            raise D1ControlError("D1 recovery continuation scope differs")
+        recovery_id = str(document.get("recovery_id", ""))
+        if recovery_id != "d1-llm-dsl-v1-batch-001-control-flow-recovery-001":
+            raise D1ControlError("D1 recovery id differs")
+        return cls(
+            path=path,
+            document=document,
+            sha256=sha256_file(path),
+            recovery_id=recovery_id,
+        )
+
+
 def feedback_for_attempt(rows: list[dict[str, str]], plan: AttemptPlan) -> list[dict[str, Any]]:
     """Serialize every prior same-topic attempt from immutable ledger fields only."""
     prior = [
@@ -100,8 +209,6 @@ def feedback_for_attempt(rows: list[dict[str, str]], plan: AttemptPlan) -> list[
     ]
     prior.sort(key=lambda row: int(row["global_ordinal"]))
     if plan.evolution_mode == "independent":
-        if prior:
-            raise D1ControlError("independent D1 attempt unexpectedly has prior same-topic rows")
         return []
     return [
         {
@@ -448,6 +555,7 @@ def run_live(
     *,
     protocol_path: Path,
     release_path: Path,
+    recovery_path: Path | None,
     output_root: Path,
 ) -> dict[str, Any]:
     protocol = D1Protocol.load(protocol_path)
@@ -461,6 +569,17 @@ def run_live(
     report_path = output_root / "d1_2b_run_report.json"
     existing = _rows(ledger_path)
     batch_existing = [row for row in existing if row["execution_release_id"] == release.release_id]
+    recovery = (
+        D1RecoveryAddendum.load(
+            recovery_path,
+            release=release,
+            batch_rows=batch_existing,
+        )
+        if batch_existing and recovery_path is not None
+        else None
+    )
+    if batch_existing and recovery is None:
+        raise D1ControlError("D1 partial or completed recovered batch requires its addendum")
     if len(batch_existing) == 40 and report_path.is_file():
         report = json.loads(report_path.read_text(encoding="utf-8"))
         if report.get("completed_response_count") != 40:
@@ -473,6 +592,11 @@ def run_live(
         )
         if report.get("static_evidence") != static:
             raise D1ControlError("D1 completed report differs from re-hashed static evidence")
+        if (
+            report.get("recovery_addendum_id") != recovery.recovery_id
+            or report.get("recovery_addendum_sha256") != recovery.sha256
+        ):
+            raise D1ControlError("D1 completed report differs from its recovery addendum")
         return {**report, "idempotent_reuse": True, "external_api_calls_this_run": 0}
     if any(row["execution_release_id"] not in {"", release.release_id} for row in existing):
         raise D1ControlError("D1 attempt ledger contains a different live execution release")
@@ -484,7 +608,7 @@ def run_live(
     evaluator = DiscoveryEvaluator(protocol, release, artifact_root)
     tls_certificate_sha256 = tls_hostname_probe(release)
     external_calls = 0
-    for ordinal in range(1, 41):
+    for ordinal in range(len(batch_existing) + 1, 41):
         plan = plan_attempt(protocol, ordinal)
         current_rows = _rows(ledger_path)
         feedback = feedback_for_attempt(current_rows, plan)
@@ -553,6 +677,10 @@ def run_live(
         transport_ledger_path=transport_ledger_path,
         artifact_root=artifact_root,
     )
+    if recovery is not None:
+        report["recovery_addendum_id"] = recovery.recovery_id
+        report["recovery_addendum_sha256"] = recovery.sha256
+        report["resumed_after_completed_response_count"] = len(batch_existing)
     if not (
         report["completed_response_exact_gate"]
         and report["global_ordinals_complete"]
@@ -576,6 +704,11 @@ def main(argv: list[str] | None = None) -> int:
         default=PROJECT_ROOT / "config/d1_llm_factor_execution_v1.yaml",
     )
     parser.add_argument(
+        "--recovery-addendum",
+        type=Path,
+        default=None,
+    )
+    parser.add_argument(
         "--output-root",
         type=Path,
         default=PROJECT_ROOT / "data/research/d1/d1-llm-dsl-v1",
@@ -585,6 +718,7 @@ def main(argv: list[str] | None = None) -> int:
         report = run_live(
             protocol_path=args.protocol,
             release_path=args.execution_release,
+            recovery_path=args.recovery_addendum,
             output_root=args.output_root,
         )
     except (D1ControlError, OSError, RuntimeError, TypeError, ValueError) as error:
