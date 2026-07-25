@@ -1,0 +1,106 @@
+{
+  "schema_version": "d1-llm-factor-execution-manifest-v1",
+  "release_id": "d1-llm-dsl-v1-batch-001",
+  "completed_at": "2026-07-25T19:14:32+08:00",
+  "verdict": "GO_D1_3_REVIEW",
+  "strategy_effective": "NOT_EVALUATED",
+  "production_authorization": "none",
+  "completed_response_count": 40,
+  "completed_response_exact_gate": true,
+  "global_ordinals_complete": true,
+  "candidate_status_counts": {
+    "DISCOVERY_EVALUATED": 36,
+    "REJECT": 4
+  },
+  "failure_class_counts": {
+    "NONE": 36,
+    "duplicate_ast": 2,
+    "sandbox_rejected": 2
+  },
+  "selected_count": 2,
+  "mechanical_top2": [
+    {
+      "attempt_id": "6ade2d0f6d103613",
+      "global_ordinal": 18,
+      "topic": "volatility_range",
+      "expression_sha256": "cdd9107b9f665a6e45061335e9d9b89852afa10e229d30ee18e31f9ce25d2f02",
+      "discovery_artifact_sha256": "a7114e2323a6175689b8417b34883680da86fda2d89f46ff81169f562a0eaa5a"
+    },
+    {
+      "attempt_id": "3bf9d418202afc20",
+      "global_ordinal": 23,
+      "topic": "volatility_range",
+      "expression_sha256": "d24c2968a5f1a677c521408521f27fcb3593671691f75516019661cb31737904",
+      "discovery_artifact_sha256": "61844ba291bb87c2df93aeb541840b80a6e0e52a87cf5b4fdd3117ff73968af7"
+    }
+  ],
+  "cost": {
+    "actual_estimated_usd": 0.076626207,
+    "batch_hard_ceiling_usd": 1.0,
+    "d1_total_authorization_usd": 10.0,
+    "cost_gate_pass": true
+  },
+  "scope_gates": {
+    "W1_W6_read": false,
+    "stress_periods_read": false,
+    "g1_run": false,
+    "production_changed": false
+  },
+  "recovery": {
+    "recovery_addendum_id": "d1-llm-dsl-v1-batch-001-control-flow-recovery-001",
+    "recovery_addendum_sha256": "0c681516029031ca14e03ad16f951110c8bab0fbbe1e5a0c0994568b9feb48d3",
+    "resumed_after_completed_response_count": 1,
+    "external_api_calls_before_recovery": 1,
+    "external_api_calls_after_recovery": 39,
+    "duplicate_request_sent": false,
+    "billing_uncertainty": false
+  },
+  "static_evidence": {
+    "attempt_rows": 40,
+    "transport_events": 80,
+    "transport_completions": 40,
+    "raw_response_artifacts": 40,
+    "discovery_artifacts": 36,
+    "evidence_files": 160,
+    "evidence_bundle_sha256": "f769fa1aae90bfc9f8f49b070a22e37a078fdab7754a585f9a4f674fc9cee07c",
+    "run_report_sha256": "70cd8160c956513537a885a4a5f2e65b72d55c0d3371a46b3e208f370e8949e6",
+    "attempt_ledger_sha256": "80bf00a8f415b818877a3d91993eecd474cb1bb5d39ccddd8e29db5f2b47c1b3",
+    "transport_ledger_sha256": "5bd65fead89313eaa8d2c985eba9514eebe93916df2d99f2adb47e7645dcadb1",
+    "experiment_ledger_sha256": "cfb08c500b7519d579b9814cf2dd037f23089c7effe5bd71064e9dde35478129"
+  },
+  "identity": {
+    "protocol_sha256": "68f3f40ea69979f1febfc99ea66b18b3324ea702f02651aafac65b50630f94b5",
+    "execution_release_sha256": "439fa7a279d3766fd3ff0829e5bcb15d14f3904e6345d4e43cb87d440d8189e6",
+    "prompt_sha256": "23c56cc58aeaa1d59f1c4ee587debe052e7422949c18553be9937a3ea73942ec",
+    "knowledge_manifest_sha256": "0f1e8ab2461352ce020dcf1873a5d79bfc010b08eea205b6b308e27bc3c23fad",
+    "data_snapshot_sha256": "285b1529ab13f1dfea7c4bdb66c085feaa16d9b8f7a05aee06e03884cee068bd",
+    "qlib_artifact_sha256": "0532f6cd7c2c78f0936f92a986aef83a848175fe6f332274e06c7ed6e8c11778",
+    "release_git_head": "4e48bdd8f2f79da36832afc58608f9bc6ea6a9b8",
+    "code_snapshot_sha256": "8f65e8261d81be1229184264cf98e344ad28714ab8e29c2542c36d6a4cabc916",
+    "recovery_image_id": "sha256:e2a470b0b15ddefad5462dc6f3165cd2b79c3ba7a89a6b462e0d1909bb66f178"
+  },
+  "idempotency": {
+    "network_mode": "none",
+    "deepseek_secret_present": false,
+    "filesystem_mode": "read_only",
+    "idempotent_reuse": true,
+    "external_api_calls_this_run": 0,
+    "evidence_bundle_unchanged": true
+  },
+  "production_scheduler": {
+    "container_id_before_and_after": "fd8e96152b53f3f0d0efdcd6462c2b039aa68c7fb56461b95826709652a5adbb",
+    "image_id_before_and_after": "sha256:de87ec740981166b032b394fb256a978acdc8d35e999a369f1debc3466aa0261",
+    "created_at_before_and_after": "2026-07-24T12:25:27.362813588Z",
+    "final_state": "running",
+    "final_health": "healthy"
+  },
+  "secret_handling": {
+    "storage": "project_gitignored_dotenv_only",
+    "file_mode": "0600",
+    "tracked": false,
+    "embedded_in_image": false,
+    "written_to_ledger_or_log": false,
+    "passed_only_to_ephemeral_live_container": true,
+    "rotation_recommended_because_user_pasted_secret_in_chat": true
+  }
+}
