@@ -2,6 +2,24 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-07-25 · P3-3A 因子与实验查询契约 GO
+
+- 只读审计 778 个通用实验、18 个 G1 判决、40 个 D1 尝试、8 个 D1 复核及 P2 三层账本；主键、
+  外键、JSON、18 组 G1 报告/证据/factor-test 路径与 SHA-256 全部一致。未运行模型、回测、G1 或
+  LLM，未生成候选或读取新策略效果。
+- 18 个 G1 判决实际对应 10 个“研究家族 + 精确公式”身份和 18 个实验版本；8 个身份有当前权威
+  版本（Stage-1 正确 Top2 两个、P1 终版六个），2 个只有 Stage-1 历史非权威版本，正式库仍 0 插入。
+  `experiments.admitted=false` 不能把未提交 G1 的尝试解释成 REJECT。
+- P1/Stage-1 旧代、D1 原机器 GO、P2-1 provisional 与原 P2-2 失效方法必须在查询层应用明确 authority
+  overlay；原记录保留，当前权威结论不得被旧行覆盖。因子覆盖率、分位收益/单调性、自相关和候选池
+  相关性缺统一登记证据，冻结为 `NOT_EVALUATED`，Web 不补算。
+- `p3-factor-experiment-query-v1` 已冻结五组类型化只读查询；允许下一目标 P3-3B 施工一次性 Docker
+  研究投影构建器和查询后端。web-query 禁止直接挂整个 `data/research`，只可读
+  `data/web/research_snapshots/` 的限字段、write-once、哈希绑定投影。
+- 当前不授权因子/模型页面。`experiment_summary` 只支持已知 ID 详情；完整模型/回测页仍缺独立
+  `experiment_catalog` 列表契约。审计与协议见 `docs/P3_FACTOR_EXPERIMENT_EVIDENCE_AUDIT_20260725.md`
+  和 `docs/P3_FACTOR_EXPERIMENT_QUERY_PROTOCOL_20260725.md`。
+
 ## 2026-07-25 · P3-2B 两个运维证据页面 GO
 
 - `p3-web-operations-ui-v1` 已由先行提交 `fa63883` 结果前冻结并推送；随后完成 `/data-quality`
@@ -76,7 +94,7 @@
   production_authorization=none`。当前仍不运行 W1–W6、压力期、G1 或生产信号。
 
 ## 当前阶段
-阶段 0（基线）已完成；阶段 1 已完成有界 GP 预演和 `p1-moneyflow-v1` 首个正式数据增强家族，二者均按冻结 `g1-v1` 结论 REJECT，正式因子库仍为 0 插入。锁竞争修复后当前代码版本连续三次完整“信号 → 下一交易日开盘对账”已于 2026-07-22 完成 3/3，核心任务验收 PASS、通知通道 WARN；同日完成飞书通知健壮性修复。P0.5 模拟组合的工程、Docker 接入、四日 BACKFILL 和 2026-07-23 首个自然 `FORWARD` 已全部 PASS，当前进入持续前瞻观察。
+阶段 0（基线）已完成；阶段 1 已完成有界 GP 预演和 `p1-moneyflow-v1` 首个正式数据增强家族，二者均按冻结 `g1-v1` 结论 REJECT，正式因子库仍为 0 插入。锁竞争修复后当前代码版本连续三次完整“信号 → 下一交易日开盘对账”已于 2026-07-22 完成 3/3，核心任务验收 PASS、通知通道 WARN；同日完成飞书通知健壮性修复。P0.5 模拟组合的工程、Docker 接入、四日 BACKFILL 和 2026-07-23 首个自然 `FORWARD` 已全部 PASS，当前进入持续前瞻观察。P3-3A 已冻结因子与实验的身份、权威覆盖、安全投影及五组只读查询契约，下一步可进入 P3-3B 类型化后端，但页面与实验列表仍未授权。
 
 结果路线现为：P0.5 持续积累真实前瞻观察；P1 首批六个简单资金流候选已全部 REJECT 且停止本家族追加变体；生产 scheduler 与开发工作树的发布快照隔离已于 2026-07-24 完整 PASS。P2-0 的 `p2-star50-protocol-v1` 永久保留 NO-GO：Tushare 首份权重按 T+1 仅能从 2020-08-03 生效，冻结起点缺 7 个交易日且无历史版本/修订字段。`p2-star50-protocol-v2` 以官方首批名单和全量调整公告重建 `000688.SH` 成员谱系；1,456 个交易日每日均为 50 只，和 72/72 个 Tushare 月度集合完全一致，官方谱系数据门 GO。P2-1 独立工程门 GO 只证明真实数据集、动态 instruments、隔离 qlib 与 synthetic 通路可运行。原 P2-2 因标签成熟、开盘时钟和卖单容量三项方法违约永久标记 `original_p2_2_model_valid=false`、`original_p2_2_execution_valid=false`，旧数值可复算但旧 `NO_GO/REJECT` 不再权威，所有旧证据原样保留。P2-2C 以结果前推送的 `c6fbbaf` 只修复上述三项并完成唯一 purged 训练与一遍确定性复核：三窗基础净超额 -8.51%/-19.25%/-23.87%，727 日 pooled 基础/2x/额外滑点 -52.97%/-56.19%/-56.02%，三测试窗和 microcap_2024 回撤超过 20%；合法 CSI800 对照仍缺使分散化 `NOT_EVALUABLE`。权威终态 `authoritative_historical_effect_gate=NO_GO`、`strategy_effective=REJECT`、`production_authorization=none`，本基线停止，不调门槛、不追加变体、不进入前瞻或生产；中证800继续是唯一生产主策略。P3-0 已完成可信只读查询底座；P3-1 与 P3-2B 已完成总览、模拟组合、股票池/信号、数据质量和系统运行五个正式页面及真实浏览器/Docker 安全验收，Web 1.0 本机只读首版可用。D1-0、D1-1、D1-2A 和 D1-2B 均已完成；D1-3A 已完成恰好 8 份结果盲态对抗响应，专项费用 `$0.01472214`，但其中 3 份自由文本违反“禁止替代公式/变体”的冻结合同，权威终态为 `STOP_SEMANTIC_CONTRACT_VIOLATION`。本批不进独立人工闸，不读取 W1—W6/压力期，不运行 G1；策略未评价且无生产授权。完整目标、输出、通过条件和禁止事项见 `docs/ROADMAP.md`。
 

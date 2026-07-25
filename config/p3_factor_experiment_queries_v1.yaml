@@ -1,0 +1,327 @@
+protocol_id: p3-factor-experiment-query-v1
+schema_version: web-v1
+timezone: Asia/Shanghai
+status: FROZEN_BEFORE_BACKEND_IMPLEMENTATION
+read_only: true
+
+verdict:
+  factor_catalog: GO_TYPED_ADAPTER_ONLY
+  factor_detail: GO_TYPED_ADAPTER_ONLY
+  factor_compare: GO_STRICT_COMPARABILITY_ONLY
+  factor_admission_history: GO_APPEND_ONLY_HISTORY
+  experiment_summary: GO_TYPED_DETAIL_ONLY
+  experiment_catalog: NOT_AUTHORIZED
+  factor_ui: NOT_AUTHORIZED
+  model_backtest_ui: NOT_READY_MISSING_CATALOG
+  production_authorization: none
+
+source_allowlist:
+  ledgers:
+    - ledger/experiments.csv
+    - ledger/factor_admissions.csv
+    - ledger/llm_factor_attempts_v2.csv
+    - ledger/llm_factor_reviews.csv
+    - ledger/p2_star50_engineering_runs.csv
+    - ledger/p2_star50_engineering_admissions.csv
+    - ledger/p2_star50_effect_runs.csv
+    - ledger/p2_star50_effect_admissions.csv
+    - ledger/p2_star50_effect_correction_runs.csv
+    - ledger/p2_star50_effect_correction_admissions.csv
+  g1_report_prefixes:
+    - logs/g1/
+    - data/research/moneyflow/experiments/p1-moneyflow-v1/g1_decisions/
+  g1_evidence_prefixes:
+    - data/research/g1/stage1-gp-preflight-v1/
+    - data/research/moneyflow/experiments/p1-moneyflow-v1/
+  p2_report_files:
+    - path: data/research/star50/p2-star50-engineering-v1/engineering_report.json
+      sha256: a4cfad049e36914fcec76f05c9dc6f5c24b55d85fe4213a37a3e8f7ae9909401
+    - path: data/research/star50/p2-star50-effect-v1/effect_report.json
+      sha256: 94c458ae908e77af7808e27a41de2b386e920ad910c05a24718de621896f5ce9
+    - path: data/research/star50/p2-star50-effect-correction-v1/effect_correction_report.json
+      sha256: d80d129480914c87448c5fa372d2ed061bbdbd164b5eb65b65a9fe17455b9b75
+  authority_overlays:
+    - path: docs/D1_LLM_FACTOR_REVIEW_SEMANTIC_CORRECTION_20260725.json
+      sha256: de8b331cd8c923bb3b7b3f3a9e8c0aeb342db410cda647be72981f69a34917b2
+    - path: docs/P2_STAR50_EFFECT_INVALIDATION_ADDENDUM_20260725.md
+      sha256: fddc25b6c8e73e4b6ad46c39794bb98287070e1ed6973b6c80c2ea0f2198125a
+    - path: docs/P2_STAR50_EFFECT_CORRECTION_ACCEPTANCE_20260725.md
+      sha256: 3fd8c7687f861151728abc241dbb91d848bf519b98b7c7c46c3b20bcee07a363
+
+publication_boundary:
+  direct_research_directory_mount: false
+  direct_raw_json_passthrough: false
+  direct_params_json_passthrough: false
+  direct_result_json_passthrough: false
+  required_projection_bundle: data/web/research_snapshots/
+  builder_mode: one_shot_docker
+  builder_sources_read_only: true
+  bundle_write_once: true
+  bundle_manifest_hash_required: true
+  web_query_mount_read_only: true
+  source_paths_exposed: false
+  maximum_response_bytes: 1048576
+
+factor_identity:
+  factor_id_kind: FAMILY_SCOPED_EXACT_FORMULA_SHA256
+  factor_id_formula: "sha256(UTF8('factor-exact-v1\\0' + research_family + '\\0' + feature_or_formula))"
+  factor_version_kind: CANDIDATE_EXPERIMENT_ID
+  factor_version_field: candidate_experiment_id
+  semantic_normalization: false
+  equivalent_text_deduplication: false
+  identity_caveat: semantically_equivalent_but_textually_different_formulas_remain_distinct
+
+factor_authority:
+  default_unknown_state: HISTORICAL_ONLY
+  rules:
+    - research_family: stage1-gp-preflight-v1
+      current_selector:
+        trial_count: 166
+        candidate_code_sha256: e03da3ac79a70d0d98e71c0424cf9eb1534b415124608ab89c6b4021871460d7
+      nonmatching_state: HISTORICAL_NON_AUTHORITATIVE
+    - research_family: p1-moneyflow-v1
+      current_selector:
+        trial_count: 18
+        candidate_code_sha256: 8f8f7a09c21f3c097d1487cb719370854bd785c81096f9f96fc737c3a37cc045
+      nonmatching_state: SUPERSEDED_ENGINEERING_GENERATION
+  lifecycle_precedence:
+    - ADMITTED
+    - REJECTED
+    - TESTING
+    - CANDIDATE
+    - HISTORICAL_ONLY
+  experiment_admitted_field_is_not_sufficient: true
+  admission_ledger_required_for_g1_state: true
+
+factor_family_profiles:
+  stage1-gp-preflight-v1:
+    data_category: price_volume
+    universe_id: csi800-pit-v1
+    benchmark_id: SH000906
+    label_id: "Ref($open,-11)/Ref($open,-1)-1"
+    horizon_id: next_open_to_t_plus_11_open
+    neutralization_id: sw_l1_pit_plus_log_market_cap_v1
+    window_set_id: settings-g0-w1-w6-v1
+    stress_set_id: settings-g1-three-stress-periods-v1
+    portfolio_policy_id: alpha158_90_factor_10_top30_rebalance10_open_v1
+    cost_policy_id: settings-backtest-cost-plus-2x-plus-10bp-each-side-v1
+    decision_rule_version: g1-v1
+    comparison_policy_source: params_json.benchmark_report_sha256
+  p1-moneyflow-v1:
+    data_category: moneyflow
+    universe_id: csi800-pit-v1
+    benchmark_id: SH000906
+    label_id: "Ref($open,-11)/Ref($open,-1)-1"
+    horizon_id: next_open_to_t_plus_11_open
+    neutralization_id: sw_l1_log_market_cap_amount_turnover_alpha158_fwl_v1
+    window_set_id: settings-g0-w1-w6-v1
+    stress_set_id: p1-moneyflow-frozen-panel-mapping-v1
+    portfolio_policy_id: alpha158_90_factor_10_top30_rebalance10_open_v1
+    cost_policy_id: settings-backtest-cost-plus-2x-plus-10bp-each-side-v1
+    decision_rule_version: g1-v1
+    comparison_policy_source: params_json.comparison_policy_sha256
+
+experiment_identity:
+  require_kind: true
+  kinds:
+    research_experiment:
+      id_field: experiment_id
+      ledger: ledger/experiments.csv
+    p2_engineering_run:
+      id_field: run_id
+      ledger: ledger/p2_star50_engineering_runs.csv
+    p2_effect_original:
+      id_field: run_id
+      ledger: ledger/p2_star50_effect_runs.csv
+    p2_effect_correction:
+      id_field: run_id
+      ledger: ledger/p2_star50_effect_correction_runs.csv
+  ambiguous_untyped_id_error: INVALID_ARGUMENT
+
+authority_overrides:
+  p2_engineering:
+    authoritative_run_id: p2-star50-engineering-v1-a4cfad049e36
+    authoritative_report_sha256: a4cfad049e36914fcec76f05c9dc6f5c24b55d85fe4213a37a3e8f7ae9909401
+    other_rows: PROVISIONAL_HISTORICAL
+  p2_effect_original:
+    authority_status: INVALIDATED_METHOD
+    original_model_valid: false
+    original_execution_valid: false
+    numeric_results_status: REPRODUCIBLE_NOT_AUTHORITATIVE
+    authoritative_successor_kind: p2_effect_correction
+    authoritative_successor_id: p2-star50-effect-correction-v1-8aca90da0d09
+  p2_effect_correction:
+    authoritative_run_id: p2-star50-effect-correction-v1-8aca90da0d09
+    authority_status: AUTHORITATIVE_CURRENT
+    historical_effect_gate: NO_GO
+    strategy_effective: REJECT
+    production_authorization: none
+  d1_review:
+    applies_to_candidate_ids:
+      - 6ade2d0f6d103613
+      - 3bf9d418202afc20
+    nonmatching_attempt_overlay: NOT_APPLICABLE
+    original_gate: GO_INDEPENDENT_HUMAN_GATE
+    original_gate_authority: INVALIDATED_SEMANTIC_CONTRACT
+    authoritative_gate: STOP_SEMANTIC_CONTRACT_VIOLATION
+    human_gate_ready: false
+    g1_run: false
+    strategy_effective: NOT_EVALUATED
+    production_authorization: none
+
+queries:
+  factor_catalog:
+    signature: factor_catalog(status=null,family=null,data_category=null,as_of=null)
+    source_scope: G1_SUBMITTED_FACTORS_ONLY
+    default_status_filter: ALL
+    allowed_status_filters: [ALL, ADMITTED, REJECTED, HISTORICAL_ONLY]
+    required_summary_fields:
+      - factor_id
+      - identity_kind
+      - research_family
+      - data_category
+      - lifecycle_status
+      - authority_status
+      - version_count
+      - current_factor_version
+      - experiment_attempt_n
+      - latest_recorded_decision
+      - evidence_status
+    response_counters:
+      - formal_library_count
+      - researched_factor_count
+      - authoritative_rejected_count
+      - historical_only_count
+    empty_formal_library_policy: RETURN_EMPTY_WITH_FORMAL_LIBRARY_COUNT_ZERO
+    default_sort: [research_family, factor_id]
+    return_sort_by_performance: false
+
+  factor_detail:
+    signature: factor_detail(factor_id,version=null)
+    default_version: CURRENT_AUTHORITATIVE_ELSE_LATEST_HISTORICAL
+    required_sections:
+      identity: AVAILABLE
+      frozen_definition_and_direction: AVAILABLE
+      pit_shift_and_complexity: AVAILABLE
+      g1_statistics_and_all_gates: AVAILABLE
+      six_oos_window_rank_ic: AVAILABLE
+      stress_max_drawdown: AVAILABLE
+      turnover_and_incremental_portfolio: AVAILABLE
+      cost_and_slippage_stress: AVAILABLE
+      library_max_abs_correlation: AVAILABLE
+      coverage_ratio: NOT_EVALUATED
+      quantile_returns_and_monotonicity: NOT_EVALUATED
+      factor_autocorrelation: NOT_EVALUATED
+      candidate_pool_correlation: NOT_EVALUATED
+    unavailable_section_policy: EXPLICIT_STATUS_NO_RECOMPUTE
+    daily_series_returned: false
+
+  factor_compare:
+    signature: factor_compare(factor_versions[])
+    minimum_items: 2
+    maximum_items: 3
+    authoritative_versions_only: true
+    strict_fingerprint_fields:
+      - research_family
+      - universe_id
+      - benchmark_id
+      - label_id
+      - horizon_id
+      - neutralization_id
+      - window_set_id
+      - stress_set_id
+      - portfolio_policy_id
+      - cost_policy_id
+      - decision_rule_version
+      - candidate_code_sha256
+      - data_snapshot_sha256
+      - comparison_policy_id
+    mismatch_error: CONFLICT
+    missing_fingerprint_error: NOT_EVALUATED
+    cross_family_comparison: false
+    default_sort_by_performance: false
+
+  factor_admission_history:
+    signature: factor_admission_history(factor_id)
+    append_only: true
+    include_non_authoritative_history: true
+    required_fields:
+      - decision_id
+      - evaluated_at
+      - factor_version
+      - recorded_decision
+      - authority_status
+      - trial_count
+      - failed_gates
+      - decision_rule_version
+      - evidence_sha256
+      - report_sha256
+    overwrite_old_decision: false
+
+  experiment_summary:
+    signature: experiment_summary(experiment_kind,experiment_id)
+    detail_only: true
+    required_common_fields:
+      - experiment_kind
+      - experiment_id
+      - research_family
+      - evidence_tier
+      - authority_status
+      - lifecycle_status
+      - model_or_engine
+      - engine_version
+      - seed
+      - train_period
+      - valid_period
+      - code_snapshot_sha256
+      - data_snapshot_sha256
+      - decision
+      - failed_reasons
+      - evidence_status
+      - source_refs
+      - evidence_hashes
+    adapters:
+      Alpha158: BASELINE_BACKTEST
+      Alpha158-shadow: SHADOW_SIGNAL
+      Alpha158-forward-shadow: FORWARD_SHADOW_SIGNAL
+      AlphaGen-GP: GP_DISCOVERY_ATTEMPT
+      AlphaGen-GP-stage1: GP_STAGE1_ATTEMPT
+      AlphaGen-GP-G1: G1_FACTOR_DECISION
+      Tushare-moneyflow-P1: G1_FACTOR_DECISION
+      LLM_DSL: D1_DISCOVERY_ATTEMPT_WITH_REVIEW_OVERLAY
+      p2_engineering_run: P2_ENGINEERING
+      p2_effect_original: P2_EFFECT_INVALIDATED
+      p2_effect_correction: P2_EFFECT_AUTHORITATIVE
+    unknown_adapter_error: NOT_EVALUATED
+    raw_json_returned: false
+
+time_semantics:
+  as_of_filters_recorded_events: true
+  latest_authority_overlay_always_applied: true
+  historical_response_banner: CURRENT_AUTHORITY_APPLIED_TO_HISTORICAL_RECORDS
+  query_clock_must_not_create_business_state: true
+
+error_policy:
+  invalid_argument: INVALID_ARGUMENT
+  missing_data: NO_DATA
+  not_ready: NOT_READY
+  evidence_mismatch: EVIDENCE_MISMATCH
+  incomparable: CONFLICT
+  unsupported_metric: NOT_EVALUATED
+  bse_suffix: FORBIDDEN_UNIVERSE
+
+forbidden:
+  - model_or_backtest_execution
+  - g1_execution
+  - factor_generation
+  - performance_recalculation
+  - frontend_metric_recalculation
+  - arbitrary_file_or_sql_access
+  - raw_research_directory_mount
+  - raw_params_or_result_json_passthrough
+  - invalidated_decision_as_current
+  - historical_decision_overwrite
+  - production_strategy_or_signal_change
+  - scheduler_change
+  - remote_access
+  - bse_security

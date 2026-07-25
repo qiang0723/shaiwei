@@ -1,11 +1,13 @@
 # Web 1.0 指标字典（v1.0）
 
-> 只定义展示语义，不修改后台口径。`I`=已有只读查询可直接支持，`P`=需求提案，`H`=已有历史/后台证据但尚无页面查询。前端只能使用 `I`；`P/H` 在契约落地前只用于原型示例。
+> 只定义展示语义，不修改后台口径。`I`=已有只读查询可直接支持，`F`=查询契约已冻结但尚未实现，
+> `P`=需求提案，`H`=已有历史/后台证据但尚无页面查询。前端只能使用 `I`；`F/P/H` 均不得冒充已实现。
 >
 > 2026-07-25 更新：P3-0 已实现原子总览、逐仓投影、FORWARD 锚点、最新信号和次日对账。
 > 本表原 `P` 标记保留设计来源；实际可用性以 `WEB_QUERY_CONTRACTS.md`、
 > `P3_WEB_QUERY_ACCEPTANCE_20260725.md` 和 `P3_WEB_OPERATIONS_ACCEPTANCE_20260725.md` 为准。
-> 数据质量与系统运行查询和页面已由 P3-2A/P3-2B 完成；实验和因子工厂仍未实现。
+> 数据质量与系统运行查询和页面已由 P3-2A/P3-2B 完成；P3-3A 已冻结实验与因子工厂查询契约，
+> 但 HTTP 与页面仍未实现。
 
 ## 1. 通用字段
 
@@ -85,30 +87,31 @@
 
 | 机器名 | 展示名 | 定义 | 空值与状态 | 来源 | 状态 |
 |---|---|---|---|---|---|
-| `factor_lifecycle_status` | 因子阶段 | `CANDIDATE/TESTING/REJECTED/ADMITTED/RETIRED`，由后台状态机返回 | 未登记=`NO_DATA` | `factor_catalog` 提案 | H/P |
-| `factor_direction` | 冻结方向 | 研究前冻结的预测方向 | 不得观察结果后翻转 | `factor_detail` 提案 | H/P |
-| `experiment_attempt_n` | 研究尝试数 | 同研究家族总账全部尝试，含失败 | 缺总账不得计算 DSR | 实验总账聚合提案 | H/P |
-| `coverage_ratio` | 因子覆盖率 | 有效因子值证券日 / 应评估证券日 | 必须显示分子、分母和范围 | `factor_detail` 提案 | H/P |
-| `rank_ic` | RankIC | 因子值与冻结 forward return 的日频 Spearman 相关 | 方向、horizon、中性化常驻显示 | factor tear sheet 提案 | H/P |
-| `rank_ic_mean` | 平均 RankIC | 选定冻结范围内日频 RankIC 均值 | 不跨范围比较 | factor tear sheet 提案 | H/P |
-| `rank_icir` | RankICIR | 平均 RankIC / RankIC 标准差，年化规则由后台冻结 | 无冻结公式不展示 | factor tear sheet 提案 | H/P |
-| `hac_t` | Newey-West t | 方向冻结后的日频 RankIC `Newey-West(10) t` | G1 要求 ≥3.0；前端不重算 | G1 判决查询提案 | H/P |
-| `dsr` | DSR | 按研究家族全部实验 N 修正的 Deflated Sharpe Ratio | G1 要求 ≥0.95；缺 N=`FAIL` | G1 判决查询提案 | H/P |
-| `quantile_spread` | 分位收益差 | 冻结 horizon 下最高与最低分位组合收益差 | 必须显示分位数、误差和中性化 | factor tear sheet 提案 | H/P |
-| `factor_autocorrelation` | 因子自相关 | 相邻评估期因子排名相关 | 与换手共同解释 | factor tear sheet 提案 | H/P |
-| `quantile_turnover` | 分位换手 | Top/Bottom 分位成员在冻结周期内的更替率 | 明确周期和分母 | factor tear sheet 提案 | H/P |
-| `library_max_abs_corr` | 因子库最大相关 | 候选因子与既有正式库因子值的最大 `|ρ|` | G1 要求 <0.5；正式库空时 N/A | 因子相关查询提案 | H/P |
-| `candidate_max_abs_corr` | 候选池最大相关 | 候选内部最大 `|ρ|` | >0.7 触发去重，不等于准入线 | 因子相关查询提案 | H/P |
-| `oos_decay_ratio` | 样本外衰减 | OOS RankIC 相对发现期的衰减比例 | 必须标发现期/OOS；不得混窗 | G1 判决查询提案 | H/P |
-| `incremental_net_icir` | 增量净 ICIR | 新因子加入基线后相对基线的净 ICIR 增量 | 未准入/未跑组合=`NOT_APPLICABLE` | 准入判决提案 | H/P |
-| `incremental_net_excess` | 增量净超额 | 同成本同窗口下加入因子后的净超额变化 | 不用单因子收益替代 | 准入判决提案 | H/P |
-| `gate_decision` | 准入判决 | 后台 G1 裁判的 PASS/REJECT/NOT_READY | 显示全部失败门 | `factor_admission_history` 提案 | H/P |
+| `factor_lifecycle_status` | 因子阶段 | `CANDIDATE/TESTING/REJECTED/ADMITTED/RETIRED/HISTORICAL_ONLY`，由后台按 G1 判决与权威覆盖返回 | 未登记=`NO_DATA`；不能只读 `experiments.admitted` | `factor_catalog` 冻结契约 | H/F |
+| `factor_authority_status` | 因子判决权威 | `AUTHORITATIVE_CURRENT/HISTORICAL_NON_AUTHORITATIVE/SUPERSEDED_ENGINEERING_GENERATION/INVALIDATED` | 必须与记录判决分列 | P3-3A 权威覆盖 | H/F |
+| `factor_direction` | 冻结方向 | 研究前冻结的预测方向 | 不得观察结果后翻转 | `factor_detail` 冻结契约 | H/F |
+| `experiment_attempt_n` | 研究尝试数 | 同研究家族总账全部尝试，含失败 | 缺总账不得计算 DSR | 实验总账聚合冻结契约 | H/F |
+| `coverage_ratio` | 因子覆盖率 | 有效因子值证券日 / 应评估证券日 | 当前历史 G1 没有统一分子/分母，固定 `NOT_EVALUATED` | `factor_detail` 冻结契约 | F |
+| `rank_ic` | RankIC | 因子值与冻结 forward return 的日频 Spearman 相关 | 方向、horizon、中性化常驻显示 | G1 历史证据/冻结契约 | H/F |
+| `rank_ic_mean` | 平均 RankIC | 选定冻结范围内日频 RankIC 均值 | 不跨范围比较 | G1 历史证据/冻结契约 | H/F |
+| `rank_icir` | RankICIR | 平均 RankIC / RankIC 标准差，年化规则由后台冻结 | 无冻结公式不展示 | G1 历史证据/冻结契约 | H/F |
+| `hac_t` | Newey-West t | 方向冻结后的日频 RankIC `Newey-West(10) t` | G1 要求 ≥3.0；前端不重算 | G1 判决冻结契约 | H/F |
+| `dsr` | DSR | 按研究家族全部实验 N 修正的 Deflated Sharpe Ratio | G1 要求 ≥0.95；缺 N=`FAIL` | G1 判决冻结契约 | H/F |
+| `quantile_spread` | 分位收益差 | 冻结 horizon 下最高与最低分位组合收益差 | 当前历史 G1 未统一登记，固定 `NOT_EVALUATED` | `factor_detail` 冻结契约 | F |
+| `factor_autocorrelation` | 因子自相关 | 相邻评估期因子排名相关 | 当前历史 G1 未统一登记，固定 `NOT_EVALUATED` | `factor_detail` 冻结契约 | F |
+| `quantile_turnover` | 分位换手 | Top/Bottom 分位成员在冻结周期内的更替率 | 当前历史 G1 未统一登记，固定 `NOT_EVALUATED` | `factor_detail` 冻结契约 | F |
+| `library_max_abs_corr` | 因子库最大相关 | 候选因子与既有正式库因子值的最大 `|ρ|` | G1 要求 <0.5；正式库空时 N/A | G1 历史证据/冻结契约 | H/F |
+| `candidate_max_abs_corr` | 候选池最大相关 | 候选内部最大 `|ρ|` | 当前历史 G1 未统一登记，固定 `NOT_EVALUATED` | `factor_detail` 冻结契约 | F |
+| `oos_decay_ratio` | 样本外衰减 | OOS RankIC 相对发现期的衰减比例 | 必须标发现期/OOS；不得混窗 | G1 判决冻结契约 | H/F |
+| `incremental_net_icir` | 增量净 ICIR | 新因子加入基线后相对基线的净 ICIR 增量 | 未准入/未跑组合=`NOT_APPLICABLE` | G1 判决冻结契约 | H/F |
+| `incremental_net_excess` | 增量净超额 | 同成本同窗口下加入因子后的净超额变化 | 不用单因子收益替代 | G1 判决冻结契约 | H/F |
+| `gate_decision` | 准入判决 | 后台 G1 裁判的记录判决，须同时显示 authority | 显示全部失败门；旧结论不覆盖 | `factor_admission_history` 冻结契约 | H/F |
 
 ## 6. 模型、数据与运行
 
 | 机器名 | 展示名 | 定义 | 空值与状态 | 来源 | 状态 |
 |---|---|---|---|---|---|
-| `window_net_excess` | 窗口扣费超额 | 每个预注册 OOS 窗口的扣费后超额 | 窗口缺失=`NO_DATA` | `experiment_summary` 提案 | H/P |
+| `window_net_excess` | 窗口扣费超额 | 每个预注册 OOS 窗口的扣费后超额 | 窗口缺失=`NO_DATA`；失效方法只能标历史非权威 | `experiment_summary` 冻结契约 | H/F |
 | `sentinel_status` | 哨兵状态 | S1-S10 后台报告结论 | 未适用与缺失分开；报告未历史哈希绑定时证据 WARN | `GET /api/v1/data-quality` | I |
 | `bse_count` | 北交所计数 | 当前对象中的 `.BJ` 行/订单/持仓数 | 必须为 0；非 0=`FAIL` | 现有页面与数据质量查询 | I |
 | `task_status` | 核心任务状态 | 调度周期的核心执行结论 | 不与通知合并；失败后恢复为 WARN | `GET /api/v1/system/runs` | I |

@@ -1,7 +1,8 @@
 # Web 1.0 查询契约映射（v1.0）
 
 > 本文区分“已实现只读查询”和“Web 需求提案”。2026-07-25 P3-0 已将 P-WEB-01/02/03/03A
-> 落地为 HTTP 只读契约；P3-2A 已落地 P-WEB-05/06。P-WEB-04/07 仍只是提案。
+> 落地为 HTTP 只读契约；P3-2A 已落地 P-WEB-05/06。2026-07-25 P3-3A 已冻结
+> P-WEB-04/07 的证据、身份、权威覆盖与查询契约，但尚未实现 HTTP 或页面。
 
 ## 1. 已实现契约
 
@@ -55,8 +56,8 @@
 | 账户日执行 | orders | 是，需 signal hash | 页面需先从受控来源取得 signal hash |
 | 组合重放 | `GET /api/v1/paper/replay` | 是 | 独立事件/状态链重放 |
 | 股票池/信号 | `GET /api/v1/signals/latest`、`signals/reconciliation` | 是 | 正式页面与原因展示待 P3-1 |
-| 因子目录与 tear sheet | 无 | 否 | `factor_catalog/factor_detail/factor_compare/factor_admission_history` |
-| 模型/回测 | 无 | 否 | `experiment_summary` |
+| 因子目录与 tear sheet | 无 | 否 | P3-3A 契约已冻结；待 P3-3B 类型化只读后端 |
+| 模型/回测 | 无 | 否 | `experiment_summary` 详情契约已冻结；完整页面还缺 `experiment_catalog` |
 | 数据质量 | `GET /api/v1/data-quality` | 是，P3-2B 页面已完成 | 哨兵报告尚未历史哈希绑定，证据状态固定 WARN；原始 Parquet 重哈希 NOT_EVALUATED |
 | 系统运行/通知 | `GET /api/v1/system/runs`、`GET /api/v1/notifications/{message_id}` | 是，P3-2B 页面已完成 | 实时 Docker 身份 NOT_EVALUATED；旧通知 schema 只计数、不可按消息寻址 |
 
@@ -97,9 +98,18 @@
 
 后端门槛和公式见 `WEB_ARCHITECTURE_RULINGS_20260723.md` R5。任何跨策略版本、缺锚点、缺账户日或哈希断链均失败。
 
-### P-WEB-04 `experiment_summary(experiment_id)`
+### P-WEB-04 `experiment_summary(experiment_kind, experiment_id)`（P3-3A 已冻结，未实现）
 
-目的：返回实验身份、窗口、参数、指标、判决、失败原因和产物引用；失败实验必须可查。
+目的：返回类型化实验身份、证据层级、窗口、受控参数摘要、指标、判决、失败原因和产物引用；失败、
+provisional、被替代和失效实验必须可查。
+
+`experiment_kind` 必填，只允许 `research_experiment/p2_engineering_run/p2_effect_original/
+p2_effect_correction`。不同实验源必须走独立 adapter，不返回原始 `params_json/result_json`。D1 原机器
+GO 必须应用语义纠错后展示权威 STOP；原 P2-2 必须标 `INVALIDATED_METHOD`，P2-2C 才是当前权威历史
+效果结论。
+
+本端点只支持已知 ID 的详情。模型/回测完整页面仍缺列表、筛选和分页查询；在另行冻结
+`experiment_catalog` 前不得让前端扫描账本补齐。
 
 ### P-WEB-05 `data_quality_summary(as_of)`（P3-2A 已实现）
 
@@ -126,14 +136,25 @@ release 审计链会逐条验哈希并返回运行前最后一个已登记 `STAR
 因此实时容器身份保持 `NOT_EVALUATED`。2026-07-23 前无 message ID 的 legacy 通知只计数，不合成
 ID，也不进入当前重试统计。
 
-### P-WEB-07 因子工厂四组契约
+### P-WEB-07 因子工厂四组契约（P3-3A 已冻结，未实现）
 
-- `factor_catalog(status, family, data_category, as_of)`：返回因子身份、生命周期、经济假设摘要、实现版本、实验尝试 N、最新判决与证据完整性；正式库 0 插入必须如实返回空列表与状态说明。
-- `factor_detail(factor_id, version)`：返回冻结定义、方向、输入字段与 PIT 时点、覆盖、RankIC/ICIR、分位收益、换手、自相关、中性化、分组、六窗口、压力期、成本、相关性、增量结果、G1 全门和证据引用。
-- `factor_compare(factor_versions[])`：最多 3 个；后端验证宇宙、窗口、horizon、中性化和成本可比，任何不一致返回 `CONFLICT`。
+- `factor_catalog(status, family, data_category, as_of)`：只收录曾进入 G1 的因子；稳定
+  `factor_id` 与实验版 `factor_version` 分离，返回生命周期、权威状态、实验尝试 N、最新记录判决与证据
+  完整性。正式库 0 插入必须如实返回空列表与计数，不把全部实验或历史版本重复计成因子。
+- `factor_detail(factor_id, version)`：返回冻结定义、方向、PIT/shift、复杂度、RankIC/ICIR、换手、
+  六窗口、压力期、成本、库相关、增量结果、G1 全门和证据引用。当前无统一证据的覆盖率、分位收益/
+  单调性、自相关和候选池相关性固定 `NOT_EVALUATED`，不由 Web 重算。
+- `factor_compare(factor_versions[])`：只接受 2—3 个当前权威版本；后端验证家族、宇宙、窗口、
+  horizon、中性化、组合、成本、代码、数据和比较策略 fingerprint。缺字段返回 `NOT_EVALUATED`，
+  任何不一致返回 `CONFLICT`，v1 不跨家族比较。
 - `factor_admission_history(factor_id)`：按时间返回所有提交、判决、失败门、规则版本、实验总账 N 和不可变证据，不覆盖旧 REJECT。
 
-共同要求：返回 `factor_id/factor_version/research_family/benchmark_id/horizon/universe_id/neutralization/decision_rule_version/code_snapshot_sha256/data_snapshot_sha256`；所有统计量由后台冻结实现计算，前端只展示。
+共同要求：返回 `factor_id/factor_version/research_family/benchmark_id/horizon/universe_id/neutralization/decision_rule_version/code_snapshot_sha256/data_snapshot_sha256`；所有统计量只读取已冻结后台证据，
+本查询不重新计算。旧 P1/Stage-1 版本必须保留并标非当前权威。
+
+安全边界：P3-3B 先由一次性 Docker 构建器将受控账本、G1 JSON 和纠错覆盖投影为 write-once、限字段、
+哈希绑定的 `data/web/research_snapshots/`；web-query 只读挂载该投影，禁止直接挂整个
+`data/research`。完整协议见 `P3_FACTOR_EXPERIMENT_QUERY_PROTOCOL_20260725.md`。
 
 ## 4. HTTP 适配层候选包络
 
