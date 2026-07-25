@@ -26,6 +26,7 @@ P2_STAR50_EFFECT_ADMISSIONS = LEDGER_DIR / "p2_star50_effect_admissions.csv"
 P2_STAR50_EFFECT_CORRECTION_RUNS = LEDGER_DIR / "p2_star50_effect_correction_runs.csv"
 P2_STAR50_EFFECT_CORRECTION_ADMISSIONS = LEDGER_DIR / "p2_star50_effect_correction_admissions.csv"
 LLM_FACTOR_ATTEMPTS = LEDGER_DIR / "llm_factor_attempts.csv"
+LLM_FACTOR_TRANSPORTS = LEDGER_DIR / "llm_factor_transports.csv"
 
 
 def portable_artifact_path(path: str | Path) -> str:
@@ -243,6 +244,12 @@ def append_llm_factor_attempt(*, path: Path | None = None, **kw: object) -> bool
     """Append one terminal D1 attempt; raw prompts/responses never belong in this ledger."""
     kw.setdefault("operator", "docker-d1-research")
     return _append_idempotent(path or LLM_FACTOR_ATTEMPTS, kw, key="attempt_id")
+
+
+def append_llm_factor_transport(*, path: Path | None = None, **kw: object) -> bool:
+    """Append one immutable D1 provider-transport event without request or response content."""
+    kw.setdefault("operator", "docker-d1-research")
+    return _append_idempotent(path or LLM_FACTOR_TRANSPORTS, kw, key="event_id")
 
 
 def append_llm_factor_experiment(*, path: Path | None = None, **kw: object) -> bool:

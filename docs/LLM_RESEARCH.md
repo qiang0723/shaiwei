@@ -1,11 +1,14 @@
-# LLM 持续因子研究线（D1-1 零调用工程门完成）
+# LLM 持续因子研究线（D1-2A 真实调用前冻结完成）
 
-> 状态：2026-07-25 已完成 D1-0 架构裁决和 D1-1 零调用工程门，仍未授权调用 LLM 或运行因子效果。
-> D1-2 须重新冻结提示/知识与核对模型价格，并由用户另行授权；详见
+> 状态：2026-07-25 已完成 D1-0、D1-1 和 D1-2A；提示/知识、官方模型/价格、受限客户端、费用与
+> 传输恢复均已冻结并断网验收，运行客户端未加载密钥，也未调用 LLM 或运行因子效果；宿主脱敏测试
+> 仅作 `.env` 秘密与 Git 跟踪文件的不回显比对。D1-2B 须由用户另行授权；
+> 详见
 > `docs/D1_LLM_FACTOR_RESEARCH_ARCHITECTURE_20260725.md`、
 > `docs/D1_LLM_FACTOR_RESEARCH_PROTOCOL_DRAFT_20260725.md` 和
 > `config/d1_llm_factor_research_v1.yaml` 和
-> `docs/D1_LLM_FACTOR_ENGINEERING_ACCEPTANCE_20260725.md`。
+> `docs/D1_LLM_FACTOR_ENGINEERING_ACCEPTANCE_20260725.md` 和
+> `docs/D1_LLM_FACTOR_PREEXECUTION_ACCEPTANCE_20260725.md`。
 
 ## 定位
 
@@ -88,8 +91,9 @@ LLM 因子研究不得局限于观象，候选输入包括：
 - 候选必须通过 PIT/shift、复杂度、相关性、W1-W6、压力期、DSR、HAC、成本及组合增量门；
 - 未通过只形成可复现 REJECT 和失败经验，不修改门槛追求通过。
 
-首轮模型建议固定为 `deepseek-v4-pro` thinking/high，40 次全 cache miss 的协议理论费用
-$0.5568、硬熔断 $0.75；当前仍为 D1-2 启动前待重新核对和确认的机器合同。旧 GP 最终报告虽为 40 个候选，但
+首轮机器合同已按 DeepSeek 官方资料冻结为 `deepseek-v4-pro` thinking/high，40 次全 cache miss 的
+理论费用 `$0.5568`、硬熔断 `$0.75`；官方模型/价格核对已完成，但费用授权仍必须由用户在 D1-2B
+开始前明确确认。旧 GP 最终报告虽为 40 个候选，但
 `g1-v1` 已按同家族历史纠错机械计入 166 次，禁止新建“干净 GP 家族”重置 N。比较分生成层、
 组合层和各自真实 N 的裁决层，不宣称两者 DSR 完全配对。
 
@@ -107,4 +111,13 @@ $0.5568、硬熔断 $0.75；当前仍为 D1-2 启动前待重新核对和确认�
 
 2026-07-25 已完成严格 candidate schema、确定性 40 次排程、追加式尝试账本、与实验总账一一对应、
 DSL parser/sandbox、敏感输出隔离、mock provider 和断网只读 Docker fixture。全程 API 调用为 0，未读取
-市场数据或运行 G1；工程结论为 `GO_ENGINEERING_ONLY`，不代表策略有效。D1-2 真实生成仍无授权。
+市场数据或运行 G1；工程结论为 `GO_ENGINEERING_ONLY`，不代表策略有效。D1-2B 真实生成仍无授权。
+
+## D1-2A 真实调用前冻结终态
+
+2026-07-25 已冻结 system prompt、严格候选示例、五主题模板、同主题全历史反馈序列和 10 条来源知识
+manifest；五条一手论文摘要只提供回溯研究启发，五条 DeepSeek 官方文档只约束模型、价格、请求、
+响应和错误恢复。真实客户端在当前 `execution_authorized=false` 时只接受 `MockTransport`，live factory
+会在读取环境和创建网络 transport 前拒绝；请求前累计费用预留、成功响应先落不可变产物、429/500/503
+有界重试、`BILLING_UNCERTAIN` 恢复禁发及敏感响应脱敏均已通过断网 Docker。终态为
+`GO_PREEXECUTION_ONLY / D1_2B_NOT_AUTHORIZED`，API、真实候选、市场结果和生产授权仍全部为 0。

@@ -1,6 +1,7 @@
 import ast
 import csv
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -16,12 +17,14 @@ from shaiwei.research.llm_factor import (
     D1Protocol,
     MockProvider,
     ProviderResponse,
+    build_request,
     execute_completed_attempt,
     initialize_attempt_ledger,
     plan_attempt,
     run_fixture,
     verify_attempt_experiment_bijection,
 )
+from shaiwei.research.llm_factor_prompt import PromptContractError
 
 
 PROTOCOL_PATH = PROJECT_ROOT / "config/d1_llm_factor_research_v1.yaml"
@@ -99,8 +102,104 @@ def test_protocol_binds_exact_budget_allowlists_and_zero_call_boundary():
     assert protocol.document["execution_authorized"] is False
     assert protocol.document["llm_api_called"] is False
     assert protocol.document["d1_1_engineering_complete"] is True
+    assert protocol.document["d1_2a_preexecution_frozen"] is True
+    assert protocol.prompt_bundle.sha256 == protocol.document["prompt_contract"]["sha256"]
+    assert protocol.knowledge_manifest.sha256 == protocol.document["knowledge_manifest"]["sha256"]
     with pytest.raises(D1ControlError, match="within 1..40"):
         plan_attempt(protocol, 41)
+
+
+def test_request_uses_frozen_prompt_topic_knowledge_and_no_sampling_or_tools():
+    protocol = D1Protocol.load(PROTOCOL_PATH)
+    request = build_request(protocol, plan_attempt(protocol, 1))
+    assert request["messages"][0]["content"] == protocol.prompt_bundle.system_prompt
+    task = json.loads(request["messages"][1]["content"])
+    assert task["topic"] == "trend_momentum"
+    assert task["topic_template"] == protocol.prompt_bundle.topic_template("trend_momentum")
+    assert len(task["knowledge_packet"]) == 1
+    assert task["knowledge_packet"][0]["source_type"] == "primary_research_paper"
+    assert task["knowledge_manifest_sha256"] == protocol.knowledge_manifest.sha256
+    assert task["prompt_bundle_sha256"] == protocol.prompt_bundle.sha256
+    assert request["response_format"] == {"type": "json_object"}
+    assert request["thinking"] == {"type": "enabled"}
+    assert request["reasoning_effort"] == "high"
+    assert request["tools"] == []
+    assert request["stream"] is False
+    assert "temperature" not in request
+
+
+def test_feedback_is_same_topic_prior_allowlisted_sorted_and_bounded():
+    protocol = D1Protocol.load(PROTOCOL_PATH)
+    plan = plan_attempt(protocol, 5)
+    feedback = [
+        {
+            "attempt_id": "fourth",
+            "global_ordinal": 4,
+            "topic": "trend_momentum",
+            "parse_status": "PASS",
+        },
+        {
+            "attempt_id": "second",
+            "global_ordinal": 2,
+            "topic": "trend_momentum",
+            "parse_status": "PASS",
+        },
+        {
+            "attempt_id": "third",
+            "global_ordinal": 3,
+            "topic": "trend_momentum",
+            "parse_status": "PASS",
+        },
+        {
+            "attempt_id": "first",
+            "global_ordinal": 1,
+            "topic": "trend_momentum",
+            "parse_status": "FAIL",
+        },
+    ]
+    task = json.loads(build_request(protocol, plan, feedback_records=feedback)["messages"][1]["content"])
+    assert [row["attempt_id"] for row in task["feedback"]] == [
+        "first",
+        "second",
+        "third",
+        "fourth",
+    ]
+    assert task["eligible_parent_attempt_ids"] == ["first", "second", "third", "fourth"]
+    assert set(task["feedback"][0]) == set(
+        protocol.prompt_bundle.document["feedback_contract"]["allowed_fields"]
+    )
+    with pytest.raises(PromptContractError, match="non-allowlisted"):
+        build_request(
+            protocol,
+            plan,
+            feedback_records=[{**feedback[0], "G1_admission": "PASS"}],
+        )
+    with pytest.raises(PromptContractError, match="same topic"):
+        build_request(
+            protocol,
+            plan,
+            feedback_records=[{**feedback[0], "topic": "volatility_range"}],
+        )
+    with pytest.raises(PromptContractError, match="precede"):
+        build_request(
+            protocol,
+            plan,
+            feedback_records=[{**feedback[0], "global_ordinal": 5}],
+        )
+
+
+def test_prompt_and_knowledge_tamper_fail_before_provider(tmp_path: Path):
+    protocol_document = yaml.safe_load(PROTOCOL_PATH.read_text(encoding="utf-8"))
+    protocol_document["prompt_contract"]["sha256"] = "0" * 64
+    path = tmp_path / "tampered.yaml"
+    path.write_text(yaml.safe_dump(protocol_document), encoding="utf-8")
+    with pytest.raises(D1ControlError, match="prompt bundle hash"):
+        D1Protocol.load(path)
+    protocol_document = yaml.safe_load(PROTOCOL_PATH.read_text(encoding="utf-8"))
+    protocol_document["prompt_contract"]["path"] = str(tmp_path / "outside.yaml")
+    path.write_text(yaml.safe_dump(protocol_document), encoding="utf-8")
+    with pytest.raises(D1ControlError, match="project-relative"):
+        D1Protocol.load(path)
 
 
 def test_protocol_fails_closed_if_real_execution_is_enabled(tmp_path: Path):
@@ -110,6 +209,23 @@ def test_protocol_fails_closed_if_real_execution_is_enabled(tmp_path: Path):
     path.write_text(yaml.safe_dump(document), encoding="utf-8")
     with pytest.raises(D1ControlError, match="unauthorized"):
         D1Protocol.load(path)
+
+
+def test_cumulative_worst_case_budget_stops_before_provider_call(tmp_path: Path):
+    protocol = replace(D1Protocol.load(PROTOCOL_PATH), cost_hard_ceiling_usd=0.013)
+    provider = MockProvider([_response(protocol, _proposal())])
+    with pytest.raises(D1ControlError, match="cumulative worst-case"):
+        execute_completed_attempt(
+            protocol,
+            plan_attempt(protocol, 1),
+            provider,
+            ledger_path=tmp_path / "ledger/llm_factor_attempts.csv",
+            experiment_ledger_path=tmp_path / "ledger/experiments.csv",
+            artifact_root=tmp_path / "artifacts",
+            operator="test",
+            code_sha256="a" * 64,
+        )
+    assert provider.responses_consumed == 0
 
 
 def test_candidate_schema_forbids_extra_fields_and_invalid_lineage():
@@ -214,11 +330,35 @@ def test_sensitive_response_is_hashed_but_raw_payload_is_not_persisted(tmp_path:
     response = _response(protocol, _proposal(), reasoning="do not store sk-" + "A" * 24)
     result, _, _ = _run(tmp_path, protocol, 1, response)
     assert result.row["failure_class"] == "sensitive_output"
+    assert result.row["estimated_cost_usd"] == "0.000366125000"
     assert not list((tmp_path / "artifacts/raw").glob("*"))
     manifest = json.loads(
         (tmp_path / "artifacts" / result.row["artifact_manifest_path"]).read_text(encoding="utf-8")
     )
     assert manifest["raw_response_path"] == ""
+
+
+def test_batch_fatal_attempt_blocks_next_provider_call(tmp_path: Path):
+    protocol = D1Protocol.load(PROTOCOL_PATH)
+    _, _, ledger_path = _run(
+        tmp_path,
+        protocol,
+        1,
+        _response(protocol, _proposal(), reasoning="do not store sk-" + "A" * 24),
+    )
+    provider = MockProvider([_response(protocol, _proposal(expression="Mean(close,19)"))])
+    with pytest.raises(D1ControlError, match="operator review"):
+        execute_completed_attempt(
+            protocol,
+            plan_attempt(protocol, 2),
+            provider,
+            ledger_path=ledger_path,
+            experiment_ledger_path=tmp_path / "ledger/experiments.csv",
+            artifact_root=tmp_path / "artifacts",
+            operator="test",
+            code_sha256="a" * 64,
+        )
+    assert provider.responses_consumed == 0
 
 
 def test_missing_or_inconsistent_usage_fails_closed(tmp_path: Path):
@@ -233,13 +373,18 @@ def test_missing_or_inconsistent_usage_fails_closed(tmp_path: Path):
     assert result.row["failure_class"] == "usage_missing_or_invalid"
 
 
-def test_mutation_parent_must_be_earlier_and_same_topic(tmp_path: Path):
+def test_mutation_parent_must_be_earlier_and_same_topic():
     protocol = D1Protocol.load(PROTOCOL_PATH)
     proposal = _proposal()
     proposal["lineage"] = {"mode": "mutation", "parent_attempt_ids": ["absent"]}
-    result, _, _ = _run(tmp_path, protocol, 5, _response(protocol, proposal))
-    assert result.row["failure_class"] == "schema_invalid"
-    assert result.row["candidate_status"] == "REJECT"
+    validated = CandidateProposal.model_validate(proposal)
+    with pytest.raises(D1ControlError, match="eligible-parent"):
+        llm_factor._validate_lineage(
+            plan_attempt(protocol, 5),
+            validated,
+            rows=[],
+            eligible_parent_ids={"different-parent"},
+        )
 
 
 def test_tracked_attempt_ledger_has_exact_header_and_append_collision_is_fail_closed(tmp_path: Path):

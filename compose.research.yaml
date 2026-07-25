@@ -2,7 +2,7 @@ name: shaiwei-research
 
 services:
   d1-fixture:
-    image: shaiwei:d1-engineering-v1
+    image: shaiwei:d1-preexecution-v1
     pull_policy: never
     profiles: [research]
     build:

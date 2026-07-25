@@ -102,7 +102,7 @@ docker-g1-admit:  ## 容器内执行冻结 G1 裁决；不启动因子生成
 docker-stage1-preflight: ## 容器内极小预算 GP → 自动证据 → G1 REJECT/PASS；零自动入库
 	docker compose run --rm shaiwei python -m shaiwei.benchmark.alphagen_cpu --research-family stage1-gp-preflight-v1 --instrument csi800 --index-code 000906.SH --train-start 2016-01-01 --train-end 2018-12-31 --population-size 40 --tournament-size 10
 	docker compose run --rm shaiwei python -m shaiwei.research.g1_pipeline --research-family stage1-gp-preflight-v1
-docker-d1-fixture: ## D1-1 断网 mock/schema/DSL/账本 fixture；不加载 .env、不读市场数据
+docker-d1-fixture: ## D1-2A 断网 prompt/知识/mock传输/schema/DSL/账本 fixture；不加载 .env、不读市场数据
 	docker compose -f compose.research.yaml --profile research run --rm d1-fixture
 docker-release-build: ## 从干净工作树构建并验证内容寻址 scheduler 镜像
 	$(PYTHON) -m shaiwei.release build

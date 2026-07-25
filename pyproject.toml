@@ -12,11 +12,11 @@ dependencies = [
   "lightgbm>=4.3", "pyqlib>=0.9.5",
   "torch==2.13.0",
   "joblib", "psutil>=5", "pyyaml", "pydantic>=2", "python-dateutil", "python-dotenv",
-  "pypdf>=6.0",
+  "pypdf>=6.0", "httpx==0.28.1",
 ]
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff"]
-web = ["fastapi==0.139.0", "httpx==0.28.1", "uvicorn==0.51.0"]
+web = ["fastapi==0.139.0", "uvicorn==0.51.0"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

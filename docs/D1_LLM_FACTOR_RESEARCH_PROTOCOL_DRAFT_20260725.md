@@ -1,12 +1,12 @@
 # D1 LLM-DSL 首轮 40 次对照协议草案
 
-状态：`D1_1_ENGINEERING_COMPLETE / D1_2_NOT_AUTHORIZED`
+状态：`D1_2A_PREEXECUTION_FROZEN / D1_2B_NOT_AUTHORIZED`
 
 执行授权：`false`
 
-当前允许：D1-1 控制面、账本、mock、synthetic 与断网 Docker 工程证据；后续仅允许文档和复核
+当前允许：D1-1 控制面，以及 D1-2A 已冻结的提示/知识、受限客户端、费用/传输恢复和断网 Docker 证据
 
-当前禁止：DeepSeek 调用、真实候选生成、发现期评价、W1-W6/G1、生产接入
+当前禁止：读取 DeepSeek 密钥、DeepSeek 调用、真实候选生成、发现期评价、W1-W6/G1、生产接入
 
 本文件把 D1-0 架构裁决转成 D1-1 至 D1-3 的结果前合同。机器真身为
 `config/d1_llm_factor_research_v1.yaml`；两者冲突时必须停止并修订草案，不能在运行中自行解释。
@@ -99,6 +99,12 @@ D1-2 前必须冻结并哈希：system prompt、candidate schema、算子/字段
 或使用依据、人工摘要哈希。外部正文默认不直接进入提示；含指令性文本、不可确认来源或权利边界不清的
 内容进入隔离区。所有知识截至 2026-07-25，历史研究结论必须带“回溯发现”标签。
 
+D1-2A 已冻结机器真身 `config/d1_llm_factor_prompt_v1.yaml` 与
+`config/d1_llm_factor_knowledge_v1.json`：五主题各一条一手论文人工摘要进入创意提示，五条
+DeepSeek 官方文档只约束模型、价格、请求、响应和重试。前四次独立提案反馈为空；后四次变异必须按
+ordinal 携带同主题全部早先 attempt，最多 7 条，不得只挑成功记录。允许/禁止字段和 parent 候选集合
+由本地序列化器强制，W1-W6/G1/前瞻字段无法进入请求。
+
 ## 7. 确定性执行与安全门
 
 LLM 输出永不 `eval`。执行链固定为：JSON schema → 字符串规范化 → 现有 AlphaGen parser → 算子/
@@ -110,7 +116,7 @@ D1-1 的一次性研究容器须满足：非 root、只读根、无 Docker socke
 
 ## 8. 记账与不可变产物
 
-D1-1 提议新增 `ledger/llm_factor_attempts.csv`，一行对应一个预分配 attempt，至少绑定：
+D1-1 已新增 `ledger/llm_factor_attempts.csv`，一行对应一个预分配 attempt，至少绑定：
 
 - attempt/topic/ordinal/parent；
 - protocol、prompt、knowledge、schema、代码和数据快照哈希；
@@ -121,6 +127,10 @@ D1-1 提议新增 `ledger/llm_factor_attempts.csv`，一行对应一个预分配
 原始请求/响应、reasoning、因子面板和中间结果只留在项目内 `data/research/d1/` Git 忽略区；Git 提交
 脱敏 manifest、协议、代码、fixture、测试和必要账本。`ledger/experiments.csv` 继续作为 G1 试验 N 的
 权威来源；D1-1 必须证明两个账本一一对应、重复运行不追加第二行、任何碰撞 fail closed。
+
+D1-2A 另新增 `ledger/llm_factor_transports.csv`，以 STARTED/COMPLETED/RETRYABLE_ERROR/
+TERMINAL_ERROR/BILLING_UNCERTAIN 事件记录请求传输状态。200 响应必须先落 write-once 项目内产物再
+完成事件；悬空 STARTED、读写超时、协议断链或无法解析的 200 均按可能已计费停止，恢复不得自动重发。
 
 ## 9. 发现期选择和人工闸
 
@@ -154,18 +164,20 @@ Top2 使用未经修改的 `g1-v1`。报告必须同时给出：
 |---|---|---|---|
 | D1-0 | 架构/协议/配置 | API、候选、效果 | 本次完成 |
 | D1-1 | 控制面、账本、schema、mock、synthetic、Docker 工程门 | 真实 API、真实候选/结果 | 2026-07-25 已完成，工程 GO |
-| D1-2 | 40 次生成与发现期评价 | W1-W6/G1、追加预算 | 协议/提示/知识清单先冻结推送，用户确认 $0.75 |
+| D1-2A | 提示/知识冻结、真实客户端、费用和传输恢复断网验收 | 密钥、API、行情、G1 | 2026-07-25 已完成，零调用 |
+| D1-2B | 40 次生成与发现期评价 | W1-W6/G1、追加预算 | D1-2A 先提交推送，用户确认模型、40 次和 $0.75 |
 | D1-3 | 人工闸、Top2 G1 | 改门槛、递补、生产 | D1-2 不可变证据完整，另行授权 |
 | D1-4 | 有界低频前瞻研究试运行 | 常设自治、生产控制 | 至少一个 G1 PASS，另立协议 |
 
 ## 12. 阶段状态与待确认
 
-D1-1 已按用户授权完成，验收见 `docs/D1_LLM_FACTOR_ENGINEERING_ACCEPTANCE_20260725.md`；保持零真实
-API 调用、零市场结果和零生产授权。以下 1-3 项仍须在 D1-2 开始前结合当时官方模型与价格重新确认，
-不能把 D1-1 工程 GO 视为预算授权：
+D1-1 验收见 `docs/D1_LLM_FACTOR_ENGINEERING_ACCEPTANCE_20260725.md`；D1-2A 已完成官方合同核对、
+提示/知识冻结、受限客户端和断网恢复验收，见
+`docs/D1_LLM_FACTOR_PREEXECUTION_ACCEPTANCE_20260725.md`。当前仍为零 API、零市场结果和零生产
+授权。D1-2B 开始前必须由用户明确确认：
 
 1. 首轮使用 V4 Pro thinking/high，而不是 Flash；
 2. 40 次上限及每主题 4 独立 + 4 变异；
 3. $0.75 硬费用上限；
-4. 先施工零调用 D1-1 工程门，再决定是否授权 D1-2；
+4. D1-2A 完成并提交推送后，再决定是否授权 D1-2B；
 5. 观象、实时知识雷达、资金流/财务和任意 Python 全部不进入首轮。

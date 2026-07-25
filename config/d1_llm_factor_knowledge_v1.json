@@ -1,0 +1,259 @@
+{
+  "schema_version": "d1-knowledge-manifest-v1",
+  "manifest_id": "d1-llm-dsl-knowledge-v1",
+  "knowledge_cutoff": "2026-07-25T23:59:59+08:00",
+  "full_text_stored": false,
+  "full_text_prompted": false,
+  "entries": [
+    {
+      "source_id": "deepseek-models-pricing-20260725",
+      "source_type": "official_provider_documentation",
+      "roles": ["execution_contract"],
+      "topics": [],
+      "source_url": "https://api-docs.deepseek.com/quick_start/pricing",
+      "publisher_or_authors": ["DeepSeek"],
+      "published_at": "2026-04-24",
+      "retrieved_at": "2026-07-25T21:20:00+08:00",
+      "content_capture": {
+        "capture_type": "manually_verified_official_metadata_and_facts",
+        "title": "Models & Pricing",
+        "facts": [
+          "deepseek-v4-pro is an available API model and reports model version DeepSeek-V4-Pro.",
+          "The model supports thinking mode and JSON Output at the standard API base URL.",
+          "USD prices per million tokens are 0.003625 for cache-hit input, 0.435 for cache-miss input, and 0.87 for output."
+        ]
+      },
+      "content_sha256": "02371294a06bc6e06cfe519d8097dd093416ab76800ebf0f97ea8bbf00d1ea32",
+      "license_or_usage_basis": "Official public API documentation; only manually verified facts and citation metadata are retained.",
+      "authored_summary": "仅用于冻结提供方身份和费用，不进入因子创意提示。模型名、返回身份和价格任一变化都必须在首次请求前停止并修订协议。",
+      "authored_summary_sha256": "1dece0b28973c95bbabf9e61ba58aaaba0cd02d2585bed55615eb2aa5d856aaf",
+      "retrospective_discovery": false,
+      "prompt_eligible": false
+    },
+    {
+      "source_id": "deepseek-thinking-mode-20260725",
+      "source_type": "official_provider_documentation",
+      "roles": ["execution_contract"],
+      "topics": [],
+      "source_url": "https://api-docs.deepseek.com/guides/thinking_mode",
+      "publisher_or_authors": ["DeepSeek"],
+      "published_at": "2026-04-24",
+      "retrieved_at": "2026-07-25T21:20:00+08:00",
+      "content_capture": {
+        "capture_type": "manually_verified_official_metadata_and_facts",
+        "title": "Thinking Mode",
+        "facts": [
+          "OpenAI-format requests enable thinking with a thinking object whose type is enabled.",
+          "reasoning_effort accepts high or max, and regular thinking requests default to high.",
+          "Temperature and related sampling controls do not take effect in thinking mode."
+        ]
+      },
+      "content_sha256": "a8ae20550f58faec711e5291d4add712384f8092ea79e4e730dbbe9b499167e0",
+      "license_or_usage_basis": "Official public API documentation; only manually verified facts and citation metadata are retained.",
+      "authored_summary": "仅用于冻结请求参数，不进入因子创意提示。首轮使用 thinking enabled 与 reasoning_effort high，并省略无效采样参数。",
+      "authored_summary_sha256": "0e3f315364bb61106d0dbde21d8050e8337d6e9247b123828ca1dfec93bc12ab",
+      "retrospective_discovery": false,
+      "prompt_eligible": false
+    },
+    {
+      "source_id": "deepseek-json-output-20260725",
+      "source_type": "official_provider_documentation",
+      "roles": ["execution_contract"],
+      "topics": [],
+      "source_url": "https://api-docs.deepseek.com/guides/json_mode/",
+      "publisher_or_authors": ["DeepSeek"],
+      "published_at": "2026-04-24",
+      "retrieved_at": "2026-07-25T21:20:00+08:00",
+      "content_capture": {
+        "capture_type": "manually_verified_official_metadata_and_facts",
+        "title": "JSON Output",
+        "facts": [
+          "JSON Output is enabled with response_format type json_object.",
+          "The prompt must explicitly request JSON and show the desired JSON structure.",
+          "Empty content can still occur and truncated JSON is possible when the token limit is reached."
+        ]
+      },
+      "content_sha256": "8a611c495daf951a767ae3c72a6591d71a8fe5f4216e92f2fc8c3a4b68c73352",
+      "license_or_usage_basis": "Official public API documentation; only manually verified facts and citation metadata are retained.",
+      "authored_summary": "仅用于冻结响应协议，不进入因子创意提示。空、截断或不符合本地严格 schema 的完成响应仍消耗一次研究预算。",
+      "authored_summary_sha256": "8784800fd38755f0b82b7d82be34d1130175341e6e9442b550c1d9b807a96696",
+      "retrospective_discovery": false,
+      "prompt_eligible": false
+    },
+    {
+      "source_id": "deepseek-chat-api-schema-20260725",
+      "source_type": "official_provider_documentation",
+      "roles": ["execution_contract"],
+      "topics": [],
+      "source_url": "https://api-docs.deepseek.com/api/create-chat-completion",
+      "publisher_or_authors": ["DeepSeek"],
+      "published_at": "2026-04-24",
+      "retrieved_at": "2026-07-25T21:20:00+08:00",
+      "content_capture": {
+        "capture_type": "manually_verified_official_metadata_and_facts",
+        "title": "Create Chat Completion",
+        "facts": [
+          "The response reports model, finish_reason, reasoning_content, content, system_fingerprint, and token usage.",
+          "prompt_tokens equals prompt_cache_hit_tokens plus prompt_cache_miss_tokens.",
+          "Documented finish reasons include stop, length, content_filter, tool_calls, and insufficient_system_resource."
+        ]
+      },
+      "content_sha256": "7471b386c5e48dc3f39fd520a05935a64d4d9c74666b23a0565c2428caa68c67",
+      "license_or_usage_basis": "Official public API documentation; only manually verified facts and citation metadata are retained.",
+      "authored_summary": "仅用于冻结响应解析和审计字段，不进入因子创意提示。模型身份、用量或结束原因不完整时必须 fail closed。",
+      "authored_summary_sha256": "e3f9add213b094eead3084119e63784ec656fc072b07400ede9112c973f72fd8",
+      "retrospective_discovery": false,
+      "prompt_eligible": false
+    },
+    {
+      "source_id": "deepseek-error-codes-20260725",
+      "source_type": "official_provider_documentation",
+      "roles": ["execution_contract"],
+      "topics": [],
+      "source_url": "https://api-docs.deepseek.com/quick_start/error_codes/",
+      "publisher_or_authors": ["DeepSeek"],
+      "published_at": "2026-04-24",
+      "retrieved_at": "2026-07-25T21:20:00+08:00",
+      "content_capture": {
+        "capture_type": "manually_verified_official_metadata_and_facts",
+        "title": "Error Codes",
+        "facts": [
+          "Documented client-side categories use HTTP 400 for invalid format, 401 for authentication failure, 402 for insufficient balance, and 422 for invalid parameters.",
+          "Rate-limit, internal-server, and server-overload responses use HTTP 429, 500, and 503 respectively.",
+          "The official handling guidance for HTTP 429, 500, and 503 is to wait briefly and retry."
+        ]
+      },
+      "content_sha256": "706ac528210d927875268ce80ed0949a829cfd36e051d64c10f53abb85a6890a",
+      "license_or_usage_basis": "Official public API documentation; only manually verified facts and citation metadata are retained.",
+      "authored_summary": "仅用于冻结传输重试分类，不进入因子创意提示。只有明确无完成响应的 429/500/503 可有界重试；传输后果或计费不确定时必须停止。",
+      "authored_summary_sha256": "5e5e927c8292e2b8e6ccdc71dc4aac4675831e955daf5ed6e04c313186e6c7e1",
+      "retrospective_discovery": false,
+      "prompt_eligible": false
+    },
+    {
+      "source_id": "jegadeesh-titman-1993-momentum",
+      "source_type": "primary_research_paper",
+      "roles": ["research_knowledge"],
+      "topics": ["trend_momentum"],
+      "source_url": "https://onlinelibrary.wiley.com/doi/10.1111/j.1540-6261.1993.tb04702.x",
+      "publisher_or_authors": ["Narasimhan Jegadeesh", "Sheridan Titman", "The Journal of Finance"],
+      "published_at": "1993-03-01",
+      "retrieved_at": "2026-07-25T21:25:00+08:00",
+      "content_capture": {
+        "capture_type": "manually_verified_publisher_metadata_and_abstract_facts",
+        "title": "Returns to Buying Winners and Selling Losers: Implications for Stock Market Efficiency",
+        "facts": [
+          "The paper studies cross-sectional continuation using past relative stock performance.",
+          "Its reported continuation is horizon-dependent and later partly dissipates.",
+          "The historical result is evidence to question, not a guaranteed relation in A shares."
+        ]
+      },
+      "content_sha256": "e5384b56508d6975d63507015fbf6fe20fa1eecf8c5a95c0ff1a22e856b0fd9a",
+      "license_or_usage_basis": "Publisher citation metadata and abstract facts only; no publisher full text is stored or prompted.",
+      "authored_summary": "相对价格表现可能包含阶段性的延续信息，但效应具有期限和市场依赖。候选应把趋势作为可证伪的状态变量，并避免把单一累计收益机械复制为结论。",
+      "authored_summary_sha256": "584caa1dbda87652bb75e0ce266ffe64dc94d517bd6d9bec848201f1a2385787",
+      "retrospective_discovery": true,
+      "prompt_eligible": true
+    },
+    {
+      "source_id": "lehmann-1990-short-reversal",
+      "source_type": "primary_research_paper",
+      "roles": ["research_knowledge"],
+      "topics": ["reversal_mean_reversion"],
+      "source_url": "https://www.nber.org/papers/w2533",
+      "publisher_or_authors": ["Bruce N. Lehmann", "National Bureau of Economic Research"],
+      "published_at": "1988-03-01",
+      "retrieved_at": "2026-07-25T21:25:00+08:00",
+      "content_capture": {
+        "capture_type": "manually_verified_authoritative_metadata_and_abstract_facts",
+        "title": "Fads, Martingales, and Market Efficiency",
+        "facts": [
+          "The study examines short-interval return predictability and winner-loser reversal.",
+          "It discusses thin trading, bid-ask effects, and plausible transaction costs as competing explanations.",
+          "Short reversal is conditional evidence rather than a universal law."
+        ]
+      },
+      "content_sha256": "d31391a2c6e1fde64e2d6eb6ba95cc1fd1422cf31a394631286d750e4b066e94",
+      "license_or_usage_basis": "NBER citation metadata and abstract facts only; no paper full text is stored or prompted.",
+      "authored_summary": "短期极端相对表现可能随后反转，但微观结构、流动性和成本会混淆信号。候选应寻找能区分暂时偏离与持续趋势的历史量价状态。",
+      "authored_summary_sha256": "288db92ddf07b1826ec35dbc5d4f8e8598a4c04fbe1246dc9a2302fa488d5c77",
+      "retrospective_discovery": true,
+      "prompt_eligible": true
+    },
+    {
+      "source_id": "parkinson-1980-range-volatility",
+      "source_type": "primary_research_paper",
+      "roles": ["research_knowledge"],
+      "topics": ["volatility_range"],
+      "source_url": "https://doi.org/10.1086/296071",
+      "publisher_or_authors": ["Michael Parkinson", "The Journal of Business"],
+      "published_at": "1980-01-01",
+      "retrieved_at": "2026-07-25T21:25:00+08:00",
+      "content_capture": {
+        "capture_type": "manually_verified_bibliographic_metadata_and_method_fact",
+        "title": "The Extreme Value Method for Estimating the Variance of the Rate of Return",
+        "facts": [
+          "The paper motivates using intraperiod high and low prices to characterize return variance.",
+          "Range information can carry volatility information not present in a single close-to-close change.",
+          "A volatility estimator is not by itself a prediction of expected return."
+        ]
+      },
+      "content_sha256": "6ae6d45934d068186008e02191eb829c24ab81c65a338d9ed68d0b0a8da1a07d",
+      "license_or_usage_basis": "DOI citation metadata and short method facts only; no paper full text is stored or prompted.",
+      "authored_summary": "历史高低价区间可以补充收盘变化对风险状态的描述，但波动状态与未来横截面收益的方向必须由数据检验，不能由估计方法直接推出。",
+      "authored_summary_sha256": "3c137f673f8a8603646c691a17f676f87673e13a0df0ea5934c891d61025532c",
+      "retrospective_discovery": true,
+      "prompt_eligible": true
+    },
+    {
+      "source_id": "amihud-2002-illiquidity",
+      "source_type": "primary_research_paper",
+      "roles": ["research_knowledge"],
+      "topics": ["liquidity_volume"],
+      "source_url": "https://www.sciencedirect.com/science/article/pii/S1386418101000246",
+      "publisher_or_authors": ["Yakov Amihud", "Journal of Financial Markets"],
+      "published_at": "2002-01-01",
+      "retrieved_at": "2026-07-25T21:25:00+08:00",
+      "content_capture": {
+        "capture_type": "manually_verified_publisher_metadata_and_abstract_facts",
+        "title": "Illiquidity and stock returns: cross-section and time-series effects",
+        "facts": [
+          "The paper relates price response to traded value as a rough illiquidity concept.",
+          "It separates expected illiquidity compensation from contemporaneous unexpected illiquidity effects.",
+          "The original measure uses traded value, which is outside this first arm's allowed fields."
+        ]
+      },
+      "content_sha256": "ac8ab2693931ffffceb326d03082f540a6d2cddbcb2d36d1ec11165dd885d7b4",
+      "license_or_usage_basis": "Publisher citation metadata and abstract facts only; no publisher full text is stored or prompted.",
+      "authored_summary": "价格变化在不同成交状态下可能代表不同的流动性压力，但首轮没有成交金额字段，不能照搬原始指标。候选只能提出 OHLCV 范围内的代理假设并明确其局限。",
+      "authored_summary_sha256": "2928d8ab328e78907280cd319c61edc425a07dfedee114a8b33b0b96554081a0",
+      "retrospective_discovery": true,
+      "prompt_eligible": true
+    },
+    {
+      "source_id": "lee-swaminathan-2000-price-volume",
+      "source_type": "primary_research_paper",
+      "roles": ["research_knowledge"],
+      "topics": ["price_volume_state"],
+      "source_url": "https://doi.org/10.1111/0022-1082.00280",
+      "publisher_or_authors": ["Charles M. C. Lee", "Bhaskaran Swaminathan", "The Journal of Finance"],
+      "published_at": "2000-10-01",
+      "retrieved_at": "2026-07-25T21:25:00+08:00",
+      "content_capture": {
+        "capture_type": "manually_verified_bibliographic_metadata_and_abstract_facts",
+        "title": "Price Momentum and Trading Volume",
+        "facts": [
+          "The paper studies whether past trading volume conditions the magnitude and persistence of price momentum.",
+          "It treats price and volume jointly rather than assuming volume has one unconditional meaning.",
+          "Its long-horizon empirical findings do not establish causality or transfer automatically to A shares."
+        ]
+      },
+      "content_sha256": "9767d805e0cd4311d1f36144e1075cf42e79162257d45e60ee1dfc22594da21f",
+      "license_or_usage_basis": "DOI citation metadata and abstract facts only; no paper full text is stored or prompted.",
+      "authored_summary": "成交状态可能调节价格趋势的持续性或反转速度。候选应检验简单、受限的量价交互，并避免把成交量解释成资金方向或因果证据。",
+      "authored_summary_sha256": "0a00f62ba9adb571025e5aa70684fa27c246c5f94e0c709f6ae1cd678b9bc6ae",
+      "retrospective_discovery": true,
+      "prompt_eligible": true
+    }
+  ]
+}

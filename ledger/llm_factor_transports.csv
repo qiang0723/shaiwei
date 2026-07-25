@@ -1,0 +1,1 @@
+event_id,attempt_id,request_sha256,sequence,event_type,recorded_at,http_status,completed_response,billing_status,response_id_sha256,response_artifact_path,response_artifact_sha256,source_response_sha256,error_class,provider,model,operator

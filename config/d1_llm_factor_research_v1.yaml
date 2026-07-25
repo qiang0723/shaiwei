@@ -1,9 +1,10 @@
 schema_version: d1-llm-factor-research-protocol-draft-v1
 protocol_id: d1-llm-dsl-v1
 prepared_at: "2026-07-25T14:02:23+08:00"
-status: D1_1_ENGINEERING_COMPLETE_D1_2_NOT_AUTHORIZED
+status: D1_2A_PREEXECUTION_FROZEN_D1_2B_NOT_AUTHORIZED
 d1_1_engineering_authorized: true
 d1_1_engineering_complete: true
+d1_2a_preexecution_frozen: true
 execution_authorized: false
 production_authorization: none
 strategy_results_inspected: false
@@ -26,7 +27,20 @@ identity:
   sanitized_manifest: config/d1_llm_factor_research_manifest_v1.json
   experiment_ledger: ledger/experiments.csv
   llm_attempt_ledger: ledger/llm_factor_attempts.csv
+  llm_transport_ledger: ledger/llm_factor_transports.csv
   factor_admission_ledger: ledger/factor_admissions.csv
+
+prompt_contract:
+  path: config/d1_llm_factor_prompt_v1.yaml
+  sha256: 23c56cc58aeaa1d59f1c4ee587debe052e7422949c18553be9937a3ea73942ec
+  schema_version: d1-prompt-bundle-v1
+  prompt_id: d1-llm-dsl-prompt-v1
+
+knowledge_manifest:
+  path: config/d1_llm_factor_knowledge_v1.json
+  sha256: 0f1e8ab2461352ce020dcf1873a5d79bfc010b08eea205b6b308e27bc3c23fad
+  schema_version: d1-knowledge-manifest-v1
+  manifest_id: d1-llm-dsl-knowledge-v1
 
 frozen_reference:
   gp_research_family: stage1-gp-preflight-v1
@@ -162,8 +176,9 @@ cost_budget:
 knowledge_contract:
   live_web_search_during_first_arm: false
   source_manifest_required_before_execution: true
-  source_manifest_status: PENDING_D1_2_PREEXECUTION_FREEZE
+  source_manifest_status: FROZEN_D1_2A
   source_types:
+    - official_provider_documentation
     - primary_research_paper
     - official_exchange_or_regulator_rule
     - official_open_source_repository
