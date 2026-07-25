@@ -36,6 +36,11 @@ evidence:
       - content_sha256
   sentinel_binding_status: IDENTITY_MATCH_UNHASHED
   sentinel_evidence_status: WARN
+  sentinel_clock_contract:
+    - daily_run.finished_at == signal.data_complete_at
+    - shadow_run.started_at <= sentinel.generated_at
+    - sentinel.generated_at <= signal.generated_at
+    - signal.generated_at <= shadow_run.finished_at
   raw_parquet_rehash_status: NOT_EVALUATED
   raw_parquet_mount_allowed: false
   forbidden_suffix: .BJ

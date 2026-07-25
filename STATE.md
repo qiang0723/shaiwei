@@ -14,6 +14,9 @@
   哈希绑定；结果前补遗将其明确为 `IDENTITY_MATCH_UNHASHED`，数据质量可读结论与证据完整性分列，
   后者固定 WARN。P3-2A 不越权回写生产 schema，见
   `docs/P3_WEB_OPERATIONS_PROTOCOL_ADDENDUM_20260725.md`。
+- 继续核对真实时钟确认 `signal.data_complete_at` 是日增量完成时刻而非哨兵时刻；第二份结果前补遗
+  将绑定修正为“日增量完成 ≤ 哨兵生成 ≤ 信号生成 ≤ 影子运行完成”，仍要求三方代码/数据身份一致，
+  见 `docs/P3_WEB_OPERATIONS_PROTOCOL_ADDENDUM_2_20260725.md`。
 
 ## 2026-07-25 · D1-3A 语义合同纠错后停止
 
