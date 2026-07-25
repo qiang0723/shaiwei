@@ -34,6 +34,8 @@ evidence:
       - params_json
       - row_count
       - content_sha256
+  sentinel_binding_status: IDENTITY_MATCH_UNHASHED
+  sentinel_evidence_status: WARN
   raw_parquet_rehash_status: NOT_EVALUATED
   raw_parquet_mount_allowed: false
   forbidden_suffix: .BJ
@@ -72,6 +74,11 @@ system_run:
   release_identity_scope: LAST_REGISTERED_START_BEFORE_RUN
   max_stage_attempts: 64
 
+known_evidence_gaps:
+  - code: SENTINEL_REPORT_NOT_HASH_BOUND
+    severity: WARN
+    remediation_scope: separate_scheduler_schema_goal
+
 notifications:
   expose_fields:
     - attempt
@@ -103,4 +110,3 @@ docker:
   load_dotenv: false
   docker_socket: false
   raw_data_mount: false
-

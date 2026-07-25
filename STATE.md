@@ -10,6 +10,10 @@
   `data/raw`，因此 `raw_parquet_rehash_status=NOT_EVALUATED`，不得把账本一致冒充原始文件重验。
 - 系统运行查询分列核心步骤、失败恢复、通知投递和 release 审计身份；不挂 Docker socket，实时容器
   身份继续 `NOT_EVALUATED`。协议见 `docs/P3_WEB_OPERATIONS_PROTOCOL_20260725.md`。
+- 冻结后、实现前核查发现现有信号/影子账本未保存哨兵报告哈希或 S1—S10 明细，无法满足原定逐项
+  哈希绑定；结果前补遗将其明确为 `IDENTITY_MATCH_UNHASHED`，数据质量可读结论与证据完整性分列，
+  后者固定 WARN。P3-2A 不越权回写生产 schema，见
+  `docs/P3_WEB_OPERATIONS_PROTOCOL_ADDENDUM_20260725.md`。
 
 ## 2026-07-25 · D1-3A 语义合同纠错后停止
 
