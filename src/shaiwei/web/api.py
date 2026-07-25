@@ -24,6 +24,15 @@ from shaiwei.web.query import (
     nav_range,
     reconciliation_for,
 )
+from shaiwei.web.research_projection import (
+    ResearchProjectionBundle,
+    experiment_summary,
+    factor_admission_history,
+    factor_catalog,
+    factor_compare,
+    factor_detail,
+    load_research_projection,
+)
 
 
 MAX_RESPONSE_BYTES = 1_048_576
@@ -77,7 +86,7 @@ def _json_response(
 
 def _success(
     request: Request,
-    bundle: SnapshotBundle | OperationsBundle,
+    bundle: SnapshotBundle | OperationsBundle | ResearchProjectionBundle,
     data: dict[str, object],
 ) -> Response:
     return _json_response(
@@ -169,6 +178,9 @@ def create_app(project_root: Path | None = None) -> FastAPI:
     def operations_snapshot(as_of: str | None) -> OperationsBundle:
         return build_operations_snapshot(as_of, project_root=root)
 
+    def research_snapshot() -> ResearchProjectionBundle:
+        return load_research_projection(project_root=root)
+
     @app.api_route("/healthz", methods=["GET", "HEAD"])
     async def health(request: Request) -> Response:
         return _json_response(
@@ -230,6 +242,84 @@ def create_app(project_root: Path | None = None) -> FastAPI:
             request,
             bundle,
             reconciliation_for(bundle, signal_sha256),
+        )
+
+    @app.api_route("/api/v1/factors", methods=["GET", "HEAD"])
+    async def factors(
+        request: Request,
+        status: str | None = None,
+        family: str | None = None,
+        data_category: str | None = None,
+        as_of: str | None = None,
+    ) -> Response:
+        bundle = research_snapshot()
+        return _success(
+            request,
+            bundle,
+            factor_catalog(
+                bundle,
+                status=status,
+                family=family,
+                data_category=data_category,
+                as_of=as_of,
+            ),
+        )
+
+    @app.api_route("/api/v1/factors/compare", methods=["GET", "HEAD"])
+    async def factors_compare(
+        request: Request,
+        version: list[str] = Query(..., min_length=2, max_length=3),
+    ) -> Response:
+        bundle = research_snapshot()
+        return _success(request, bundle, factor_compare(bundle, version))
+
+    @app.api_route("/api/v1/factors/{factor_id}/admissions", methods=["GET", "HEAD"])
+    async def factor_admissions(
+        request: Request,
+        factor_id: str,
+        as_of: str | None = None,
+    ) -> Response:
+        bundle = research_snapshot()
+        return _success(
+            request,
+            bundle,
+            factor_admission_history(bundle, factor_id, as_of=as_of),
+        )
+
+    @app.api_route("/api/v1/factors/{factor_id}", methods=["GET", "HEAD"])
+    async def factor_by_id(
+        request: Request,
+        factor_id: str,
+        version: str | None = None,
+        as_of: str | None = None,
+    ) -> Response:
+        bundle = research_snapshot()
+        return _success(
+            request,
+            bundle,
+            factor_detail(bundle, factor_id, version=version, as_of=as_of),
+        )
+
+    @app.api_route(
+        "/api/v1/experiments/{experiment_kind}/{experiment_id}",
+        methods=["GET", "HEAD"],
+    )
+    async def experiment_by_id(
+        request: Request,
+        experiment_kind: str,
+        experiment_id: str,
+        as_of: str | None = None,
+    ) -> Response:
+        bundle = research_snapshot()
+        return _success(
+            request,
+            bundle,
+            experiment_summary(
+                bundle,
+                experiment_kind,
+                experiment_id,
+                as_of=as_of,
+            ),
         )
 
     @app.api_route("/api/v1/data-quality", methods=["GET", "HEAD"])

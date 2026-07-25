@@ -30,7 +30,16 @@ RUN groupadd --gid 10001 shaiwei \
        /workspace/data/paper \
        /workspace/data/shadow/signals \
        /workspace/data/shadow/reconciliations \
+       /workspace/data/web/research_snapshots \
+       /workspace/data/research/g1/stage1-gp-preflight-v1 \
+       /workspace/data/research/moneyflow/experiments/p1-moneyflow-v1 \
+       /workspace/data/research/star50/p2-star50-engineering-v1 \
+       /workspace/data/research/star50/p2-star50-effect-v1 \
+       /workspace/data/research/star50/p2-star50-effect-correction-v1 \
+       /workspace/config \
+       /workspace/docs \
        /workspace/ledger \
+       /workspace/logs/g1 \
        /workspace/logs/notifications \
        /workspace/web-ui/dist \
     && chown -R 10001:10001 /workspace

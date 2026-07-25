@@ -64,6 +64,12 @@ services:
         bind:
           create_host_path: false
       - type: bind
+        source: ./data/web/research_snapshots
+        target: /workspace/data/web/research_snapshots
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
         source: ./logs/notifications
         target: /workspace/logs/notifications
         read_only: true
@@ -100,6 +106,90 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  research-projector:
+    <<: *web-security
+    profiles: [research-projection]
+    restart: "no"
+    network_mode: none
+    command:
+      - python
+      - -m
+      - shaiwei.web.research_projection
+      - build
+    volumes:
+      - type: bind
+        source: ./config/p3_factor_experiment_queries_v1.yaml
+        target: /workspace/config/p3_factor_experiment_queries_v1.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger
+        target: /workspace/ledger
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./logs/g1
+        target: /workspace/logs/g1
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/g1/stage1-gp-preflight-v1
+        target: /workspace/data/research/g1/stage1-gp-preflight-v1
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/moneyflow/experiments/p1-moneyflow-v1
+        target: /workspace/data/research/moneyflow/experiments/p1-moneyflow-v1
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/star50/p2-star50-engineering-v1/engineering_report.json
+        target: /workspace/data/research/star50/p2-star50-engineering-v1/engineering_report.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/star50/p2-star50-effect-v1/effect_report.json
+        target: /workspace/data/research/star50/p2-star50-effect-v1/effect_report.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/star50/p2-star50-effect-correction-v1/effect_correction_report.json
+        target: /workspace/data/research/star50/p2-star50-effect-correction-v1/effect_correction_report.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./docs/D1_LLM_FACTOR_REVIEW_SEMANTIC_CORRECTION_20260725.json
+        target: /workspace/docs/D1_LLM_FACTOR_REVIEW_SEMANTIC_CORRECTION_20260725.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./docs/P2_STAR50_EFFECT_INVALIDATION_ADDENDUM_20260725.md
+        target: /workspace/docs/P2_STAR50_EFFECT_INVALIDATION_ADDENDUM_20260725.md
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./docs/P2_STAR50_EFFECT_CORRECTION_ACCEPTANCE_20260725.md
+        target: /workspace/docs/P2_STAR50_EFFECT_CORRECTION_ACCEPTANCE_20260725.md
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/web/research_snapshots
+        target: /workspace/data/web/research_snapshots
+        read_only: false
+        bind:
+          create_host_path: false
 
   web-ui:
     <<: *web-security

@@ -39,6 +39,14 @@ ALLOWED_API_PATHS = {
 ALLOWED_NOTIFICATION_PATH = re.compile(r"^/api/v1/notifications/[0-9a-f]{16}$")
 ASSET_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 STYLE_NONCE_PLACEHOLDER = b"__P3_STYLE_NONCE__"
+FROZEN_ASSET_MEDIA_TYPES = {
+    ".css": "text/css",
+    ".js": "text/javascript",
+    ".json": "application/json",
+    ".svg": "image/svg+xml",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
+}
 
 
 def _allowed_api_path(path: str) -> bool:
@@ -79,7 +87,10 @@ def _static_response(path: Path, *, head: bool, immutable: bool = False) -> Resp
     size = path.stat().st_size
     if size > MAX_STATIC_BYTES:
         return Response("Static asset too large", status_code=502, media_type="text/plain")
-    media_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+    media_type = FROZEN_ASSET_MEDIA_TYPES.get(
+        path.suffix.lower(),
+        mimetypes.guess_type(path.name)[0] or "application/octet-stream",
+    )
     headers = {
         "Cache-Control": (
             "public, max-age=31536000, immutable" if immutable else "no-store"

@@ -829,8 +829,9 @@ def test_operations_api_and_message_id_validation(tmp_path: Path):
 def test_web_compose_is_default_off_and_has_no_production_write_surface():
     root = Path(__file__).parents[1]
     compose = yaml.safe_load((root / "compose.web.yaml").read_text(encoding="utf-8"))
-    assert set(compose["services"]) == {"web-query", "web-ui"}
+    assert set(compose["services"]) == {"web-query", "research-projector", "web-ui"}
     query = compose["services"]["web-query"]
+    projector = compose["services"]["research-projector"]
     ui = compose["services"]["web-ui"]
     for service in (query, ui):
         assert service["profiles"] == ["web"]
@@ -841,6 +842,22 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
         assert "env_file" not in service
         assert "docker.sock" not in json.dumps(service)
     assert "ports" not in query
+    assert projector["profiles"] == ["research-projection"]
+    assert projector["read_only"] is True
+    assert projector["restart"] == "no"
+    assert projector["network_mode"] == "none"
+    assert "ports" not in projector
+    assert "env_file" not in projector
+    assert "docker.sock" not in json.dumps(projector)
+    assert all(
+        value["read_only"] is True
+        for value in projector["volumes"]
+        if value["target"] != "/workspace/data/web/research_snapshots"
+    )
+    assert next(
+        value for value in projector["volumes"]
+        if value["target"] == "/workspace/data/web/research_snapshots"
+    )["read_only"] is False
     assert ui["ports"] == ["127.0.0.1:8080:8080"]
     assert "volumes" not in ui
     assert set(query["networks"]) == {"web-internal"}
@@ -858,6 +875,7 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
         "/workspace/data/paper",
         "/workspace/data/shadow/signals",
         "/workspace/data/shadow/reconciliations",
+        "/workspace/data/web/research_snapshots",
         "/workspace/logs/notifications",
         "/workspace/logs/releases",
         "/workspace/logs/scheduler",
@@ -870,3 +888,8 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
     query_source = (root / "src/shaiwei/web/query.py").read_text(encoding="utf-8")
     assert "load_dotenv" not in query_source
     assert ' / ".env"' not in query_source
+    research_source = (root / "src/shaiwei/web/research_projection.py").read_text(
+        encoding="utf-8"
+    )
+    assert "load_dotenv" not in research_source
+    assert ' / ".env"' not in research_source
