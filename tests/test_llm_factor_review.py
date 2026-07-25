@@ -1,3 +1,4 @@
+import csv
 import json
 from pathlib import Path
 
@@ -7,7 +8,7 @@ import yaml
 from pydantic import ValidationError
 
 from shaiwei.config import PROJECT_ROOT
-from shaiwei.research.deepseek_client import DeepSeekProvider
+from shaiwei.research.deepseek_client import DeepSeekProvider, TRANSPORT_LEDGER_HEADER_V2
 from shaiwei.research.llm_factor import D1ControlError
 from shaiwei.research.llm_factor_review import (
     AdversarialReviewResponse,
@@ -194,16 +195,29 @@ def test_review_transport_reuses_restricted_deepseek_adapter(tmp_path: Path):
     assert (tmp_path / "transport.csv").read_text(encoding="utf-8").count("\n") == 3
 
 
-def test_review_ledgers_start_header_only():
-    assert tuple(
-        (PROJECT_ROOT / "ledger/llm_factor_reviews.csv")
-        .read_text(encoding="utf-8")
-        .splitlines()[0]
-        .split(",")
-    ) == REVIEW_LEDGER_HEADER
-    assert (
-        PROJECT_ROOT / "ledger/llm_factor_review_transports.csv"
-    ).read_text(encoding="utf-8").count("\n") == 1
+def test_review_ledgers_are_preexecution_empty_or_terminally_complete():
+    with (PROJECT_ROOT / "ledger/llm_factor_reviews.csv").open(
+        newline="", encoding="utf-8"
+    ) as handle:
+        review_reader = csv.DictReader(handle)
+        assert tuple(review_reader.fieldnames or ()) == REVIEW_LEDGER_HEADER
+        review_rows = list(review_reader)
+    with (PROJECT_ROOT / "ledger/llm_factor_review_transports.csv").open(
+        newline="", encoding="utf-8"
+    ) as handle:
+        transport_reader = csv.DictReader(handle)
+        assert tuple(transport_reader.fieldnames or ()) == TRANSPORT_LEDGER_HEADER_V2
+        transport_rows = list(transport_reader)
+
+    assert len(review_rows) in {0, 8}
+    assert len(transport_rows) in {0, 16}
+    assert bool(review_rows) == bool(transport_rows)
+    if review_rows:
+        assert [int(row["global_ordinal"]) for row in review_rows] == list(range(1, 9))
+        assert len({row["review_id"] for row in review_rows}) == 8
+        assert all(row["schema_status"] == "PASS" for row in review_rows)
+        assert [row["event_type"] for row in transport_rows[::2]] == ["STARTED"] * 8
+        assert [row["event_type"] for row in transport_rows[1::2]] == ["COMPLETED"] * 8
 
 
 def test_review_live_compose_has_narrow_secret_and_write_boundary():
