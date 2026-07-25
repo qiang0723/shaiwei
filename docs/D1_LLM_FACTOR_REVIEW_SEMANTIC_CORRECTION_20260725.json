@@ -1,0 +1,85 @@
+{
+  "schema_version": "d1-review-semantic-correction-v1",
+  "correction_id": "d1-llm-review-v1-batch-001-semantic-contract-correction-001",
+  "prepared_at": "2026-07-25T20:25:00+08:00",
+  "status": "AUTHORITATIVE_STOP_SEMANTIC_CONTRACT_VIOLATION",
+  "research_protocol_changed": false,
+  "original_evidence_mutated": false,
+  "performance_evidence_read": false,
+  "discovery_metrics_read_or_exported_during_correction": false,
+  "W1_W6_read": false,
+  "stress_results_read": false,
+  "g1_run": false,
+  "production_authorization": "none",
+  "source": {
+    "protocol_sha256": "ad5ab9720198a2bab41912391a25cb09c5ca38c7accb37bef3904824c943f6da",
+    "execution_release_sha256": "fd5eb02c288256e86ad0df85d90ee3411106a40a7dd6038eea7b017acc61fcdb",
+    "original_run_report_sha256": "2e08e2b3909a25ceba36616a538f16437b402d838d01e5ff8efc9850a119f8b0",
+    "review_ledger_sha256": "9029ea65490711dbd6bddc592d2f3116ad1b7e811059cad926caca283d13e280",
+    "transport_ledger_sha256": "df7b39a7dd47fe5f6afc01e8217187d477a71c9a0827fd1b24b442fe1eafba58"
+  },
+  "root_cause": {
+    "class": "structured_claim_conflicts_with_free_text",
+    "detail": "The validator enforced formula_change_or_new_candidate_proposed=false structurally but did not verify that free-text summaries and resolutions also avoided replacement formulas or variant recommendations.",
+    "frozen_contract": "Do not create a replacement factor, alter the formula, tune a lookback, or recommend trying variants."
+  },
+  "semantic_audit": {
+    "completed_responses": 8,
+    "structured_schema_pass": 8,
+    "semantic_contract_pass": 5,
+    "semantic_contract_fail": 3,
+    "all_8_valid_reviews_required": true,
+    "invalid_response_replacement_allowed": false,
+    "violations": [
+      {
+        "review_id": "708781185309964adecb",
+        "candidate_id": "6ade2d0f6d103613",
+        "role": "construct_validity",
+        "response_sha256": "76294d582edb97ad7a8da0bfa9fbbd773b59723ae28935cae8706ee7888ce26e",
+        "raw_artifact_sha256": "5c1cd49ca770f8d68369739d69f5acba296d7335952cfe2ad1528b7302ccd1cc",
+        "violation": "The free-text resolution recommends replacing the frozen aggregation or using a different range estimator while the structured field declares that no formula change or new candidate was proposed."
+      },
+      {
+        "review_id": "b7ba1329435b0ca55dc2",
+        "candidate_id": "6ade2d0f6d103613",
+        "role": "redundancy_falsifiability",
+        "response_sha256": "9d9255304a55354c1ffcec9ee425284ee8caebfbb1518277bd31e06f9287bc3a",
+        "raw_artifact_sha256": "4d60589689df6bd149f59c595d57b0761ce646f45b9156bc51ecb4d066c9f95f",
+        "violation": "The free-text resolution recommends trying distinct volatility variants while the structured field declares that no formula change or new candidate was proposed."
+      },
+      {
+        "review_id": "fb9abc2c08eb24201de9",
+        "candidate_id": "3bf9d418202afc20",
+        "role": "construct_validity",
+        "response_sha256": "e313c41445d1cd433f1401d7106b52f528dab69a0c93df53b792ee8a42db9197",
+        "raw_artifact_sha256": "79f910bcb9fa338df823945c07a15a75cefb5da7dd7cce6744a2f0c68025e45d",
+        "violation": "The free-text findings recommend a different aggregation and estimator while the structured field declares that no formula change or new candidate was proposed."
+      }
+    ]
+  },
+  "original_report_preserved": {
+    "review_execution_gate": "GO_INDEPENDENT_HUMAN_GATE",
+    "human_gate_ready": true,
+    "meaning_after_correction": "transport_schema_and_cost_evidence_only_not_admission_authority"
+  },
+  "authoritative_overlay": {
+    "review_execution_gate": "STOP_SEMANTIC_CONTRACT_VIOLATION",
+    "human_gate_ready": false,
+    "independent_human_adjudication_authorized": false,
+    "candidate_6ade2d0f6d103613": "NOT_ADMITTED_REVIEW_GATE_FAILED",
+    "candidate_3bf9d418202afc20": "NOT_ADMITTED_REVIEW_GATE_FAILED",
+    "replacement_candidate_allowed": false,
+    "replacement_review_allowed": false,
+    "g1_input_freeze_allowed": false,
+    "strategy_effective": "NOT_EVALUATED",
+    "production_authorization": "none",
+    "d1_3_terminal": true
+  },
+  "future_protocol_only": {
+    "requires_new_user_instruction": true,
+    "requires_new_result_before_protocol": true,
+    "must_separate_current_formula_falsification_from_formula_repair": true,
+    "must_enforce_structured_and_free_text_semantic_consistency": true,
+    "may_not_reuse_or_replace_this_batch_responses": true
+  }
+}

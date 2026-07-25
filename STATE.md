@@ -2,7 +2,7 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-07-25 · D1-3A Top2 盲态对抗复核完成
+## 2026-07-25 · D1-3A 语义合同纠错后停止
 
 - D1-2B 机械 Top2 的身份、原始表达式、冻结方向与不可变证据已绑定；D1-3A 只授权恰好 8 份
   DeepSeek 对抗复核、专项 `$0.25` 硬上限，不生成新候选、不改公式/方向/窗口，不读或外发
@@ -13,9 +13,12 @@
 - 结果前提交 `12b3101` 推送后，以独立不可变镜像完成 8/8 份 schema PASS 响应；4 份报阻断、4 份
   未报阻断，专项费用 `$0.01472214`、D1 累计 `$0.091348347`，无重试或计费不确定性。断网无密钥
   复跑 0 外部调用且全部证据哈希不变；生产 scheduler 原容器/镜像/创建时间保持 healthy。
-- 机器终态 `GO_INDEPENDENT_HUMAN_GATE / strategy_effective=NOT_EVALUATED /
-  production_authorization=none`。协议与验收见 `docs/D1_LLM_FACTOR_REVIEW_PROTOCOL_20260725.md`、
-  `docs/D1_LLM_FACTOR_REVIEW_ACCEPTANCE_20260725.md`；D1-3B 独立盲审仍待用户明确授权。
+- 组装零业绩独立盲审包时发现 3 份响应虽 schema PASS 且结构字段声称未提新公式，正文却建议替换
+  聚合/估计量或尝试其他波动变体，违反冻结 prompt。语义有效数仅 5/8；协议要求 8/8 且禁止补位，
+  因此原 `GO_INDEPENDENT_HUMAN_GATE` 被权威改判为 `STOP_SEMANTIC_CONTRACT_VIOLATION`。
+- D1-3 本批终止：不启动独立盲审、不读取 W1—W6、不运行 G1，两候选均未获准进入效果评价；
+  `strategy_effective=NOT_EVALUATED / production_authorization=none`。原报告/账本/响应不改写，纠错见
+  `docs/D1_LLM_FACTOR_REVIEW_SEMANTIC_CORRECTION_20260725.md` 及同名 JSON。
 - 真实追加后仅修复一项测试生命周期断言：允许账本为预执行 0/0 或完整 8/16，拒绝中间态；runner、
   协议、prompt、release、响应与账本均未修改，也未再次联网，原执行镜像/快照仍是唯一运行真身。
 
@@ -38,7 +41,7 @@
 ## 当前阶段
 阶段 0（基线）已完成；阶段 1 已完成有界 GP 预演和 `p1-moneyflow-v1` 首个正式数据增强家族，二者均按冻结 `g1-v1` 结论 REJECT，正式因子库仍为 0 插入。锁竞争修复后当前代码版本连续三次完整“信号 → 下一交易日开盘对账”已于 2026-07-22 完成 3/3，核心任务验收 PASS、通知通道 WARN；同日完成飞书通知健壮性修复。P0.5 模拟组合的工程、Docker 接入、四日 BACKFILL 和 2026-07-23 首个自然 `FORWARD` 已全部 PASS，当前进入持续前瞻观察。
 
-结果路线现为：P0.5 持续积累真实前瞻观察；P1 首批六个简单资金流候选已全部 REJECT 且停止本家族追加变体；生产 scheduler 与开发工作树的发布快照隔离已于 2026-07-24 完整 PASS。P2-0 的 `p2-star50-protocol-v1` 永久保留 NO-GO：Tushare 首份权重按 T+1 仅能从 2020-08-03 生效，冻结起点缺 7 个交易日且无历史版本/修订字段。`p2-star50-protocol-v2` 以官方首批名单和全量调整公告重建 `000688.SH` 成员谱系；1,456 个交易日每日均为 50 只，和 72/72 个 Tushare 月度集合完全一致，官方谱系数据门 GO。P2-1 独立工程门 GO 只证明真实数据集、动态 instruments、隔离 qlib 与 synthetic 通路可运行。原 P2-2 因标签成熟、开盘时钟和卖单容量三项方法违约永久标记 `original_p2_2_model_valid=false`、`original_p2_2_execution_valid=false`，旧数值可复算但旧 `NO_GO/REJECT` 不再权威，所有旧证据原样保留。P2-2C 以结果前推送的 `c6fbbaf` 只修复上述三项并完成唯一 purged 训练与一遍确定性复核：三窗基础净超额 -8.51%/-19.25%/-23.87%，727 日 pooled 基础/2x/额外滑点 -52.97%/-56.19%/-56.02%，三测试窗和 microcap_2024 回撤超过 20%；合法 CSI800 对照仍缺使分散化 `NOT_EVALUABLE`。权威终态 `authoritative_historical_effect_gate=NO_GO`、`strategy_effective=REJECT`、`production_authorization=none`，本基线停止，不调门槛、不追加变体、不进入前瞻或生产；中证800继续是唯一生产主策略。P3-0 已完成可信只读查询底座；P3-1 已完成总览、模拟组合和股票池/信号三个正式页面及真实浏览器/Docker 安全验收，Web 1.0 首版可在本机回环使用。D1-0、D1-1、D1-2A 和 D1-2B 均已完成；D1-3A 已完成恰好 8/8 份结果盲态对抗复核，实际费用 `$0.01472214`，机器终态 `GO_INDEPENDENT_HUMAN_GATE`。由于主窗口已登记发现期数值污染，下一步必须由另行授权的独立盲审完成经济解释/泄漏/冗余人工闸；W1—W6、压力期和 G1 仍未读取或运行，策略未评价且无生产授权。完整目标、输出、通过条件和禁止事项见 `docs/ROADMAP.md`。
+结果路线现为：P0.5 持续积累真实前瞻观察；P1 首批六个简单资金流候选已全部 REJECT 且停止本家族追加变体；生产 scheduler 与开发工作树的发布快照隔离已于 2026-07-24 完整 PASS。P2-0 的 `p2-star50-protocol-v1` 永久保留 NO-GO：Tushare 首份权重按 T+1 仅能从 2020-08-03 生效，冻结起点缺 7 个交易日且无历史版本/修订字段。`p2-star50-protocol-v2` 以官方首批名单和全量调整公告重建 `000688.SH` 成员谱系；1,456 个交易日每日均为 50 只，和 72/72 个 Tushare 月度集合完全一致，官方谱系数据门 GO。P2-1 独立工程门 GO 只证明真实数据集、动态 instruments、隔离 qlib 与 synthetic 通路可运行。原 P2-2 因标签成熟、开盘时钟和卖单容量三项方法违约永久标记 `original_p2_2_model_valid=false`、`original_p2_2_execution_valid=false`，旧数值可复算但旧 `NO_GO/REJECT` 不再权威，所有旧证据原样保留。P2-2C 以结果前推送的 `c6fbbaf` 只修复上述三项并完成唯一 purged 训练与一遍确定性复核：三窗基础净超额 -8.51%/-19.25%/-23.87%，727 日 pooled 基础/2x/额外滑点 -52.97%/-56.19%/-56.02%，三测试窗和 microcap_2024 回撤超过 20%；合法 CSI800 对照仍缺使分散化 `NOT_EVALUABLE`。权威终态 `authoritative_historical_effect_gate=NO_GO`、`strategy_effective=REJECT`、`production_authorization=none`，本基线停止，不调门槛、不追加变体、不进入前瞻或生产；中证800继续是唯一生产主策略。P3-0 已完成可信只读查询底座；P3-1 已完成总览、模拟组合和股票池/信号三个正式页面及真实浏览器/Docker 安全验收，Web 1.0 首版可在本机回环使用。D1-0、D1-1、D1-2A 和 D1-2B 均已完成；D1-3A 已完成恰好 8 份结果盲态对抗响应，专项费用 `$0.01472214`，但其中 3 份自由文本违反“禁止替代公式/变体”的冻结合同，权威终态为 `STOP_SEMANTIC_CONTRACT_VIOLATION`。本批不进独立人工闸，不读取 W1—W6/压力期，不运行 G1；策略未评价且无生产授权。完整目标、输出、通过条件和禁止事项见 `docs/ROADMAP.md`。
 
 2026-07-19 用户明确后台仍为主线，同时授权 Web 方案旁路持续优化。P0.5 三组模拟仓只读查询已于 2026-07-22 稳定，Web 技术栈与页面原型评审闸门已打开；Web 代码仍须在不影响首个 `FORWARD` 验收和后台主线的前提下另立目标。初版方案见 `docs/WEB_DESIGN.md`。
 
@@ -126,7 +129,7 @@
 - [x] P2-2C 科创50综合方法纠错（2026-07-25，权威 NO-GO/REJECT）：结果前提交并推送 `c6fbbaf`，只修复 train/valid 最后 11 个信号日 purge、执行日 raw open/pre_close/tick 与 prior-close 时钟、买卖双向信号日 20 日中位 amount 5% 容量；其他 Alpha158/LightGBM seed42 超参、窗口/test、压力映射、Top10/n_drop2、调仓、成本和门槛逐字段不变。三窗 242/242/243 日、各 25 次调仓，基础净超额 -8.51%/-19.25%/-23.87%；727 日 pooled 基础/1.5x/2x/额外双边10bp 为 -52.97%/-54.59%/-56.19%/-56.02%，正窗 0/3；W1/W2/W3 与 microcap_2024 回撤越过 20%。纠错基础 909 笔和全部场景/压力 3,856 笔的买卖容量违规均为 0；84 个名字跨信号日继续卖出。合法 CSI800 对照缺失使分散化 `NOT_EVALUABLE`。两遍 54 份 model/prediction/NAV/trade/holding 物理哈希完全一致；机器终态 `authoritative_historical_effect_gate=NO_GO`、`strategy_effective=REJECT`、`production_authorization=none`。完整证据见 `docs/P2_STAR50_EFFECT_CORRECTION_ACCEPTANCE_20260725.md`。
 - [x] D1-2A LLM 真实调用前冻结（2026-07-25，GO_PREEXECUTION_ONLY）：官方模型/价格和请求/响应/错误合同、system prompt、五主题模板、同主题全历史反馈、10 条知识 manifest、受限 DeepSeek 适配层、累计费用熔断和 transport 恢复账本均已冻结。当前 `execution_authorized=false` 时真实 transport、运行时 secret 加载和网络在创建前被拒绝；宿主脱敏测试仅作 `.env` 秘密与 Git 跟踪文件的不回显比对。断网 Docker 同时证明成功恢复不二次请求、429 有界恢复和读超时后 `BILLING_UNCERTAIN` 禁止重发。全仓 247 PASS、Docker 对抗 29 PASS；API/行情/G1/生产授权均为 0。证据见 `docs/D1_LLM_FACTOR_PREEXECUTION_ACCEPTANCE_20260725.md`。
 - [x] D1-2B 首批真实生成（2026-07-25，GO_D1_3_REVIEW）：结果前冻结总授权 `$10`、本批恰好 40 个完成响应和 `$1` 熔断，只读 2016-06-01—2018-12-31 发现期，W1—W6/压力期/G1/前瞻/生产禁读禁跑。首份完成后控制流 fail closed；恢复附录锁定原响应、账本字节前缀与产物哈希，仅修独立反馈和连续恢复，从序号 2 完成剩余 39 份，无重发或计费不确定性。终态 40/40：36 `DISCOVERY_EVALUATED`、2 `duplicate_ast`、2 `sandbox_rejected`，费用 `$0.076626207`；无密钥、断网、只读重放为 `idempotent_reuse=true / external_api_calls_this_run=0` 且 160 文件证据束哈希不变。机械 Top2 已锁定但未解盲 W1—W6或运行 G1；`strategy_effective=NOT_EVALUATED`、`production_authorization=none`。证据见 `docs/D1_LLM_FACTOR_EXECUTION_ACCEPTANCE_20260725.md`。
-- [x] D1-3A Top2 盲态对抗复核（2026-07-25，GO_INDEPENDENT_HUMAN_GATE）：固定 Top2、四角色×两候选恰好 8/8 schema PASS，费用 `$0.01472214`；4 份报阻断、4 份未报阻断。主窗口已登记候选 18 发现期数值污染，禁止承担最终人工闸；D1-3B 独立盲审未授权，W1—W6/G1 仍禁读禁跑。
+- [x] D1-3A Top2 盲态对抗复核及语义纠错（2026-07-25，STOP_SEMANTIC_CONTRACT_VIOLATION）：8/8 响应结构 schema PASS，但自由文本审计为 5 PASS/3 FAIL；三份以正文建议公式/构造变体却声明未提变体。按 8/8 有效且不补位规则停止，不进独立人工闸，不读 W1—W6，不运行 G1。
 
 ## 后台任务
 运行态以 `logs/pipeline/stage0_20260715.jsonl` 和 `ledger/ingest_batches.csv` 为准；自动流按 as-of+代码+数据快照及逐批文件哈希安全续跑。
@@ -154,7 +157,7 @@
 - P1 已于 2026-07-24 完整结束：长期主源仍为 `tushare.moneyflow`，`moneyflow-pit-v1` 固定下一交易日可用；46 个稳定失败日继续按 `moneyflow-quality-v2` 整日隔离。六候选同预算比较均未在 Alpha158 之外形成可准入增量，全部 REJECT，正式库 0 插入；不增加本家族变体、不看结果调门槛、不接生产。数据层可作为未来独立预注册家族的只读输入，但须把既有 N=18 纳入多重检验背景。详见 `docs/P1_MONEYFLOW_EXPERIMENT_ACCEPTANCE_20260724.md`。
 - 官方规则复核发现沪深主板风险警示股票自 2026-07-06 起均由 5% 调整为 10%。当前中证800正式信号不含 ST，故不推翻 P0 三次结果；P0.5 以按板块和日期分段的 `paper-v1` 执行规则处理，不回改冻结的历史模型与 G0 门禁。后续若生产信号范围允许 ST，须另立数据/门禁修订评审，不能沿用旧 `limit_rules.st=0.045` 冒充现行实盘规则。
 - 飞书连续两个交易日各有一次网络超时已完成 P0-R 修复：最多 3 次有界重试、稳定消息身份、逐次留痕和恢复标识均已回归。生产自然投递继续观察；飞书不提供本项目可依赖的恰好一次语义，超时重试的同 ID 重复消息风险须在 Web 与运维审计中保留。
-- D1-3A 已完成 8/8 Top2 盲态对抗复核，专项费用 `$0.01472214`；4 份报阻断、4 份未报阻断，仅允许进入独立人工闸。主窗口不得裁决，用户尚未授权独立盲审；未获授权前不读 W1—W6、不运行 G1。不通过即停止，不递补、不调门槛、不追加候选。任何阶段都不自动进入生产，观象桥、常驻知识雷达、程序级因子和新数据继续后置。
+- D1-3A 的 8 份响应虽全部 schema PASS，但 3 份正文违反“禁止替代公式/变体”合同；权威终态已由原机器 GO 改为 `STOP_SEMANTIC_CONTRACT_VIOLATION`。本批不补响应、不递补候选、不进独立人工闸、不读 W1—W6、不运行 G1。未来重启必须另立新批和结果前协议，不能用剩余额度静默修补。
 - 原始数据异地备份等用户找到远程服务器后再施工；取得服务器地址和明确授权前，不写入项目外目录，也不以同机副本冒充备份。
 - G8 公式已冻结，但六只产品从冻结日起的法定净值/分红/实际申赎费证据采集器与不可覆盖裁决账本尚未施工；必须先确定可持续的法定披露入口，不能以聚合平台数据冒充权威源。
 - 本机 `.env` 的 `TUSHARE_TOKEN` 已就绪且未入 git；阶段 0 自动流已完成，后续仍可按代码+数据快照和不可变账本安全续跑。
