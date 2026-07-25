@@ -85,6 +85,8 @@ known_evidence_gaps:
     remediation_scope: separate_scheduler_schema_goal
 
 notifications:
+  current_schema_start_date: 20260723
+  legacy_missing_message_id_policy: COUNT_UNADDRESSABLE
   expose_fields:
     - attempt
     - delivered_at

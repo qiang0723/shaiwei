@@ -17,6 +17,9 @@
 - 继续核对真实时钟确认 `signal.data_complete_at` 是日增量完成时刻而非哨兵时刻；第二份结果前补遗
   将绑定修正为“日增量完成 ≤ 哨兵生成 ≤ 信号生成 ≤ 影子运行完成”，仍要求三方代码/数据身份一致，
   见 `docs/P3_WEB_OPERATIONS_PROTOCOL_ADDENDUM_2_20260725.md`。
+- 首次真实查询在返回结果前发现 2026-07-22 通知升级前的历史记录没有稳定 `message_id`；第三份补遗
+  将其定义为只计数、不可按消息寻址的 legacy schema，严禁合成 ID。2026-07-23 起缺 ID 仍 fail
+  closed，见 `docs/P3_WEB_OPERATIONS_PROTOCOL_ADDENDUM_3_20260725.md`。
 
 ## 2026-07-25 · D1-3A 语义合同纠错后停止
 
