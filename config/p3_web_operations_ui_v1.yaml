@@ -1,0 +1,126 @@
+protocol_id: p3-web-operations-ui-v1
+schema_version: web-v1
+timezone: Asia/Shanghai
+read_only: true
+
+routes:
+  - /data-quality
+  - /system-runs
+
+api_mapping:
+  data_quality:
+    - /api/v1/data-quality
+  system_runs:
+    - /api/v1/system/runs
+  notification_detail:
+    - /api/v1/notifications/{message_id}
+
+page_contracts:
+  data_quality:
+    primary_question: latest_registered_data_safe_for_signal
+    atomic_endpoint_count: 1
+    primary_status: data.status
+    evidence_status: data.evidence_status
+    required_sections:
+      - conclusion_and_evidence_gap
+      - daily_increment_and_batch_chain
+      - sentinel_matrix_s1_s10
+      - incremental_batches
+      - source_and_hash_evidence
+  system_runs:
+    primary_question: latest_daily_cycle_completed_and_recovered
+    atomic_endpoint_count: 1
+    primary_status: data.core_status
+    notification_status: data.notification_status
+    required_sections:
+      - core_and_notification_split
+      - stage_timeline
+      - failed_and_recovered_attempts
+      - notification_summary
+      - release_and_recorded_heartbeat
+      - source_and_hash_evidence
+  notification_detail:
+    separate_snapshot: true
+    merge_into_system_snapshot: false
+    required_fields:
+      - message_id
+      - event
+      - status
+      - attempt_count
+      - failed_attempt_count
+      - recovered
+      - duplicate_delivery_risk
+      - attempts
+
+status_rules:
+  domain_values:
+    - PASS
+    - WARN
+    - FAIL
+    - STALE
+    - NOT_READY
+    - NOT_APPLICABLE
+    - NO_DATA
+    - OBSERVING
+    - NOT_DUE
+    - NOT_EVALUATED
+  data_pass_does_not_override_evidence_warn: true
+  core_status_separate_from_notification_status: true
+  recovered_failure_must_remain_visible: true
+  legacy_notification_has_no_synthetic_id: true
+  raw_parquet_not_rehashed_must_remain_visible: true
+  live_container_identity_not_evaluated_must_remain_visible: true
+
+navigation:
+  desktop_group: operations_and_evidence
+  mobile_bottom_routes:
+    - /overview
+    - /paper
+    - /signals
+    - /data-quality
+    - /system-runs
+
+responsive_viewports:
+  desktop: [1440, 900]
+  laptop: [1024, 768]
+  tablet: [768, 1024]
+  mobile: [390, 844]
+  minimum_reflow_width: 320
+  zoom_percent: 400
+
+accessibility:
+  target: WCAG-2.2-AA
+  axe_critical_max: 0
+  axe_serious_max: 0
+  keyboard_required: true
+  reduced_motion_required: true
+
+performance:
+  initial_gzip_bytes_max: 614400
+  all_route_gzip_bytes_max: 2621440
+  localhost_first_content_seconds_max: 2
+  api_timeout_seconds: 5
+  automatic_retry_count: 0
+
+security:
+  ui_host_bind: 127.0.0.1
+  query_host_port: null
+  load_dotenv: false
+  external_assets: false
+  inline_script: false
+  unsafe_eval: false
+  root_read_only: true
+  run_as_non_root: true
+  docker_socket: false
+
+forbidden:
+  - backend_contract_change
+  - research_metric_recalculation
+  - cross_snapshot_merge
+  - raw_file_or_log_browser
+  - synthetic_notification_identity
+  - live_docker_claim
+  - scheduler_control
+  - order_or_trade_control
+  - remote_access
+  - bse_security
