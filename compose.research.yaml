@@ -40,3 +40,83 @@ services:
       - /workspace/config/d1_llm_factor_research_v1.yaml
       - --output-dir
       - /tmp/shaiwei-d1-fixture
+
+  d1-live:
+    image: shaiwei:d1-live-v1
+    pull_policy: never
+    profiles: [research-live]
+    init: true
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=1g,mode=1777
+    pids_limit: 256
+    mem_limit: 6g
+    cpus: 4.0
+    environment:
+      - DEEPSEEK_API_KEY
+      - HOME=/tmp
+      - MPLCONFIGDIR=/workspace/logs/matplotlib
+      - PYTHONPYCACHEPREFIX=/tmp/pycache
+    volumes:
+      - type: bind
+        source: ./vendor/alphagen
+        target: /workspace/vendor/alphagen
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data
+        target: /workspace/data
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/d1/d1-llm-dsl-v1
+        target: /workspace/data/research/d1/d1-llm-dsl-v1
+        read_only: false
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger
+        target: /workspace/ledger
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/llm_factor_attempts_v2.csv
+        target: /workspace/ledger/llm_factor_attempts_v2.csv
+        read_only: false
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/llm_factor_transports_v2.csv
+        target: /workspace/ledger/llm_factor_transports_v2.csv
+        read_only: false
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/experiments.csv
+        target: /workspace/ledger/experiments.csv
+        read_only: false
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/d1/d1-llm-dsl-v1/runtime_logs
+        target: /workspace/logs
+        read_only: false
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.llm_factor_live
+      - --protocol
+      - /workspace/config/d1_llm_factor_research_v1.yaml
+      - --execution-release
+      - /workspace/config/d1_llm_factor_execution_v1.yaml
+      - --output-root
+      - /workspace/data/research/d1/d1-llm-dsl-v1

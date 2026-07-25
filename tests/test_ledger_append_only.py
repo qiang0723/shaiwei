@@ -12,6 +12,8 @@ LEDGERS = [
     "ledger/factor_admissions.csv",
     "ledger/llm_factor_attempts.csv",
     "ledger/llm_factor_transports.csv",
+    "ledger/llm_factor_attempts_v2.csv",
+    "ledger/llm_factor_transports_v2.csv",
     "ledger/paper_accounts.csv",
     "ledger/paper_events.csv",
     "ledger/paper_runs.csv",

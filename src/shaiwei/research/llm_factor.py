@@ -16,7 +16,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Literal, Protocol
+from typing import Any, Callable, Literal, Protocol
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -49,7 +49,7 @@ SENSITIVE_OUTPUT_PATTERNS = (
     re.compile(r"(?<![A-Za-z0-9])sk-[A-Za-z0-9]{20,}"),
     re.compile(r"https://open\.feishu\.cn/open-apis/bot/v2/hook/[0-9a-fA-F-]{32,}"),
 )
-ATTEMPT_LEDGER_HEADER = (
+ATTEMPT_LEDGER_HEADER_V1 = (
     "attempt_id",
     "protocol_id",
     "research_family",
@@ -81,6 +81,61 @@ ATTEMPT_LEDGER_HEADER = (
     "canonical_expression",
     "expression_sha256",
     "duplicate_of_attempt_id",
+    "failure_class",
+    "candidate_status",
+    "artifact_manifest_path",
+    "artifact_manifest_sha256",
+    "experiment_id",
+    "operator",
+)
+ATTEMPT_LEDGER_HEADER = ATTEMPT_LEDGER_HEADER_V1
+ATTEMPT_LEDGER_HEADER_V2 = (
+    "attempt_id",
+    "protocol_id",
+    "research_family",
+    "global_ordinal",
+    "topic",
+    "topic_ordinal",
+    "evolution_mode",
+    "parent_attempt_ids_json",
+    "completed_at",
+    "provider_mode",
+    "provider",
+    "requested_model",
+    "returned_model",
+    "protocol_sha256",
+    "execution_release_id",
+    "execution_release_sha256",
+    "batch_hard_ceiling_usd",
+    "request_sha256",
+    "response_sha256",
+    "candidate_schema_sha256",
+    "code_snapshot_sha256",
+    "data_snapshot_sha256",
+    "knowledge_manifest_sha256",
+    "finish_reason",
+    "prompt_tokens",
+    "prompt_cache_hit_tokens",
+    "prompt_cache_miss_tokens",
+    "completion_tokens",
+    "estimated_cost_usd",
+    "parse_status",
+    "sandbox_status",
+    "canonical_expression",
+    "expression_sha256",
+    "expression_tokens",
+    "ast_nodes",
+    "max_lookback_days",
+    "duplicate_of_attempt_id",
+    "discovery_status",
+    "discovery_eligible_rows",
+    "discovery_covered_rows",
+    "discovery_coverage",
+    "discovery_daily_ic_count",
+    "discovery_rank_ic",
+    "discovery_error",
+    "discovery_artifact_path",
+    "discovery_artifact_sha256",
     "failure_class",
     "candidate_status",
     "artifact_manifest_path",
@@ -340,6 +395,21 @@ class AttemptResult:
     audit: ExpressionAudit | None
 
 
+@dataclass(frozen=True)
+class DiscoveryEvidence:
+    """Bounded discovery-only evidence returned by the D1-2B evaluator."""
+
+    status: Literal["PASS", "FAIL"]
+    eligible_rows: int
+    covered_rows: int
+    coverage: float | None
+    daily_ic_count: int
+    rank_ic: float | None
+    error: str
+    artifact_path: str
+    artifact_sha256: str
+
+
 def _canonical_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
@@ -452,14 +522,18 @@ def build_request(
     return request
 
 
-def initialize_attempt_ledger(path: Path) -> None:
+def initialize_attempt_ledger(
+    path: Path, *, header: tuple[str, ...] = ATTEMPT_LEDGER_HEADER_V1
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    header = ",".join(ATTEMPT_LEDGER_HEADER) + "\n"
+    serialized_header = ",".join(header) + "\n"
     if path.is_file():
-        if path.read_text(encoding="utf-8").splitlines()[:1] != [header.rstrip("\n")]:
+        if path.read_text(encoding="utf-8").splitlines()[:1] != [
+            serialized_header.rstrip("\n")
+        ]:
             raise D1ControlError(f"D1 attempt ledger header differs: {path}")
         return
-    path.write_text(header, encoding="utf-8")
+    path.write_text(serialized_header, encoding="utf-8")
 
 
 def initialize_experiment_ledger(path: Path) -> None:
@@ -649,8 +723,17 @@ def execute_completed_attempt(
     operator: str,
     code_sha256: str | None = None,
     feedback_records: list[dict[str, Any]] | None = None,
+    execution_release_id: str = "",
+    execution_release_sha256: str = "",
+    cost_hard_ceiling_usd: float | None = None,
+    data_sha256: str | None = None,
+    discovery_evaluator: Callable[[AttemptPlan, str], DiscoveryEvidence] | None = None,
+    returned_model_identity: str | None = None,
 ) -> AttemptResult:
-    initialize_attempt_ledger(ledger_path)
+    attempt_header = (
+        ATTEMPT_LEDGER_HEADER_V2 if execution_release_id else ATTEMPT_LEDGER_HEADER_V1
+    )
+    initialize_attempt_ledger(ledger_path, header=attempt_header)
     initialize_experiment_ledger(experiment_ledger_path)
     serialized_feedback = protocol.prompt_bundle.serialize_feedback(
         topic=plan.topic,
@@ -672,6 +755,7 @@ def execute_completed_attempt(
         if prior is None:
             raise D1ControlError("feedback attempt is absent from the immutable attempt ledger")
         expected = {
+            "attempt_id": prior["attempt_id"],
             "global_ordinal": int(prior["global_ordinal"]),
             "topic": prior["topic"],
             "parse_status": prior["parse_status"],
@@ -679,14 +763,32 @@ def execute_completed_attempt(
             "canonical_expression": prior["canonical_expression"],
             "duplicate_of_attempt_id": prior["duplicate_of_attempt_id"],
             "failure_class": prior["failure_class"],
+            "discovery_coverage": (
+                float(prior["discovery_coverage"])
+                if prior["discovery_coverage"]
+                else None
+            ),
+            "discovery_rank_ic": (
+                float(prior["discovery_rank_ic"])
+                if prior["discovery_rank_ic"]
+                else None
+            ),
+            "expression_tokens": (
+                int(prior["expression_tokens"]) if prior["expression_tokens"] else None
+            ),
+            "ast_nodes": int(prior["ast_nodes"]) if prior["ast_nodes"] else None,
+            "max_lookback_days": (
+                int(prior["max_lookback_days"]) if prior["max_lookback_days"] else None
+            ),
         }
-        if any(feedback[field] != value for field, value in expected.items()):
+        if feedback != expected:
             raise D1ControlError("feedback differs from the immutable attempt ledger")
     fatal_failures = {
         "cost_budget_exceeded",
         "model_identity_mismatch",
         "sensitive_output",
         "usage_missing_or_invalid",
+        "discovery_evaluation_error",
     }
     prior_fatal = next(
         (row for row in rows if row["failure_class"] in fatal_failures),
@@ -698,13 +800,20 @@ def execute_completed_attempt(
         )
 
     committed_cost = sum(float(row["estimated_cost_usd"]) for row in rows)
+    effective_hard_ceiling = (
+        protocol.cost_hard_ceiling_usd
+        if cost_hard_ceiling_usd is None
+        else float(cost_hard_ceiling_usd)
+    )
+    if not 0 < effective_hard_ceiling <= 10.0:
+        raise D1ControlError("D1 effective hard ceiling must be within (0, 10]")
     price = protocol.document["cost_budget"]
     worst_case_next = (
         int(protocol.document["provider"]["maximum_prompt_tokens_per_attempt"])
         * float(price["pro_input_cache_miss_per_million"])
         + protocol.maximum_output_tokens * float(price["pro_output_per_million"])
     ) / 1_000_000
-    if committed_cost + worst_case_next > protocol.cost_hard_ceiling_usd:
+    if committed_cost + worst_case_next > effective_hard_ceiling:
         raise D1ControlError("cumulative worst-case cost would exceed the frozen hard ceiling")
 
     response = provider.complete(request)
@@ -716,6 +825,15 @@ def execute_completed_attempt(
     canonical_expression = ""
     expression_sha256 = ""
     duplicate_of = ""
+    discovery_status = "NOT_RUN"
+    discovery_eligible_rows = ""
+    discovery_covered_rows = ""
+    discovery_coverage = ""
+    discovery_daily_ic_count = ""
+    discovery_rank_ic = ""
+    discovery_error = ""
+    discovery_artifact_path = ""
+    discovery_artifact_sha256 = ""
     failure_class = ""
     candidate_status = "REJECT"
     audit: ExpressionAudit | None = None
@@ -732,9 +850,10 @@ def execute_completed_attempt(
         usage, estimated_cost = _validate_usage(protocol, response.usage)
     except D1ControlError:
         failure_class = "usage_missing_or_invalid"
-    if not failure_class and committed_cost + estimated_cost > protocol.cost_hard_ceiling_usd:
+    if not failure_class and committed_cost + estimated_cost > effective_hard_ceiling:
         failure_class = "cost_budget_exceeded"
-    if not failure_class and response.model != protocol.returned_model_identity:
+    expected_returned_model = returned_model_identity or protocol.returned_model_identity
+    if not failure_class and response.model != expected_returned_model:
         failure_class = "model_identity_mismatch"
     if not failure_class and _has_sensitive_output(response):
         failure_class = "sensitive_output"
@@ -780,6 +899,44 @@ def execute_completed_attempt(
             if duplicate is not None:
                 duplicate_of = duplicate["attempt_id"]
                 failure_class = "duplicate_ast"
+            elif discovery_evaluator is not None:
+                try:
+                    discovery = discovery_evaluator(plan, canonical_expression)
+                    if discovery.status not in {"PASS", "FAIL"}:
+                        raise D1ControlError("discovery evaluator returned an invalid status")
+                    if discovery.eligible_rows < 0 or not 0 <= discovery.covered_rows <= discovery.eligible_rows:
+                        raise D1ControlError("discovery evaluator returned invalid row counts")
+                    if discovery.daily_ic_count < 0:
+                        raise D1ControlError("discovery evaluator returned an invalid IC count")
+                    if discovery.coverage is not None and not 0 <= discovery.coverage <= 1:
+                        raise D1ControlError("discovery evaluator returned invalid coverage")
+                    if discovery.rank_ic is not None and not -1 <= discovery.rank_ic <= 1:
+                        raise D1ControlError("discovery evaluator returned invalid RankIC")
+                    if Path(discovery.artifact_path).is_absolute():
+                        raise D1ControlError("discovery artifact path must be relative")
+                    if len(discovery.artifact_sha256) != 64:
+                        raise D1ControlError("discovery artifact hash is invalid")
+                    discovery_status = discovery.status
+                    discovery_eligible_rows = str(discovery.eligible_rows)
+                    discovery_covered_rows = str(discovery.covered_rows)
+                    discovery_coverage = (
+                        "" if discovery.coverage is None else f"{discovery.coverage:.12f}"
+                    )
+                    discovery_daily_ic_count = str(discovery.daily_ic_count)
+                    discovery_rank_ic = (
+                        "" if discovery.rank_ic is None else f"{discovery.rank_ic:.12f}"
+                    )
+                    discovery_error = discovery.error
+                    discovery_artifact_path = discovery.artifact_path
+                    discovery_artifact_sha256 = discovery.artifact_sha256
+                    if discovery.status == "PASS":
+                        candidate_status = "DISCOVERY_EVALUATED"
+                    else:
+                        failure_class = "insufficient_coverage"
+                except (D1ControlError, OSError, RuntimeError, TypeError, ValueError):
+                    discovery_status = "FAIL"
+                    discovery_error = "discovery_evaluation_error"
+                    failure_class = "discovery_evaluation_error"
             else:
                 candidate_status = "CONTRACT_PASS"
         except ValidationError:
@@ -808,18 +965,26 @@ def execute_completed_attempt(
         "sandbox_status": sandbox_status,
         "canonical_expression": canonical_expression,
         "expression_sha256": expression_sha256,
+        "expression_tokens": audit.expression_tokens if audit is not None else None,
+        "ast_nodes": audit.ast_nodes if audit is not None else None,
+        "max_lookback_days": audit.max_lookback_days if audit is not None else None,
         "failure_class": failure_class,
         "candidate_status": candidate_status,
+        "discovery_status": discovery_status,
+        "discovery_coverage": discovery_coverage or None,
+        "discovery_rank_ic": discovery_rank_ic or None,
+        "discovery_artifact_path": discovery_artifact_path,
+        "discovery_artifact_sha256": discovery_artifact_sha256,
     }
     manifest_payload = json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     manifest_relative = f"manifests/{plan.attempt_id}.json"
     manifest_path = artifact_root / manifest_relative
     _write_once(manifest_path, manifest_payload)
     manifest_sha256 = sha256_file(manifest_path)
-    synthetic_data_sha256 = _sha256_text("d1-synthetic-fixture-v1")
+    resolved_data_sha256 = data_sha256 or _sha256_text("d1-synthetic-fixture-v1")
     resolved_code_sha256 = code_sha256 or code_snapshot_sha256()
     experiment_id = _experiment_id(plan.attempt_id)
-    row = {
+    full_row = {
         "attempt_id": plan.attempt_id,
         "protocol_id": protocol.protocol_id,
         "research_family": protocol.research_family,
@@ -834,11 +999,16 @@ def execute_completed_attempt(
         "requested_model": protocol.requested_model,
         "returned_model": response.model,
         "protocol_sha256": protocol.sha256,
+        "execution_release_id": execution_release_id,
+        "execution_release_sha256": execution_release_sha256,
+        "batch_hard_ceiling_usd": (
+            f"{effective_hard_ceiling:.12f}" if execution_release_id else ""
+        ),
         "request_sha256": request_sha256,
         "response_sha256": response_sha256,
         "candidate_schema_sha256": candidate_schema_sha256(),
         "code_snapshot_sha256": resolved_code_sha256,
-        "data_snapshot_sha256": synthetic_data_sha256,
+        "data_snapshot_sha256": resolved_data_sha256,
         "knowledge_manifest_sha256": protocol.knowledge_manifest.sha256,
         "finish_reason": response.finish_reason,
         "prompt_tokens": str(usage["prompt_tokens"]),
@@ -850,7 +1020,19 @@ def execute_completed_attempt(
         "sandbox_status": sandbox_status,
         "canonical_expression": canonical_expression,
         "expression_sha256": expression_sha256,
+        "expression_tokens": str(audit.expression_tokens) if audit is not None else "",
+        "ast_nodes": str(audit.ast_nodes) if audit is not None else "",
+        "max_lookback_days": str(audit.max_lookback_days) if audit is not None else "",
         "duplicate_of_attempt_id": duplicate_of,
+        "discovery_status": discovery_status,
+        "discovery_eligible_rows": discovery_eligible_rows,
+        "discovery_covered_rows": discovery_covered_rows,
+        "discovery_coverage": discovery_coverage,
+        "discovery_daily_ic_count": discovery_daily_ic_count,
+        "discovery_rank_ic": discovery_rank_ic,
+        "discovery_error": discovery_error,
+        "discovery_artifact_path": discovery_artifact_path,
+        "discovery_artifact_sha256": discovery_artifact_sha256,
         "failure_class": failure_class,
         "candidate_status": candidate_status,
         "artifact_manifest_path": manifest_relative,
@@ -858,7 +1040,8 @@ def execute_completed_attempt(
         "experiment_id": experiment_id,
         "operator": operator,
     }
-    if tuple(row) != ATTEMPT_LEDGER_HEADER:
+    row = {field: full_row[field] for field in attempt_header}
+    if tuple(row) != attempt_header:
         raise D1ControlError("D1 terminal row differs from the tracked ledger schema")
     appended = append_llm_factor_attempt(path=ledger_path, **row)
     if not appended:
@@ -874,7 +1057,7 @@ def execute_completed_attempt(
         "seed": "",
         "prompt_hash": request_sha256,
         "code_sha256": resolved_code_sha256,
-        "data_snapshot_sha256": synthetic_data_sha256,
+        "data_snapshot_sha256": resolved_data_sha256,
         "feature_or_formula": canonical_expression or f"D1_ATTEMPT:{plan.attempt_id}",
         "params_json": {
             "attempt_id": plan.attempt_id,
@@ -884,6 +1067,8 @@ def execute_completed_attempt(
             "parent_attempt_ids": parents,
             "protocol_id": protocol.protocol_id,
             "protocol_sha256": protocol.sha256,
+            "execution_release_id": execution_release_id,
+            "execution_release_sha256": execution_release_sha256,
             "provider_mode": provider.mode,
             "response_sha256": response_sha256,
             "topic": plan.topic,
@@ -897,7 +1082,9 @@ def execute_completed_attempt(
             "g1_run": False,
             "market_results_inspected": False,
             "protocol_id": protocol.protocol_id,
-            "stage": "D1_GENERATION_CONTRACT",
+            "stage": (
+                "D1_DISCOVERY_ONLY" if discovery_evaluator is not None else "D1_GENERATION_CONTRACT"
+            ),
         },
         "admitted": False,
         "reject_reason": failure_class or "D1_GENERATION_ONLY_NOT_EVALUATED",

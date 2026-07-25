@@ -27,6 +27,8 @@ P2_STAR50_EFFECT_CORRECTION_RUNS = LEDGER_DIR / "p2_star50_effect_correction_run
 P2_STAR50_EFFECT_CORRECTION_ADMISSIONS = LEDGER_DIR / "p2_star50_effect_correction_admissions.csv"
 LLM_FACTOR_ATTEMPTS = LEDGER_DIR / "llm_factor_attempts.csv"
 LLM_FACTOR_TRANSPORTS = LEDGER_DIR / "llm_factor_transports.csv"
+LLM_FACTOR_ATTEMPTS_V2 = LEDGER_DIR / "llm_factor_attempts_v2.csv"
+LLM_FACTOR_TRANSPORTS_V2 = LEDGER_DIR / "llm_factor_transports_v2.csv"
 
 
 def portable_artifact_path(path: str | Path) -> str:

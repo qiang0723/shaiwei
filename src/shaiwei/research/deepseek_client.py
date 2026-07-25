@@ -11,13 +11,16 @@ import csv
 import hashlib
 import json
 import os
+import re
 import time
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import httpx
+import yaml
 
 from shaiwei.ledger import append_llm_factor_transport, sha256_file
 from shaiwei.research.llm_factor import (
@@ -30,7 +33,7 @@ from shaiwei.research.llm_factor import (
 )
 
 
-TRANSPORT_LEDGER_HEADER = (
+TRANSPORT_LEDGER_HEADER_V1 = (
     "event_id",
     "attempt_id",
     "request_sha256",
@@ -49,6 +52,28 @@ TRANSPORT_LEDGER_HEADER = (
     "model",
     "operator",
 )
+TRANSPORT_LEDGER_HEADER = TRANSPORT_LEDGER_HEADER_V1
+TRANSPORT_LEDGER_HEADER_V2 = (
+    "event_id",
+    "attempt_id",
+    "request_sha256",
+    "sequence",
+    "event_type",
+    "recorded_at",
+    "http_status",
+    "completed_response",
+    "billing_status",
+    "response_id_sha256",
+    "response_artifact_path",
+    "response_artifact_sha256",
+    "source_response_sha256",
+    "error_class",
+    "provider",
+    "model",
+    "execution_release_id",
+    "execution_release_sha256",
+    "operator",
+)
 RETRYABLE_HTTP_STATUS = {429, 500, 503}
 TERMINAL_EVENT_TYPES = {
     "COMPLETED",
@@ -56,6 +81,132 @@ TERMINAL_EVENT_TYPES = {
     "TERMINAL_ERROR",
     "BILLING_UNCERTAIN",
 }
+
+
+@dataclass(frozen=True)
+class D1ExecutionRelease:
+    """Result-before execution authorization layered over the immutable D1-2A protocol."""
+
+    path: Path
+    document: dict[str, Any]
+    sha256: str
+    release_id: str
+    protocol_sha256: str
+    total_authorization_usd: float
+    batch_hard_ceiling_usd: float
+    response_model_identity: str
+
+    @classmethod
+    def load(cls, path: Path, protocol: D1Protocol) -> "D1ExecutionRelease":
+        try:
+            document = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except OSError as error:
+            raise D1ControlError("D1 execution release is missing") from error
+        if not isinstance(document, dict):
+            raise D1ControlError("D1 execution release must be a YAML object")
+        try:
+            authorization = document["authorization"]
+            contract = document["frozen_contract"]
+            egress = document["egress"]
+            scope = document["scope"]
+            official = document["official_contract_recheck"]
+            ledgers = document["ledgers"]
+        except (KeyError, TypeError) as error:
+            raise D1ControlError("D1 execution release is incomplete") from error
+        if document.get("schema_version") != "d1-llm-factor-execution-release-v1":
+            raise D1ControlError("D1 execution release schema differs")
+        if document.get("status") != "D1_2B_RESULT_BEFORE_EXECUTION_FROZEN":
+            raise D1ControlError("D1 execution release is not frozen")
+        if document.get("execution_authorized") is not True:
+            raise D1ControlError("D1 live execution is not authorized")
+        if document.get("production_authorization") != "none":
+            raise D1ControlError("D1 execution release cannot authorize production")
+        release_id = str(document.get("release_id", ""))
+        if re.fullmatch(r"d1-llm-dsl-v1-batch-[0-9]{3}", release_id) is None:
+            raise D1ControlError("D1 execution release id is invalid")
+        if contract.get("protocol_path") != "config/d1_llm_factor_research_v1.yaml":
+            raise D1ControlError("D1 execution release protocol path differs")
+        if contract.get("protocol_sha256") != protocol.sha256:
+            raise D1ControlError("D1 execution release protocol hash differs")
+        if contract.get("prompt_sha256") != protocol.prompt_bundle.sha256:
+            raise D1ControlError("D1 execution release prompt hash differs")
+        if contract.get("knowledge_manifest_sha256") != protocol.knowledge_manifest.sha256:
+            raise D1ControlError("D1 execution release knowledge hash differs")
+        if float(contract.get("original_d1_2a_hard_ceiling_usd", -1)) != 0.75:
+            raise D1ControlError("D1 execution release does not preserve the original budget record")
+        if contract.get("original_d1_2a_record_is_immutable") is not True:
+            raise D1ControlError("D1 execution release could rewrite the D1-2A record")
+        if ledgers != {
+            "attempt": "ledger/llm_factor_attempts_v2.csv",
+            "transport": "ledger/llm_factor_transports_v2.csv",
+            "experiment": "ledger/experiments.csv",
+            "v1_attempt_and_transport_ledgers_remain_byte_immutable": True,
+        }:
+            raise D1ControlError("D1 execution release ledger boundary differs")
+        if int(authorization.get("completed_responses_exact", 0)) != 40:
+            raise D1ControlError("D1 execution release must authorize exactly 40 responses")
+        total = float(authorization.get("d1_total_authorization_usd", -1))
+        batch = float(authorization.get("batch_hard_ceiling_usd", -1))
+        if total != 10.0 or batch != 1.0 or batch > total:
+            raise D1ControlError("D1 execution release budget differs from user authorization")
+        if authorization.get("future_batches_require_new_protocol_and_instruction") is not True:
+            raise D1ControlError("D1 execution release must not authorize future batches")
+        expected_scope = {
+            "discovery_period_only": ["2016-06-01", "2018-12-31"],
+            "W1_W6_access": False,
+            "stress_period_access": False,
+            "g1_run": False,
+            "forward_access": False,
+            "scheduler_changes": False,
+        }
+        if any(scope.get(key) != value for key, value in expected_scope.items()):
+            raise D1ControlError("D1 execution release scope differs")
+        if any(
+            scope.get(key) is not False
+            for key in ("web_changes", "guanxiang_access", "new_market_collection")
+        ):
+            raise D1ControlError("D1 execution release expands forbidden scope")
+        if egress != {
+            "scheme": "https",
+            "host": "api.deepseek.com",
+            "port": 443,
+            "path": "/chat/completions",
+            "trust_environment_proxy": False,
+        }:
+            raise D1ControlError("D1 execution release egress allowlist differs")
+        provider = protocol.document["provider"]
+        prices = protocol.document["cost_budget"]
+        expected_official = {
+            "rechecked_on": "2026-07-25",
+            "model": provider["model"],
+            "model_version": protocol.returned_model_identity,
+            "response_model_field": provider["model"],
+            "thinking": provider["thinking"],
+            "reasoning_effort": provider["reasoning_effort"],
+            "input_cache_hit_per_million_usd": float(
+                prices["pro_input_cache_hit_per_million"]
+            ),
+            "input_cache_miss_per_million_usd": float(
+                prices["pro_input_cache_miss_per_million"]
+            ),
+            "output_per_million_usd": float(prices["pro_output_per_million"]),
+        }
+        if any(official.get(key) != value for key, value in expected_official.items()):
+            raise D1ControlError("D1 official contract recheck differs from the frozen provider")
+        if official.get("d1_2a_conflated_version_and_response_field") is not True or official.get(
+            "correction_frozen_before_any_paid_response"
+        ) is not True:
+            raise D1ControlError("D1 response-model correction is not explicitly frozen")
+        return cls(
+            path=path,
+            document=document,
+            sha256=sha256_file(path),
+            release_id=release_id,
+            protocol_sha256=protocol.sha256,
+            total_authorization_usd=total,
+            batch_hard_ceiling_usd=batch,
+            response_model_identity=str(official["response_model_field"]),
+        )
 
 
 def _canonical_json(value: Any) -> str:
@@ -86,14 +237,18 @@ def _write_once(path: Path, payload: str) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def initialize_transport_ledger(path: Path) -> None:
+def initialize_transport_ledger(
+    path: Path, *, header: tuple[str, ...] = TRANSPORT_LEDGER_HEADER_V1
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    header = ",".join(TRANSPORT_LEDGER_HEADER) + "\n"
+    serialized_header = ",".join(header) + "\n"
     if path.is_file():
-        if path.read_text(encoding="utf-8").splitlines()[:1] != [header.rstrip("\n")]:
+        if path.read_text(encoding="utf-8").splitlines()[:1] != [
+            serialized_header.rstrip("\n")
+        ]:
             raise D1ControlError(f"D1 transport ledger header differs: {path}")
         return
-    path.write_text(header, encoding="utf-8")
+    path.write_text(serialized_header, encoding="utf-8")
 
 
 def _read_events(path: Path, *, attempt_id: str, request_sha256: str) -> list[dict[str, str]]:
@@ -135,18 +290,19 @@ class DeepSeekProvider:
         transport_ledger_path: Path,
         artifact_root: Path,
         transport: httpx.BaseTransport,
+        execution_release: D1ExecutionRelease | None = None,
         operator: str = "docker-d1-research",
         clock: Callable[[], str] = _now,
         sleeper: Callable[[float], None] = time.sleep,
     ):
         if not api_key:
             raise D1ControlError("DeepSeek API key is missing")
-        if protocol.document.get("execution_authorized") is not True and not isinstance(
-            transport, httpx.MockTransport
-        ):
+        if not isinstance(transport, httpx.MockTransport) and execution_release is None:
             raise D1ControlError(
-                "D1 live transport is not authorized; only MockTransport is allowed"
+                "D1 live transport requires a frozen execution release; only MockTransport is allowed"
             )
+        if execution_release is not None and execution_release.protocol_sha256 != protocol.sha256:
+            raise D1ControlError("D1 execution release does not bind the active protocol")
         self.protocol = protocol
         self.attempt_id = attempt_id
         self.transport_ledger_path = transport_ledger_path
@@ -154,6 +310,7 @@ class DeepSeekProvider:
         self.operator = operator
         self.clock = clock
         self.sleeper = sleeper
+        self.execution_release = execution_release
         self.external_api_calls = 0
         provider = protocol.document["provider"]
         self._client = httpx.Client(
@@ -193,7 +350,7 @@ class DeepSeekProvider:
         source_response_sha256: str = "",
         error_class: str = "",
     ) -> None:
-        row = {
+        full_row = {
             "event_id": self._event_id(request_sha256, sequence, event_type),
             "attempt_id": self.attempt_id,
             "request_sha256": request_sha256,
@@ -210,9 +367,21 @@ class DeepSeekProvider:
             "error_class": error_class,
             "provider": self.protocol.provider_name,
             "model": self.protocol.requested_model,
+            "execution_release_id": (
+                self.execution_release.release_id if self.execution_release is not None else ""
+            ),
+            "execution_release_sha256": (
+                self.execution_release.sha256 if self.execution_release is not None else ""
+            ),
             "operator": self.operator,
         }
-        if tuple(row) != TRANSPORT_LEDGER_HEADER:
+        header = (
+            TRANSPORT_LEDGER_HEADER_V2
+            if self.execution_release is not None
+            else TRANSPORT_LEDGER_HEADER_V1
+        )
+        row = {field: full_row[field] for field in header}
+        if tuple(row) != header:
             raise D1ControlError("D1 transport event differs from the tracked schema")
         if not append_llm_factor_transport(path=self.transport_ledger_path, **row):
             raise D1ControlError("D1 transport event unexpectedly already exists")
@@ -246,7 +415,14 @@ class DeepSeekProvider:
         )
 
     def _preflight(self, request_sha256: str) -> tuple[list[dict[str, str]], int]:
-        initialize_transport_ledger(self.transport_ledger_path)
+        initialize_transport_ledger(
+            self.transport_ledger_path,
+            header=(
+                TRANSPORT_LEDGER_HEADER_V2
+                if self.execution_release is not None
+                else TRANSPORT_LEDGER_HEADER_V1
+            ),
+        )
         rows = _read_events(
             self.transport_ledger_path,
             attempt_id=self.attempt_id,
@@ -455,13 +631,14 @@ class DeepSeekProvider:
 def create_live_deepseek_provider(
     protocol: D1Protocol,
     *,
+    execution_release: D1ExecutionRelease | None = None,
     attempt_id: str,
     transport_ledger_path: Path,
     artifact_root: Path,
     operator: str = "docker-d1-research",
 ) -> DeepSeekProvider:
-    """Create a live provider only after a later protocol explicitly authorizes execution."""
-    if protocol.document.get("execution_authorized") is not True:
+    """Create a live provider only after a distinct result-before release authorizes it."""
+    if execution_release is None or execution_release.protocol_sha256 != protocol.sha256:
         raise D1ControlError(
             "D1 live execution is not authorized; environment and network were not accessed"
         )
@@ -476,6 +653,7 @@ def create_live_deepseek_provider(
         transport_ledger_path=transport_ledger_path,
         artifact_root=artifact_root,
         transport=httpx.HTTPTransport(retries=0),
+        execution_release=execution_release,
         operator=operator,
     )
 

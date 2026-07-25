@@ -1,0 +1,119 @@
+schema_version: d1-llm-factor-execution-release-v1
+release_id: d1-llm-dsl-v1-batch-001
+prepared_at: "2026-07-25T15:51:50+08:00"
+status: D1_2B_RESULT_BEFORE_EXECUTION_FROZEN
+execution_authorized: true
+production_authorization: none
+
+authorization:
+  source: user_explicit_instruction_in_primary_codex_thread
+  authorized_on: "2026-07-25"
+  model: deepseek-v4-pro
+  completed_responses_exact: 40
+  d1_total_authorization_usd: 10.0
+  batch_hard_ceiling_usd: 1.0
+  future_batches_require_new_protocol_and_instruction: true
+  unused_budget_is_not_automatic_execution_authority: true
+
+frozen_contract:
+  protocol_path: config/d1_llm_factor_research_v1.yaml
+  protocol_sha256: 68f3f40ea69979f1febfc99ea66b18b3324ea702f02651aafac65b50630f94b5
+  prompt_sha256: 23c56cc58aeaa1d59f1c4ee587debe052e7422949c18553be9937a3ea73942ec
+  knowledge_manifest_sha256: 0f1e8ab2461352ce020dcf1873a5d79bfc010b08eea205b6b308e27bc3c23fad
+  d1_2a_commit: 99597b4be804411094f1e17d1fa126babfd0d2b1
+  original_d1_2a_hard_ceiling_usd: 0.75
+  original_d1_2a_record_is_immutable: true
+
+ledgers:
+  attempt: ledger/llm_factor_attempts_v2.csv
+  transport: ledger/llm_factor_transports_v2.csv
+  experiment: ledger/experiments.csv
+  v1_attempt_and_transport_ledgers_remain_byte_immutable: true
+
+official_contract_recheck:
+  rechecked_on: "2026-07-25"
+  pricing_url: https://api-docs.deepseek.com/quick_start/pricing/
+  thinking_url: https://api-docs.deepseek.com/guides/thinking_mode/
+  chat_completion_url: https://api-docs.deepseek.com/api/create-chat-completion/
+  model: deepseek-v4-pro
+  model_version: DeepSeek-V4-Pro
+  response_model_field: deepseek-v4-pro
+  d1_2a_conflated_version_and_response_field: true
+  correction_frozen_before_any_paid_response: true
+  thinking: enabled
+  reasoning_effort: high
+  input_cache_hit_per_million_usd: 0.003625
+  input_cache_miss_per_million_usd: 0.435
+  output_per_million_usd: 0.87
+  price_change_policy: fail_closed_before_first_paid_request
+
+scope:
+  discovery_period_only: ["2016-06-01", "2018-12-31"]
+  W1_W6_access: false
+  stress_period_access: false
+  g1_run: false
+  forward_access: false
+  scheduler_changes: false
+  web_changes: false
+  guanxiang_access: false
+  new_market_collection: false
+
+discovery_contract:
+  universe: csi800
+  index_code: 000906.SH
+  label: Ref(open,-11)/Ref(open,-1)-1
+  qlib_provider: data/qlib_bin
+  qlib_manifest_sha256: 62cae2f46b57020db202bee1748f072e7859e209663046747f76aaa008f605a9
+  qlib_artifact_sha256: 0532f6cd7c2c78f0936f92a986aef83a848175fe6f332274e06c7ed6e8c11778
+  qlib_artifact_file_count: 54464
+  qlib_artifact_byte_count: 430835211
+  ingest_snapshot_sha256_at_freeze: 188eccd0f1a1de3b537f1a9b990e5a54ed9834e11ca050a922ce296cbee24d9a
+  neutralization: [sw_l1_industry_pit, log_market_cap]
+  minimum_cross_section: 30
+  minimum_daily_ic_observations: 252
+  coverage_denominator: finite_label_and_PIT_industry_and_positive_market_cap_rows
+  coverage_numerator: denominator_rows_with_finite_candidate_factor
+  rank_ic: mean_daily_spearman_of_neutralized_factor_vs_frozen_label
+  factor_direction_is_not_flipped_during_discovery: true
+  insufficient_observations_policy: counted_response_and_reject_candidate
+
+selection_contract:
+  run_only_after_all_40_completed_responses: true
+  eligible_status: DISCOVERY_EVALUATED
+  promoted_count: 2
+  ordering:
+    - absolute_discovery_rank_ic_desc
+    - discovery_coverage_desc
+    - expression_tokens_asc
+    - global_ordinal_asc
+  fewer_than_two_eligible: PAUSE
+  human_interpretation: deferred_to_D1_3
+  W1_W6_and_G1: forbidden
+
+egress:
+  scheme: https
+  host: api.deepseek.com
+  port: 443
+  path: /chat/completions
+  trust_environment_proxy: false
+
+failure_policy:
+  concurrency: 1
+  transport_retries_per_attempt: 2
+  billing_uncertain: stop_without_automatic_retry
+  model_or_price_change: stop_before_next_request
+  missing_or_invalid_usage: count_response_and_stop
+  discovery_evaluator_error: count_response_and_stop
+  response_schema_or_DSL_failure: count_response_and_continue
+  cost_preflight: reserve_frozen_per_attempt_worst_case_before_each_request
+
+pre_execution_gates:
+  release_commit_pushed_and_HEAD_equals_origin_main: true
+  clean_worktree: true
+  immutable_container_release_manifest: true
+  secret_presence_checked_without_echo: true
+  only_DEEPSEEK_API_KEY_passed_to_container: true
+  TLS_hostname_probe_before_secret_read: true
+  qlib_tree_rehashed_before_first_paid_request: true
+  discovery_input_snapshot_matches_freeze: true
+  scheduler_identity_unchanged_and_healthy: true
