@@ -279,6 +279,149 @@ export interface PaperBundle {
   replay: ReplayData;
 }
 
+export type JsonMetric =
+  | null
+  | boolean
+  | number
+  | string
+  | JsonMetric[]
+  | { [key: string]: JsonMetric };
+
+export interface OperationsStage {
+  stage: string;
+  status: DomainStatus;
+  attempt_count: number;
+  failed_attempt_count: number;
+  recovered: boolean;
+  first_error_type: string | null;
+  terminal_finished_at: string | null;
+  terminal_run_id: string | null;
+  operator?: string | null;
+  evidence_status?: DomainStatus;
+  run_count?: number;
+  event_count?: number;
+}
+
+export interface IncrementalBatch {
+  batch_id: string;
+  source_api: string;
+  row_count: number;
+  ingest_time: string;
+  content_sha256: string;
+}
+
+export interface SentinelResult {
+  sentinel: string;
+  status: DomainStatus;
+  accepted_for_signal: boolean;
+  anomaly_count: number;
+  metrics: Record<string, JsonMetric>;
+}
+
+export interface DataQualityData {
+  status: DomainStatus;
+  evidence_status: DomainStatus;
+  status_reasons: string[];
+  as_of: string;
+  data_snapshot_sha256: string;
+  code_snapshot_sha256: string;
+  daily_increment: OperationsStage & {
+    batch_count: number;
+    market_row_count: number;
+    data_snapshot_sha256: string;
+  };
+  batch_chain: {
+    registered_batch_count: number;
+    registered_row_count: number;
+    source_api_count: number;
+    source_api_batch_counts: Record<string, number>;
+    reconstructed_data_snapshot_sha256: string;
+    incremental_batch_count: number;
+    incremental_batches: IncrementalBatch[];
+    raw_parquet_rehash_status: DomainStatus;
+    raw_parquet_rehash_reason: string;
+  };
+  sentinel_gate: {
+    status: DomainStatus;
+    evidence_status: DomainStatus;
+    binding_status: "IDENTITY_MATCH_UNHASHED";
+    evidence_warning: "SENTINEL_REPORT_NOT_HASH_BOUND";
+    report_generated_at: string;
+    report_sha256: string;
+    required_failures: string[];
+    sentinels: SentinelResult[];
+  };
+  bse_gate: {
+    status: DomainStatus;
+    validated_market_batch_bse_count: number;
+    returned_security_bse_count: number;
+    excluded_bse_reference_count: number;
+  };
+}
+
+export interface SystemRunData {
+  status: DomainStatus;
+  as_of: string;
+  core_status: DomainStatus;
+  notification_status: DomainStatus;
+  core_failure_message_count: number;
+  core_failure_message_ids: string[];
+  stages: OperationsStage[];
+  notifications: {
+    status: DomainStatus;
+    message_count: number;
+    attempt_count: number;
+    failed_attempt_count: number;
+    recovered_message_count: number;
+    legacy_unaddressable_attempt_count: number;
+  };
+  release_identity: {
+    status: DomainStatus;
+    audit_chain_status: DomainStatus;
+    recorded_at: string;
+    image_id: string;
+    code_snapshot_sha256: string;
+    git_head: string;
+    read_only_rootfs: boolean;
+    mount_destinations: string[];
+    live_container_identity_status: DomainStatus;
+    live_container_identity_reason: string;
+    record_sha256: string;
+  };
+  scheduler_heartbeat: {
+    status: "RECORDED";
+    scope: "RECORDED_HEARTBEAT_ONLY";
+    recorded_status: string;
+    detail: string;
+    updated_at: string;
+    freshness_status: DomainStatus;
+  };
+}
+
+export interface NotificationAttempt {
+  attempt: number;
+  delivered_at: string;
+  error_type: string;
+  event: string;
+  max_attempts: number;
+  message_id: string;
+  recovered: boolean;
+  retryable: boolean;
+  source_ref: string;
+  status: DomainStatus;
+}
+
+export interface NotificationData {
+  message_id: string;
+  event: string;
+  status: DomainStatus;
+  attempt_count: number;
+  failed_attempt_count: number;
+  recovered: boolean;
+  duplicate_delivery_risk: boolean;
+  attempts: NotificationAttempt[];
+}
+
 export interface EvidencePayload {
   title: string;
   snapshotId?: string;

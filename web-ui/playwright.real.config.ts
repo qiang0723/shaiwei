@@ -10,6 +10,7 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   use: {
     baseURL: process.env.REAL_BASE_URL ?? "http://host.docker.internal:8080",
+    ...(process.env.P3_BROWSER_CHANNEL === "chrome" ? { channel: "chrome" as const } : {}),
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "off",

@@ -218,6 +218,165 @@ export const signal = {
   turnover: null
 };
 
+export const dataQuality = {
+  status: "PASS",
+  evidence_status: "WARN",
+  status_reasons: ["SENTINEL_REPORT_NOT_HASH_BOUND"],
+  as_of: "2026-07-24",
+  data_snapshot_sha256: B,
+  code_snapshot_sha256: A,
+  daily_increment: {
+    stage: "daily_increment",
+    status: "PASS",
+    attempt_count: 1,
+    failed_attempt_count: 0,
+    recovered: false,
+    first_error_type: null,
+    terminal_finished_at: "2026-07-24T12:06:18+00:00",
+    terminal_run_id: "daily-run-1",
+    operator: "docker-scheduler",
+    batch_count: 1,
+    market_row_count: 5197,
+    data_snapshot_sha256: B
+  },
+  batch_chain: {
+    registered_batch_count: 69020,
+    registered_row_count: 45160002,
+    source_api_count: 2,
+    source_api_batch_counts: { "tushare.daily": 8272, "tushare.adj_factor": 8271 },
+    reconstructed_data_snapshot_sha256: B,
+    incremental_batch_count: 1,
+    incremental_batches: [
+      {
+        batch_id: "batch-001",
+        source_api: "tushare.daily",
+        row_count: 5197,
+        ingest_time: "2026-07-24T12:06:15+00:00",
+        content_sha256: C
+      }
+    ],
+    raw_parquet_rehash_status: "NOT_EVALUATED",
+    raw_parquet_rehash_reason: "P3-2A 不挂载 data/raw"
+  },
+  sentinel_gate: {
+    status: "PASS",
+    evidence_status: "WARN",
+    binding_status: "IDENTITY_MATCH_UNHASHED",
+    evidence_warning: "SENTINEL_REPORT_NOT_HASH_BOUND",
+    report_generated_at: "2026-07-24T12:29:27+00:00",
+    report_sha256: C,
+    required_failures: [],
+    sentinels: Array.from({ length: 10 }, (_, index) => ({
+      sentinel: `S${index + 1}`,
+      status: index === 9 ? "NOT_APPLICABLE" : "PASS",
+      accepted_for_signal: true,
+      anomaly_count: 0,
+      metrics: index === 0 ? { security_count: 5535, excluded_bse_count: 0 } : { checked_rows: 100 + index }
+    }))
+  },
+  bse_gate: {
+    status: "PASS",
+    validated_market_batch_bse_count: 0,
+    returned_security_bse_count: 0,
+    excluded_bse_reference_count: 0
+  }
+};
+
+const stages = [
+  ["daily_increment", 1, 0, false, null],
+  ["sentinels", 1, 0, false, null],
+  ["next_open_reconciliation", 1, 0, false, null],
+  ["shadow_signal", 2, 1, true, "ForwardQlibError"],
+  ["paper_cycle", 1, 0, false, null],
+  ["paper_replay", 1, 0, false, null]
+] as const;
+
+export const systemRuns = {
+  status: "WARN",
+  as_of: "2026-07-24",
+  core_status: "WARN",
+  notification_status: "WARN",
+  core_failure_message_count: 1,
+  core_failure_message_ids: ["ce3bfbf96e9ec474"],
+  stages: stages.map(([stage, attempts, failures, recovered, error], index) => ({
+    stage,
+    status: "PASS",
+    attempt_count: attempts,
+    failed_attempt_count: failures,
+    recovered,
+    first_error_type: error,
+    terminal_finished_at: index === 5 ? null : `2026-07-24T12:${String(10 + index).padStart(2, "0")}:00+00:00`,
+    terminal_run_id: index === 1 || index === 5 ? null : `run-${index}`,
+    ...(index === 1 ? { evidence_status: "WARN" } : {}),
+    ...(index === 5 ? { run_count: 6, event_count: 198 } : {})
+  })),
+  notifications: {
+    status: "WARN",
+    message_count: 9,
+    attempt_count: 11,
+    failed_attempt_count: 1,
+    recovered_message_count: 1,
+    legacy_unaddressable_attempt_count: 40
+  },
+  release_identity: {
+    status: "PASS",
+    audit_chain_status: "PASS",
+    recorded_at: "2026-07-24T12:25:29+00:00",
+    image_id: `sha256:${A}`,
+    code_snapshot_sha256: A,
+    git_head: "e".repeat(40),
+    read_only_rootfs: true,
+    mount_destinations: ["/workspace/data", "/workspace/ledger", "/workspace/logs"],
+    live_container_identity_status: "NOT_EVALUATED",
+    live_container_identity_reason: "Web 查询不挂 Docker socket",
+    record_sha256: B
+  },
+  scheduler_heartbeat: {
+    status: "RECORDED",
+    scope: "RECORDED_HEARTBEAT_ONLY",
+    recorded_status: "noop",
+    detail: "20260725",
+    updated_at: "2026-07-25T13:14:23+00:00",
+    freshness_status: "NOT_EVALUATED"
+  }
+};
+
+export const notification = {
+  message_id: "ce3bfbf96e9ec474",
+  event: "daily_scheduler_cycle_failed",
+  status: "PASS",
+  attempt_count: 2,
+  failed_attempt_count: 1,
+  recovered: true,
+  duplicate_delivery_risk: true,
+  attempts: [
+    {
+      attempt: 1,
+      delivered_at: "2026-07-23T14:42:05+00:00",
+      error_type: "NetworkError",
+      event: "daily_scheduler_cycle_failed",
+      max_attempts: 3,
+      message_id: "ce3bfbf96e9ec474",
+      recovered: false,
+      retryable: true,
+      source_ref: "logs/notifications/feishu_20260723.jsonl",
+      status: "FAIL"
+    },
+    {
+      attempt: 2,
+      delivered_at: "2026-07-23T14:42:08+00:00",
+      error_type: "",
+      event: "daily_scheduler_cycle_failed",
+      max_attempts: 3,
+      message_id: "ce3bfbf96e9ec474",
+      recovered: true,
+      retryable: false,
+      source_ref: "logs/notifications/feishu_20260723.jsonl",
+      status: "PASS"
+    }
+  ]
+};
+
 export function response(data: unknown) {
   return { schema_version: "web-v1", request_id: "e2e-request", data, meta };
 }

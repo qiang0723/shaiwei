@@ -57,8 +57,8 @@
 | 股票池/信号 | `GET /api/v1/signals/latest`、`signals/reconciliation` | 是 | 正式页面与原因展示待 P3-1 |
 | 因子目录与 tear sheet | 无 | 否 | `factor_catalog/factor_detail/factor_compare/factor_admission_history` |
 | 模型/回测 | 无 | 否 | `experiment_summary` |
-| 数据质量 | `GET /api/v1/data-quality` | 是，页面未施工 | 哨兵报告尚未历史哈希绑定，证据状态固定 WARN；原始 Parquet 重哈希 NOT_EVALUATED |
-| 系统运行/通知 | `GET /api/v1/system/runs`、`GET /api/v1/notifications/{message_id}` | 是，页面未施工 | 实时 Docker 身份 NOT_EVALUATED；旧通知 schema 只计数、不可按消息寻址 |
+| 数据质量 | `GET /api/v1/data-quality` | 是，P3-2B 页面已完成 | 哨兵报告尚未历史哈希绑定，证据状态固定 WARN；原始 Parquet 重哈希 NOT_EVALUATED |
+| 系统运行/通知 | `GET /api/v1/system/runs`、`GET /api/v1/notifications/{message_id}` | 是，P3-2B 页面已完成 | 实时 Docker 身份 NOT_EVALUATED；旧通知 schema 只计数、不可按消息寻址 |
 
 ## 3. P3-0 已实现契约与后续提案
 

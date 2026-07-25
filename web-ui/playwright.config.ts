@@ -10,6 +10,7 @@ export default defineConfig({
   expect: { timeout: 7_000 },
   use: {
     baseURL: "http://127.0.0.1:4173",
+    ...(process.env.P3_BROWSER_CHANNEL === "chrome" ? { channel: "chrome" as const } : {}),
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "off",
@@ -23,9 +24,9 @@ export default defineConfig({
     { name: "zoom-400-reflow", use: { ...devices["Desktop Chrome"], viewport: { width: 320, height: 800 } } }
   ],
   webServer: {
-    command: "npm run preview -- --port 4173",
+    command: `"${process.execPath}" ./node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 4173`,
     url: "http://127.0.0.1:4173/overview",
-    reuseExistingServer: false,
+    reuseExistingServer: process.env.P3_REUSE_PREVIEW === "1",
     timeout: 30_000
   }
 });

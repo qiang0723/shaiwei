@@ -20,12 +20,17 @@ const primary = [
   { path: "/signals", label: "股票池 / 信号", short: "信号", icon: <StockOutlined /> }
 ];
 
+const operations = [
+  { path: "/data-quality", label: "数据质量", short: "数据", icon: <DatabaseOutlined /> },
+  { path: "/system-runs", label: "系统运行", short: "运行", icon: <SettingOutlined /> }
+];
+
 const deferred = [
   { label: "因子工厂", icon: <ExperimentOutlined /> },
-  { label: "模型 / 回测", icon: <ApartmentOutlined /> },
-  { label: "数据质量", icon: <DatabaseOutlined /> },
-  { label: "系统运行", icon: <SettingOutlined /> }
+  { label: "模型 / 回测", icon: <ApartmentOutlined /> }
 ];
+
+const mobile = [...primary, ...operations];
 
 export function useAsOf() {
   const { location, navigate } = useRouter();
@@ -56,9 +61,22 @@ function Navigation({ close }: { close?: () => void }) {
           <span>{item.label}</span>
         </RouterLink>
       ))}
+      <div className="nav-group-label deferred-label">运行与证据</div>
+      {operations.map((item) => (
+        <RouterLink
+          key={item.path}
+          to={link(item.path)}
+          onClick={close}
+          className={location.pathname === item.path ? "nav-item active" : "nav-item"}
+          aria-current={location.pathname === item.path ? "page" : undefined}
+        >
+          {item.icon}
+          <span>{item.label}</span>
+        </RouterLink>
+      ))}
       <div className="nav-group-label deferred-label">后续只读能力</div>
       {deferred.map((item) => (
-        <Tooltip title="P3-1 尚未开放查询契约" placement="right" key={item.label}>
+        <Tooltip title="查询契约尚未开放" placement="right" key={item.label}>
           <span className="nav-item disabled" aria-disabled="true">
             {item.icon}
             <span>{item.label}</span>
@@ -134,7 +152,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
 
         <nav className="mobile-bottom-nav" aria-label="移动端主导航">
-          {primary.map((item) => (
+          {mobile.map((item) => (
             <RouterLink
               key={item.path}
               to={link(item.path)}

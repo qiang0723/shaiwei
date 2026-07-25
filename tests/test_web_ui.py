@@ -4,7 +4,7 @@ import re
 from fastapi.testclient import TestClient
 import yaml
 
-from shaiwei.web.ui import create_app
+from shaiwei.web.ui import _allowed_api_path, create_app
 
 
 def _static_fixture(root: Path) -> Path:
@@ -23,7 +23,7 @@ def _static_fixture(root: Path) -> Path:
 
 def test_ui_serves_only_frozen_routes_and_hashed_assets(tmp_path: Path) -> None:
     client = TestClient(create_app(static_root=_static_fixture(tmp_path)))
-    for route in ("/", "/overview", "/paper", "/signals"):
+    for route in ("/", "/overview", "/paper", "/signals", "/data-quality", "/system-runs"):
         response = client.get(route)
         assert response.status_code == 200
         assert response.headers["cache-control"] == "no-store"
@@ -85,3 +85,22 @@ def test_p3_ui_machine_protocol_matches_runtime_boundary() -> None:
     assert config["security"]["unsafe_eval"] is False
     assert config["security"]["ui_host_bind"] == "127.0.0.1"
     assert config["performance"]["initial_gzip_bytes_max"] == 614400
+
+    operations = yaml.safe_load(
+        Path("config/p3_web_operations_ui_v1.yaml").read_text(encoding="utf-8")
+    )
+    assert operations["protocol_id"] == "p3-web-operations-ui-v1"
+    assert operations["routes"] == ["/data-quality", "/system-runs"]
+    assert operations["status_rules"]["data_pass_does_not_override_evidence_warn"] is True
+    assert operations["status_rules"]["core_status_separate_from_notification_status"] is True
+    assert operations["security"]["ui_host_bind"] == "127.0.0.1"
+
+
+def test_operations_proxy_paths_are_exact_and_notification_ids_are_bounded() -> None:
+    assert _allowed_api_path("/api/v1/data-quality")
+    assert _allowed_api_path("/api/v1/system/runs")
+    assert _allowed_api_path("/api/v1/notifications/ce3bfbf96e9ec474")
+    assert not _allowed_api_path("/api/v1/notifications")
+    assert not _allowed_api_path("/api/v1/notifications/CE3BFBF96E9EC474")
+    assert not _allowed_api_path("/api/v1/notifications/ce3bfbf96e9ec474/extra")
+    assert not _allowed_api_path("/api/v1/notifications/../../.env")

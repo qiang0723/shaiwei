@@ -1,7 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { fetchPaperBundle } from "../api";
 import { formatMoney, formatPercentagePoints, formatPercent } from "../format";
-import { assertReplay, assertSignal } from "../validation";
+import { dataVerdictCopy, notificationCopy, systemCoreCopy } from "../operationsPresentation";
+import {
+  assertDataQuality,
+  assertNotification,
+  assertReplay,
+  assertSignal,
+  assertSystemRun
+} from "../validation";
+import { dataQuality, notification, systemRuns } from "../../e2e/fixtures";
 
 const HASH = "a".repeat(64);
 
@@ -234,5 +242,53 @@ describe("financial display formatting", () => {
 
   it("does not round a tiny non-zero ratio to a false zero", () => {
     expect(formatPercent("0.00001")).toContain("<0.01%");
+  });
+});
+
+describe("P3-2B operational evidence contract", () => {
+  it("accepts the frozen data, system and notification shapes", () => {
+    expect(() => assertDataQuality(structuredClone(dataQuality))).not.toThrow();
+    expect(() => assertSystemRun(structuredClone(systemRuns))).not.toThrow();
+    expect(() => assertNotification(structuredClone(notification))).not.toThrow();
+  });
+
+  it("does not allow data PASS to hide evidence WARN or raw-data scope", () => {
+    const hiddenWarning = structuredClone(dataQuality);
+    hiddenWarning.evidence_status = "PASS";
+    expect(() => assertDataQuality(hiddenWarning)).toThrow("证据 WARN");
+
+    const overclaim = structuredClone(dataQuality);
+    overclaim.batch_chain.raw_parquet_rehash_status = "PASS";
+    expect(() => assertDataQuality(overclaim)).toThrow("原始 Parquet");
+  });
+
+  it("preserves a recovered failure and fail-closes on BSE content", () => {
+    const hiddenRecovery = structuredClone(systemRuns);
+    hiddenRecovery.stages[3]!.recovered = false;
+    expect(() => assertSystemRun(hiddenRecovery)).toThrow("隐藏了失败后恢复");
+
+    const bse = structuredClone(dataQuality);
+    (bse.sentinel_gate.sentinels[0]!.metrics as Record<string, unknown>).sample = "920001.BJ";
+    expect(() => assertDataQuality(bse)).toThrow("北交所");
+  });
+
+  it("requires notification attempts to retain the requested message identity", () => {
+    const mismatch = structuredClone(notification);
+    mismatch.attempts[1]!.message_id = "aaaaaaaaaaaaaaaa";
+    expect(() => assertNotification(mismatch)).toThrow("身份不一致");
+  });
+
+  it("never labels a failed or incomplete data gate as passed", () => {
+    expect(dataVerdictCopy("PASS").title).toContain("通过");
+    expect(dataVerdictCopy("FAIL").title).toContain("失败");
+    expect(dataVerdictCopy("NOT_READY").title).toContain("尚未");
+    expect(dataVerdictCopy("FAIL").tone).toBe("negative");
+  });
+
+  it("keeps system and notification copy aligned with their independent states", () => {
+    expect(systemCoreCopy("WARN").title).toContain("失败恢复");
+    expect(systemCoreCopy("FAIL").title).toContain("仍处于失败");
+    expect(notificationCopy("PASS").title).toContain("已完成");
+    expect(notificationCopy("NOT_READY").title).toContain("尚未就绪");
   });
 });

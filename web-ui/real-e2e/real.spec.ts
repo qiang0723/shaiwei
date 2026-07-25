@@ -4,7 +4,9 @@ import { expect, test } from "@playwright/test";
 const pages = [
   { route: "/overview", heading: "今天可信、有效、要行动吗" },
   { route: "/paper", heading: "实际成交后，账户发生了什么" },
-  { route: "/signals", heading: "为什么入选，今天是否需要调仓" }
+  { route: "/signals", heading: "为什么入选，今天是否需要调仓" },
+  { route: "/data-quality", heading: "这批数据，足以支持今天的信号吗" },
+  { route: "/system-runs", heading: "今天的运行闭环，在哪里失败过、是否恢复" }
 ];
 
 test("deployed read-only UI serves real evidence under strict CSP", async ({ page, baseURL }) => {

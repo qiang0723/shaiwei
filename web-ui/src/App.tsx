@@ -10,6 +10,8 @@ import { RouterProvider, useRouter } from "./routing";
 const OverviewPage = lazy(() => import("./pages/OverviewPage"));
 const PaperPage = lazy(() => import("./pages/PaperPage"));
 const SignalsPage = lazy(() => import("./pages/SignalsPage"));
+const DataQualityPage = lazy(() => import("./pages/DataQualityPage"));
+const SystemRunsPage = lazy(() => import("./pages/SystemRunsPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,7 +42,7 @@ function NotFound() {
     <section className="request-error" role="alert">
       <div className="error-kicker">404</div>
       <h1>此只读页面未开放</h1>
-      <p>当前 P3-1 只提供总览、模拟组合和股票池/信号。</p>
+      <p>当前只提供总览、模拟组合、股票池/信号、数据质量和系统运行。</p>
     </section>
   );
 }
@@ -52,6 +54,8 @@ function AppRoutes() {
   else if (location.pathname === "/overview") page = <OverviewPage />;
   else if (location.pathname === "/paper") page = <PaperPage />;
   else if (location.pathname === "/signals") page = <SignalsPage />;
+  else if (location.pathname === "/data-quality") page = <DataQualityPage />;
+  else if (location.pathname === "/system-runs") page = <SystemRunsPage />;
   else page = <NotFound />;
 
   return <AppShell>{page}</AppShell>;

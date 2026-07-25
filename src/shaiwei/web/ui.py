@@ -1,4 +1,4 @@
-"""Local-only P3-1 static UI and narrow reverse proxy for the query service."""
+"""Local-only Web 1.0 static UI and narrow reverse proxy for the query service."""
 
 from __future__ import annotations
 
@@ -17,7 +17,14 @@ from fastapi.responses import FileResponse, Response
 MAX_RESPONSE_BYTES = 1_048_576
 MAX_STATIC_BYTES = 3_145_728
 ALLOWED_METHODS = {"GET", "HEAD"}
-ALLOWED_UI_PATHS = {"/", "/overview", "/paper", "/signals"}
+ALLOWED_UI_PATHS = {
+    "/",
+    "/overview",
+    "/paper",
+    "/signals",
+    "/data-quality",
+    "/system-runs",
+}
 ALLOWED_API_PATHS = {
     "/api/v1/overview",
     "/api/v1/paper/portfolio",
@@ -26,9 +33,16 @@ ALLOWED_API_PATHS = {
     "/api/v1/paper/replay",
     "/api/v1/signals/latest",
     "/api/v1/signals/reconciliation",
+    "/api/v1/data-quality",
+    "/api/v1/system/runs",
 }
+ALLOWED_NOTIFICATION_PATH = re.compile(r"^/api/v1/notifications/[0-9a-f]{16}$")
 ASSET_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 STYLE_NONCE_PLACEHOLDER = b"__P3_STYLE_NONCE__"
+
+
+def _allowed_api_path(path: str) -> bool:
+    return path in ALLOWED_API_PATHS or ALLOWED_NOTIFICATION_PATH.fullmatch(path) is not None
 
 
 def _default_static_root() -> Path:
@@ -133,6 +147,8 @@ def create_app(
     @app.api_route("/overview", methods=["GET", "HEAD"])
     @app.api_route("/paper", methods=["GET", "HEAD"])
     @app.api_route("/signals", methods=["GET", "HEAD"])
+    @app.api_route("/data-quality", methods=["GET", "HEAD"])
+    @app.api_route("/system-runs", methods=["GET", "HEAD"])
     async def page(request: Request) -> Response:
         if request.url.path not in ALLOWED_UI_PATHS:
             return Response("Not found", status_code=404, media_type="text/plain")
@@ -165,7 +181,7 @@ def create_app(
     @app.api_route("/api/{path:path}", methods=["GET", "HEAD"])
     async def proxy(request: Request, path: str) -> Response:
         api_path = f"/api/{path}"
-        if api_path not in ALLOWED_API_PATHS:
+        if not _allowed_api_path(api_path):
             return Response("Not found", status_code=404, media_type="text/plain")
         try:
             async with httpx.AsyncClient(

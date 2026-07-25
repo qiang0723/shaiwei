@@ -2,22 +2,28 @@ import type {
   ApiEnvelope,
   ApiErrorEnvelope,
   ApiMeta,
+  DataQualityData,
   ForwardData,
   NavData,
+  NotificationData,
   OverviewData,
   PaperBundle,
   PortfolioData,
   ReplayData,
-  SignalData
+  SignalData,
+  SystemRunData
 } from "./types";
 import {
+  assertDataQuality,
   assertEnvelope,
   assertForward,
   assertNav,
+  assertNotification,
   assertOverview,
   assertPortfolio,
   assertReplay,
-  assertSignal
+  assertSignal,
+  assertSystemRun
 } from "./validation";
 
 export class UiQueryError extends Error {
@@ -146,4 +152,40 @@ export async function fetchSignal(
   signal: AbortSignal
 ): Promise<ApiEnvelope<SignalData>> {
   return getEnvelope("/api/v1/signals/latest", asOf, signal, assertSignal);
+}
+
+export async function fetchDataQuality(
+  asOf: string | undefined,
+  signal: AbortSignal
+): Promise<ApiEnvelope<DataQualityData>> {
+  return getEnvelope("/api/v1/data-quality", asOf, signal, assertDataQuality);
+}
+
+export async function fetchSystemRuns(
+  asOf: string | undefined,
+  signal: AbortSignal
+): Promise<ApiEnvelope<SystemRunData>> {
+  return getEnvelope("/api/v1/system/runs", asOf, signal, assertSystemRun);
+}
+
+export async function fetchNotification(
+  messageId: string,
+  asOf: string | undefined,
+  signal: AbortSignal
+): Promise<ApiEnvelope<NotificationData>> {
+  if (!/^[0-9a-f]{16}$/.test(messageId)) {
+    throw new UiQueryError("INVALID_ARGUMENT", "通知消息身份格式无效");
+  }
+  const envelope = await getEnvelope(
+    `/api/v1/notifications/${messageId}`,
+    asOf,
+    signal,
+    assertNotification
+  );
+  if (envelope.data.message_id !== messageId) {
+    throw new UiQueryError("EVIDENCE_MISMATCH", "通知响应与请求身份不一致", {
+      requestId: envelope.request_id
+    });
+  }
+  return envelope;
 }

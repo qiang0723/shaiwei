@@ -1,6 +1,17 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { forward, nav, overview, portfolio, replay, response, signal } from "./fixtures";
+import {
+  dataQuality,
+  forward,
+  nav,
+  notification,
+  overview,
+  portfolio,
+  replay,
+  response,
+  signal,
+  systemRuns
+} from "./fixtures";
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
@@ -10,7 +21,13 @@ async function mockApi(page: Page, requests: string[] = []) {
   await page.route("**/api/v1/**", async (route) => {
     const url = new URL(route.request().url());
     requests.push(url.pathname);
-    const data = url.pathname.endsWith("/overview")
+    const data = url.pathname.endsWith("/data-quality")
+      ? dataQuality
+      : url.pathname.endsWith("/system/runs")
+        ? systemRuns
+        : url.pathname.includes("/notifications/")
+          ? notification
+          : url.pathname.endsWith("/overview")
       ? overview
       : url.pathname.endsWith("/portfolio")
         ? portfolio
@@ -97,6 +114,41 @@ test("signals keep planned deltas separate from execution facts", async ({ page 
   await expectNoPageOverflow(page);
 });
 
+test("data quality keeps PASS separate from evidence WARN and does not invent a trend", async ({ page }, testInfo) => {
+  const requests: string[] = [];
+  await mockApi(page, requests);
+  await page.goto("/data-quality?as_of=2026-07-24");
+  await expect(page.getByRole("heading", { name: "这批数据，足以支持今天的信号吗" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "数据门通过，可进入已冻结的信号流程" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "证据仍有明确缺口，不能宣称全量重验" })).toBeVisible();
+  await expect(page.getByText("IDENTITY_MATCH_UNHASHED")).toBeVisible();
+  await expect(page.getByText("NOT_APPLICABLE", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "数据哨兵矩阵" })).toBeVisible();
+  await captureVisual(page, testInfo, "data-quality");
+  expect(requests).toEqual(["/api/v1/data-quality"]);
+  await expectNoPageOverflow(page);
+});
+
+test("system runs preserves recovery and opens notification as a separate snapshot", async ({ page }, testInfo) => {
+  const requests: string[] = [];
+  await mockApi(page, requests);
+  await page.goto("/system-runs");
+  await expect(page.getByRole("heading", { name: "今天的运行闭环，在哪里失败过、是否恢复" })).toBeVisible();
+  await expect(page.getByText("ForwardQlibError", { exact: true })).toBeVisible();
+  await expect(page.getByText("Legacy 不可寻址")).toBeVisible();
+  await captureVisual(page, testInfo, "system-runs");
+  await page.getByRole("button", { name: /ce3bfbf96e9ec474/ }).click();
+  await expect(page.getByText("这是独立证据切片")).toBeVisible();
+  await expect(page.getByText("NetworkError")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: /ce3bfbf96e9ec474/ })).toBeFocused();
+  expect(requests).toEqual([
+    "/api/v1/system/runs",
+    "/api/v1/notifications/ce3bfbf96e9ec474"
+  ]);
+  await expectNoPageOverflow(page);
+});
+
 test("refresh keeps old evidence visible and an error blocks stale numbers before retry", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-1440");
   let attempt = 0;
@@ -139,7 +191,7 @@ test("refresh keeps old evidence visible and an error blocks stale numbers befor
 test("primary routes have no serious or critical axe violations", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-1440" && testInfo.project.name !== "mobile-390");
   await mockApi(page);
-  for (const route of ["/overview", "/paper", "/signals"]) {
+  for (const route of ["/overview", "/paper", "/signals", "/data-quality", "/system-runs"]) {
     await page.goto(route);
     await page.locator("h1").waitFor();
     await expectNoCriticalAccessibilityViolations(page);
