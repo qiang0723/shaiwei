@@ -9,6 +9,7 @@ import pytest
 import yaml
 
 from shaiwei.web.api import create_app
+from shaiwei.web.operations import build_operations_snapshot, notification_for
 from shaiwei.web.query import WebQueryError, build_snapshot
 
 
@@ -109,6 +110,28 @@ PAPER_RUN_FIELDS = [
     "benchmark_nav",
     "freshness_status",
     "error_type",
+    "operator",
+]
+DAILY_RUN_FIELDS = [
+    "run_id",
+    "started_at",
+    "finished_at",
+    "target_trade_date",
+    "status",
+    "batch_count",
+    "row_count",
+    "data_snapshot_sha256",
+    "error_type",
+    "operator",
+]
+INGEST_FIELDS = [
+    "batch_id",
+    "ingest_time",
+    "source_api",
+    "params_json",
+    "row_count",
+    "parquet_path",
+    "content_sha256",
     "operator",
 ]
 
@@ -306,15 +329,73 @@ def _fixture(root: Path) -> str:
         "data/shadow/reconciliations",
         "data/paper",
         "logs/notifications",
+        "logs/releases",
+        "logs/scheduler",
+        "logs/sentinels",
         "ledger",
     ):
         (root / relative).mkdir(parents=True, exist_ok=True)
+    ingest_rows = [
+        {
+            "batch_id": "batch-daily",
+            "ingest_time": "2026-07-24T11:25:00+00:00",
+            "source_api": "tushare.daily",
+            "params_json": json.dumps({"trade_date": "20260724"}, sort_keys=True),
+            "row_count": 1,
+            "parquet_path": "data/raw/redacted-daily.parquet",
+            "content_sha256": "c" * 64,
+            "operator": "docker-scheduler",
+        },
+        {
+            "batch_id": "batch-index",
+            "ingest_time": "2026-07-24T11:26:00+00:00",
+            "source_api": "tushare.index_daily",
+            "params_json": json.dumps(
+                {"trade_date": "20260724", "ts_code": "000906.SH"},
+                sort_keys=True,
+            ),
+            "row_count": 1,
+            "parquet_path": "data/raw/redacted-index.parquet",
+            "content_sha256": "d" * 64,
+            "operator": "docker-scheduler",
+        },
+    ]
+    ingest_identity = [
+        {
+            "batch_id": row["batch_id"],
+            "source_api": row["source_api"],
+            "params_json": json.loads(str(row["params_json"])),
+            "row_count": row["row_count"],
+            "content_sha256": row["content_sha256"],
+        }
+        for row in ingest_rows
+    ]
+    data_hash = _hash(ingest_identity)
+    _write_csv(root / "ledger/ingest_batches.csv", INGEST_FIELDS, ingest_rows)
+    _write_csv(
+        root / "ledger/daily_runs.csv",
+        DAILY_RUN_FIELDS,
+        [
+            {
+                "run_id": "daily1",
+                "started_at": "2026-07-24T11:20:00+00:00",
+                "finished_at": "2026-07-24T11:30:00+00:00",
+                "target_trade_date": "20260724",
+                "status": "PASS",
+                "batch_count": 2,
+                "row_count": 2,
+                "data_snapshot_sha256": data_hash,
+                "error_type": "",
+                "operator": "docker-scheduler",
+            }
+        ],
+    )
     signal_payload = {
         "schema_version": 2,
         "signal_date": "2026-07-24",
         "data_complete_at": "2026-07-24T11:30:00+00:00",
         "generated_at": "2026-07-24T12:00:00+00:00",
-        "data_snapshot_sha256": "6" * 64,
+        "data_snapshot_sha256": data_hash,
         "code_commit": "abc",
         "code_snapshot_sha256": "7" * 64,
         "qlib_artifact_sha256": "8" * 64,
@@ -353,12 +434,12 @@ def _fixture(root: Path) -> str:
                 "signal_trade_date": "20260724",
                 "status": "PASS",
                 "daily_run_id": "daily1",
-                "data_snapshot_sha256": "6" * 64,
+                "data_snapshot_sha256": data_hash,
                 "code_snapshot_sha256": "7" * 64,
                 "qlib_artifact_sha256": "8" * 64,
                 "model_spec_sha256": "9" * 64,
                 "model_artifact_sha256": "b" * 64,
-                "sentinel_report_path": "redacted",
+                "sentinel_report_path": "logs/sentinels/fixture.json",
                 "signal_manifest_path": signal_relative,
                 "signal_sha256": signal_hash,
                 "rebalance_due": "false",
@@ -366,6 +447,36 @@ def _fixture(root: Path) -> str:
                 "operator": "docker-scheduler",
             }
         ],
+    )
+    sentinel_results = [
+        {
+            "sentinel": f"S{index}",
+            "status": "NOT_APPLICABLE" if index == 10 else "PASS",
+            "metrics": (
+                {"security_count": 1, "excluded_bse_count": 3, "anomaly_count": 0}
+                if index == 1
+                else {"checked_rows": 1}
+            ),
+            "anomalies": [],
+        }
+        for index in range(1, 11)
+    ]
+    (root / "logs/sentinels/fixture.json").write_text(
+        json.dumps(
+            {
+                "generated_at": "2026-07-24T11:45:00+00:00",
+                "git_head": "a" * 40,
+                "code_snapshot_sha256": "7" * 64,
+                "data_snapshot_sha256": data_hash,
+                "required_failures": [],
+                "results": sentinel_results,
+            },
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
     )
     _write_csv(
         root / "ledger/shadow_reconciliations.csv",
@@ -458,6 +569,38 @@ def _fixture(root: Path) -> str:
         "".join(json.dumps(row, sort_keys=True) + "\n" for row in notification_rows),
         encoding="utf-8",
     )
+    release_unsigned = {
+        "schema_version": "shaiwei-scheduler-release-audit-v1",
+        "event": "START_PASS",
+        "recorded_at": "2026-07-24T11:29:00+00:00",
+        "git_head": "a" * 40,
+        "previous_record_sha256": "",
+        "details": {
+            "code_snapshot_sha256": "7" * 64,
+            "container_id": "f" * 64,
+            "git_head": "a" * 40,
+            "image_id": f"sha256:{'e' * 64}",
+            "mount_destinations": ["/workspace/data", "/workspace/ledger", "/workspace/logs"],
+            "read_only_rootfs": True,
+        },
+    }
+    release = {**release_unsigned, "record_sha256": _hash(release_unsigned)}
+    (root / "logs/releases/scheduler_releases.jsonl").write_text(
+        json.dumps(release, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (root / "logs/scheduler/health.json").write_text(
+        json.dumps(
+            {
+                "detail": "20260724",
+                "pid": 999,
+                "status": "noop",
+                "updated_at": "2026-07-24T12:05:00+00:00",
+            },
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
     return signal_hash
 
 
@@ -531,6 +674,158 @@ def test_api_is_allowlisted_sanitized_and_idempotent(tmp_path: Path):
     assert client.get("/api/v1/not-allowed").status_code == 404
 
 
+def test_operations_snapshot_profiles_quality_without_overclaiming_raw_rehash(tmp_path: Path):
+    _fixture(tmp_path)
+    first = build_operations_snapshot(project_root=tmp_path)
+    second = build_operations_snapshot(project_root=tmp_path)
+
+    assert first.snapshot_id == second.snapshot_id
+    quality = first.data_quality
+    assert quality["status"] == "PASS"
+    assert quality["evidence_status"] == "WARN"
+    assert quality["status_reasons"] == ["SENTINEL_REPORT_NOT_HASH_BOUND"]
+    assert quality["batch_chain"]["registered_batch_count"] == 2
+    assert quality["batch_chain"]["incremental_batch_count"] == 2
+    assert quality["batch_chain"]["raw_parquet_rehash_status"] == "NOT_EVALUATED"
+    assert quality["batch_chain"]["reconstructed_data_snapshot_sha256"] == quality[
+        "data_snapshot_sha256"
+    ]
+    assert len(quality["sentinel_gate"]["sentinels"]) == 10
+    assert quality["sentinel_gate"]["binding_status"] == "IDENTITY_MATCH_UNHASHED"
+    assert quality["bse_gate"]["validated_market_batch_bse_count"] == 0
+    assert all("params_json" not in row for row in quality["batch_chain"]["incremental_batches"])
+    assert all("parquet_path" not in row for row in quality["batch_chain"]["incremental_batches"])
+
+    system = first.system_run
+    assert system["status"] == "NOT_READY"
+    assert system["release_identity"]["status"] == "PASS"
+    assert system["release_identity"]["live_container_identity_status"] == "NOT_EVALUATED"
+    assert system["scheduler_heartbeat"]["recorded_status"] == "noop"
+    assert "pid" not in system["scheduler_heartbeat"]
+
+
+def test_operations_fail_closed_on_ingest_or_sentinel_tampering(tmp_path: Path):
+    _fixture(tmp_path)
+    ingest_path = tmp_path / "ledger/ingest_batches.csv"
+    rows = list(csv.DictReader(ingest_path.open()))
+    rows[0]["content_sha256"] = "0" * 64
+    _write_csv(ingest_path, INGEST_FIELDS, rows)
+    with pytest.raises(WebQueryError, match="身份链") as ingest_error:
+        build_operations_snapshot(project_root=tmp_path)
+    assert ingest_error.value.code == "EVIDENCE_MISMATCH"
+
+    _fixture(tmp_path)
+    sentinel_path = tmp_path / "logs/sentinels/fixture.json"
+    sentinel = json.loads(sentinel_path.read_text(encoding="utf-8"))
+    sentinel["generated_at"] = "2026-07-24T12:01:00+00:00"
+    sentinel_path.write_text(json.dumps(sentinel), encoding="utf-8")
+    with pytest.raises(WebQueryError, match="时钟") as sentinel_error:
+        build_operations_snapshot(project_root=tmp_path)
+    assert sentinel_error.value.code == "EVIDENCE_MISMATCH"
+
+
+def test_notification_contract_preserves_attempts_and_exposes_no_body(tmp_path: Path):
+    _fixture(tmp_path)
+    (tmp_path / "logs/notifications/feishu_20260722.jsonl").write_text(
+        json.dumps(
+            {
+                "delivered_at": "2026-07-22T12:00:00+00:00",
+                "event": "shadow_signal_completed",
+                "status": "PASS",
+            },
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    path = tmp_path / "logs/notifications/feishu_20260724.jsonl"
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    message_id = "0123456789abcdef"
+    rows.extend(
+        [
+            {
+                "attempt": 1,
+                "delivered_at": "2026-07-24T12:06:00+00:00",
+                "error_type": "NETWORK_TimeoutError",
+                "event": "paper_cycle_completed",
+                "max_attempts": 3,
+                "message_id": message_id,
+                "recovered": False,
+                "retryable": True,
+                "status": "FAIL",
+            },
+            {
+                "attempt": 2,
+                "delivered_at": "2026-07-24T12:06:01+00:00",
+                "error_type": "",
+                "event": "paper_cycle_completed",
+                "max_attempts": 3,
+                "message_id": message_id,
+                "recovered": True,
+                "retryable": False,
+                "status": "PASS",
+            },
+        ]
+    )
+    path.write_text("".join(json.dumps(row, sort_keys=True) + "\n" for row in rows), encoding="utf-8")
+    bundle = build_operations_snapshot(project_root=tmp_path)
+    assert bundle.system_run["notifications"]["legacy_unaddressable_attempt_count"] == 1
+    summary = notification_for(bundle, message_id)
+    assert summary["status"] == "PASS"
+    assert summary["failed_attempt_count"] == 1
+    assert summary["recovered"] is True
+    assert [row["attempt"] for row in summary["attempts"]] == [1, 2]
+    serialized = json.dumps(summary)
+    assert "webhook" not in serialized.lower()
+    assert "signature" not in serialized.lower()
+
+    rows.append(
+        {
+            "attempt": 1,
+            "delivered_at": "2026-07-24T12:07:00+00:00",
+            "error_type": "",
+            "event": "paper_cycle_started",
+            "max_attempts": 3,
+            "message_id": "",
+            "recovered": False,
+            "retryable": False,
+            "status": "PASS",
+        }
+    )
+    path.write_text("".join(json.dumps(row, sort_keys=True) + "\n" for row in rows), encoding="utf-8")
+    with pytest.raises(WebQueryError, match="缺少消息身份"):
+        build_operations_snapshot(project_root=tmp_path)
+
+
+def test_release_audit_chain_is_fail_closed(tmp_path: Path):
+    _fixture(tmp_path)
+    path = tmp_path / "logs/releases/scheduler_releases.jsonl"
+    release = json.loads(path.read_text(encoding="utf-8"))
+    release["details"]["read_only_rootfs"] = False
+    path.write_text(json.dumps(release) + "\n", encoding="utf-8")
+    with pytest.raises(WebQueryError, match="哈希不一致") as error:
+        build_operations_snapshot(project_root=tmp_path)
+    assert error.value.code == "EVIDENCE_MISMATCH"
+
+
+def test_operations_api_and_message_id_validation(tmp_path: Path):
+    _fixture(tmp_path)
+    client = TestClient(create_app(tmp_path))
+    quality = client.get("/api/v1/data-quality")
+    system = client.get("/api/v1/system/runs")
+    assert quality.status_code == 200
+    assert quality.json()["data"]["status"] == "PASS"
+    assert system.status_code == 200
+    assert client.head("/api/v1/data-quality").status_code == 200
+    assert client.post("/api/v1/system/runs").status_code == 405
+    invalid = client.get("/api/v1/notifications/not-valid")
+    assert invalid.status_code == 422
+    assert invalid.json()["error"]["code"] == "INVALID_ARGUMENT"
+    missing = client.get("/api/v1/notifications/0123456789abcdef")
+    assert missing.status_code == 404
+    assert missing.json()["error"]["code"] == "NO_DATA"
+
+
 def test_web_compose_is_default_off_and_has_no_production_write_surface():
     root = Path(__file__).parents[1]
     compose = yaml.safe_load((root / "compose.web.yaml").read_text(encoding="utf-8"))
@@ -564,6 +859,9 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
         "/workspace/data/shadow/signals",
         "/workspace/data/shadow/reconciliations",
         "/workspace/logs/notifications",
+        "/workspace/logs/releases",
+        "/workspace/logs/scheduler",
+        "/workspace/logs/sentinels",
     }
     assert all(value["read_only"] is True for value in query["volumes"])
     assert all(value["target"] != "/workspace" for value in query["volumes"])

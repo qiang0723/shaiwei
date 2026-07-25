@@ -1,7 +1,7 @@
 # Web 1.0 查询契约映射（v1.0）
 
 > 本文区分“已实现只读查询”和“Web 需求提案”。2026-07-25 P3-0 已将 P-WEB-01/02/03/03A
-> 落地为 HTTP 只读契约；P-WEB-04—07 仍只是提案。
+> 落地为 HTTP 只读契约；P3-2A 已落地 P-WEB-05/06。P-WEB-04/07 仍只是提案。
 
 ## 1. 已实现契约
 
@@ -57,8 +57,8 @@
 | 股票池/信号 | `GET /api/v1/signals/latest`、`signals/reconciliation` | 是 | 正式页面与原因展示待 P3-1 |
 | 因子目录与 tear sheet | 无 | 否 | `factor_catalog/factor_detail/factor_compare/factor_admission_history` |
 | 模型/回测 | 无 | 否 | `experiment_summary` |
-| 数据质量 | 无 | 否 | `data_quality_summary` |
-| 系统运行/通知 | 无 | 否 | `system_run_summary`、`notification_delivery_summary` |
+| 数据质量 | `GET /api/v1/data-quality` | 是，页面未施工 | 哨兵报告尚未历史哈希绑定，证据状态固定 WARN；原始 Parquet 重哈希 NOT_EVALUATED |
+| 系统运行/通知 | `GET /api/v1/system/runs`、`GET /api/v1/notifications/{message_id}` | 是，页面未施工 | 实时 Docker 身份 NOT_EVALUATED；旧通知 schema 只计数、不可按消息寻址 |
 
 ## 3. P3-0 已实现契约与后续提案
 
@@ -101,13 +101,30 @@
 
 目的：返回实验身份、窗口、参数、指标、判决、失败原因和产物引用；失败实验必须可查。
 
-### P-WEB-05 `data_quality_summary(as_of)`
+### P-WEB-05 `data_quality_summary(as_of)`（P3-2A 已实现）
 
-目的：返回批次、覆盖、S1-S10、异常、重哈希和 `.BJ` 排除；合法空、未适用和缺失分开。
+端点：`GET/HEAD /api/v1/data-quality`。
 
-### P-WEB-06 `system_run_summary(as_of)` 与 `notification_delivery_summary(message_id)`
+目的：返回日增量终态、截止运行完成时刻的采集账本身份链、当日批次、S1-S10、异常计数和
+`.BJ` 排除。合法空、未适用和缺失分开。
 
-目的：核心任务和通知分离。通知保留每次 attempt、错误类型、retryable、recovered、重复消息风险，不能覆盖失败尝试。
+当前边界：查询会以 69,000+ 批次登记身份重算 `data_snapshot_sha256`，但不挂载 `data/raw`，因此
+`raw_parquet_rehash_status=NOT_EVALUATED`。现有信号/影子账本未保存哨兵报告哈希，故十项均通过时
+`status=PASS` 但 `evidence_status=WARN / binding_status=IDENTITY_MATCH_UNHASHED`；不得合成全绿。
+异常逐行证券、`params_json` 和 Parquet 路径不返回。
+
+### P-WEB-06 `system_run_summary(as_of)` 与 `notification_delivery_summary(message_id)`（P3-2A 已实现）
+
+端点：`GET/HEAD /api/v1/system/runs`、
+`GET/HEAD /api/v1/notifications/{message_id}`。
+
+目的：核心任务和通知分离。固定步骤为日增量、哨兵、次日对账、影子信号、模拟仓和账本重放；
+保留每个步骤的失败尝试与恢复。通知按稳定消息 ID 保留每次 attempt、错误类型、retryable、
+recovered 和重复投递风险，不能覆盖失败尝试。
+
+release 审计链会逐条验哈希并返回运行前最后一个已登记 `START_PASS` 身份；查询不挂 Docker socket，
+因此实时容器身份保持 `NOT_EVALUATED`。2026-07-23 前无 message ID 的 legacy 通知只计数，不合成
+ID，也不进入当前重试统计。
 
 ### P-WEB-07 因子工厂四组契约
 
@@ -169,4 +186,6 @@
 - 只读挂载采用 allowlist，根文件系统只读，非 root、无 Docker socket、无任意路径/SQL；
 - `web-query` 不映射宿主端口，由 `web-ui` 在内部网络反向代理；宿主只开放 `127.0.0.1` 的 UI 端口；
 - `web` profile 启动时必须显式点名 `web-query web-ui`，避免 Compose 同时纳入未设置 profile 的生产服务；
+- P3-2A 只新增 `logs/sentinels`、`logs/releases`、`logs/scheduler` 三个只读挂载；仍不挂
+  `data/raw` 或 Docker socket；
 - 详细裁决见 `WEB_ARCHITECTURE_RULINGS_20260723.md` R2。

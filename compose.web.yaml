@@ -69,6 +69,24 @@ services:
         read_only: true
         bind:
           create_host_path: false
+      - type: bind
+        source: ./logs/sentinels
+        target: /workspace/logs/sentinels
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./logs/releases
+        target: /workspace/logs/releases
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./logs/scheduler
+        target: /workspace/logs/scheduler
+        read_only: true
+        bind:
+          create_host_path: false
     networks: [web-internal]
     healthcheck:
       test:

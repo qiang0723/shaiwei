@@ -11,6 +11,11 @@ from fastapi import FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import Response
 
+from shaiwei.web.operations import (
+    OperationsBundle,
+    build_operations_snapshot,
+    notification_for,
+)
 from shaiwei.web.query import (
     SCHEMA_VERSION,
     SnapshotBundle,
@@ -72,7 +77,7 @@ def _json_response(
 
 def _success(
     request: Request,
-    bundle: SnapshotBundle,
+    bundle: SnapshotBundle | OperationsBundle,
     data: dict[str, object],
 ) -> Response:
     return _json_response(
@@ -161,6 +166,9 @@ def create_app(project_root: Path | None = None) -> FastAPI:
     def snapshot(as_of: str | None) -> SnapshotBundle:
         return build_snapshot(as_of, project_root=root)
 
+    def operations_snapshot(as_of: str | None) -> OperationsBundle:
+        return build_operations_snapshot(as_of, project_root=root)
+
     @app.api_route("/healthz", methods=["GET", "HEAD"])
     async def health(request: Request) -> Response:
         return _json_response(
@@ -223,6 +231,25 @@ def create_app(project_root: Path | None = None) -> FastAPI:
             bundle,
             reconciliation_for(bundle, signal_sha256),
         )
+
+    @app.api_route("/api/v1/data-quality", methods=["GET", "HEAD"])
+    async def data_quality(request: Request, as_of: str | None = None) -> Response:
+        bundle = operations_snapshot(as_of)
+        return _success(request, bundle, bundle.data_quality)
+
+    @app.api_route("/api/v1/system/runs", methods=["GET", "HEAD"])
+    async def system_runs(request: Request, as_of: str | None = None) -> Response:
+        bundle = operations_snapshot(as_of)
+        return _success(request, bundle, bundle.system_run)
+
+    @app.api_route("/api/v1/notifications/{message_id}", methods=["GET", "HEAD"])
+    async def notification_delivery(
+        request: Request,
+        message_id: str,
+        as_of: str | None = None,
+    ) -> Response:
+        bundle = operations_snapshot(as_of)
+        return _success(request, bundle, notification_for(bundle, message_id))
 
     return app
 

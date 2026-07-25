@@ -3,8 +3,9 @@
 > 只定义展示语义，不修改后台口径。`I`=已有只读查询可直接支持，`P`=需求提案，`H`=已有历史/后台证据但尚无页面查询。前端只能使用 `I`；`P/H` 在契约落地前只用于原型示例。
 >
 > 2026-07-25 更新：P3-0 已实现原子总览、逐仓投影、FORWARD 锚点、最新信号和次日对账。
-> 本表原 `P` 标记保留设计来源；实际可用性以 `WEB_QUERY_CONTRACTS.md` 和
-> `P3_WEB_QUERY_ACCEPTANCE_20260725.md` 为准。实验、数据质量、完整运行和因子工厂仍未实现。
+> 本表原 `P` 标记保留设计来源；实际可用性以 `WEB_QUERY_CONTRACTS.md`、
+> `P3_WEB_QUERY_ACCEPTANCE_20260725.md` 和 `P3_WEB_OPERATIONS_ACCEPTANCE_20260725.md` 为准。
+> 数据质量与系统运行查询已实现但页面未施工；实验和因子工厂仍未实现。
 
 ## 1. 通用字段
 
@@ -108,10 +109,13 @@
 | 机器名 | 展示名 | 定义 | 空值与状态 | 来源 | 状态 |
 |---|---|---|---|---|---|
 | `window_net_excess` | 窗口扣费超额 | 每个预注册 OOS 窗口的扣费后超额 | 窗口缺失=`NO_DATA` | `experiment_summary` 提案 | H/P |
-| `sentinel_status` | 哨兵状态 | S1-S10 后台报告结论 | 未适用与缺失分开 | `data_quality_summary` 提案 | H/P |
-| `bse_count` | 北交所计数 | 当前对象中的 `.BJ` 行/订单/持仓数 | 必须为 0；非 0=`FAIL` | 各页面查询提案 | H/P |
-| `task_status` | 核心任务状态 | 调度周期的核心执行结论 | 不与通知合并 | `system_run_summary` 提案 | H/P |
-| `notification_status` | 通知状态 | 同一逻辑消息多次 attempt 的最终投递状态 | 失败保留；恢复不覆盖失败 | `notification_delivery_summary` 提案 | H/P |
+| `sentinel_status` | 哨兵状态 | S1-S10 后台报告结论 | 未适用与缺失分开；报告未历史哈希绑定时证据 WARN | `GET /api/v1/data-quality` | I |
+| `bse_count` | 北交所计数 | 当前对象中的 `.BJ` 行/订单/持仓数 | 必须为 0；非 0=`FAIL` | 现有页面与数据质量查询 | I |
+| `task_status` | 核心任务状态 | 调度周期的核心执行结论 | 不与通知合并；失败后恢复为 WARN | `GET /api/v1/system/runs` | I |
+| `notification_status` | 通知状态 | 同一逻辑消息多次 attempt 的最终投递状态 | 失败保留；恢复不覆盖失败 | `GET /api/v1/notifications/{message_id}` | I |
+| `registered_batch_count` | 登记批次 | 截止日运行完成时进入数据快照的批次数 | 只证明登记身份链；不等于原始文件重哈希 | `GET /api/v1/data-quality` | I |
+| `raw_parquet_rehash_status` | 原始文件重验 | 查询时是否逐字重哈希原始 Parquet | P3-2A 固定 `NOT_EVALUATED` | `GET /api/v1/data-quality` | I |
+| `sentinel_evidence_status` | 哨兵证据完整性 | 哨兵报告是否有历史时点哈希绑定 | 当前固定 WARN/`IDENTITY_MATCH_UNHASHED` | `GET /api/v1/data-quality` | I |
 | `replay_status` | 账本重放 | 独立重放全部账户日的结论 | 非 PASS 禁止可信组合结论 | `verify_paper_replay.status` | I |
 | `replay_run_count` | 重放账户日 | 重放覆盖的 PASS run 数 | 无 run=`NO_DATA` | `verify_paper_replay.run_count` | I |
 | `replay_event_count` | 重放事件数 | 重放核对的事件总数 | 无事件=`NO_DATA` | `verify_paper_replay.event_count` | I |
