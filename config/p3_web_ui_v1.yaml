@@ -59,7 +59,7 @@ dependencies:
   node_image: node:22-bookworm-slim@sha256:6c74791e557ce11fc957704f6d4fe134a7bc8d6f5ca4403205b2966bd488f6b3
   react: 19.2.8
   react_dom: 19.2.8
-  react_router_dom: 7.18.1
+  react_router_dom: 7.11.0
   antd: 6.5.2
   ant_design_icons: 6.3.2
   ant_design_charts: 2.6.7
