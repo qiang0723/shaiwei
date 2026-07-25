@@ -1,0 +1,147 @@
+protocol_id: p3-factor-factory-ui-v1
+schema_version: web-v1
+timezone: Asia/Shanghai
+status: FROZEN_BEFORE_IMPLEMENTATION
+read_only: true
+
+routes:
+  - /factors
+  - /factors/{factor_id}
+  - /factors/compare
+  - /factors/{factor_id}/admissions
+
+api_mapping:
+  factor_catalog:
+    path: /api/v1/factors
+    parameters: [status, family, data_category, as_of]
+  factor_detail:
+    path: /api/v1/factors/{factor_id}
+    parameters: [version, as_of]
+  factor_compare:
+    path: /api/v1/factors/compare
+    parameters: [version]
+    minimum_versions: 2
+    maximum_versions: 3
+  factor_admission_history:
+    path: /api/v1/factors/{factor_id}/admissions
+    parameters: [as_of]
+
+transport_metadata_correction:
+  research_meta_as_of_must_be_iso_date: true
+  explicit_as_of_echoes_normalized_request: true
+  latest_as_of_uses_projection_generated_date_asia_shanghai: true
+  changes_research_payload_or_authority: false
+
+page_contract:
+  primary_question: which_factors_deserve_further_research_and_why_they_failed
+  reading_order:
+    - conclusion_and_library_state
+    - catalog_filters_and_actions
+    - single_factor_tear_sheet
+    - strict_factor_comparison
+    - append_only_admission_history
+    - evidence
+  formal_library_empty_is_primary_fact: true
+  default_catalog_status: ALL
+  catalog_sort_control: false
+  performance_ranking: false
+  alpha_score: false
+  star_rating: false
+  best_factor_action: false
+  detail_and_history_same_snapshot_required: true
+  historical_as_of_compare_enabled: false
+  unavailable_sections:
+    - coverage_ratio
+    - quantile_returns_and_monotonicity
+    - factor_autocorrelation
+    - candidate_pool_correlation
+  unavailable_status: NOT_EVALUATED
+  unavailable_recomputed: false
+
+catalog_filters:
+  status: [ALL, ADMITTED, REJECTED, HISTORICAL_ONLY]
+  family: backend_returned_values_only
+  data_category: backend_returned_values_only
+  version: no_free_filter
+  decision: no_free_filter
+
+comparison:
+  current_authoritative_versions_only: true
+  backend_fingerprint_is_final_arbiter: true
+  cross_family_selection_prevented_in_ui: true
+  preserves_request_order: true
+  sorted_by_performance: false
+  conflict_renders_no_charts: true
+  charts:
+    - six_oos_window_rank_ic
+    - stress_max_drawdown
+  accessible_equivalent_tables_required: true
+
+navigation:
+  desktop_group: research
+  active_path_prefix: /factors
+  deferred_routes:
+    - model_backtest
+  mobile_primary_routes:
+    - /overview
+    - /factors
+    - /paper
+  mobile_more_contains:
+    - /signals
+    - /data-quality
+    - /system-runs
+
+responsive_viewports:
+  desktop: [1440, 900]
+  laptop: [1024, 768]
+  tablet: [768, 1024]
+  mobile: [390, 844]
+  minimum_reflow_width: 320
+  zoom_percent: 400
+
+accessibility:
+  target: WCAG-2.2-AA
+  axe_critical_max: 0
+  axe_serious_max: 0
+  minimum_target_css_px: 24
+  keyboard_required: true
+  focus_return_required: true
+  reduced_motion_required: true
+  chart_text_equivalent_required: true
+
+performance:
+  initial_gzip_bytes_max: 614400
+  all_route_gzip_bytes_max: 2621440
+  localhost_first_content_seconds_max: 2
+  api_timeout_seconds: 5
+  automatic_retry_count: 0
+
+security:
+  ui_host_bind: 127.0.0.1
+  query_host_port: null
+  load_dotenv: false
+  external_assets: false
+  inline_script: false
+  unsafe_eval: false
+  root_read_only: true
+  run_as_non_root: true
+  docker_socket: false
+  dynamic_factor_id_pattern: "^[0-9a-f]{64}$"
+  dynamic_factor_version_pattern: "^[0-9a-f]{12}$"
+  dynamic_ui_routes:
+    - /factors/{factor_id}
+    - /factors/{factor_id}/admissions
+
+forbidden:
+  - backend_research_metric_recalculation
+  - factor_or_gate_mutation
+  - raw_json_or_daily_series
+  - cross_snapshot_merge
+  - historical_and_latest_comparison_merge
+  - performance_ranking
+  - browser_file_scan
+  - export
+  - remote_access
+  - scheduler_control
+  - order_or_trade_control
+  - bse_security
