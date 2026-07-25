@@ -1,0 +1,267 @@
+schema_version: d1-llm-factor-research-protocol-draft-v1
+protocol_id: d1-llm-dsl-v1
+prepared_at: "2026-07-25T14:02:23+08:00"
+status: DRAFT_FOR_USER_REVIEW
+execution_authorized: false
+production_authorization: none
+strategy_results_inspected: false
+llm_api_called: false
+
+scope:
+  purpose: compare_bounded_llm_dsl_evolution_with_existing_gp_reference
+  first_arm_only: true
+  persistent_research_service: false
+  production_model_changes: false
+  scheduler_changes: false
+  web_changes: false
+  guanxiang_access: false
+
+identity:
+  research_family: d1-llm-dsl-v1
+  candidate_source: DeepSeek-CogAlpha-lite
+  result_root: data/research/d1/d1-llm-dsl-v1
+  raw_response_root: data/research/d1/d1-llm-dsl-v1/raw
+  sanitized_manifest: config/d1_llm_factor_research_manifest_v1.json
+  experiment_ledger: ledger/experiments.csv
+  llm_attempt_ledger_proposed: ledger/llm_factor_attempts.csv
+  factor_admission_ledger: ledger/factor_admissions.csv
+
+frozen_reference:
+  gp_research_family: stage1-gp-preflight-v1
+  gp_report: logs/benchmark/alphagen_cpu_20260716T083751.176558Z.json
+  gp_report_sha256: 6e9958df32011cde56442ed8dd4ad8a64af2d227202c579d2f92cfd914f5e031
+  gp_final_candidate_count: 40
+  gp_final_valid_candidate_count: 4
+  gp_family_total_trial_count: 166
+  gp_reference_role: descriptive_and_reproducible_not_dsr_matched
+  reset_gp_family_trial_count_forbidden: true
+
+data_contract:
+  universe: csi800
+  index_code: 000906.SH
+  requested_discovery_period: ["2016-01-01", "2018-12-31"]
+  effective_discovery_period: ["2016-06-01", "2018-12-31"]
+  minimum_daily_ic_observations: 252
+  features: [$open, $close, $high, $low, $volume, $vwap]
+  pit_neutralization: [sw_l1_industry, market_cap]
+  maximum_lookback_trade_days: 50
+  label_and_evaluation: identical_to_stage1_gp_preflight_v1
+  moneyflow_features: false
+  financial_features: false
+  guanxiang_features: false
+  knowledge_cutoff: "2026-07-25T23:59:59+08:00"
+  retrospective_discovery: true
+
+candidate_contract:
+  representation: allowlisted_expression_dsl_only
+  one_completed_response_one_candidate: true
+  arbitrary_python: false
+  file_access: false
+  network_access: false
+  environment_access: false
+  dynamic_execution: false
+  shell_access: false
+  maximum_expression_tokens: 20
+  maximum_ast_nodes: 80
+  allowed_operators:
+    - Abs
+    - Log
+    - Add
+    - Sub
+    - Mul
+    - Div
+    - Greater
+    - Less
+    - Ref
+    - Mean
+    - Sum
+    - Std
+    - Var
+    - Max
+    - Min
+    - Med
+    - Mad
+    - Delta
+    - WMA
+    - EMA
+    - Cov
+    - Corr
+  duplicate_policy: count_attempt_and_reject_candidate
+  syntax_or_sandbox_failure_policy: count_attempt_and_reject_candidate
+  multiple_candidates_in_one_response_policy: count_attempt_and_reject_response
+  llm_rationale_is_human_rationale: false
+
+attempt_budget:
+  completed_llm_responses_exact: 40
+  early_stop_for_performance: false
+  topic_order:
+    - trend_momentum
+    - reversal_mean_reversion
+    - volatility_range
+    - liquidity_volume
+    - price_volume_state
+  attempts_per_topic: 8
+  topic_schedule:
+    independent_proposals: 4
+    bounded_mutations: 4
+  feedback_scope: same_topic_discovery_only
+  feedback_inputs:
+    - parser_and_sandbox_status
+    - canonical_ast_identity
+    - discovery_rank_ic
+    - coverage
+    - complexity
+  forbidden_feedback_inputs:
+    - W1_W6
+    - stress_periods
+    - G1_admission
+    - forward_results
+  repair_response_consumes_attempt: true
+  duplicate_response_consumes_attempt: true
+  empty_or_truncated_response_consumes_attempt: true
+  provider_transport_retry_without_completed_response_consumes_attempt: false
+  maximum_transport_retries_per_attempt: 2
+
+provider:
+  name: deepseek
+  base_url: https://api.deepseek.com
+  api_key_environment_variable: DEEPSEEK_API_KEY
+  api_key_must_not_be_logged_or_tracked: true
+  model: deepseek-v4-pro
+  model_version_observed_on_2026_07_25: DeepSeek-V4-Pro
+  thinking: enabled
+  reasoning_effort: high
+  temperature: null
+  response_format: json_object
+  strict_beta_tool_calling: false
+  tool_calls: false
+  concurrency: 1
+  maximum_prompt_tokens_per_attempt: 16000
+  maximum_output_tokens_per_attempt: 8000
+  response_model_change_policy: fail_closed
+  request_timeout_seconds: 900
+  context_cache:
+    provider_managed: true
+    reproducibility_dependency: false
+    record_hit_and_miss_tokens: true
+
+cost_budget:
+  currency: USD
+  pricing_observed_at: "2026-07-25"
+  pro_input_cache_hit_per_million: 0.003625
+  pro_input_cache_miss_per_million: 0.435
+  pro_output_per_million: 0.87
+  planned_worst_case_all_cache_miss_usd: 0.5568
+  hard_ceiling_usd: 0.75
+  price_change_policy: fail_closed_before_first_request
+  unknown_or_missing_usage_policy: fail_closed
+  billing_reconciliation_required: true
+
+knowledge_contract:
+  live_web_search_during_first_arm: false
+  source_manifest_required_before_execution: true
+  source_manifest_status: PENDING_D1_1
+  source_types:
+    - primary_research_paper
+    - official_exchange_or_regulator_rule
+    - official_open_source_repository
+  each_source_requires:
+    - source_url
+    - publisher_or_authors
+    - published_at
+    - retrieved_at
+    - content_sha256
+    - license_or_usage_basis
+    - authored_summary_sha256
+  full_text_prompting_default: false
+  prompt_injection_quarantine: true
+  numeric_factor_values_from_knowledge_sources: false
+  later_publication_must_be_labeled_retrospective: true
+
+memory_contract:
+  positive_and_negative_memory: true
+  first_arm_scope: same_topic_only
+  store_full_prompt_and_response_in_gitignored_project_data: true
+  track_only_sanitized_hash_manifest: true
+  model_self_judgment_is_verdict: false
+  failure_classes:
+    - provider_transport
+    - empty_or_truncated_output
+    - schema_invalid
+    - syntax_invalid
+    - sandbox_rejected
+    - duplicate_ast
+    - insufficient_coverage
+    - discovery_weak
+    - g1_rejected
+
+human_checkpoint:
+  deterministic_top_candidates: 2
+  occurs_after_discovery_before_W1_W6: true
+  candidate_replacement_after_human_reject: false
+  human_economic_rationale_required_for_G1: true
+  llm_rationale_recorded_as_non_authoritative: true
+
+evaluation:
+  g1_spec: g1-v1
+  g1_rules_unchanged: true
+  promoted_candidates: 2
+  all_failures_count_in_research_family_N: true
+  known_gp_reference_reuse_only: true
+  create_clean_gp_family_to_reduce_N: false
+  primary_first_arm_verdict:
+    GO_BOUNDED_PILOT: at_least_one_candidate_passes_all_G1_gates
+    PAUSE: no_candidate_passes_all_G1_gates
+  secondary_diagnostics:
+    - valid_candidate_yield_vs_gp_final_4_of_40
+    - best_discovery_absolute_rank_ic_vs_gp_0_020142255831229593
+    - candidate_net_icir_vs_same_budget_baseline
+    - candidate_net_excess_vs_same_budget_baseline
+    - ast_and_factor_correlation_vs_gp_candidates
+    - token_and_cost_per_valid_candidate
+  forbidden_claims:
+    - bit_reproducible_llm_generation
+    - historically_contemporaneous_discovery
+    - DSR_matched_head_to_head_with_legacy_gp
+    - strategy_effectiveness_before_G1
+    - production_readiness_from_historical_G1
+
+phases:
+  D1_0:
+    deliverable: architecture_and_protocol_review
+    llm_calls: 0
+  D1_1:
+    deliverable: control_plane_ledger_dsl_sandbox_and_synthetic_fixture
+    llm_calls: 0
+    real_market_results: false
+  D1_2:
+    deliverable: exactly_40_blind_generation_and_discovery_attempts
+    requires_user_budget_approval: true
+  D1_3:
+    deliverable: human_checkpoint_and_frozen_G1_evaluation
+    requires_separate_authorization: true
+  D1_4:
+    deliverable: bounded_recurring_research_pilot
+    requires_D1_3_GO: true
+
+pre_execution_gates:
+  protocol_frozen_and_pushed_before_api_call: true
+  git_head_equals_origin_main: true
+  clean_worktree: true
+  source_manifest_complete_and_hashed: true
+  prompt_and_schema_hashes_frozen: true
+  provider_price_and_model_rechecked: true
+  secret_present_but_never_printed: true
+  mock_provider_and_sandbox_tests_pass: true
+  scheduler_healthy_and_immutable: true
+  high_load_tasks_serial: true
+
+deferred:
+  - arbitrary_python_factor_programs
+  - RD_Agent_runtime_adoption
+  - QuantaAlpha_runtime_adoption
+  - live_knowledge_radar
+  - guanxiang_snapshot_bridge
+  - moneyflow_or_financial_data_in_first_arm
+  - automatic_factor_admission
+  - production_signal_or_portfolio_control
