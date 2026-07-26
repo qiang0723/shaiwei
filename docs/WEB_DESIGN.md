@@ -3,6 +3,10 @@
 > 状态：v1.0，2026-07-23 经用户确认并完成主控架构复核，冻结为 Web 1.0 初始设计基线。2026-07-26 P3-3C 完成因子工厂，P3-4B 完成模型/回测目录与详情；七类本机只读页面已具备真实入口，仍不授权交易、写后台或远程开放。
 >
 > 设计真身：本文件 + `WEB_METRIC_DICTIONARY.md` + `WEB_QUERY_CONTRACTS.md` + `WEB_WIREFRAMES.md` + `WEB_RESEARCH.md` + `WEB_ARCHITECTURE_RULINGS_20260723.md`。
+>
+> 2026-07-26 展示层更新：Web 1.1 的信息架构、视觉层级、响应式和组件协议以
+> `WEB_1_1_REDESIGN_PROTOCOL_20260726.md` 为真身；指标、查询、安全与部署边界仍以上述 Web 1.0
+> 文档和主控架构裁决为真身。现状问题见 `WEB_1_1_CURRENT_STATE_AUDIT_20260726.md`。
 
 ## 1. 冻结结论
 
