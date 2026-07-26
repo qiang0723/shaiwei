@@ -1,0 +1,36 @@
+schema_version: "paper-comparison-account-protocol-v1"
+protocol_id: "paper-top20-v1"
+protocol_status: "FROZEN_BEFORE_RESULTS"
+frozen_on: "2026-07-26"
+production_authorization: "PENDING_ENGINEERING_ACCEPTANCE"
+
+paper_portfolio:
+  enabled: true
+  account_id: "model_top20"
+  initial_cash: 500000.0
+  currency: "RMB"
+  benchmark: "000906.SH"
+  execution_policy_version: "paper-top20-v1"
+  forward_start_date: "2026-07-23"
+  commission_rate: 0.0003
+  minimum_commission: 5.0
+  stamp_tax_rate: 0.0005
+  transfer_fee_rate: 0.00001
+  main_board_lot_size: 100
+  star_minimum_lot: 200
+  st_main_ten_percent_effective: "2026-07-06"
+  stale_price_trade_days: 20
+  accounting_tolerance: 0.01
+  source_account_id: "model_baseline"
+  source_signal_topk: 30
+  target_topk: 20
+  target_projection: "rank_head_equal_weight"
+  target_weight: 0.05
+  rebalance_days: 10
+
+result_firewall:
+  strategy_results_inspected_before_freeze: false
+  baseline_account_must_remain_byte_immutable: true
+  production_scheduler_must_remain_on_last_good_release_until_acceptance: true
+  strategy_effective: "NOT_EVALUATED"
+
