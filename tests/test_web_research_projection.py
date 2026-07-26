@@ -4,11 +4,13 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 import pytest
+import yaml
 
 from shaiwei.web.api import create_app
 from shaiwei.web.query import WebQueryError
 from shaiwei.web.research_projection import (
     ResearchProjectionBundle,
+    experiment_catalog,
     experiment_summary,
     factor_admission_history,
     factor_catalog,
@@ -189,6 +191,11 @@ def _bundle() -> ResearchProjectionBundle:
     data = {
         "schema_version": "web-v1",
         "protocol_id": "p3-factor-experiment-query-v1",
+        "protocol_ids": [
+            "p3-factor-experiment-query-v1",
+            "p3-experiment-catalog-v1",
+        ],
+        "catalog_protocol_id": "p3-experiment-catalog-v1",
         "snapshot_id": "f" * 64,
         "generated_at": "2026-07-24T00:00:01+00:00",
         "timezone": "Asia/Shanghai",
@@ -242,6 +249,7 @@ def _write_projection(root: Path, bundle: ResearchProjectionBundle) -> None:
     manifest = {
         "schema_version": "research-projection-manifest-v1",
         "protocol_id": bundle.protocol_id,
+        "protocol_ids": bundle.data.get("protocol_ids", [bundle.protocol_id]),
         "snapshot_id": bundle.snapshot_id,
         "generated_at": bundle.generated_at,
         "bundle_file": "bundle.json",
@@ -337,6 +345,142 @@ def test_projection_loader_api_and_invalidated_experiment_are_typed(tmp_path: Pa
     assert len(detail.content) < 1_048_576
 
 
+def test_experiment_catalog_is_typed_stable_filtered_and_bounded(tmp_path: Path):
+    expected = _bundle()
+    _write_projection(tmp_path, expected)
+    loaded = load_research_projection(tmp_path)
+
+    catalog = experiment_catalog(loaded, limit=2)
+    assert catalog["catalog_protocol_id"] == "p3-experiment-catalog-v1"
+    assert catalog["counters"] == {
+        "projected_total_count": 4,
+        "as_of_count": 4,
+        "filtered_count": 4,
+        "returned_count": 2,
+        "kind_counts": {
+            "p2_effect_correction": 1,
+            "p2_effect_original": 1,
+            "p2_engineering_run": 0,
+            "research_experiment": 2,
+        },
+    }
+    assert catalog["sorted_by_performance"] is False
+    assert catalog["page"]["next_offset"] == 2
+    second = experiment_catalog(loaded, offset=2, limit=2)
+    first_ids = {
+        (row["experiment_kind"], row["experiment_id"])
+        for row in catalog["items"]
+    }
+    second_ids = {
+        (row["experiment_kind"], row["experiment_id"])
+        for row in second["items"]
+    }
+    assert first_ids.isdisjoint(second_ids)
+    assert first_ids | second_ids == {
+        ("p2_effect_correction", "p2-new"),
+        ("p2_effect_original", "p2-old"),
+        ("research_experiment", "d1-reviewed"),
+        ("research_experiment", "d1-unreviewed"),
+    }
+    outcomes = {
+        row["experiment_id"]: row["outcome_status"]
+        for row in catalog["items"] + second["items"]
+    }
+    assert outcomes == {
+        "d1-reviewed": "REVIEW_STOPPED",
+        "d1-unreviewed": "DISCOVERY_ONLY",
+        "p2-new": "HISTORICAL_EFFECT_REJECTED",
+        "p2-old": "INVALIDATED_METHOD",
+    }
+    stopped = experiment_catalog(loaded, outcome_status="REVIEW_STOPPED")
+    assert [row["experiment_id"] for row in stopped["items"]] == ["d1-reviewed"]
+    historical = experiment_catalog(loaded, as_of="2026-07-23")
+    assert historical["items"] == []
+    assert historical["historical_response_banner"]
+    with pytest.raises(WebQueryError) as unknown:
+        experiment_catalog(loaded, outcome_status="BEST")
+    assert unknown.value.code == "INVALID_ARGUMENT"
+    with pytest.raises(WebQueryError) as oversized:
+        experiment_catalog(loaded, limit=101)
+    assert oversized.value.code == "INVALID_ARGUMENT"
+
+    client = TestClient(create_app(tmp_path))
+    response = client.get("/api/v1/experiments?limit=2")
+    assert response.status_code == 200
+    assert response.json()["data"]["counters"]["projected_total_count"] == 4
+    assert response.json()["meta"]["as_of"] == "2026-07-24"
+    assert client.head("/api/v1/experiments").status_code == 200
+    assert client.post("/api/v1/experiments").status_code == 405
+    assert client.get("/api/v1/experiments?sort=performance").status_code == 422
+    assert client.get("/api/v1/experiments?limit=2&limit=3").status_code == 422
+    assert '"decision"' not in response.text
+    assert "params_json" not in response.text
+    assert "result_json" not in response.text
+
+
+@pytest.mark.parametrize(
+    ("kind", "tier", "authority", "lifecycle", "expected"),
+    [
+        ("research_experiment", "BASELINE_BACKTEST", "RECORDED_EXPERIMENT", "COMPLETED", "RECORDED"),
+        ("research_experiment", "SHADOW_SIGNAL", "RECORDED_EXPERIMENT", "FAILED", "FAILED"),
+        ("research_experiment", "GP_DISCOVERY_ATTEMPT", "DISCOVERY_ONLY", "DISCOVERY_ATTEMPT", "DISCOVERY_ONLY"),
+        ("research_experiment", "D1_DISCOVERY_ATTEMPT_WITH_REVIEW_OVERLAY", "DISCOVERY_ONLY", "REJECT", "DISCOVERY_REJECTED"),
+        ("research_experiment", "G1_FACTOR_DECISION", "AUTHORITATIVE_CURRENT", "REJECTED", "G1_REJECTED"),
+        ("research_experiment", "G1_FACTOR_DECISION", "AUTHORITATIVE_CURRENT", "ADMITTED", "G1_ADMITTED"),
+        ("research_experiment", "D1_DISCOVERY_ATTEMPT_WITH_REVIEW_OVERLAY", "AUTHORITATIVE_STOP", "REVIEW_STOPPED", "REVIEW_STOPPED"),
+        ("p2_engineering_run", "P2_ENGINEERING", "AUTHORITATIVE_CURRENT", "ENGINEERING_GO_ONLY", "ENGINEERING_GO_ONLY"),
+        ("p2_effect_correction", "P2_EFFECT_AUTHORITATIVE", "AUTHORITATIVE_CURRENT", "REJECTED", "HISTORICAL_EFFECT_REJECTED"),
+        ("p2_effect_original", "P2_EFFECT_INVALIDATED", "INVALIDATED_METHOD", "REJECTED", "INVALIDATED_METHOD"),
+    ],
+)
+def test_experiment_catalog_outcome_contract_is_exhaustive(
+    kind: str,
+    tier: str,
+    authority: str,
+    lifecycle: str,
+    expected: str,
+):
+    bundle = _bundle()
+    row = {
+        "experiment_kind": kind,
+        "experiment_id": "fixture-outcome",
+        "recorded_at": "2026-07-24T00:00:00+00:00",
+        "research_family": "fixture-family",
+        "evidence_tier": tier,
+        "authority_status": authority,
+        "lifecycle_status": lifecycle,
+        "model_or_engine": "fixture",
+        "engine_version": "fixture",
+        "failed_reasons": [],
+        "evidence_status": "VERIFIED",
+    }
+    bundle.data["experiments"] = {
+        name: ({"fixture-outcome": row} if name == kind else {})
+        for name in (
+            "research_experiment",
+            "p2_engineering_run",
+            "p2_effect_original",
+            "p2_effect_correction",
+        )
+    }
+    assert experiment_catalog(bundle)["items"][0]["outcome_status"] == expected
+
+
+def test_experiment_catalog_unknown_outcome_and_missing_field_fail_closed():
+    bundle = _bundle()
+    row = bundle.data["experiments"]["research_experiment"]["d1-unreviewed"]
+    row["lifecycle_status"] = "UNKNOWN_NEW_STATE"
+    with pytest.raises(WebQueryError) as unknown:
+        experiment_catalog(bundle)
+    assert unknown.value.code == "NOT_EVALUATED"
+
+    row["lifecycle_status"] = "DISCOVERY_EVALUATED"
+    del row["engine_version"]
+    with pytest.raises(WebQueryError) as missing:
+        experiment_catalog(bundle)
+    assert missing.value.code == "EVIDENCE_MISMATCH"
+
+
 def test_projection_manifest_tampering_and_symbolic_link_fail_closed(tmp_path: Path):
     expected = _bundle()
     _write_projection(tmp_path, expected)
@@ -357,3 +501,17 @@ def test_projection_manifest_tampering_and_symbolic_link_fail_closed(tmp_path: P
     with pytest.raises(WebQueryError) as linked:
         load_research_projection(tmp_path)
     assert linked.value.code == "NOT_READY"
+
+
+def test_experiment_catalog_machine_protocol_is_frozen_and_narrow():
+    config = yaml.safe_load(
+        Path("config/p3_experiment_catalog_v1.yaml").read_text(encoding="utf-8")
+    )
+    assert config["protocol_id"] == "p3-experiment-catalog-v1"
+    assert config["status"] == "FROZEN_BEFORE_IMPLEMENTATION"
+    assert config["source_scope"]["projected_total_count_at_freeze"] == 783
+    assert config["query"]["maximum_limit"] == 100
+    assert config["query"]["performance_sort"] is False
+    assert config["scope"]["page_authorized"] is False
+    assert config["scope"]["ui_proxy_authorized"] is False
+    assert config["security"]["numeric_metrics_returned"] is False

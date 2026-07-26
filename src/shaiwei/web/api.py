@@ -26,6 +26,7 @@ from shaiwei.web.query import (
 )
 from shaiwei.web.research_projection import (
     ResearchProjectionBundle,
+    experiment_catalog,
     experiment_summary,
     factor_admission_history,
     factor_catalog,
@@ -302,6 +303,63 @@ def create_app(project_root: Path | None = None) -> FastAPI:
             request,
             bundle,
             factor_detail(bundle, factor_id, version=version, as_of=as_of),
+            meta=bundle.meta_for(as_of),
+        )
+
+    @app.api_route(
+        "/api/v1/experiments",
+        methods=["GET", "HEAD"],
+    )
+    async def experiments_catalog(
+        request: Request,
+        experiment_kind: str | None = None,
+        research_family: str | None = None,
+        evidence_tier: str | None = None,
+        authority_status: str | None = None,
+        lifecycle_status: str | None = None,
+        outcome_status: str | None = None,
+        evidence_status: str | None = None,
+        as_of: str | None = None,
+        offset: int = Query(0, ge=0),
+        limit: int = Query(25, ge=1, le=100),
+    ) -> Response:
+        allowed_parameters = {
+            "experiment_kind",
+            "research_family",
+            "evidence_tier",
+            "authority_status",
+            "lifecycle_status",
+            "outcome_status",
+            "evidence_status",
+            "as_of",
+            "offset",
+            "limit",
+        }
+        if set(request.query_params) - allowed_parameters or any(
+            len(request.query_params.getlist(key)) > 1 for key in allowed_parameters
+        ):
+            raise WebQueryError(
+                "INVALID_ARGUMENT",
+                "实验目录包含未知或重复查询参数",
+                status_code=422,
+            )
+        bundle = research_snapshot()
+        return _success(
+            request,
+            bundle,
+            experiment_catalog(
+                bundle,
+                experiment_kind=experiment_kind,
+                research_family=research_family,
+                evidence_tier=evidence_tier,
+                authority_status=authority_status,
+                lifecycle_status=lifecycle_status,
+                outcome_status=outcome_status,
+                evidence_status=evidence_status,
+                as_of=as_of,
+                offset=offset,
+                limit=limit,
+            ),
             meta=bundle.meta_for(as_of),
         )
 

@@ -22,6 +22,8 @@ from shaiwei.web.query import SCHEMA_VERSION, TIMEZONE, WebQueryError
 
 
 PROTOCOL_PATH = "config/p3_factor_experiment_queries_v1.yaml"
+CATALOG_PROTOCOL_PATH = "config/p3_experiment_catalog_v1.yaml"
+CATALOG_PROTOCOL_ID = "p3-experiment-catalog-v1"
 DEFAULT_OUTPUT = "data/web/research_snapshots"
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 BSE_RE = re.compile(r"(?<!\d)\d{6}\.BJ(?![A-Z])")
@@ -31,6 +33,18 @@ ALLOWED_EXPERIMENT_KINDS = {
     "p2_engineering_run",
     "p2_effect_original",
     "p2_effect_correction",
+}
+CATALOG_OUTCOMES = {
+    "RECORDED",
+    "FAILED",
+    "DISCOVERY_ONLY",
+    "DISCOVERY_REJECTED",
+    "G1_REJECTED",
+    "G1_ADMITTED",
+    "REVIEW_STOPPED",
+    "ENGINEERING_GO_ONLY",
+    "HISTORICAL_EFFECT_REJECTED",
+    "INVALIDATED_METHOD",
 }
 UNAVAILABLE_SECTIONS = (
     "coverage_ratio",
@@ -624,12 +638,22 @@ def _p2_summaries(config: dict[str, Any], reader: _Reader) -> dict[str, dict[str
 def _build_bundle(root: Path) -> tuple[dict[str, Any], dict[str, str]]:
     reader = _Reader(root)
     config_payload = reader.read(PROTOCOL_PATH, ("config/",))
+    catalog_config_payload = reader.read(CATALOG_PROTOCOL_PATH, ("config/",))
     try:
         config = yaml.safe_load(config_payload)
+        catalog_config = yaml.safe_load(catalog_config_payload)
     except yaml.YAMLError as error:
-        raise WebQueryError("EVIDENCE_MISMATCH", "P3-3A 配置无法解析") from error
+        raise WebQueryError("EVIDENCE_MISMATCH", "研究查询配置无法解析") from error
     if not isinstance(config, dict) or config.get("status") != "FROZEN_BEFORE_BACKEND_IMPLEMENTATION":
         raise WebQueryError("EVIDENCE_MISMATCH", "P3-3A 配置未冻结")
+    if (
+        not isinstance(catalog_config, dict)
+        or catalog_config.get("status") != "FROZEN_BEFORE_IMPLEMENTATION"
+        or catalog_config.get("protocol_id") != CATALOG_PROTOCOL_ID
+        or catalog_config.get("depends_on", {}).get("projection_protocol")
+        != config.get("protocol_id")
+    ):
+        raise WebQueryError("EVIDENCE_MISMATCH", "P3-4A 配置未冻结或依赖无效")
     for path in config["source_allowlist"]["ledgers"]:
         reader.csv_rows(path)
     d1_correction: dict[str, Any] | None = None
@@ -690,10 +714,15 @@ def _build_bundle(root: Path) -> tuple[dict[str, Any], dict[str, str]]:
     source_hashes["builder:shaiwei.web.research_projection"] = _sha256_bytes(
         Path(__file__).read_bytes()
     )
-    snapshot_id = _sha256({"protocol_id": config["protocol_id"], "source_hashes": source_hashes})
+    protocol_ids = [config["protocol_id"], catalog_config["protocol_id"]]
+    snapshot_id = _sha256(
+        {"protocol_ids": protocol_ids, "source_hashes": source_hashes}
+    )
     bundle = {
         "schema_version": SCHEMA_VERSION,
         "protocol_id": config["protocol_id"],
+        "protocol_ids": protocol_ids,
+        "catalog_protocol_id": catalog_config["protocol_id"],
         "snapshot_id": snapshot_id,
         "generated_at": generated_at,
         "timezone": TIMEZONE,
@@ -731,6 +760,7 @@ def build_research_projection(
     manifest = {
         "schema_version": "research-projection-manifest-v1",
         "protocol_id": bundle["protocol_id"],
+        "protocol_ids": bundle["protocol_ids"],
         "snapshot_id": snapshot_id,
         "generated_at": bundle["generated_at"],
         "bundle_file": "bundle.json",
@@ -811,7 +841,7 @@ def load_research_projection(
 ) -> ResearchProjectionBundle:
     output = _projection_root(project_root, output_root)
     if snapshot_id is None:
-        candidates: list[tuple[datetime, str]] = []
+        candidates: list[tuple[datetime, int, str]] = []
         for path in output.iterdir():
             if path.is_symlink() or not path.is_dir() or not SHA256_RE.fullmatch(path.name):
                 continue
@@ -819,12 +849,28 @@ def load_research_projection(
             if manifest_path.is_file() and not manifest_path.is_symlink():
                 try:
                     manifest = json.loads(manifest_path.read_bytes())
-                    candidates.append((_parse_timestamp(manifest["generated_at"]), path.name))
+                    protocol_ids = manifest.get(
+                        "protocol_ids", [manifest.get("protocol_id")]
+                    )
+                    if not isinstance(protocol_ids, list) or any(
+                        not isinstance(value, str) for value in protocol_ids
+                    ):
+                        raise WebQueryError(
+                            "EVIDENCE_MISMATCH", "研究投影协议身份无效"
+                        )
+                    catalog_rank = int(CATALOG_PROTOCOL_ID in protocol_ids)
+                    candidates.append(
+                        (
+                            _parse_timestamp(manifest["generated_at"]),
+                            catalog_rank,
+                            path.name,
+                        )
+                    )
                 except (json.JSONDecodeError, KeyError, WebQueryError):
                     raise WebQueryError("EVIDENCE_MISMATCH", "研究投影 manifest 无效") from None
         if not candidates:
             raise WebQueryError("NOT_READY", "研究投影尚未构建", status_code=503)
-        snapshot_id = max(candidates)[1]
+        snapshot_id = max(candidates)[2]
     if not SHA256_RE.fullmatch(snapshot_id):
         raise WebQueryError("INVALID_ARGUMENT", "研究投影 snapshot_id 无效", status_code=422)
     directory = output / snapshot_id
@@ -839,12 +885,21 @@ def load_research_projection(
         bundle = json.loads(bundle_payload)
     except json.JSONDecodeError as error:
         raise WebQueryError("EVIDENCE_MISMATCH", "研究投影 JSON 无效") from error
+    manifest_protocol_ids = manifest.get(
+        "protocol_ids", [manifest.get("protocol_id")]
+    )
+    bundle_protocol_ids = bundle.get("protocol_ids", [bundle.get("protocol_id")])
     if (
-        manifest.get("snapshot_id") != snapshot_id
+        not isinstance(manifest_protocol_ids, list)
+        or not isinstance(bundle_protocol_ids, list)
+        or any(not isinstance(value, str) for value in manifest_protocol_ids)
+        or any(not isinstance(value, str) for value in bundle_protocol_ids)
+        or manifest.get("snapshot_id") != snapshot_id
         or bundle.get("snapshot_id") != snapshot_id
         or manifest.get("bundle_sha256") != _sha256_bytes(bundle_payload)
         or manifest.get("bundle_bytes") != len(bundle_payload)
         or manifest.get("protocol_id") != bundle.get("protocol_id")
+        or manifest_protocol_ids != bundle_protocol_ids
     ):
         raise WebQueryError("EVIDENCE_MISMATCH", "研究投影哈希绑定无效")
     _check_no_bse(bundle)
@@ -990,6 +1045,237 @@ def factor_compare(bundle: ResearchProjectionBundle, factor_versions: list[str])
             "cost_and_slippage": item["detail"]["cost_and_slippage_stress"],
         } for item in selected],
         "sorted_by_performance": False,
+    }
+
+
+def _experiment_outcome(row: dict[str, Any]) -> str:
+    kind = str(row.get("experiment_kind", ""))
+    tier = str(row.get("evidence_tier", ""))
+    authority = str(row.get("authority_status", ""))
+    lifecycle = str(row.get("lifecycle_status", ""))
+
+    if authority == "INVALIDATED_METHOD":
+        outcome = "INVALIDATED_METHOD"
+    elif authority == "AUTHORITATIVE_STOP" and lifecycle == "REVIEW_STOPPED":
+        outcome = "REVIEW_STOPPED"
+    elif kind == "p2_engineering_run" and lifecycle == "ENGINEERING_GO_ONLY":
+        outcome = "ENGINEERING_GO_ONLY"
+    elif (
+        kind == "p2_effect_correction"
+        and authority == "AUTHORITATIVE_CURRENT"
+        and lifecycle == "REJECTED"
+    ):
+        outcome = "HISTORICAL_EFFECT_REJECTED"
+    elif tier == "G1_FACTOR_DECISION" and authority in {
+        "AUTHORITATIVE_CURRENT",
+        "HISTORICAL_NON_AUTHORITATIVE",
+        "SUPERSEDED_ENGINEERING_GENERATION",
+    }:
+        if lifecycle in {"REJECT", "REJECTED"}:
+            outcome = "G1_REJECTED"
+        elif lifecycle == "ADMITTED":
+            outcome = "G1_ADMITTED"
+        else:
+            raise WebQueryError("NOT_EVALUATED", "G1 实验目录状态组合未冻结")
+    elif tier == "D1_DISCOVERY_ATTEMPT_WITH_REVIEW_OVERLAY":
+        if lifecycle == "REJECT":
+            outcome = "DISCOVERY_REJECTED"
+        elif lifecycle in {"DISCOVERY_ATTEMPT", "DISCOVERY_EVALUATED"}:
+            outcome = "DISCOVERY_ONLY"
+        elif lifecycle == "FAILED":
+            outcome = "FAILED"
+        else:
+            raise WebQueryError("NOT_EVALUATED", "D1 实验目录状态组合未冻结")
+    elif tier in {"GP_DISCOVERY_ATTEMPT", "GP_STAGE1_ATTEMPT"}:
+        if lifecycle == "FAILED":
+            outcome = "FAILED"
+        elif lifecycle == "DISCOVERY_ATTEMPT":
+            outcome = "DISCOVERY_ONLY"
+        else:
+            raise WebQueryError("NOT_EVALUATED", "GP 实验目录状态组合未冻结")
+    elif tier in {"BASELINE_BACKTEST", "SHADOW_SIGNAL", "FORWARD_SHADOW_SIGNAL"}:
+        if lifecycle == "FAILED":
+            outcome = "FAILED"
+        elif lifecycle == "COMPLETED":
+            outcome = "RECORDED"
+        else:
+            raise WebQueryError("NOT_EVALUATED", "基线或信号目录状态组合未冻结")
+    elif tier == "G1_FACTOR_DECISION" and authority == "RECORDED_EXPERIMENT":
+        if lifecycle == "FAILED":
+            outcome = "FAILED"
+        elif lifecycle == "COMPLETED":
+            outcome = "RECORDED"
+        else:
+            raise WebQueryError("NOT_EVALUATED", "未提交 G1 的实验状态组合未冻结")
+    else:
+        raise WebQueryError("NOT_EVALUATED", "实验目录 adapter/outcome 组合未冻结")
+    if outcome not in CATALOG_OUTCOMES:
+        raise WebQueryError("EVIDENCE_MISMATCH", "实验目录 outcome 不在冻结枚举")
+    return outcome
+
+
+def _experiment_catalog_row(row: dict[str, Any]) -> dict[str, Any]:
+    item_keys = (
+        "experiment_kind",
+        "experiment_id",
+        "recorded_at",
+        "research_family",
+        "evidence_tier",
+        "authority_status",
+        "lifecycle_status",
+        "model_or_engine",
+        "engine_version",
+        "evidence_status",
+    )
+    if any(key not in row or not isinstance(row[key], str) for key in item_keys):
+        raise WebQueryError("EVIDENCE_MISMATCH", "实验目录必需字段缺失或类型无效")
+    failed_reasons = row.get("failed_reasons")
+    if not isinstance(failed_reasons, list) or any(
+        not isinstance(value, str) for value in failed_reasons
+    ):
+        raise WebQueryError("EVIDENCE_MISMATCH", "实验失败原因格式无效")
+    return {
+        key: row[key]
+        for key in item_keys
+    } | {
+        "outcome_status": _experiment_outcome(row),
+        "failed_reason_count": len(failed_reasons),
+    }
+
+
+def _experiment_catalog_rows(bundle: ResearchProjectionBundle) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    experiments = bundle.data.get("experiments")
+    if not isinstance(experiments, dict):
+        raise WebQueryError("EVIDENCE_MISMATCH", "实验投影目录缺失")
+    for kind, values in experiments.items():
+        if kind not in ALLOWED_EXPERIMENT_KINDS or not isinstance(values, dict):
+            raise WebQueryError("EVIDENCE_MISMATCH", "实验投影 kind 无效")
+        for experiment_id_value, row in values.items():
+            if not isinstance(row, dict):
+                raise WebQueryError("EVIDENCE_MISMATCH", "实验投影行无效")
+            identity = (kind, experiment_id_value)
+            if identity in seen:
+                raise WebQueryError("EVIDENCE_MISMATCH", "实验目录身份重复")
+            if (
+                row.get("experiment_kind") != kind
+                or row.get("experiment_id") != experiment_id_value
+            ):
+                raise WebQueryError("EVIDENCE_MISMATCH", "实验目录身份与投影键不一致")
+            seen.add(identity)
+            rows.append(_experiment_catalog_row(row))
+    return rows
+
+
+def experiment_catalog(
+    bundle: ResearchProjectionBundle,
+    *,
+    experiment_kind: str | None = None,
+    research_family: str | None = None,
+    evidence_tier: str | None = None,
+    authority_status: str | None = None,
+    lifecycle_status: str | None = None,
+    outcome_status: str | None = None,
+    evidence_status: str | None = None,
+    as_of: str | None = None,
+    offset: int = 0,
+    limit: int = 25,
+) -> dict[str, Any]:
+    if bundle.data.get("catalog_protocol_id") != CATALOG_PROTOCOL_ID:
+        raise WebQueryError(
+            "NOT_READY", "实验目录投影尚未按 P3-4A 构建", status_code=503
+        )
+    if isinstance(offset, bool) or not isinstance(offset, int) or offset < 0:
+        raise WebQueryError("INVALID_ARGUMENT", "offset 必须是非负整数", status_code=422)
+    if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 100:
+        raise WebQueryError("INVALID_ARGUMENT", "limit 必须在 1—100", status_code=422)
+
+    all_rows = _experiment_catalog_rows(bundle)
+    compact_as_of = _normalize_as_of(as_of)
+    as_of_rows = [
+        row for row in all_rows if _as_of_keeps(row["recorded_at"], compact_as_of)
+    ]
+    filter_values = {
+        "experiment_kind": experiment_kind,
+        "research_family": research_family,
+        "evidence_tier": evidence_tier,
+        "authority_status": authority_status,
+        "lifecycle_status": lifecycle_status,
+        "outcome_status": outcome_status,
+        "evidence_status": evidence_status,
+    }
+    for key, requested in filter_values.items():
+        if requested is None:
+            continue
+        allowed = {str(row[key]) for row in all_rows}
+        if requested not in allowed:
+            raise WebQueryError(
+                "INVALID_ARGUMENT", f"{key} 过滤值无效", status_code=422
+            )
+
+    filtered = [
+        row
+        for row in as_of_rows
+        if all(value is None or row[key] == value for key, value in filter_values.items())
+    ]
+    filtered.sort(
+        key=lambda row: (
+            -_parse_timestamp(row["recorded_at"]).timestamp(),
+            row["experiment_kind"],
+            row["experiment_id"],
+        )
+    )
+    page_items = filtered[offset : offset + limit]
+    kind_counts = {
+        kind: sum(1 for row in as_of_rows if row["experiment_kind"] == kind)
+        for kind in sorted(ALLOWED_EXPERIMENT_KINDS)
+    }
+    available_filters = {
+        key: sorted({str(row[key]) for row in as_of_rows})
+        for key in filter_values
+    }
+    returned_count = len(page_items)
+    return {
+        "catalog_protocol_id": CATALOG_PROTOCOL_ID,
+        "items": page_items,
+        "counters": {
+            "projected_total_count": len(all_rows),
+            "as_of_count": len(as_of_rows),
+            "filtered_count": len(filtered),
+            "returned_count": returned_count,
+            "kind_counts": kind_counts,
+        },
+        "filters": {
+            **filter_values,
+            "as_of": (
+                f"{compact_as_of[:4]}-{compact_as_of[4:6]}-{compact_as_of[6:8]}"
+                if compact_as_of
+                else None
+            ),
+        },
+        "available_filters": available_filters,
+        "page": {
+            "offset": offset,
+            "limit": limit,
+            "has_previous": offset > 0,
+            "has_more": offset + returned_count < len(filtered),
+            "previous_offset": max(0, offset - limit) if offset > 0 else None,
+            "next_offset": (
+                offset + returned_count
+                if offset + returned_count < len(filtered)
+                else None
+            ),
+        },
+        "sort": [
+            "recorded_at:desc",
+            "experiment_kind:asc",
+            "experiment_id:asc",
+        ],
+        "sorted_by_performance": False,
+        "historical_response_banner": (
+            "CURRENT_AUTHORITY_APPLIED_TO_HISTORICAL_RECORDS" if as_of else None
+        ),
     }
 
 

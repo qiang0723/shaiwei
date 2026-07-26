@@ -858,6 +858,10 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
         value for value in projector["volumes"]
         if value["target"] == "/workspace/data/web/research_snapshots"
     )["read_only"] is False
+    assert next(
+        value for value in projector["volumes"]
+        if value["target"] == "/workspace/config/p3_experiment_catalog_v1.yaml"
+    )["read_only"] is True
     assert ui["ports"] == ["127.0.0.1:8080:8080"]
     assert "volumes" not in ui
     assert set(query["networks"]) == {"web-internal"}

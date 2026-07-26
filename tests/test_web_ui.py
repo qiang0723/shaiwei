@@ -138,3 +138,5 @@ def test_factor_ui_and_proxy_paths_are_exact_and_bounded() -> None:
     assert _allowed_api_path(f"/api/v1/factors/{factor_id}/admissions")
     assert not _allowed_api_path("/api/v1/factors/not-a-factor")
     assert not _allowed_api_path(f"/api/v1/factors/{factor_id}/extra")
+    assert not _allowed_api_path("/api/v1/experiments")
+    assert not _allowed_api_path("/api/v1/experiments/research_experiment/example")
