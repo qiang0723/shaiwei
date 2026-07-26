@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-07-26 · P3-4B 模型/回测页面协议已结果前冻结
+
+- `p3-experiment-ui-v1` 冻结 `/experiments` 目录和严格 kind/ID 详情页，首要问题是“这是什么证据、
+  当前是否权威、能否用于研究结论”；783 条记录不得包装成 783 个模型、成功率、收益排名或最佳策略。
+- 结构审计确认十种 evidence tier、19 种实际 adapter 组合，实验 ID 12—43 字符且全部满足安全 slug；
+  审计未重算或选择策略结果。目录只使用后台精确筛选、固定排序和 25 条有界分页。
+- 深链详情缺目录层 outcome，协议只授权 `experiment_summary` 复用同一后台适配器增加
+  `outcome_status`；不改变数值、authority、lifecycle、投影或哈希。详情按 tier 冻结 decision 键，
+  未知键 fail closed，不做通用 JSON dump。
+- 失效方法、provisional、工程 GO、发现层、G1 和权威历史效果必须分开表达；现有详情无逐日 NAV，
+  页面不得伪造净值曲线。当前只完成协议冻结，尚未授权宣称页面 GO。
+
 ## 2026-07-26 · P3-4A 实验目录后端 GO
 
 - 内部 `GET/HEAD /api/v1/experiments` 与类型化 `experiment_catalog` 已实现；真实 783 条记录全部

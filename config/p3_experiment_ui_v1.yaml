@@ -1,0 +1,267 @@
+protocol_id: p3-experiment-ui-v1
+schema_version: web-v1
+timezone: Asia/Shanghai
+status: FROZEN_BEFORE_IMPLEMENTATION
+read_only: true
+
+depends_on:
+  catalog_protocol: p3-experiment-catalog-v1
+  projection_protocol: p3-factor-experiment-query-v1
+  catalog_query: experiment_catalog
+  detail_query: experiment_summary
+  current_projection_snapshot: c2993c39c7c3aa5b28f975d02e6718ddc5aa8c2edebda294f88e0ba33d31e1fe
+
+routes:
+  - /experiments
+  - /experiments/{experiment_kind}/{experiment_id}
+
+api_mapping:
+  experiment_catalog:
+    path: /api/v1/experiments
+    parameters:
+      - experiment_kind
+      - research_family
+      - evidence_tier
+      - authority_status
+      - lifecycle_status
+      - outcome_status
+      - evidence_status
+      - as_of
+      - offset
+      - limit
+  experiment_summary:
+    path: /api/v1/experiments/{experiment_kind}/{experiment_id}
+    parameters: [as_of]
+
+transport_narrow_addition:
+  experiment_summary_adds_outcome_status: true
+  source: same_backend_experiment_outcome_adapter
+  changes_numeric_results: false
+  changes_authority_or_lifecycle: false
+  changes_projection_or_hash_input: false
+
+structural_baseline:
+  projected_total_count: 783
+  structural_adapter_combinations: 19
+  kind_counts:
+    research_experiment: 778
+    p2_engineering_run: 3
+    p2_effect_original: 1
+    p2_effect_correction: 1
+  experiment_id_pattern: "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+  observed_id_length_min: 12
+  observed_id_length_max: 43
+  numeric_results_inspected_for_page_design: false
+  strategy_results_recalculated: false
+
+page_contract:
+  primary_question: what_evidence_is_this_and_which_conclusion_is_currently_authoritative
+  reading_order:
+    - evidence_scope_and_non_model_warning
+    - catalog_counts_and_exact_filters
+    - stable_paginated_catalog
+    - experiment_identity_authority_and_outcome
+    - typed_registered_decision_sections
+    - failures_and_method_validity
+    - evidence
+  catalog_is_not_model_library: true
+  default_limit: 25
+  minimum_limit: 1
+  maximum_limit: 100
+  default_offset: 0
+  backend_pagination_only: true
+  backend_filtering_only: true
+  catalog_sort_control: false
+  performance_sort_or_filter: false
+  search: false
+  experiment_compare: false
+  best_model_action: false
+  success_rate: false
+  client_outcome_inference: false
+
+catalog:
+  url_parameters:
+    - experiment_kind
+    - research_family
+    - evidence_tier
+    - authority_status
+    - lifecycle_status
+    - outcome_status
+    - evidence_status
+    - offset
+    - as_of
+  filter_values: backend_available_filters_only
+  reset_offset_when_filter_changes: true
+  page_merge_requires_same_snapshot: true
+  fixed_sort:
+    - recorded_at_desc
+    - experiment_kind_asc
+    - experiment_id_asc
+  desktop_table: true
+  mobile_cards: true
+  numeric_performance_in_catalog: false
+
+detail:
+  single_detail_request: true
+  request_identity_must_match_response: true
+  outcome_from_backend: true
+  authority_always_adjacent_to_outcome: true
+  evidence_tier_always_visible: true
+  failed_reasons_always_visible: true
+  invalidated_method_blocks_authoritative_interpretation: true
+  invalidated_successor_link_when_registered: true
+  provisional_engineering_is_not_strategy_effect: true
+  discovery_is_not_g1: true
+  recorded_signal_is_not_strategy_effect: true
+  numeric_results_require_authority_context: true
+  daily_nav_chart: false
+  reason_daily_nav_absent: no_registered_daily_series_in_experiment_summary
+  raw_json_renderer: false
+  decision_key_allowlist_by_tier:
+    BASELINE_BACKTEST: [status, prediction_rows]
+    SHADOW_SIGNAL: [score_rows, signal_sha256]
+    FORWARD_SHADOW_SIGNAL: [rebalance_due, score_rows, signal_sha256]
+    G1_FACTOR_DECISION: [status, recorded_decision, trial_count, all_gates]
+    GP_DISCOVERY_ATTEMPT: [decision, rank_ic]
+    GP_STAGE1_ATTEMPT: [decision, rank_ic]
+    D1_DISCOVERY_ATTEMPT_WITH_REVIEW_OVERLAY:
+      - discovery_status
+      - g1_run
+      - strategy_effective
+      - review_overlay
+      - human_gate_ready
+      - production_authorization
+      - review_roles
+    P2_ENGINEERING:
+      - verdict
+      - engineering_complete
+      - strategy_results_inspected
+      - strategy_effective
+      - production_authorization
+      - pipeline_fixture_pass
+      - idempotency_pass
+      - artifact_file_count
+    P2_EFFECT_AUTHORITATIVE:
+      - historical_effect_gate
+      - strategy_effective
+      - production_authorization
+      - window_gate_pass
+      - cost_gate_pass
+      - drawdown_gate_pass
+      - diversification_gate_status
+      - determinism_pass
+      - window_metrics
+      - pooled
+      - original_p2_2_model_valid
+      - original_p2_2_execution_valid
+      - results_known_before_correction
+    P2_EFFECT_INVALIDATED:
+      - historical_effect_gate
+      - strategy_effective
+      - production_authorization
+      - window_gate_pass
+      - cost_gate_pass
+      - drawdown_gate_pass
+      - diversification_gate_status
+      - determinism_pass
+      - window_metrics
+      - pooled
+      - numeric_results_status
+      - authoritative_successor_kind
+      - authoritative_successor_id
+
+visualization:
+  p2_window_cost_scenarios: grouped_column_plus_exact_table
+  p2_window_maximum_drawdown: exact_table
+  g1_all_gates: typed_table
+  gp_rank_ic_summary: typed_metric_list
+  discovery_and_signal: typed_fact_list
+  chart_text_equivalent_required: true
+  invalidated_numeric_watermark: reproducible_not_authoritative
+
+status_semantics:
+  page_header_status_source: response_meta_freshness_status
+  research_outcome_separate_from_operational_status: true
+  rejected_is_not_system_failure: true
+  failed_means_recorded_execution_failure: true
+  historical_response_banner: CURRENT_AUTHORITY_APPLIED_TO_HISTORICAL_RECORDS
+  unknown_outcome_or_decision_key: EVIDENCE_MISMATCH
+
+navigation:
+  desktop_group: research
+  desktop_after: /factors
+  active_path_prefix: /experiments
+  mobile_primary_routes: [/overview, /factors, /paper]
+  mobile_more_contains: [/experiments, /signals, /data-quality, /system-runs]
+
+responsive_viewports:
+  desktop: [1440, 900]
+  laptop: [1024, 768]
+  tablet: [768, 1024]
+  mobile: [390, 844]
+  minimum_reflow_width: 320
+  zoom_percent: 400
+
+accessibility:
+  target: WCAG-2.2-AA
+  axe_critical_max: 0
+  axe_serious_max: 0
+  keyboard_required: true
+  focus_return_required: true
+  reduced_motion_required: true
+  chart_text_equivalent_required: true
+
+performance:
+  initial_gzip_bytes_max: 614400
+  all_route_gzip_bytes_max: 2621440
+  localhost_first_content_seconds_max: 2
+  api_timeout_seconds: 5
+  automatic_retry_count: 0
+
+security:
+  ui_host_bind: 127.0.0.1
+  query_host_port: null
+  load_dotenv: false
+  external_assets: false
+  inline_script: false
+  unsafe_eval: false
+  root_read_only: true
+  run_as_non_root: true
+  docker_socket: false
+  experiment_kind_values:
+    - research_experiment
+    - p2_engineering_run
+    - p2_effect_original
+    - p2_effect_correction
+  experiment_id_pattern: "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+  exact_dynamic_routes: true
+
+forbidden:
+  - model_or_backtest_execution
+  - metric_or_strategy_recalculation
+  - client_outcome_inference
+  - raw_params_or_result_json
+  - daily_series_or_portfolio_reconstruction
+  - cross_experiment_comparison
+  - performance_ranking_or_best_model
+  - browser_file_or_ledger_scan
+  - export
+  - remote_access
+  - scheduler_control
+  - factor_or_gate_mutation
+  - order_or_trade_control
+  - bse_security
+
+acceptance:
+  - protocol_commit_pushed_before_implementation
+  - all_catalog_filters_and_pagination_are_backend_backed
+  - catalog_and_detail_identity_match
+  - direct_detail_has_backend_outcome_status
+  - all_current_tiers_have_fixture_rendering
+  - invalidated_and_provisional_boundaries_are_prominent
+  - no_performance_sort_search_or_compare
+  - no_daily_nav_or_unregistered_metric
+  - five_viewports_have_no_page_overflow
+  - axe_and_keyboard_pass
+  - real_projection_catalog_and_representative_details_pass
+  - docker_git_hygiene_and_scheduler_isolation_pass
