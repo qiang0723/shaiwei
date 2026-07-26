@@ -1,5 +1,5 @@
 schema_version: "paper-comparison-account-protocol-v1"
-protocol_id: "paper-top20-v1.1"
+protocol_id: "paper-top20-v1.2"
 protocol_status: "FROZEN_BEFORE_RESULTS"
 frozen_on: "2026-07-26"
 production_authorization: "PENDING_ENGINEERING_ACCEPTANCE"

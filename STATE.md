@@ -355,7 +355,10 @@
 构成策略有效性结论。结果前时间补遗进一步纠正了机械沿用基准仓 7月23日的问题：Top20 的
 7月17—24日全部为 BACKFILL，首个可能的自然 FORWARD 从冻结后的下一交易日 2026-07-27 起算；原
 `0f24238` 提交永久保留。见 `docs/PAPER_TOP20_PROTOCOL_20260726.md`、
-`docs/PAPER_TOP20_PROTOCOL_ADDENDUM_20260726.md` 和 `config/paper_top20_v1.yaml`。
+`docs/PAPER_TOP20_PROTOCOL_ADDENDUM_20260726.md` 和 `config/paper_top20_v1.yaml`。结果前 v1.2 证据
+补遗还纠正了“共享账本整文件哈希不变”的物理矛盾：权威条件为旧文件字节是新文件完整前缀、Top30
+规范行哈希不变且只追加 Top20 行；Top30 产物整树仍须完全不变。见
+`docs/PAPER_TOP20_PROTOCOL_EVIDENCE_ADDENDUM_20260726.md`。
 
 ## 当前阶段
 阶段 0（基线）已完成；阶段 1 已完成有界 GP 预演和 `p1-moneyflow-v1` 首个正式数据增强家族，二者均按冻结 `g1-v1` 结论 REJECT，正式因子库仍为 0 插入。锁竞争修复后当前代码版本连续三次完整“信号 → 下一交易日开盘对账”已于 2026-07-22 完成 3/3，核心任务验收 PASS、通知通道 WARN；同日完成飞书通知健壮性修复。P0.5 模拟组合的工程、Docker 接入、四日 BACKFILL 和 2026-07-23 首个自然 `FORWARD` 已全部 PASS，当前进入持续前瞻观察。P3-3B 已完成因子与实验的不可变安全投影、五组类型化查询及 HTTP 后端；P3-3C 因子工厂与 P3-4B 模型/回测页面均已完成，Web 1.0 七类本机只读页面全部可用。P4-0 科创100源采集PASS，但官方历史成员谱系NO-GO，已停在P4-1前且未评价策略效果。
