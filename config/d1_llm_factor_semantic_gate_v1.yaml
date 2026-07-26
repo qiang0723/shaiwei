@@ -1,0 +1,80 @@
+schema_version: d1-llm-factor-semantic-gate-v1
+protocol_id: d1-review-semantic-gate-v1
+prepared_at: "2026-07-26T16:05:00+08:00"
+status: RESULT_BLIND_ENGINEERING_PROTOCOL_FROZEN
+research_family: d1-llm-dsl-v1
+production_authorization: none
+
+authority_boundary:
+  prior_batch_id: d1-llm-review-v1-batch-001
+  prior_authoritative_gate: STOP_SEMANTIC_CONTRACT_VIOLATION
+  prior_batch_may_be_reopened: false
+  prior_response_replacement_allowed: false
+  prior_candidate_replacement_allowed: false
+  provider_calls_authorized: false
+  W1_W6_visible: false
+  stress_results_visible: false
+  g1_results_visible: false
+  forward_results_visible: false
+  production_results_visible: false
+
+input_contract:
+  response_schema_version: d1-adversarial-review-response-v1
+  structured_no_change_field: formula_change_or_new_candidate_proposed
+  structured_no_change_required_value: false
+  inspected_text_fields:
+    - summary
+    - findings[].category
+    - findings[].statement
+    - findings[].falsification_or_resolution
+  review_language: en
+  frozen_formula_required: true
+
+semantic_policy:
+  allowed_decisions:
+    - KEEP_FROZEN_FORMULA
+    - REJECT_FROZEN_FORMULA
+    - NO_BLOCKER
+  forbidden_actions:
+    - formula_or_operator_replacement
+    - new_candidate_or_variant
+    - lookback_or_parameter_change
+    - alternative_estimator_or_normalization
+    - performance_or_admission_claim
+  explicit_negation_may_describe_a_forbidden_action: true
+  different_dsl_expression_is_forbidden: true
+  different_lookback_literal_is_forbidden: true
+  unsupported_language_is_ambiguous: true
+  ambiguous_text_is_fail_closed: true
+  narrative_is_never_a_machine_admission_decision: true
+
+verdicts:
+  pass: PASS_SEMANTIC_CONTRACT
+  fail: FAIL_SEMANTIC_CONTRACT
+  ambiguous: MANUAL_REVIEW_REQUIRED
+  batch_go_requires_all_pass: true
+  fail_or_ambiguous_stops_batch_before_human_gate: true
+
+evidence:
+  tracked_output_contains_free_text: false
+  tracked_output_contains_performance_values: false
+  tracked_output_contains_secret_or_absolute_path: false
+  record_only_hashes_reason_codes_and_counts: true
+  deterministic_double_run_required: true
+  network_disabled_verification_required: true
+
+acceptance:
+  required_fixture_classes:
+    - compliant_rejection_without_modification
+    - compliant_no_blocker
+    - explicit_formula_replacement
+    - conditional_formula_replacement
+    - lookback_variant
+    - alternative_estimator
+    - different_dsl_expression
+    - negated_change_statement
+    - unsupported_language
+  prior_known_three_violations_must_fail: true
+  prior_five_other_responses_must_not_be_reclassified_as_authoritative_go: true
+  existing_stop_overlay_must_remain_unchanged: true
+  scheduler_identity_must_remain_unchanged: true
