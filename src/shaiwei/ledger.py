@@ -31,6 +31,7 @@ LLM_FACTOR_ATTEMPTS_V2 = LEDGER_DIR / "llm_factor_attempts_v2.csv"
 LLM_FACTOR_TRANSPORTS_V2 = LEDGER_DIR / "llm_factor_transports_v2.csv"
 LLM_FACTOR_REVIEWS = LEDGER_DIR / "llm_factor_reviews.csv"
 LLM_FACTOR_REVIEW_TRANSPORTS = LEDGER_DIR / "llm_factor_review_transports.csv"
+G8_FUND_EVIDENCE = LEDGER_DIR / "g8_fund_evidence.csv"
 
 
 def portable_artifact_path(path: str | Path) -> str:
@@ -347,3 +348,9 @@ def append_p2_star50_effect_correction_admission(
         kw,
         key="decision_id",
     )
+
+
+def append_g8_fund_evidence(*, path: Path | None = None, **kw: object) -> bool:
+    """Append one sanitized immutable G8 primary-source evidence identity."""
+    kw.setdefault("operator", "docker-g8-evidence")
+    return _append_idempotent(path or G8_FUND_EVIDENCE, kw, key="evidence_id")

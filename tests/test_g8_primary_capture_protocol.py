@@ -10,6 +10,7 @@ from shaiwei.ledger import sha256_file
 PROTOCOL_PATH = Path("config/g8_fund_primary_capture_v1.yaml")
 LEDGER_PATH = Path("ledger/g8_fund_evidence.csv")
 SOURCE_PROTOCOL_PATH = Path("config/g8_fund_evidence_source_v1.yaml")
+RESEARCH_COMPOSE_PATH = Path("compose.research.yaml")
 
 EXPECTED_LEDGER_HEADER = (
     "evidence_id",
@@ -92,3 +93,21 @@ def test_g8_primary_capture_ledger_starts_with_sanitized_header_only() -> None:
 
     assert rows == [list(EXPECTED_LEDGER_HEADER)]
 
+
+def test_g8_primary_capture_container_has_no_secret_or_broad_write_mount() -> None:
+    compose = yaml.safe_load(RESEARCH_COMPOSE_PATH.read_text(encoding="utf-8"))
+    service = compose["services"]["g8-primary-capture"]
+
+    assert "env_file" not in service
+    assert service["read_only"] is True
+    assert service["cap_drop"] == ["ALL"]
+    assert service["security_opt"] == ["no-new-privileges:true"]
+    assert set(service["environment"]) == {"HOME", "MPLCONFIGDIR", "PYTHONPYCACHEPREFIX"}
+    sources = {volume["source"]: volume["read_only"] for volume in service["volumes"]}
+    assert sources == {
+        "./data": True,
+        "./data/g8/fund_evidence": False,
+        "./ledger": True,
+        "./ledger/g8_fund_evidence.csv": False,
+    }
+    assert all("docker.sock" not in volume["source"] for volume in service["volumes"])
