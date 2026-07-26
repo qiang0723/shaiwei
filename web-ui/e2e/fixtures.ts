@@ -181,6 +181,59 @@ export const replay = {
   status: "PASS"
 };
 
+export const top20Portfolio = {
+  ...portfolio,
+  account_id: "model_top20",
+  cash: "78843.07",
+  cash_ratio: "0.1729159245",
+  cumulative_fees: "130.53",
+  execution_policy_version: "paper-top20-v1",
+  market_value: "377118.81",
+  mode: "BACKFILL",
+  net_asset: "455961.88",
+  normalized_nav: "0.91192376",
+  position_count: portfolio.positions.length
+};
+
+export const top20Nav = {
+  ...nav,
+  account_id: "model_top20",
+  execution_policy_version: "paper-top20-v1",
+  forward_observation_count: 0,
+  forward_status: "NOT_READY",
+  series: nav.series.map((point) => ({ ...point, mode: "BACKFILL" }))
+};
+
+export const top20Forward = {
+  ...forward,
+  status: "NOT_READY",
+  performance_maturity: "NOT_READY",
+  execution_policy_version: "paper-top20-v1",
+  coverage_reason: "尚无自然 FORWARD 账户日，只保留工程回放证据",
+  forward_anchor_artifact_sha256: null,
+  forward_anchor_benchmark_nav: null,
+  forward_anchor_portfolio_nav: null,
+  forward_anchor_trade_date: null,
+  forward_cash_ratio: null,
+  forward_cumulative_dividends: null,
+  forward_cumulative_fees: null,
+  forward_observation_count: 0,
+  forward_rebalance_count: 0,
+  forward_turnover: null,
+  latest: null,
+  series: []
+};
+
+export const top20Replay = {
+  ...replay,
+  account_id: "model_top20",
+  event_count: 160,
+  fill_count: 18,
+  mode_counts: { BACKFILL: 6 },
+  order_count: 20,
+  run_count: 6
+};
+
 export const signal = {
   actual_weight_artifact_sha256: B,
   actual_weight_as_of: "2026-07-23",

@@ -25,6 +25,10 @@ import {
   response,
   signal,
   systemRuns,
+  top20Forward,
+  top20Nav,
+  top20Portfolio,
+  top20Replay,
   VERSION_A,
   VERSION_B
 } from "./fixtures";
@@ -113,6 +117,7 @@ async function mockApi(
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
     const requestedVersion = url.searchParams.get("version");
+    const top20 = url.searchParams.get("account_id") === "model_top20";
     const historicalBanner = url.searchParams.has("as_of")
       ? "CURRENT_AUTHORITY_APPLIED_TO_HISTORICAL_RECORDS"
       : null;
@@ -149,13 +154,13 @@ async function mockApi(
           : url.pathname.endsWith("/overview")
       ? overview
       : url.pathname.endsWith("/portfolio")
-        ? portfolio
+        ? top20 ? top20Portfolio : portfolio
         : url.pathname.endsWith("/nav")
-          ? nav
+          ? top20 ? top20Nav : nav
           : url.pathname.endsWith("/forward")
-            ? forward
+            ? top20 ? top20Forward : forward
             : url.pathname.endsWith("/replay")
-              ? replay
+              ? top20 ? top20Replay : replay
               : signal;
     await route.fulfill({
       status: 200,
@@ -242,6 +247,14 @@ test("paper separates forward performance from full-account audit and exposes da
   await page.getByText("查看账户日技术标识").click();
   await expect(page.getByText(nav.series[2]!.artifact_sha256, { exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
+  await expectNoPageOverflow(page);
+
+  await page.getByText("比较账户 · Top20", { exact: true }).click();
+  await expect(page.getByText("Top20 当前只完成工程回放，不能与 Top30 比较策略优劣")).toBeVisible();
+  await expect(page.getByText("尚无自然前瞻账户日", { exact: true })).toBeVisible();
+  await expect(page.getByText(/自然前瞻 0 日/)).toBeVisible();
+  await expect(page.getByRole("region", { name: "前瞻观察精确值" })).toHaveCount(0);
+  await expect(page.getByRole("img", { name: "前瞻模拟组合与中证800归一化净值折线图" })).toHaveCount(0);
   await expectNoPageOverflow(page);
 });
 

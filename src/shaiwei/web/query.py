@@ -15,7 +15,8 @@ import re
 
 SCHEMA_VERSION = "web-v1"
 TIMEZONE = "Asia/Shanghai"
-ACCOUNT_ID = "model_baseline"
+DEFAULT_ACCOUNT_ID = "model_baseline"
+PAPER_ACCOUNT_IDS = frozenset({"model_baseline", "model_top20"})
 MAX_NAV_OBSERVATIONS = 1000
 FIXED_LEDGER_PATHS = (
     "ledger/shadow_runs.csv",
@@ -133,6 +134,16 @@ def _normalize_as_of(value: str | None) -> str | None:
             status_code=422,
         ) from error
     return compact
+
+
+def _normalize_paper_account_id(value: str) -> str:
+    if value not in PAPER_ACCOUNT_IDS:
+        raise WebQueryError(
+            "INVALID_ARGUMENT",
+            "account_id 不是已登记的模拟账户",
+            status_code=422,
+        )
+    return value
 
 
 def _display_date(compact: str) -> str:
@@ -352,8 +363,10 @@ def _passed_paper_runs(
 def _resolve_legacy_policy_versions(
     accounts: list[dict[str, str]],
     documents: list[dict[str, object]],
+    *,
+    account_id: str,
 ) -> None:
-    identities = [row for row in accounts if row.get("account_id") == ACCOUNT_ID]
+    identities = [row for row in accounts if row.get("account_id") == account_id]
     if len(identities) != 1:
         raise WebQueryError("EVIDENCE_MISMATCH", "模拟账户身份不唯一")
     account = identities[0]
@@ -525,6 +538,8 @@ def _paper_projection(
 def _paper_nav(
     rows: list[dict[str, str]],
     documents: list[dict[str, object]],
+    *,
+    account_id: str,
 ) -> dict[str, object]:
     series: list[dict[str, object]] = []
     versions: set[str] = set()
@@ -554,7 +569,7 @@ def _paper_nav(
     forward_count = sum(value["mode"] == "FORWARD" for value in series)
     return {
         "as_of": series[-1]["trade_date"],
-        "account_id": ACCOUNT_ID,
+        "account_id": account_id,
         "execution_policy_version": next(iter(versions)),
         "freshness_status": freshness,
         "forward_status": "PASS" if forward_count else "NOT_READY",
@@ -572,13 +587,36 @@ def _forward_projection(
         index for index, document in enumerate(documents) if document.get("mode") == "FORWARD"
     ]
     if not forward_indexes:
+        versions = {
+            str(document.get("execution_policy_version", "")) for document in documents
+        }
+        if len(versions) != 1 or "" in versions:
+            raise WebQueryError("CONFLICT", "模拟组合序列跨越不同执行策略版本")
         return {
             "status": "NOT_READY",
             "performance_maturity": "NOT_READY",
+            "forward_anchor_trade_date": None,
+            "forward_anchor_portfolio_nav": None,
+            "forward_anchor_benchmark_nav": None,
+            "forward_anchor_artifact_sha256": None,
+            "execution_policy_version": next(iter(versions)),
             "forward_observation_count": 0,
+            "forward_rebalance_count": 0,
             "coverage_status": "NOT_EVALUATED",
             "coverage_ratio": None,
+            "coverage_reason": "尚无自然 FORWARD 账户日，只保留工程回放证据",
+            "forward_cumulative_fees": None,
+            "forward_cumulative_dividends": None,
+            "forward_turnover": None,
+            "forward_cash_ratio": None,
+            "latest": None,
             "series": [],
+            "suppressed_metrics": [
+                "forward_annualized_return",
+                "forward_annualized_volatility",
+                "forward_sharpe",
+                "forward_information_ratio",
+            ],
         }
     first = forward_indexes[0]
     if first == 0 or documents[first - 1].get("mode") != "BACKFILL":
@@ -663,8 +701,9 @@ def _paper_replay(
     documents: list[dict[str, object]],
     *,
     as_of: str,
+    account_id: str,
 ) -> dict[str, object]:
-    identities = [row for row in accounts if row.get("account_id") == ACCOUNT_ID]
+    identities = [row for row in accounts if row.get("account_id") == account_id]
     if len(identities) != 1:
         raise WebQueryError("EVIDENCE_MISMATCH", "模拟账户身份不唯一")
     account = identities[0]
@@ -672,7 +711,7 @@ def _paper_replay(
     selected_events = [
         row
         for row in events
-        if row.get("account_id") == ACCOUNT_ID
+        if row.get("account_id") == account_id
         and row.get("effective_date", "") <= as_of
     ]
     event_ids = [row.get("event_id", "") for row in selected_events]
@@ -690,7 +729,7 @@ def _paper_replay(
     total_fills = 0
     for row, document in zip(rows, documents, strict=True):
         if (
-            document["account_id"] != ACCOUNT_ID
+            document["account_id"] != account_id
             or document["policy_sha256"] != account.get("policy_sha256")
             or str(document.get("execution_policy_version", ""))
             != account.get("execution_policy_version")
@@ -780,7 +819,7 @@ def _paper_replay(
         previous_state = state
     return {
         "status": "PASS",
-        "account_id": ACCOUNT_ID,
+        "account_id": account_id,
         "as_of": _display_date(rows[-1]["execution_trade_date"]),
         "run_count": len(rows),
         "event_count": len(selected_events),
@@ -943,6 +982,7 @@ def _notification_projection(
     as_of: str,
     require_reconciliation: bool,
     require_paper: bool,
+    paper_account_id: str,
 ) -> tuple[dict[str, object], list[object], dict[str, str]]:
     records, relative = cut.notification_rows(as_of)
     required = [
@@ -954,7 +994,11 @@ def _notification_projection(
     if require_reconciliation:
         required.append("shadow_next_open_reconciled")
     if require_paper:
-        required.extend(["paper_cycle_started", "paper_cycle_completed"])
+        required.extend(
+            ["paper_top20_cycle_started", "paper_top20_cycle_completed"]
+            if paper_account_id == "model_top20"
+            else ["paper_cycle_started", "paper_cycle_completed"]
+        )
     selected = [record for record in records if str(record.get("event", "")) in required]
     by_event: dict[str, list[dict[str, object]]] = {}
     for record in selected:
@@ -1008,7 +1052,12 @@ def _notification_projection(
     return projection, timestamps, evidence
 
 
-def _build_from_cut(cut: _EvidenceCut, requested_as_of: str | None) -> SnapshotBundle:
+def _build_from_cut(
+    cut: _EvidenceCut,
+    requested_as_of: str | None,
+    *,
+    account_id: str,
+) -> SnapshotBundle:
     shadow_rows = cut.ledger_rows("ledger/shadow_runs.csv")
     terminal_shadows = _latest_by(
         shadow_rows,
@@ -1044,15 +1093,19 @@ def _build_from_cut(cut: _EvidenceCut, requested_as_of: str | None) -> SnapshotB
     paper_ledger_rows = cut.ledger_rows("ledger/paper_runs.csv")
     paper_rows = _passed_paper_runs(
         paper_ledger_rows,
-        account_id=ACCOUNT_ID,
+        account_id=account_id,
         as_of=actual_as_of,
     )
     if not paper_rows:
         raise WebQueryError("NO_DATA", "没有已完成的模拟账户日", status_code=404)
     paper_documents = [_read_paper_document(cut, row) for row in paper_rows]
-    _resolve_legacy_policy_versions(paper_account_rows, paper_documents)
+    _resolve_legacy_policy_versions(
+        paper_account_rows,
+        paper_documents,
+        account_id=account_id,
+    )
     paper_portfolio = _paper_projection(paper_rows[-1], paper_documents[-1])
-    paper_nav = _paper_nav(paper_rows, paper_documents)
+    paper_nav = _paper_nav(paper_rows, paper_documents, account_id=account_id)
     paper_forward = _forward_projection(paper_rows, paper_documents)
     paper_replay = _paper_replay(
         paper_account_rows,
@@ -1060,6 +1113,7 @@ def _build_from_cut(cut: _EvidenceCut, requested_as_of: str | None) -> SnapshotB
         paper_rows,
         paper_documents,
         as_of=actual_as_of,
+        account_id=account_id,
     )
 
     latest_signal = _signal_projection(
@@ -1097,12 +1151,16 @@ def _build_from_cut(cut: _EvidenceCut, requested_as_of: str | None) -> SnapshotB
         row.get("execution_trade_date") == actual_as_of and row.get("status") == "PASS"
         for row in reconciliation_rows
     )
-    same_day_paper = paper_rows[-1]["execution_trade_date"] == actual_as_of
+    same_day_paper = (
+        paper_rows[-1]["execution_trade_date"] == actual_as_of
+        and paper_rows[-1].get("operator") == "docker-scheduler"
+    )
     notifications, notification_times, notification_hashes = _notification_projection(
         cut,
         as_of=actual_as_of,
         require_reconciliation=same_day_reconciliation,
         require_paper=same_day_paper,
+        paper_account_id=account_id,
     )
 
     current_shadow_attempts = [
@@ -1150,7 +1208,7 @@ def _build_from_cut(cut: _EvidenceCut, requested_as_of: str | None) -> SnapshotB
     selected_event_rows = [
         row
         for row in paper_event_rows
-        if row.get("account_id") == ACCOUNT_ID
+        if row.get("account_id") == account_id
         and row.get("effective_date", "") <= actual_as_of
     ]
     selected_shadow_attempts = [
@@ -1172,7 +1230,7 @@ def _build_from_cut(cut: _EvidenceCut, requested_as_of: str | None) -> SnapshotB
             )
         ),
         "paper_account_rows_sha256": _sha256(
-            [row for row in paper_account_rows if row.get("account_id") == ACCOUNT_ID]
+            [row for row in paper_account_rows if row.get("account_id") == account_id]
         ),
         "paper_event_rows_sha256": _sha256(selected_event_rows),
         "paper_run_rows_sha256": _sha256(paper_rows),
@@ -1232,6 +1290,7 @@ def _build_from_cut(cut: _EvidenceCut, requested_as_of: str | None) -> SnapshotB
         {
             "protocol_id": "p3-web-query-v1",
             "schema_version": SCHEMA_VERSION,
+            "paper_account_id": account_id,
             "as_of": actual_as_of,
             "evidence_hashes": evidence_hashes,
         }
@@ -1260,7 +1319,7 @@ def _build_from_cut(cut: _EvidenceCut, requested_as_of: str | None) -> SnapshotB
             "execution_evidence_status": latest_signal["execution_evidence_status"],
         },
         "paper": {
-            "account_id": ACCOUNT_ID,
+            "account_id": account_id,
             "account_day": paper_portfolio["as_of"],
             "net_asset": paper_portfolio["net_asset"],
             "cash": paper_portfolio["cash"],
@@ -1332,16 +1391,22 @@ def _build_from_cut(cut: _EvidenceCut, requested_as_of: str | None) -> SnapshotB
 def build_snapshot(
     as_of: str | None = None,
     *,
+    account_id: str = DEFAULT_ACCOUNT_ID,
     project_root: Path | None = None,
 ) -> SnapshotBundle:
     """Build one stable snapshot without reading configuration, secrets, or raw data."""
     normalized = _normalize_as_of(as_of)
+    normalized_account_id = _normalize_paper_account_id(account_id)
     root = (project_root or _default_root()).resolve()
     for _attempt in range(2):
         cut = _EvidenceCut(root)
         try:
             cut.open()
-            bundle = _build_from_cut(cut, normalized)
+            bundle = _build_from_cut(
+                cut,
+                normalized,
+                account_id=normalized_account_id,
+            )
         except _EvidenceChanged:
             continue
         if cut.stable():

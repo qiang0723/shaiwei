@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Awaitable, Callable
+from typing import Awaitable, Callable, Literal
 
 from fastapi import FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
@@ -17,6 +17,7 @@ from shaiwei.web.operations import (
     notification_for,
 )
 from shaiwei.web.query import (
+    DEFAULT_ACCOUNT_ID,
     SCHEMA_VERSION,
     SnapshotBundle,
     WebQueryError,
@@ -38,6 +39,7 @@ from shaiwei.web.research_projection import (
 
 MAX_RESPONSE_BYTES = 1_048_576
 ALLOWED_METHODS = {"GET", "HEAD"}
+PaperAccountId = Literal["model_baseline", "model_top20"]
 
 
 def _request_id(request: Request, snapshot_id: str = "") -> str:
@@ -175,8 +177,11 @@ def create_app(project_root: Path | None = None) -> FastAPI:
             ),
         )
 
-    def snapshot(as_of: str | None) -> SnapshotBundle:
-        return build_snapshot(as_of, project_root=root)
+    def snapshot(
+        as_of: str | None,
+        account_id: PaperAccountId = DEFAULT_ACCOUNT_ID,
+    ) -> SnapshotBundle:
+        return build_snapshot(as_of, account_id=account_id, project_root=root)
 
     def operations_snapshot(as_of: str | None) -> OperationsBundle:
         return build_operations_snapshot(as_of, project_root=root)
@@ -205,8 +210,12 @@ def create_app(project_root: Path | None = None) -> FastAPI:
         return _success(request, bundle, bundle.overview)
 
     @app.api_route("/api/v1/paper/portfolio", methods=["GET", "HEAD"])
-    async def paper_portfolio(request: Request, as_of: str | None = None) -> Response:
-        bundle = snapshot(as_of)
+    async def paper_portfolio(
+        request: Request,
+        as_of: str | None = None,
+        account_id: PaperAccountId = DEFAULT_ACCOUNT_ID,
+    ) -> Response:
+        bundle = snapshot(as_of, account_id)
         return _success(request, bundle, bundle.paper_portfolio)
 
     @app.api_route("/api/v1/paper/nav", methods=["GET", "HEAD"])
@@ -215,18 +224,27 @@ def create_app(project_root: Path | None = None) -> FastAPI:
         as_of: str | None = None,
         start: str | None = None,
         end: str | None = None,
+        account_id: PaperAccountId = DEFAULT_ACCOUNT_ID,
     ) -> Response:
-        bundle = snapshot(as_of)
+        bundle = snapshot(as_of, account_id)
         return _success(request, bundle, nav_range(bundle, start=start, end=end))
 
     @app.api_route("/api/v1/paper/forward", methods=["GET", "HEAD"])
-    async def paper_forward(request: Request, as_of: str | None = None) -> Response:
-        bundle = snapshot(as_of)
+    async def paper_forward(
+        request: Request,
+        as_of: str | None = None,
+        account_id: PaperAccountId = DEFAULT_ACCOUNT_ID,
+    ) -> Response:
+        bundle = snapshot(as_of, account_id)
         return _success(request, bundle, bundle.paper_forward)
 
     @app.api_route("/api/v1/paper/replay", methods=["GET", "HEAD"])
-    async def paper_replay(request: Request, as_of: str | None = None) -> Response:
-        bundle = snapshot(as_of)
+    async def paper_replay(
+        request: Request,
+        as_of: str | None = None,
+        account_id: PaperAccountId = DEFAULT_ACCOUNT_ID,
+    ) -> Response:
+        bundle = snapshot(as_of, account_id)
         return _success(request, bundle, bundle.paper_replay)
 
     @app.api_route("/api/v1/signals/latest", methods=["GET", "HEAD"])

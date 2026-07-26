@@ -10,6 +10,8 @@ export type DomainStatus =
   | "NOT_DUE"
   | "NOT_EVALUATED";
 
+export type PaperAccountId = "model_baseline" | "model_top20";
+
 export interface ApiMeta {
   as_of: string;
   generated_at: string;
@@ -196,16 +198,16 @@ export interface ForwardData {
   coverage_reason: string;
   coverage_status: DomainStatus;
   execution_policy_version: string;
-  forward_anchor_artifact_sha256: string;
-  forward_anchor_benchmark_nav: string;
-  forward_anchor_portfolio_nav: string;
-  forward_anchor_trade_date: string;
-  forward_cash_ratio: string;
-  forward_cumulative_dividends: string;
-  forward_cumulative_fees: string;
+  forward_anchor_artifact_sha256: string | null;
+  forward_anchor_benchmark_nav: string | null;
+  forward_anchor_portfolio_nav: string | null;
+  forward_anchor_trade_date: string | null;
+  forward_cash_ratio: string | null;
+  forward_cumulative_dividends: string | null;
+  forward_cumulative_fees: string | null;
   forward_observation_count: number;
   forward_rebalance_count: number;
-  forward_turnover: string;
+  forward_turnover: string | null;
   latest: ForwardPoint | null;
   performance_maturity: DomainStatus;
   series: ForwardPoint[];

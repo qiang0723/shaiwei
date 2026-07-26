@@ -10,6 +10,10 @@
 原 Python 权威实现：`src/shaiwei/paper/query.py`。P3-0 原子投影与 HTTP 适配分别位于
 `src/shaiwei/web/query.py`、`src/shaiwei/web/api.py`；部署边界见 `compose.web.yaml`。
 
+2026-07-27 起，四个 HTTP 模拟组合端点支持严格枚举 `account_id=model_baseline|model_top20`，默认
+仍为 `model_baseline`；未知账户 HTTP 422。四响应的 snapshot 必须绑定同一账户。Top20 当前0个自然
+FORWARD，返回 NOT_READY、空序列和空锚点，不允许前端补0或跨观察类型比较。
+
 ### 1.1 `paper_portfolio_snapshot(account_id="model_baseline", as_of=None)`
 
 - 选择不晚于 `as_of` 的最近一个 PASS 运行；无完成快照则抛 `PaperQueryError`。
@@ -52,10 +56,10 @@
 | 页面模块 | 已实现查询 | 可否真实接入 | 缺口 |
 |---|---|---|---|
 | 总览组合摘要 | `GET /api/v1/overview` | 是 | P3-0 原子快照；完整页面待 P3-1 |
-| 模拟组合净值 | `GET /api/v1/paper/nav`、`paper/forward` | 是 | 官方日历覆盖率暂为 NOT_EVALUATED |
-| 模拟组合当前账户 | `GET /api/v1/paper/portfolio` | 是 | 已含实际权重、未实现盈亏与陈旧度 |
+| 模拟组合净值 | `GET /api/v1/paper/nav`、`paper/forward` + 严格 `account_id` | 是 | 官方日历覆盖率暂为 NOT_EVALUATED；Top20 当前0 FORWARD |
+| 模拟组合当前账户 | `GET /api/v1/paper/portfolio` + 严格 `account_id` | 是 | Top30默认、Top20只读比较；已含实际权重、未实现盈亏与陈旧度 |
 | 账户日执行 | orders | 是，需 signal hash | 页面需先从受控来源取得 signal hash |
-| 组合重放 | `GET /api/v1/paper/replay` | 是 | 独立事件/状态链重放 |
+| 组合重放 | `GET /api/v1/paper/replay` + 严格 `account_id` | 是 | 两账户分别独立事件/状态链重放 |
 | 股票池/信号 | `GET /api/v1/signals/latest`、`signals/reconciliation` | 是 | 正式页面与原因展示待 P3-1 |
 | 因子目录与 tear sheet | `GET /api/v1/factors`、详情、比较、准入历史 | 是，P3-3C 页面已完成 | 四类历史未统一登记指标固定 `NOT_EVALUATED` |
 | 模型/回测 | `GET /api/v1/experiments`、已知 ID 详情 | 是，P3-4B 页面已完成 | 无逐日 NAV，不画净值；不提供搜索、表现排序或比较 |

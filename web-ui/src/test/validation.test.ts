@@ -10,6 +10,7 @@ import {
   assertFactorDetail,
   assertExperimentCatalog,
   assertExperimentDetail,
+  assertForward,
   assertNotification,
   assertReplay,
   assertSignal,
@@ -176,6 +177,59 @@ describe("P3-1 fail-closed contract", () => {
     expect(result.nav.observation_count).toBe(1);
     expect(fetch).toHaveBeenCalledTimes(4);
     expect(String(vi.mocked(fetch).mock.calls[0]?.[0])).toContain("as_of=2026-07-24");
+    expect(String(vi.mocked(fetch).mock.calls[0]?.[0])).toContain("account_id=model_baseline");
+  });
+
+  it("binds all paper requests to the selected account and rejects identity drift", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const path = String(input);
+        const data = path.includes("portfolio")
+          ? portfolio
+          : path.includes("forward")
+            ? forward
+            : path.includes("replay")
+              ? replay
+              : nav;
+        return new Response(JSON.stringify(envelope(data)), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
+      })
+    );
+    await expect(
+      fetchPaperBundle(undefined, new AbortController().signal, "model_top20")
+    ).rejects.toMatchObject({ code: "EVIDENCE_MISMATCH" });
+    expect(
+      vi.mocked(fetch).mock.calls.every(([input]) =>
+        String(input).includes("account_id=model_top20")
+      )
+    ).toBe(true);
+  });
+
+  it("accepts an explicit zero-FORWARD state without a fabricated anchor", () => {
+    const notReady = {
+      ...forward,
+      status: "NOT_READY",
+      performance_maturity: "NOT_READY",
+      forward_anchor_artifact_sha256: null,
+      forward_anchor_benchmark_nav: null,
+      forward_anchor_portfolio_nav: null,
+      forward_anchor_trade_date: null,
+      forward_cash_ratio: null,
+      forward_cumulative_dividends: null,
+      forward_cumulative_fees: null,
+      forward_observation_count: 0,
+      forward_rebalance_count: 0,
+      forward_turnover: null,
+      latest: null,
+      series: []
+    };
+    expect(() => assertForward(notReady)).not.toThrow();
+    expect(() =>
+      assertForward({ ...notReady, forward_anchor_trade_date: "2026-07-24" })
+    ).toThrow("不得伪造锚点");
   });
 
   it("rejects a cross-snapshot paper response", async () => {

@@ -174,6 +174,10 @@ def _paper_day(
     close: str,
     previous_state: dict[str, object] | None,
     include_policy_version: bool,
+    account_id: str = "model_baseline",
+    policy_version: str = "paper-v1",
+    policy_hash: str = "a" * 64,
+    operator: str = "docker-scheduler",
 ) -> tuple[dict[str, object], dict[str, object], list[dict[str, object]]]:
     position_state = {
         "quantity": 100,
@@ -183,7 +187,7 @@ def _paper_day(
         "last_price_date": execution_date,
     }
     state = {
-        "account_id": "model_baseline",
+        "account_id": account_id,
         "cash": cash,
         "positions": {"600001.SH": position_state},
         "entitlements": {},
@@ -230,7 +234,7 @@ def _paper_day(
         "run_id": run_id,
         "started_at": generated,
         "generated_at": generated,
-        "account_id": "model_baseline",
+        "account_id": account_id,
         "signal_trade_date": signal_date,
         "execution_trade_date": execution_date,
         "mode": mode,
@@ -238,7 +242,7 @@ def _paper_day(
         "reconciliation_sha256": "3" * 64,
         "data_snapshot_sha256": "4" * 64,
         "code_snapshot_sha256": "5" * 64,
-        "policy_sha256": "a" * 64,
+        "policy_sha256": policy_hash,
         "prior_state_sha256": _hash(previous_state),
         "source_refs": [],
         "state": state,
@@ -250,9 +254,9 @@ def _paper_day(
         },
     }
     if include_policy_version:
-        payload["execution_policy_version"] = "paper-v1"
+        payload["execution_policy_version"] = policy_version
     document = {**payload, "content_sha256": _hash(payload)}
-    relative = f"data/paper/model_baseline/runs/{execution_date}-{signal_hash[:12]}.json"
+    relative = f"data/paper/{account_id}/runs/{execution_date}-{signal_hash[:12]}.json"
     path = root / relative
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
@@ -264,7 +268,7 @@ def _paper_day(
         "run_id": run_id,
         "started_at": generated,
         "finished_at": generated,
-        "account_id": "model_baseline",
+        "account_id": account_id,
         "signal_trade_date": signal_date,
         "execution_trade_date": execution_date,
         "status": "PASS",
@@ -272,7 +276,7 @@ def _paper_day(
         "reconciliation_sha256": "3" * 64,
         "data_snapshot_sha256": "4" * 64,
         "code_snapshot_sha256": "5" * 64,
-        "policy_sha256": "a" * 64,
+        "policy_sha256": policy_hash,
         "artifact_path": relative,
         "artifact_sha256": artifact_hash,
         "event_count": 3,
@@ -283,7 +287,7 @@ def _paper_day(
         "benchmark_nav": benchmark_nav,
         "freshness_status": "PASS",
         "error_type": "",
-        "operator": "docker-scheduler",
+        "operator": operator,
     }
     event_payloads = [
         ("POSITION", f"{execution_date}:600001.SH", nav_position),
@@ -303,7 +307,7 @@ def _paper_day(
                 "event_id": event_id,
                 "run_id": run_id,
                 "recorded_at": generated,
-                "account_id": "model_baseline",
+                "account_id": account_id,
                 "effective_date": execution_date,
                 "sequence": sequence,
                 "event_type": event_type,
@@ -317,7 +321,7 @@ def _paper_day(
                 "position_after": 100 if event_type == "POSITION" else "",
                 "payload_json": _canonical(event_payload).decode(),
                 "evidence_sha256": _hash(event_payload),
-                "operator": "docker-scheduler",
+                "operator": operator,
             }
         )
     return run, state, events
@@ -498,7 +502,19 @@ def _fixture(root: Path) -> str:
                 "policy_sha256": "a" * 64,
                 "code_snapshot_sha256": "5" * 64,
                 "operator": "docker-scheduler",
-            }
+            },
+            {
+                "account_id": "model_top20",
+                "created_at": "2026-07-26T11:00:00+00:00",
+                "status": "ACTIVE",
+                "initial_cash": "10000.00",
+                "currency": "RMB",
+                "benchmark": "000906.SH",
+                "execution_policy_version": "paper-top20-v1",
+                "policy_sha256": "e" * 64,
+                "code_snapshot_sha256": "5" * 64,
+                "operator": "docker-top20-backfill",
+            },
         ],
     )
     backfill, state, backfill_events = _paper_day(
@@ -533,15 +549,60 @@ def _fixture(root: Path) -> str:
         previous_state=state,
         include_policy_version=True,
     )
+    top20_backfill, top20_state, top20_backfill_events = _paper_day(
+        root,
+        run_id="paper-top20-backfill-1",
+        signal_hash="6" * 64,
+        signal_date="20260721",
+        execution_date="20260722",
+        mode="BACKFILL",
+        cash="8000.00",
+        market_value="2000.00",
+        net_asset="10000.00",
+        normalized_nav="1",
+        benchmark_nav="1",
+        close="20.00",
+        previous_state=None,
+        include_policy_version=True,
+        account_id="model_top20",
+        policy_version="paper-top20-v1",
+        policy_hash="e" * 64,
+        operator="docker-top20-backfill",
+    )
+    top20_latest, _top20_state, top20_latest_events = _paper_day(
+        root,
+        run_id="paper-top20-backfill-2",
+        signal_hash="d" * 64,
+        signal_date="20260722",
+        execution_date="20260723",
+        mode="BACKFILL",
+        cash="8000.00",
+        market_value="1800.00",
+        net_asset="9800.00",
+        normalized_nav="0.98",
+        benchmark_nav="1.005",
+        close="18.00",
+        previous_state=top20_state,
+        include_policy_version=True,
+        account_id="model_top20",
+        policy_version="paper-top20-v1",
+        policy_hash="e" * 64,
+        operator="docker-top20-backfill",
+    )
     _write_csv(
         root / "ledger/paper_runs.csv",
         PAPER_RUN_FIELDS,
-        [backfill, forward],
+        [backfill, forward, top20_backfill, top20_latest],
     )
     _write_csv(
         root / "ledger/paper_events.csv",
         EVENT_FIELDS,
-        [*backfill_events, *forward_events],
+        [
+            *backfill_events,
+            *forward_events,
+            *top20_backfill_events,
+            *top20_latest_events,
+        ],
     )
     notification_rows = [
         {
@@ -625,6 +686,29 @@ def test_snapshot_replays_evidence_and_keeps_forward_separate(tmp_path: Path):
     assert all(not Path(value).is_absolute() for value in first.source_refs)
 
 
+def test_top20_snapshot_isolated_and_backfill_only(tmp_path: Path):
+    _fixture(tmp_path)
+    baseline = build_snapshot(project_root=tmp_path)
+    top20 = build_snapshot(account_id="model_top20", project_root=tmp_path)
+
+    assert top20.snapshot_id != baseline.snapshot_id
+    assert top20.paper_portfolio["account_id"] == "model_top20"
+    assert top20.paper_portfolio["execution_policy_version"] == "paper-top20-v1"
+    assert top20.paper_nav["account_id"] == "model_top20"
+    assert top20.paper_nav["forward_observation_count"] == 0
+    assert top20.paper_forward["status"] == "NOT_READY"
+    assert top20.paper_forward["forward_anchor_trade_date"] is None
+    assert top20.paper_forward["latest"] is None
+    assert top20.paper_forward["series"] == []
+    assert top20.paper_replay["account_id"] == "model_top20"
+    assert top20.paper_replay["mode_counts"] == {"BACKFILL": 2}
+    assert top20.paper_replay["bse_count"] == 0
+
+    with pytest.raises(WebQueryError) as invalid:
+        build_snapshot(account_id="unregistered", project_root=tmp_path)
+    assert invalid.value.code == "INVALID_ARGUMENT"
+
+
 def test_signal_hash_and_bse_are_fail_closed(tmp_path: Path):
     signal_hash = _fixture(tmp_path)
     signal_path = tmp_path / "data/shadow/signals/20260724-fixture.json"
@@ -671,6 +755,19 @@ def test_api_is_allowlisted_sanitized_and_idempotent(tmp_path: Path):
     assert invalid.json()["error"]["code"] == "INVALID_ARGUMENT"
     assert str(tmp_path) not in invalid.text
     assert client.get("/api/v1/signals/reconciliation").status_code == 422
+    top20 = client.get(
+        "/api/v1/paper/portfolio",
+        params={"account_id": "model_top20"},
+    )
+    assert top20.status_code == 200
+    assert top20.json()["data"]["account_id"] == "model_top20"
+    assert top20.json()["data"]["mode"] == "BACKFILL"
+    unknown_account = client.get(
+        "/api/v1/paper/portfolio",
+        params={"account_id": "unknown"},
+    )
+    assert unknown_account.status_code == 422
+    assert unknown_account.json()["error"]["code"] == "INVALID_ARGUMENT"
     assert client.get("/api/v1/not-allowed").status_code == 404
 
 

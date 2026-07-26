@@ -520,6 +520,9 @@ export function assertOverview(value: unknown): asserts value is OverviewData {
 
 export function assertPortfolio(value: unknown): asserts value is PortfolioData {
   const root = record(value, "组合");
+  if (root.account_id !== "model_baseline" && root.account_id !== "model_top20") {
+    throw new Error("组合 account_id 不受支持");
+  }
   if (root.bse_count !== 0) throw new Error("组合北交所计数非零");
   date(root.as_of, "组合 as_of");
   status(root.freshness_status, "组合 freshness_status");
@@ -542,6 +545,9 @@ export function assertPortfolio(value: unknown): asserts value is PortfolioData 
 
 export function assertNav(value: unknown): asserts value is NavData {
   const root = record(value, "净值");
+  if (root.account_id !== "model_baseline" && root.account_id !== "model_top20") {
+    throw new Error("净值 account_id 不受支持");
+  }
   status(root.forward_status, "净值 forward_status");
   status(root.freshness_status, "净值 freshness_status");
   integer(root.observation_count, "净值 observation_count");
@@ -567,11 +573,35 @@ export function assertForward(value: unknown): asserts value is ForwardData {
   status(root.status, "前瞻 status");
   status(root.coverage_status, "前瞻 coverage_status");
   status(root.performance_maturity, "前瞻 performance_maturity");
-  date(root.forward_anchor_trade_date, "前瞻 anchor date");
-  sha(root.forward_anchor_artifact_sha256, "前瞻 anchor hash");
   integer(root.forward_observation_count, "前瞻 observation_count");
   if (!Array.isArray(root.series) || root.series.length !== root.forward_observation_count) {
     throw new Error("前瞻 series 数量与证据不一致");
+  }
+  text(root.execution_policy_version, "前瞻 execution_policy_version");
+  text(root.coverage_reason, "前瞻 coverage_reason");
+  stringArray(root.suppressed_metrics, "前瞻 suppressed_metrics");
+  if (root.forward_observation_count === 0) {
+    if (root.status !== "NOT_READY" || root.performance_maturity !== "NOT_READY") {
+      throw new Error("零前瞻观察必须保持 NOT_READY");
+    }
+    if (
+      root.forward_anchor_trade_date !== null ||
+      root.forward_anchor_artifact_sha256 !== null ||
+      root.forward_anchor_portfolio_nav !== null ||
+      root.forward_anchor_benchmark_nav !== null ||
+      root.forward_cumulative_fees !== null ||
+      root.forward_cumulative_dividends !== null ||
+      root.forward_turnover !== null ||
+      root.forward_cash_ratio !== null ||
+      root.latest !== null
+    ) {
+      throw new Error("零前瞻观察不得伪造锚点、指标或最新值");
+    }
+  } else {
+    date(root.forward_anchor_trade_date, "前瞻 anchor date");
+    sha(root.forward_anchor_artifact_sha256, "前瞻 anchor hash");
+    numberLike(root.forward_anchor_portfolio_nav, "前瞻 anchor portfolio nav");
+    numberLike(root.forward_anchor_benchmark_nav, "前瞻 anchor benchmark nav");
   }
   root.series.forEach((item, index) => {
     const point = record(item, `前瞻 point[${index}]`);
@@ -586,6 +616,9 @@ export function assertForward(value: unknown): asserts value is ForwardData {
 
 export function assertReplay(value: unknown): asserts value is ReplayData {
   const root = record(value, "重放");
+  if (root.account_id !== "model_baseline" && root.account_id !== "model_top20") {
+    throw new Error("重放 account_id 不受支持");
+  }
   status(root.status, "重放 status");
   if (root.bse_count !== 0) throw new Error("重放北交所计数非零");
   ["run_count", "event_count", "order_count", "fill_count"].forEach((name) =>

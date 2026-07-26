@@ -2,7 +2,7 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-07-27 · Web 模拟组合双账户切换协议已冻结
+## 2026-07-27 · Web 模拟组合双账户切换 GO_LOCAL_READ_ONLY_REVIEW
 
 - `p3-web-paper-accounts-v1` 固定 `model_baseline` 为默认“主账户 · Top30”，并只新增
   `model_top20`“比较账户 · Top20”这一项严格枚举；总览和股票池/信号页继续使用主账户口径。
@@ -11,8 +11,16 @@
 - Top30 当前为4日 BACKFILL + 2日 FORWARD，Top20为6日 BACKFILL + 0日 FORWARD；因此本目标
   只授权账户切换和各自证据查看，禁止同图收益比较、策略优劣和有效性结论。Top20 必须明确显示仅工程
   回放、自然前瞻未就绪、生产自动日更未启用。
-- 当前只完成结果前展示契约冻结；查询层、页面、Docker和真实浏览器验收尚未施工。协议见
-  `docs/WEB_PAPER_ACCOUNT_SWITCH_PROTOCOL_20260727.md`。
+- 四个模拟组合端点已增加严格 `account_id` 枚举并把账户身份绑定进 snapshot；未知账户 HTTP 422，
+  默认调用仍为 Top30。零前瞻返回无锚点/无最新值的完整 NOT_READY 空态，不补0或伪造曲线。
+- 页面默认 Top30，可切换 Top20；Top20 常驻显示仅工程回放、前瞻0日、生产自动日更未启用和不可比较
+  策略优劣。总览与信号页不随局部选择改变。
+- 全仓349 PASS、前端单元24 PASS、五视口64 PASS/11 skip、真实桌面/移动14 PASS；终版 Web
+  镜像 `fa45aa76...2e0ba7`，两个 Web 容器 healthy。scheduler 仍为原容器 `fd8e96152b53`、原镜像、
+  原创建时间并保持 healthy。
+- 结论只授权本机只读复核，不解除 Top20 凭据轮换/发布窗口阻断，不授权同图绩效比较、策略有效性或
+  生产。协议与验收见 `docs/WEB_PAPER_ACCOUNT_SWITCH_PROTOCOL_20260727.md`、
+  `docs/WEB_PAPER_ACCOUNT_SWITCH_ACCEPTANCE_20260727.md`。
 
 ## 2026-07-26 · P4-0 科创100数据源PASS、官方历史谱系NO-GO
 

@@ -26,16 +26,40 @@ import {
   numericTone,
   STATUS_LABELS
 } from "../format";
-import type { EvidencePayload, ForwardPoint, NavPoint, Position } from "../types";
+import type {
+  EvidencePayload,
+  ForwardPoint,
+  NavPoint,
+  PaperAccountId,
+  Position
+} from "../types";
+
+const PAPER_ACCOUNTS: Record<
+  PaperAccountId,
+  { name: string; role: string; targetCount: number; automation: string }
+> = {
+  model_baseline: {
+    name: "主账户 · Top30",
+    role: "生产基线账户",
+    targetCount: 30,
+    automation: "生产日更已启用"
+  },
+  model_top20: {
+    name: "比较账户 · Top20",
+    role: "独立比较账户",
+    targetCount: 20,
+    automation: "生产自动日更未启用"
+  }
+};
 
 function ForwardEvidenceTable({ series }: { series: ForwardPoint[] }) {
   return (
     <div className="short-series-evidence">
       <div className="short-series-message" role="status">
-        <strong>样本不足，不绘制趋势</strong>
-        <span>连续趋势至少需要 8 个可比前瞻账户日；当前展示精确值，不扩大短样本确定性。</span>
+        <strong>{series.length ? "样本不足，不绘制趋势" : "尚无自然前瞻账户日"}</strong>
+        <span>{series.length ? "连续趋势至少需要 8 个可比前瞻账户日；当前展示精确值，不扩大短样本确定性。" : "工程回放只用于核验持仓、现金与账务，不作为前瞻表现。"}</span>
       </div>
-      <div className="compact-value-table" role="region" aria-label="前瞻观察精确值" tabIndex={0}>
+      {series.length ? <div className="compact-value-table" role="region" aria-label="前瞻观察精确值" tabIndex={0}>
         <table>
           <thead><tr><th>日期</th><th>组合净值</th><th>中证800</th><th>净值差</th><th>回撤</th></tr></thead>
           <tbody>{series.map((point) => (
@@ -48,27 +72,28 @@ function ForwardEvidenceTable({ series }: { series: ForwardPoint[] }) {
             </tr>
           ))}</tbody>
         </table>
-      </div>
+      </div> : null}
     </div>
   );
 }
 
 export default function PaperPage() {
   const { asOf } = useAsOf();
+  const [accountId, setAccountId] = useState<PaperAccountId>("model_baseline");
   const [historyMode, setHistoryMode] = useState<string>("前瞻专属");
   const [selectedDay, setSelectedDay] = useState<NavPoint | null>(null);
   const dayTrigger = useRef<HTMLElement | null>(null);
   const query = useQuery({
-    queryKey: ["paper-bundle", asOf ?? "latest"],
-    queryFn: ({ signal }) => fetchPaperBundle(asOf, signal),
-    placeholderData: (previous) => previous
+    queryKey: ["paper-bundle", accountId, asOf ?? "latest"],
+    queryFn: ({ signal }) => fetchPaperBundle(asOf, signal, accountId)
   });
 
-  if (query.isPending) return <PageLoading label="正在核对四个同快照组合响应…" />;
+  if (query.isPending) return <PageLoading label={`正在核对${PAPER_ACCOUNTS[accountId].name}的四个同快照响应…`} />;
   if (query.isError) return <PageError error={query.error} retry={() => query.refetch()} />;
 
   const bundle = query.data;
   const { portfolio, nav, forward, replay, meta } = bundle;
+  const account = PAPER_ACCOUNTS[accountId];
   const evidence: EvidencePayload = {
     title: "模拟组合证据",
     snapshotId: bundle.snapshotId,
@@ -226,11 +251,43 @@ export default function PaperPage() {
         <RefreshNotice asOf={bundle.asOf} generatedAt={bundle.generatedAt} />
       ) : null}
 
+      <section className="account-selector-surface" aria-labelledby="paper-account-selector-heading">
+        <div>
+          <span className="section-kicker">ACCOUNT SCOPE</span>
+          <h2 id="paper-account-selector-heading">选择模拟账户</h2>
+          <p>切换只改变本页读取的账户证据；总览、信号和生产基线仍使用 Top30。</p>
+        </div>
+        <Segmented
+          aria-label="选择模拟账户"
+          block
+          options={[
+            { label: "主账户 · Top30", value: "model_baseline" },
+            { label: "比较账户 · Top20", value: "model_top20" }
+          ]}
+          value={accountId}
+          onChange={(value) => {
+            setSelectedDay(null);
+            setHistoryMode("前瞻专属");
+            setAccountId(value as PaperAccountId);
+          }}
+        />
+      </section>
+
+      {accountId === "model_top20" ? (
+        <div className="account-boundary-notice" role="status">
+          <SafetyCertificateOutlined aria-hidden="true" />
+          <div>
+            <strong>Top20 当前只完成工程回放，不能与 Top30 比较策略优劣</strong>
+            <span>自然前瞻 {forward.forward_observation_count} 日 · {account.automation}；本页只展示可重放的持仓、现金和账户日证据。</span>
+          </div>
+        </div>
+      ) : null}
+
       <section className="identity-strip" aria-label="模拟组合身份">
-        <div><span>账户</span><strong title={portfolio.account_id}>主模拟账户</strong></div>
+        <div><span>账户</span><strong title={portfolio.account_id}>{account.name}</strong></div>
         <div><span>执行规则</span><strong title={portfolio.execution_policy_version}>固定模拟规则</strong></div>
         <div><span>基准</span><strong>000906.SH · 中证800</strong></div>
-        <div><span>观察类型</span><strong className={`mode-label mode-${portfolio.mode.toLowerCase()}`} title={portfolio.mode}>{portfolio.mode === "FORWARD" ? "前瞻观察" : "工程回放"}</strong></div>
+        <div><span>账户角色</span><strong>{account.role} · 目标{account.targetCount}只</strong></div>
         <div><span>账本重放</span><StatusBadge status={replay.status} compact /></div>
       </section>
 
@@ -241,7 +298,7 @@ export default function PaperPage() {
             <h2 id="paper-performance-heading">前瞻组合与中证800</h2>
           </div>
           <div className="chart-meta">
-            <span>锚点 {displayDate(forward.forward_anchor_trade_date)}</span>
+            <span>{forward.forward_anchor_trade_date ? `锚点 ${displayDate(forward.forward_anchor_trade_date)}` : "前瞻锚点未形成"}</span>
             <StatusBadge status={forward.performance_maturity} />
           </div>
         </div>
@@ -277,7 +334,7 @@ export default function PaperPage() {
           </>
         ) : <ForwardEvidenceTable series={forward.series} />}
         <div className="chart-footnote">
-          <span>观察类型：前瞻观察</span><span>基准：000906.SH</span><span>费用：实际成交费用</span><span title={portfolio.execution_policy_version}>策略：固定模拟规则</span>
+          <span>账户：{account.name}</span><span>观察类型：仅自然前瞻</span><span>基准：000906.SH</span><span>费用：实际成交费用</span><span title={portfolio.execution_policy_version}>策略：固定模拟规则</span>
         </div>
       </section>
 

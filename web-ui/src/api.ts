@@ -14,6 +14,7 @@ import type {
   NavData,
   NotificationData,
   OverviewData,
+  PaperAccountId,
   PaperBundle,
   PortfolioData,
   ReplayData,
@@ -140,15 +141,24 @@ function assertSameSnapshot(envelopes: Array<ApiEnvelope<unknown>>): ApiMeta {
 
 export async function fetchPaperBundle(
   asOf: string | undefined,
-  signal: AbortSignal
+  signal: AbortSignal,
+  accountId: PaperAccountId = "model_baseline"
 ): Promise<PaperBundle> {
+  const parameters = new URLSearchParams({ account_id: accountId });
   const [portfolio, nav, forward, replay] = await Promise.all([
-    getEnvelope("/api/v1/paper/portfolio", asOf, signal, assertPortfolio),
-    getEnvelope("/api/v1/paper/nav", asOf, signal, assertNav),
-    getEnvelope("/api/v1/paper/forward", asOf, signal, assertForward),
-    getEnvelope("/api/v1/paper/replay", asOf, signal, assertReplay)
+    getEnvelope("/api/v1/paper/portfolio", asOf, signal, assertPortfolio, parameters),
+    getEnvelope("/api/v1/paper/nav", asOf, signal, assertNav, parameters),
+    getEnvelope("/api/v1/paper/forward", asOf, signal, assertForward, parameters),
+    getEnvelope("/api/v1/paper/replay", asOf, signal, assertReplay, parameters)
   ]);
   const meta = assertSameSnapshot([portfolio, nav, forward, replay]);
+  if (
+    portfolio.data.account_id !== accountId ||
+    nav.data.account_id !== accountId ||
+    replay.data.account_id !== accountId
+  ) {
+    throw new UiQueryError("EVIDENCE_MISMATCH", "组合响应与所选账户身份不一致");
+  }
   return {
     snapshotId: meta.snapshot_id,
     asOf: meta.as_of,

@@ -141,6 +141,45 @@ test("root route enters overview without changing evidence date semantics", asyn
   await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible();
 });
 
+test("real paper page switches to the isolated Top20 backfill account without overclaiming", async ({ page }) => {
+  const portfolioResponse = await page.request.get(
+    "/api/v1/paper/portfolio?account_id=model_top20"
+  );
+  const forwardResponse = await page.request.get(
+    "/api/v1/paper/forward?account_id=model_top20"
+  );
+  expect(portfolioResponse.status()).toBe(200);
+  expect(forwardResponse.status()).toBe(200);
+  const portfolioPayload = await portfolioResponse.json() as {
+    data: { account_id: string; mode: string };
+  };
+  const forwardPayload = await forwardResponse.json() as {
+    data: { status: string; forward_observation_count: number; series: unknown[] };
+  };
+  expect(portfolioPayload.data).toMatchObject({
+    account_id: "model_top20",
+    mode: "BACKFILL"
+  });
+  expect(forwardPayload.data).toMatchObject({
+    status: "NOT_READY",
+    forward_observation_count: 0,
+    series: []
+  });
+
+  await page.goto("/paper");
+  await page.locator(".account-selector-surface")
+    .getByText("比较账户 · Top20", { exact: true })
+    .click();
+  await expect(page.getByText("Top20 当前只完成工程回放，不能与 Top30 比较策略优劣"))
+    .toBeVisible();
+  await expect(page.getByText("尚无自然前瞻账户日", { exact: true })).toBeVisible();
+  await expect(page.getByText(/自然前瞻 0 日/)).toBeVisible();
+  await expect(page.getByText("前瞻锚点未形成", { exact: true })).toBeVisible();
+  await expect(page.getByText("年化收益")).toHaveCount(0);
+  await expect(page.getByText("Sharpe")).toHaveCount(0);
+  await expect(page.getByText("信息比率")).toHaveCount(0);
+});
+
 test("real primary views keep technical identifiers behind explicit evidence interactions", async ({ page }) => {
   const overviewResponse = await page.request.get("/api/v1/overview");
   const overviewPayload = await overviewResponse.json() as {
