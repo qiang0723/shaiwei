@@ -38,6 +38,7 @@ interface RealExperimentCatalog {
       experiment_kind: string;
       experiment_id: string;
       outcome_status: string;
+      authority_status: string;
     }>;
     sorted_by_performance: false;
   };
@@ -93,8 +94,21 @@ test("deployed read-only UI serves real evidence under strict CSP", async ({ pag
     expect(blocking, JSON.stringify(blocking, null, 2)).toEqual([]);
     expect(pageWidth.scrollWidth).toBeLessThanOrEqual(pageWidth.clientWidth + 1);
     expect(cspViolations).toEqual([]);
+    if (item.route === "/experiments" && testInfo.project.name === "real-mobile") {
+      const mobileCatalog = page.getByRole("table", { name: "移动端实验目录" });
+      await expect(mobileCatalog).toBeVisible();
+      await expect(page.locator(".experiment-desktop-catalog")).toBeHidden();
+      const visibleStatuses = await mobileCatalog.locator(".experiment-mobile-status").allInnerTexts();
+      expect(visibleStatuses.length).toBeGreaterThan(0);
+      expect(visibleStatuses.every((status) => !/[A-Z]{3,}(?:_[A-Z]+)+/.test(status))).toBe(true);
+      const rowHeights = await mobileCatalog.locator(".experiment-catalog-card").evaluateAll(
+        (rows) => rows.map((row) => row.getBoundingClientRect().height)
+      );
+      expect(Math.max(...rowHeights)).toBeLessThanOrEqual(72);
+    }
     const captureDir = process.env.P3_CAPTURE_REAL_DIR;
-    if (captureDir) {
+    const captureRoute = process.env.P3_CAPTURE_REAL_ROUTE;
+    if (captureDir && (!captureRoute || captureRoute === item.route)) {
       const name = item.route.slice(1).replaceAll("/", "-") || "root";
       await page.screenshot({
         path: `${captureDir}/${name}-${testInfo.project.name}.png`,

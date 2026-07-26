@@ -191,23 +191,36 @@ function outcomeIcon(outcome: ExperimentOutcome) {
   return <InfoCircleFilled />;
 }
 
-function OutcomeBadge({ outcome }: { outcome: ExperimentOutcome }) {
+function OutcomeBadge({ outcome, showMachineCode = true }: { outcome: ExperimentOutcome; showMachineCode?: boolean }) {
   const copy = OUTCOME_COPY[outcome];
   return (
-    <Tag className={`experiment-outcome experiment-outcome-${copy.tone}`} icon={outcomeIcon(outcome)}>
-      {copy.label} · {outcome}
+    <Tag
+      className={`experiment-outcome experiment-outcome-${copy.tone}`}
+      icon={outcomeIcon(outcome)}
+      title={`${copy.label} · ${outcome}`}
+      aria-label={`${copy.label}，机器状态 ${outcome}`}
+    >
+      {copy.label}{showMachineCode ? ` · ${outcome}` : ""}
     </Tag>
   );
 }
 
-function AuthorityBadge({ authority }: { authority: ExperimentAuthorityStatus }) {
+function AuthorityBadge({
+  authority,
+  showMachineCode = true
+}: {
+  authority: ExperimentAuthorityStatus;
+  showMachineCode?: boolean;
+}) {
   const current = authority === "AUTHORITATIVE_CURRENT" || authority === "AUTHORITATIVE_STOP";
   return (
     <Tag
       className={`experiment-authority experiment-authority-${current ? "current" : "historical"}`}
       icon={current ? <SafetyCertificateFilled /> : <HistoryOutlined />}
+      title={`${AUTHORITY_LABELS[authority]} · ${authority}`}
+      aria-label={`${AUTHORITY_LABELS[authority]}，机器状态 ${authority}`}
     >
-      {AUTHORITY_LABELS[authority]} · {authority}
+      {AUTHORITY_LABELS[authority]}{showMachineCode ? ` · ${authority}` : ""}
     </Tag>
   );
 }
@@ -488,24 +501,33 @@ function CatalogPage() {
             emptyText="当前精确筛选没有实验记录"
           />
         </div>
-        <div className="experiment-mobile-cards" aria-label="移动端实验目录">
+        <div className="experiment-mobile-cards" role="table" aria-label="移动端实验目录">
+          <div className="experiment-mobile-header" role="row">
+            <span role="columnheader">实验 ID</span>
+            <span role="columnheader">结论</span>
+            <span role="columnheader">权威状态</span>
+          </div>
           {data.items.map((item) => (
-            <article key={`${item.experiment_kind}|${item.experiment_id}`} className="experiment-catalog-card">
-              <div className="experiment-card-heading">
-                <RouterLink to={experimentPath(item.experiment_kind, item.experiment_id, search)}>
+            <article
+              key={`${item.experiment_kind}|${item.experiment_id}`}
+              className="experiment-catalog-card"
+              role="row"
+            >
+              <div className="experiment-mobile-id" role="cell">
+                <RouterLink
+                  to={experimentPath(item.experiment_kind, item.experiment_id, search)}
+                  aria-label={`查看实验 ${item.experiment_id} 的类型化证据`}
+                >
                   <code title={item.experiment_id}>{shortIdentity(item.experiment_id)}</code>
                 </RouterLink>
-                <OutcomeBadge outcome={item.outcome_status} />
+                <small>{KIND_LABELS[item.experiment_kind]}</small>
               </div>
-              <p>{item.research_family}</p>
-              <AuthorityBadge authority={item.authority_status} />
-              <dl>
-                <div><dt>证据层级</dt><dd>{TIER_LABELS[item.evidence_tier]}</dd></div>
-                <div><dt>生命周期</dt><dd>{LIFECYCLE_LABELS[item.lifecycle_status]}</dd></div>
-                <div><dt>记录时间</dt><dd>{formatDateTime(item.recorded_at)}</dd></div>
-                <div><dt>失败项</dt><dd>{item.failed_reason_count}</dd></div>
-              </dl>
-              <RouterLink to={experimentPath(item.experiment_kind, item.experiment_id, search)}>查看类型化证据</RouterLink>
+              <div className="experiment-mobile-status" role="cell">
+                <OutcomeBadge outcome={item.outcome_status} showMachineCode={false} />
+              </div>
+              <div className="experiment-mobile-status" role="cell">
+                <AuthorityBadge authority={item.authority_status} showMachineCode={false} />
+              </div>
             </article>
           ))}
           {!data.items.length ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="当前精确筛选没有实验记录" /> : null}

@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-07-26 · Web 1.1 移动实验目录可读性补正 GO_LOCAL_READ_ONLY_REVIEW
+
+- 390/320px 实验目录已从桌面宽表改为紧凑三列目录，首要信息固定为实验 ID、中文结论和中文权威状态；
+  原始英文机器枚举仅保留在 `title`/`aria-label` 与详情页，不再在窄列逐字折行。
+- `DISCOVERY_REJECTED`、`INVALIDATED_METHOD`、`AUTHORITATIVE_STOP`、`DISCOVERY_ONLY` 等坏消息仍以
+  “发现层拒绝”“方法已失效”“权威停止”“仅发现层”明确展示，没有弱化或改判。
+- 真实 390px 实验页由 3,617px 进一步降至 2,740px，单条目录行不超过 72px；320px 与 390px 均无
+  页面级横向溢出。前端单元 22 PASS、五视口 fixture 64 PASS/11 intentional skip、真实部署 10 PASS；
+  全仓 339 PASS、Ruff 和 `git diff --check` 通过。
+- 仅重建隔离的本机 `web-query`/`web-ui`；scheduler 仍为原容器 `fd8e96152b53`、原镜像与原创建时间，
+  healthy 且未重启。验收见 `docs/WEB_1_1_MOBILE_EXPERIMENT_CATALOG_FIX_20260726.md`。
+
 ## 2026-07-26 · Web 1.1 全面重设计 GO_LOCAL_READ_ONLY_REVIEW
 
 - 现状审计与重设计协议已先以本机提交 `f1b1dbb` 冻结；七类只读页随后完成信息架构、视觉层级、
@@ -9,7 +21,7 @@
   四轴分列，当前 2 日 FORWARD 继续 `OBSERVING`，不画趋势、不展示年化、Sharpe 或信息比率。
 - `planned_trade_leg_count` 前端统一为“目标变更证券数”，真实执行事实为“已执行订单腿”；因子正式库 0、
   783 条实验记录非 783 个有效模型、WARN/NOT_EVALUATED/失效方法均未被包装弱化。
-- 真实 390px 页面高度中，因子目录由 4,110px 降至 1,839px，实验目录由 10,503px 降至 3,617px；
+- 真实 390px 页面高度中，因子目录由 4,110px 降至 1,839px，实验目录由 10,503px 降至 2,740px；
   七页均无页面级横向溢出，320px 等效 400% 总览同样回流通过。
 - 前端单元 22 PASS；五视口 fixture 64 PASS/11 intentional skip；真实桌面/移动部署 10 PASS；截图专项
   2 PASS。严格 CSP、同源零外联、axe serious/critical=0、键盘焦点恢复和 FCP 预算均通过。

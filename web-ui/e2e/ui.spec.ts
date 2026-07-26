@@ -346,6 +346,29 @@ test("experiment catalog separates records from valid models and preserves exact
   await expect(page.getByText("READ ONLY · NO RANKING")).toBeVisible();
   expect(requests).toEqual(["/api/v1/experiments"]);
 
+  if (testInfo.project.name === "mobile-390" || testInfo.project.name === "zoom-400-reflow") {
+    const mobileCatalog = page.getByRole("table", { name: "移动端实验目录" });
+    await expect(mobileCatalog).toBeVisible();
+    await expect(page.locator(".experiment-desktop-catalog")).toBeHidden();
+    await expect(mobileCatalog.getByRole("row")).toHaveCount(5);
+    await expect(mobileCatalog).toContainText("历史效果拒绝");
+    await expect(mobileCatalog).toContainText("方法已失效");
+    await expect(mobileCatalog).toContainText("当前权威");
+    await expect(mobileCatalog).toContainText("被替代工程代");
+    for (const machineStatus of [
+      "HISTORICAL_EFFECT_REJECTED",
+      "INVALIDATED_METHOD",
+      "AUTHORITATIVE_CURRENT",
+      "SUPERSEDED_ENGINEERING_GENERATION"
+    ]) {
+      await expect(mobileCatalog.getByText(machineStatus, { exact: true })).toHaveCount(0);
+    }
+    const rowHeights = await mobileCatalog.locator(".experiment-catalog-card").evaluateAll(
+      (rows) => rows.map((row) => row.getBoundingClientRect().height)
+    );
+    expect(Math.max(...rowHeights)).toBeLessThanOrEqual(72);
+  }
+
   await page.getByText("精确筛选 · 7 项").click();
   await page.getByLabel("结论语义筛选").click();
   await page
