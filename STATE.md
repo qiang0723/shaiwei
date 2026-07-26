@@ -2,16 +2,23 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-07-26 · P4-0 科创100官方谱系与数据协议已结果前冻结
+## 2026-07-26 · P4-0 科创100数据源PASS、官方历史谱系NO-GO
 
 - 用户确认把拟议“科创300”改为官方科创100，并授权由主控判断是否立即施工；当前生产 scheduler
   使用不可变镜像且 healthy，Web/研究施工与生产隔离，因此裁决现在可启动。
 - `p4-star100-data-protocol-v1` 固定指数 `000698.SH`、官方发布日 2023-08-07、最早可能研究可用日
   2023-08-07和截止日2026-07-26。2019-12-31只作为编制方案基日，不授权成员历史前移。
-- 当前只允许官方首批100只、全部定期/临时调整、2025-03-17规则修订谱系、指数日线及35个完整月
-  Tushare成员集合二级对账；禁止qlib、特征、模型、IC、收益、回测、选参、信号和生产接入。
-- 协议见 `config/p4_star100_v1.yaml` 与
-  `docs/P4_STAR100_DATA_FEASIBILITY_PROTOCOL_20260726.md`。真实采集与机器裁决尚未执行。
+- 官方首批名单100/100、规则V1.0→V1.1谱系、718/718个指数交易日和35/35个月度100只集合均PASS；
+  40个Tushare请求即时双查差异0，复跑新增请求0，`.BJ`、重复、未知代码和日线异常均为0。
+- 官方归档扫描5页、16个候选页面和17个附件；12期季度调整附件均可解析，但科创100历史调入/调出
+  成员对材料为0。Tushare检测到12个集合变化区间只能作为二级诊断，不能补造公告日、生效日和官方
+  版本。因此 `official_adjustment_lineage_complete=false`、`pit_constructible=false`，P4-0数据门
+  权威NO-GO；这不是策略REJECT，`strategy_effective=NOT_EVALUATED`。
+- 当前停止在P4-1前，不构建qlib、特征、模型、IC、收益、回测、排名或信号。恢复须另立协议并取得
+  带发布/版本证据的官方历史拟生效/已生效样本；不得用当前成分、ETF PCF或Tushare月末集合绕过。
+- 协议与验收见 `docs/P4_STAR100_DATA_FEASIBILITY_PROTOCOL_20260726.md`、
+  `docs/P4_STAR100_DATA_FEASIBILITY_ACCEPTANCE_20260726.md`；脱敏来源真身为
+  `config/p4_star100_manifest_v1.json`。
 
 ## 2026-07-26 · Web 1.1.1 易读与只读交互补正 GO_LOCAL_READ_ONLY_REVIEW
 
@@ -341,7 +348,7 @@
   production_authorization=none`。当前仍不运行 W1–W6、压力期、G1 或生产信号。
 
 ## 当前阶段
-阶段 0（基线）已完成；阶段 1 已完成有界 GP 预演和 `p1-moneyflow-v1` 首个正式数据增强家族，二者均按冻结 `g1-v1` 结论 REJECT，正式因子库仍为 0 插入。锁竞争修复后当前代码版本连续三次完整“信号 → 下一交易日开盘对账”已于 2026-07-22 完成 3/3，核心任务验收 PASS、通知通道 WARN；同日完成飞书通知健壮性修复。P0.5 模拟组合的工程、Docker 接入、四日 BACKFILL 和 2026-07-23 首个自然 `FORWARD` 已全部 PASS，当前进入持续前瞻观察。P3-3B 已完成因子与实验的不可变安全投影、五组类型化查询及 HTTP 后端；P3-3C 因子工厂与 P3-4B 模型/回测页面均已完成，Web 1.0 七类本机只读页面全部可用。
+阶段 0（基线）已完成；阶段 1 已完成有界 GP 预演和 `p1-moneyflow-v1` 首个正式数据增强家族，二者均按冻结 `g1-v1` 结论 REJECT，正式因子库仍为 0 插入。锁竞争修复后当前代码版本连续三次完整“信号 → 下一交易日开盘对账”已于 2026-07-22 完成 3/3，核心任务验收 PASS、通知通道 WARN；同日完成飞书通知健壮性修复。P0.5 模拟组合的工程、Docker 接入、四日 BACKFILL 和 2026-07-23 首个自然 `FORWARD` 已全部 PASS，当前进入持续前瞻观察。P3-3B 已完成因子与实验的不可变安全投影、五组类型化查询及 HTTP 后端；P3-3C 因子工厂与 P3-4B 模型/回测页面均已完成，Web 1.0 七类本机只读页面全部可用。P4-0 科创100源采集PASS，但官方历史成员谱系NO-GO，已停在P4-1前且未评价策略效果。
 
 结果路线现为：P0.5 持续积累真实前瞻观察；P1 首批六个简单资金流候选已全部 REJECT 且停止本家族追加变体；生产 scheduler 与开发工作树的发布快照隔离已于 2026-07-24 完整 PASS。P2-0 的 `p2-star50-protocol-v1` 永久保留 NO-GO：Tushare 首份权重按 T+1 仅能从 2020-08-03 生效，冻结起点缺 7 个交易日且无历史版本/修订字段。`p2-star50-protocol-v2` 以官方首批名单和全量调整公告重建 `000688.SH` 成员谱系；1,456 个交易日每日均为 50 只，和 72/72 个 Tushare 月度集合完全一致，官方谱系数据门 GO。P2-1 独立工程门 GO 只证明真实数据集、动态 instruments、隔离 qlib 与 synthetic 通路可运行。原 P2-2 因标签成熟、开盘时钟和卖单容量三项方法违约永久标记 `original_p2_2_model_valid=false`、`original_p2_2_execution_valid=false`，旧数值可复算但旧 `NO_GO/REJECT` 不再权威，所有旧证据原样保留。P2-2C 以结果前推送的 `c6fbbaf` 只修复上述三项并完成唯一 purged 训练与一遍确定性复核：三窗基础净超额 -8.51%/-19.25%/-23.87%，727 日 pooled 基础/2x/额外滑点 -52.97%/-56.19%/-56.02%，三测试窗和 microcap_2024 回撤超过 20%；合法 CSI800 对照仍缺使分散化 `NOT_EVALUABLE`。权威终态 `authoritative_historical_effect_gate=NO_GO`、`strategy_effective=REJECT`、`production_authorization=none`，本基线停止，不调门槛、不追加变体、不进入前瞻或生产；中证800继续是唯一生产主策略。P3-0 已完成可信只读查询底座；P3-1、P3-2B 与 P3-3C 已完成总览、模拟组合、股票池/信号、数据质量、系统运行和因子工厂六类正式页面及真实浏览器/Docker 安全验收，Web 1.0 本机只读首版可用。D1-0、D1-1、D1-2A 和 D1-2B 均已完成；D1-3A 已完成恰好 8 份结果盲态对抗响应，专项费用 `$0.01472214`，但其中 3 份自由文本违反“禁止替代公式/变体”的冻结合同，权威终态为 `STOP_SEMANTIC_CONTRACT_VIOLATION`。2026-07-26 已完成未来新批所需的语义一致性工程门，离线精确复现 5 PASS/3 FAIL，但旧批仍不进独立人工闸，不读取 W1—W6/压力期，不运行 G1；策略未评价且无生产授权。完整目标、输出、通过条件和禁止事项见 `docs/ROADMAP.md`。
 
@@ -429,6 +436,7 @@
 - [x] P2-1 科创50独立工程门（2026-07-24，工程 GO）：真实数据施工前提交并推送 `00bc030` 冻结协议并绑定 v2 五项证据哈希；新增 2020-07~2026-06 的显式 72 月份域，fixture 证明“缺月 + 另一月双快照但总数不变”仍 fail closed。official daily membership 唯一驱动 72,800 个成员日和动态 instruments；72,719 个行情 bar + 81 个全天停牌使覆盖 100%，daily_basic/申万 L1 PIT 均 100%，重复、上市前、退市后、无法解释缺口和 `.BJ` 均为 0。独立 qlib 共 1,293 文件、整树 SHA-256 `b8f736ef...b78729`，双遍哈希一致并复用；完全合成 fixture 打通 dataset/qlib/Alpha158/LightGBM/TopK/backtest，120 个观察日中 110 个存在非现金持仓。机器结论 `engineering_complete=true`、`strategy_results_inspected=false`、`strategy_effective=NOT_EVALUATED`、`production_authorization=none`；未在真实 provider 上训练、预测、回测或查看效果，证据见 `docs/P2_STAR50_ENGINEERING_ACCEPTANCE_20260724.md`。
 - [!] P2-2 科创50原历史效果裁决（2026-07-25，方法失效但证据保留）：任何真实 handler/model/backtest 前提交并推送 `ed5b1b0`，原三窗、压力、成本数值及 54/54 确定性产物仍可复算；但后续审计确认标签 t+11 成熟越界进入 valid/test、次日开盘判断读取当日收盘 flags、395 笔卖单中 14 笔超过冻结 5% 容量（最大 11.3038%）。因此永久分列 `original_p2_2_model_valid=false`、`original_p2_2_execution_valid=false`，旧 `historical_effect_gate=NO_GO` / `strategy_effective=REJECT` 仅描述失效方法输出，不能支持权威决策。旧提交、报告 `94c458ae...f5ce9`、manifest、两账本和 115 文件整树不修改、不删除；见 `docs/P2_STAR50_EFFECT_INVALIDATION_ADDENDUM_20260725.md`。
 - [x] P2-2C 科创50综合方法纠错（2026-07-25，权威 NO-GO/REJECT）：结果前提交并推送 `c6fbbaf`，只修复 train/valid 最后 11 个信号日 purge、执行日 raw open/pre_close/tick 与 prior-close 时钟、买卖双向信号日 20 日中位 amount 5% 容量；其他 Alpha158/LightGBM seed42 超参、窗口/test、压力映射、Top10/n_drop2、调仓、成本和门槛逐字段不变。三窗 242/242/243 日、各 25 次调仓，基础净超额 -8.51%/-19.25%/-23.87%；727 日 pooled 基础/1.5x/2x/额外双边10bp 为 -52.97%/-54.59%/-56.19%/-56.02%，正窗 0/3；W1/W2/W3 与 microcap_2024 回撤越过 20%。纠错基础 909 笔和全部场景/压力 3,856 笔的买卖容量违规均为 0；84 个名字跨信号日继续卖出。合法 CSI800 对照缺失使分散化 `NOT_EVALUABLE`。两遍 54 份 model/prediction/NAV/trade/holding 物理哈希完全一致；机器终态 `authoritative_historical_effect_gate=NO_GO`、`strategy_effective=REJECT`、`production_authorization=none`。完整证据见 `docs/P2_STAR50_EFFECT_CORRECTION_ACCEPTANCE_20260725.md`。
+- [x] P4-0 科创100官方谱系与源数据门（2026-07-26，NO-GO）：结果前提交并推送 `7750d65` 冻结 `000698.SH` 和一手来源纪律；40个Tushare请求即时双查稳定，718/718指数日线、35/35个月度100只集合、首批官方100只和V1.0→V1.1规则版本均PASS，复跑新增请求0。官方归档扫描5页、16个候选页面和17个附件，12期季度调整附件均可解析但科创100历史成员对材料为0；Tushare显示的12次集合变化只作二级诊断，不能补造官方公告日、生效日和版本。机器终态 `official_adjustment_lineage_complete=false`、`pit_constructible=false`、`strategy_effective=NOT_EVALUATED`、`production_authorization=none`；未进入qlib/模型/回测/信号。证据见 `docs/P4_STAR100_DATA_FEASIBILITY_ACCEPTANCE_20260726.md`。
 - [x] D1-2A LLM 真实调用前冻结（2026-07-25，GO_PREEXECUTION_ONLY）：官方模型/价格和请求/响应/错误合同、system prompt、五主题模板、同主题全历史反馈、10 条知识 manifest、受限 DeepSeek 适配层、累计费用熔断和 transport 恢复账本均已冻结。当前 `execution_authorized=false` 时真实 transport、运行时 secret 加载和网络在创建前被拒绝；宿主脱敏测试仅作 `.env` 秘密与 Git 跟踪文件的不回显比对。断网 Docker 同时证明成功恢复不二次请求、429 有界恢复和读超时后 `BILLING_UNCERTAIN` 禁止重发。全仓 247 PASS、Docker 对抗 29 PASS；API/行情/G1/生产授权均为 0。证据见 `docs/D1_LLM_FACTOR_PREEXECUTION_ACCEPTANCE_20260725.md`。
 - [x] D1-2B 首批真实生成（2026-07-25，GO_D1_3_REVIEW）：结果前冻结总授权 `$10`、本批恰好 40 个完成响应和 `$1` 熔断，只读 2016-06-01—2018-12-31 发现期，W1—W6/压力期/G1/前瞻/生产禁读禁跑。首份完成后控制流 fail closed；恢复附录锁定原响应、账本字节前缀与产物哈希，仅修独立反馈和连续恢复，从序号 2 完成剩余 39 份，无重发或计费不确定性。终态 40/40：36 `DISCOVERY_EVALUATED`、2 `duplicate_ast`、2 `sandbox_rejected`，费用 `$0.076626207`；无密钥、断网、只读重放为 `idempotent_reuse=true / external_api_calls_this_run=0` 且 160 文件证据束哈希不变。机械 Top2 已锁定但未解盲 W1—W6或运行 G1；`strategy_effective=NOT_EVALUATED`、`production_authorization=none`。证据见 `docs/D1_LLM_FACTOR_EXECUTION_ACCEPTANCE_20260725.md`。
 - [x] D1-3A Top2 盲态对抗复核及语义纠错（2026-07-25，STOP_SEMANTIC_CONTRACT_VIOLATION）：8/8 响应结构 schema PASS，但自由文本审计为 5 PASS/3 FAIL；三份以正文建议公式/构造变体却声明未提变体。按 8/8 有效且不补位规则停止，不进独立人工闸，不读 W1—W6，不运行 G1。
@@ -456,6 +464,7 @@
 ## 待答点
 - P2 已形成互不覆盖的证据层：v1 永久 NO-GO 证明 Tushare 不能单独充当 PIT 真身；v2 官方成员谱系数据门 GO 证明 2020-07-23 起的数据可行；P2-1 工程 GO 证明独立数据集、qlib 和 synthetic 通路可运行；原 P2-2 数值可复算但模型/执行方法均失效；P2-2C 三项方法纠错后的权威历史结论为 `NO_GO/REJECT`。不得把效果失败或原方法缺陷表述成前述数据/工程门失败。
 - 后台结果路线已完成 P2-2C 权威纠错并停止该基线。P1 六候选和 P2-2C 均保持 REJECT；P2 不进入前瞻观察或生产，不调参、不追加变体。P3-0 查询底座、P3-1 三页、P3-2A/P3-2B 运维页、P3-3B/P3-3C 因子工厂和 P3-4A/P3-4B 模型回测目录与页面均已 GO，本机 Web 1.0 七类页面可用且不反向改后台口径。
+- P4-0 已证明科创100基础源可采，但当前公开官方归档不足以闭合历史调入/调出谱系；P4-1因此阻断，策略保持`NOT_EVALUATED`，不得表述为科创100无效。后续只有取得带发布时间和版本/修订证据的官方历史成员源后，才能结果前另立恢复协议；从未来季度前瞻固化官方拟生效样本只能覆盖未来，不能自动修复既有12期。
 - P0.5 初始资金人民币 50 万元的自然 `FORWARD` 已累计 2 个账户日，后续由 scheduler 持续追加。50 万元下首个真实信号有 8 个目标因主板 100 股/科创板 200 股门槛无法买入；这是实际账户约束结果，不允许用碎股或目标权重补齐。两日前瞻仍只证明工程运行，不把四日 BACKFILL 或短样本净值用于策略裁决。
 - P1 已于 2026-07-24 完整结束：长期主源仍为 `tushare.moneyflow`，`moneyflow-pit-v1` 固定下一交易日可用；46 个稳定失败日继续按 `moneyflow-quality-v2` 整日隔离。六候选同预算比较均未在 Alpha158 之外形成可准入增量，全部 REJECT，正式库 0 插入；不增加本家族变体、不看结果调门槛、不接生产。数据层可作为未来独立预注册家族的只读输入，但须把既有 N=18 纳入多重检验背景。详见 `docs/P1_MONEYFLOW_EXPERIMENT_ACCEPTANCE_20260724.md`。
 - 官方规则复核发现沪深主板风险警示股票自 2026-07-06 起均由 5% 调整为 10%。当前中证800正式信号不含 ST，故不推翻 P0 三次结果；P0.5 以按板块和日期分段的 `paper-v1` 执行规则处理，不回改冻结的历史模型与 G0 门禁。后续若生产信号范围允许 ST，须另立数据/门禁修订评审，不能沿用旧 `limit_rules.st=0.045` 冒充现行实盘规则。

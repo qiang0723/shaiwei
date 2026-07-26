@@ -1,0 +1,464 @@
+{
+  "desensitization": {
+    "absolute_paths_included": false,
+    "cookies_or_headers_included": false,
+    "credentials_included": false,
+    "provider_token_included": false,
+    "raw_business_rows_included": false
+  },
+  "immutable_evidence": {
+    "collection_report": {
+      "ingest_snapshot_sha256": "242f4b61c6f0f9e46e7205f546215f3fc4922eb92ab72b557c8069b8a4fcbd99",
+      "path": "data/research/star100/p4-star100-v1/collection_report.json",
+      "sha256": "fbb6b62afdb712b0c6a6eedc03121a61f53ac4f8b39c7a24be2548d0f78fa7a1",
+      "tool_snapshot_sha256": "eb342103cc55579d31d15124f34b85404a54834b49cc15a6de0b4c9071a9050b"
+    },
+    "initial_set": {
+      "canonical_sha256": "945e19f762be55e4e2585c26df105e8f336627d963b2010c9b6f87fd1759b2c0",
+      "path": "data/research/star100/p4-star100-v1/initial_set.parquet",
+      "sha256": "2fee6bd36d5d1f5e32914316d1efcef7071e604ad231d94b5b2fe77a5bf5cd62"
+    },
+    "official_discovery_report": {
+      "path": "data/research/star100/p4-star100-v1/official-discovery-9ddb851181b5.json",
+      "sha256": "9ddb851181b585b8d48f0f53187ffba37016b585ea47fdcbf8b93a75b068add8",
+      "tool_snapshot_sha256": "eb342103cc55579d31d15124f34b85404a54834b49cc15a6de0b4c9071a9050b"
+    },
+    "official_retrieval_index": {
+      "path": "data/research/star100/p4-star100-v1/official_sources/retrieval_index.json",
+      "sha256": "2d7b0b8fa4a50b41c84db2dbed98e34643be7a219416785a7aae5eaceaa9a3b3"
+    },
+    "quality_report": {
+      "path": "data/research/star100/p4-star100-v1/quality_report.json",
+      "sha256": "d6fc3a7582772f28c0b40a671d3988cafb0ad5170673a01c1de6c5f52218c80a",
+      "tool_snapshot_sha256": "a7323e5e569395064204b5e09c267d42c3f4879872b443b63876925a98a97f1c"
+    }
+  },
+  "index_code": "000698.SH",
+  "official_sources": [
+    {
+      "byte_count": 200845,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10644152/files/55f10ee713414a64aae342f9fc9f5586.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20230721_5724116.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:37:39Z",
+      "source_file_sha256": "c043af1ecb9557b12aa813d8ba06b79832c1a2b0d8d49b3bb12f3c6ffa0a2e1e",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10644152/files/55f10ee713414a64aae342f9fc9f5586.pdf",
+      "title": "关于发布上证科创板100指数的公告"
+    },
+    {
+      "byte_count": 16328,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10644152/files/9714273556304a898df4d6ce32494033.xlsx",
+      "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20230721_5724116.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:37:40Z",
+      "source_file_sha256": "7231a475a109af01c43733c6b468b603c01ae3318665a300e173b77ff03543b5",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10644152/files/9714273556304a898df4d6ce32494033.xlsx",
+      "title": "关于发布上证科创板100指数的公告"
+    },
+    {
+      "byte_count": 71768,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10648727/files/092b60209f8f4bbeace1874986b92f2a.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20230825_5725641.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:37:43Z",
+      "source_file_sha256": "bd9f953a62a66975e54c16b3cbe3f45d9bd7a4b98aef393f27d5718d7c3329a1",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10648727/files/092b60209f8f4bbeace1874986b92f2a.pdf",
+      "title": "关于科创50指数三季度定期调整结果的公告"
+    },
+    {
+      "byte_count": 111177,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10747726/files/dfc2315eda57447d8cda3b99e1108407.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20231124_5730732.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:37:45Z",
+      "source_file_sha256": "5b2b30383dc13c090b713755ae5ab4401de00e0dfb356c570d9145ac0f32fdc2",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10747726/files/dfc2315eda57447d8cda3b99e1108407.pdf",
+      "title": "关于上证50、上证180、上证380等指数定期调整结果的公告"
+    },
+    {
+      "byte_count": 72963,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10751192/files/605cca5d1a8a49c0be642d877223a118.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20240223_5735673.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:37:47Z",
+      "source_file_sha256": "25b76338b74a9c832e20e365649f6d0390e6945e09f2b0571367ef42e2c59346",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10751192/files/605cca5d1a8a49c0be642d877223a118.pdf",
+      "title": "关于科创50指数一季度定期调整结果的公告"
+    },
+    {
+      "byte_count": 111506,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10758201/files/3bd2e277f9c64485a138f94f7829268d.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20240531_10758201.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:37:49Z",
+      "source_file_sha256": "7759dcfd8c931b13ca78e97d91cd629de1824f9dbf51d1ea0079c8a2b37177e7",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10758201/files/3bd2e277f9c64485a138f94f7829268d.pdf",
+      "title": "关于上证50、上证180、上证380等指数定期调整结果的公告"
+    },
+    {
+      "byte_count": 71077,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10761173/files/624827255bbc46158416427b2f075de2.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20240830_10761173.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:37:51Z",
+      "source_file_sha256": "b7cce7b8bb15948f560729872f2b4ac00328772db4a2a310e86e1943dee0a55a",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10761173/files/624827255bbc46158416427b2f075de2.pdf",
+      "title": "关于科创50等指数三季度定期调整结果的公告"
+    },
+    {
+      "byte_count": 109013,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10765176/files/0bc6de67d008453bab50fe5fc3180a03.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20241129_10765176.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:37:53Z",
+      "source_file_sha256": "c5f8a03289c0b5a3a4a72dd91ae436c15559350be07675c2acaafc54ec22d9fc",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10765176/files/0bc6de67d008453bab50fe5fc3180a03.pdf",
+      "title": "关于上证50、上证180、上证380等指数定期调整结果的公告"
+    },
+    {
+      "byte_count": 340029,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10772987/files/29107a047f044deeb2631a1b1bae2190.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250226_10772987.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:37:56Z",
+      "source_file_sha256": "f039214af994a28c8cdd4a38e431cc15382437acee376f812d3c025daea43bdc",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10772987/files/29107a047f044deeb2631a1b1bae2190.pdf",
+      "title": "关于修订上证科创板100指数等2条指数编制方案的公告"
+    },
+    {
+      "byte_count": 340527,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10772987/files/e7c2458b9b6842a08380f1b4695afa2d.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250226_10772987.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:37:57Z",
+      "source_file_sha256": "5d06a5dd996a9f696457bd4ef9ac986590cd2af5cc68dfc73b1eced56e354b42",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10772987/files/e7c2458b9b6842a08380f1b4695afa2d.pdf",
+      "title": "关于修订上证科创板100指数等2条指数编制方案的公告"
+    },
+    {
+      "byte_count": 32217,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10773107/files/075f8cb35fdd4f109fb4c294adc4367d.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250228_10773107.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:37:59Z",
+      "source_file_sha256": "999f0526d128629048064270b027b8a2cbb11a9a47f793eb55fcaae76c974d81",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10773107/files/075f8cb35fdd4f109fb4c294adc4367d.pdf",
+      "title": "关于科创50等指数一季度定期调整结果的公告"
+    },
+    {
+      "byte_count": 67532,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10780448/files/5db004c3972942c0ba5f62e9d9ff1a0d.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250530_10780448.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:38:01Z",
+      "source_file_sha256": "23dad6d93c24a285bcb04242c695bc6fe299eff9486e3f01831e0e506d8172ca",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10780448/files/5db004c3972942c0ba5f62e9d9ff1a0d.pdf",
+      "title": "关于上证50、上证180、上证380等指数定期调整结果的公告"
+    },
+    {
+      "byte_count": 10202,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10786405/files/1f8945f65c864059949cc31790ac9602.xlsx",
+      "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250724_10786405.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:38:03Z",
+      "source_file_sha256": "085fb9ab41c46844c14bfd1cb06ac16552fb20bc222f7ef6bd7ed7cc81b2f7c3",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10786405/files/1f8945f65c864059949cc31790ac9602.xlsx",
+      "title": "关于调整上证180、上证380指数样本的公告"
+    },
+    {
+      "byte_count": 12927,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10790116/files/748cc4ff2ed447949b30c1a0a24cb84d.wps",
+      "media_type": "application/octet-stream",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250829_10790116.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:38:05Z",
+      "source_file_sha256": "560b43dc8742adf814d571e5ab2b55599e2694e5fed3dc63ee98ac8b42683468",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10790116/files/748cc4ff2ed447949b30c1a0a24cb84d.wps",
+      "title": "关于科创50等指数三季度定期调整结果的公告"
+    },
+    {
+      "byte_count": 65291,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10800153/files/50856268f22c40798b1374231ea3fe07.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20251128_10800153.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:38:07Z",
+      "source_file_sha256": "f720c15253911f4c9cbd169fa15da55e0aa6ef3b7ce2f549ab5ab6c8e26edacc",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10800153/files/50856268f22c40798b1374231ea3fe07.pdf",
+      "title": "关于上证50、上证180、上证380等指数定期调整结果的公告"
+    },
+    {
+      "byte_count": 94690,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10810439/files/d3d6a9bffc3a4a1eb4de9598b6cf6c5f.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20260227_10810439.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:38:09Z",
+      "source_file_sha256": "bc87f838bc4744aba553a26c15f64d6d6540946f0880aa65fe819cf842d548c1",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10810439/files/d3d6a9bffc3a4a1eb4de9598b6cf6c5f.pdf",
+      "title": "关于科创50等指数一季度定期调整结果的公告"
+    },
+    {
+      "byte_count": 86549,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10820183/files/eaebcb5e5ad343ce87ce9a55f8ba3cce.pdf",
+      "media_type": "application/pdf",
+      "parent_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20260529_10820183.shtml",
+      "purpose": "official_attachment",
+      "retrieved_at": "2026-07-26T11:38:11Z",
+      "source_file_sha256": "ffe606678a470f216ec410475f627471689a69d685234ff1bbe1173e809e9c67",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/10820183/files/eaebcb5e5ad343ce87ce9a55f8ba3cce.pdf",
+      "title": "关于上证50、上证180、上证380等指数定期调整结果的公告"
+    },
+    {
+      "byte_count": 28054,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20230721_5724116.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "launch_publication",
+      "retrieved_at": "2026-07-26T11:37:39Z",
+      "source_file_sha256": "c54e182245c6883c05970309d82f1af99c3f1da2f8e6bd0e14590cc48e611cc3",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20230721_5724116.shtml",
+      "title": "关于发布上证科创板100指数的公告"
+    },
+    {
+      "byte_count": 27514,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20230825_5725641.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:37:42Z",
+      "source_file_sha256": "d025b371c141530ba7dba9b37c4c2d6065b0554f0827329319d58096533a064f",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20230825_5725641.shtml",
+      "title": "关于科创50指数三季度定期调整结果的公告"
+    },
+    {
+      "byte_count": 27736,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20231124_5730732.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:37:44Z",
+      "source_file_sha256": "dc02afc30b201070551f3c4f84bfca7ba6beedf0775ea656884011235e3b512b",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20231124_5730732.shtml",
+      "title": "关于上证50、上证180、上证380等指数定期调整结果的公告"
+    },
+    {
+      "byte_count": 27504,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20240223_5735673.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:37:46Z",
+      "source_file_sha256": "4a2f593f00419f0795a0901b2e985ae5163db78f2e3c239c3fb4b3cd78363ab6",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20240223_5735673.shtml",
+      "title": "关于科创50指数一季度定期调整结果的公告"
+    },
+    {
+      "byte_count": 27821,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20240531_10758201.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:37:47Z",
+      "source_file_sha256": "8e1030cf53c9ca94ff4877d0288ec3cae04032d4828017d284c4ff43002893b0",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20240531_10758201.shtml",
+      "title": "关于上证50、上证180、上证380等指数定期调整结果的公告"
+    },
+    {
+      "byte_count": 27611,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20240830_10761173.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:37:50Z",
+      "source_file_sha256": "5ca7dafadae9ab55cec784aba2fbf627bcb2600bbd3c165b32f6b3da72c0e16c",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20240830_10761173.shtml",
+      "title": "关于科创50等指数三季度定期调整结果的公告"
+    },
+    {
+      "byte_count": 27861,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20241129_10765176.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:37:52Z",
+      "source_file_sha256": "63b56f0bce62a05a1689c0656399cc54a03b8dcb88c2a2ffb3fe79070f82b678",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20241129_10765176.shtml",
+      "title": "关于上证50、上证180、上证380等指数定期调整结果的公告"
+    },
+    {
+      "byte_count": 27431,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250206_10770824.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:37:54Z",
+      "source_file_sha256": "a240b205448162e76a1bc172e46f37b6ade96f34717a35cd1b3c1a8dcf8a1841",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250206_10770824.shtml",
+      "title": "关于调整上证180指数样本的公告"
+    },
+    {
+      "byte_count": 28338,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250226_10772987.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "methodology_revision",
+      "retrieved_at": "2026-07-26T11:37:55Z",
+      "source_file_sha256": "c224826015ef1c0a9e18fd15dff742add6d5f894cbf69948323d66fb70e48bea",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250226_10772987.shtml",
+      "title": "关于修订上证科创板100指数等2条指数编制方案的公告"
+    },
+    {
+      "byte_count": 27611,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250228_10773107.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:37:58Z",
+      "source_file_sha256": "ac8179067b7597f253bcb3d65c6e46209983124a781a46ebaf9c253644836237",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250228_10773107.shtml",
+      "title": "关于科创50等指数一季度定期调整结果的公告"
+    },
+    {
+      "byte_count": 28059,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250530_10780448.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:38:00Z",
+      "source_file_sha256": "10684eac771ac39190f2a08018a448cb048448eb2f9d892e5b988cd5624218ce",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250530_10780448.shtml",
+      "title": "关于上证50、上证180、上证380等指数定期调整结果的公告"
+    },
+    {
+      "byte_count": 27817,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250724_10786405.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:38:02Z",
+      "source_file_sha256": "3c8dd8a0d23fe5f7b63fc940476b222328bbb9c33e70febde107830275167c04",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250724_10786405.shtml",
+      "title": "关于调整上证180、上证380指数样本的公告"
+    },
+    {
+      "byte_count": 27839,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250829_10790116.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:38:04Z",
+      "source_file_sha256": "c1226a95a4917d77c9c2178f304fe3807c2c30f4bcd1006bd1acadef78947374",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250829_10790116.shtml",
+      "title": "关于科创50等指数三季度定期调整结果的公告"
+    },
+    {
+      "byte_count": 28042,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20251128_10800153.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:38:06Z",
+      "source_file_sha256": "a01fdc3f05fa332b61aa9d1592de2691fe4ef957344fbc9296a4d4d9284091ba",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20251128_10800153.shtml",
+      "title": "关于上证50、上证180、上证380等指数定期调整结果的公告"
+    },
+    {
+      "byte_count": 27821,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20260227_10810439.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:38:08Z",
+      "source_file_sha256": "c6d358a8d204c4b4bbb4956fbd7bedf4953d90304080e2a6659e78c8996351f3",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20260227_10810439.shtml",
+      "title": "关于科创50等指数一季度定期调整结果的公告"
+    },
+    {
+      "byte_count": 28068,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20260529_10820183.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "adjustment_candidate",
+      "retrieved_at": "2026-07-26T11:38:10Z",
+      "source_file_sha256": "b8e12a233cc5d01515edd00cf629b2fc84d096caf139f3e464a296d38589fc93",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/c/c_20260529_10820183.shtml",
+      "title": "关于上证50、上证180、上证380等指数定期调整结果的公告"
+    },
+    {
+      "byte_count": 6991,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/s_list.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "official_archive_listing",
+      "retrieved_at": "2026-07-26T11:37:33Z",
+      "source_file_sha256": "950bf49017d2c6939796df43f08a8d62956569d502491ee33e6a579b255354ee",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/s_list.shtml",
+      "title": null
+    },
+    {
+      "byte_count": 6927,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/s_list_2.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "official_archive_listing",
+      "retrieved_at": "2026-07-26T11:37:34Z",
+      "source_file_sha256": "f9bf91cbde5c3dca63e388074173d4851a387c45e0e48bb7b8ded4e3fb8d3646",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/s_list_2.shtml",
+      "title": null
+    },
+    {
+      "byte_count": 6959,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/s_list_3.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "official_archive_listing",
+      "retrieved_at": "2026-07-26T11:37:35Z",
+      "source_file_sha256": "9e03dfbcd456de501877c39e92df37ff78ba66c04d43bca753f3d15308d5cdbf",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/s_list_3.shtml",
+      "title": null
+    },
+    {
+      "byte_count": 6756,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/s_list_4.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "official_archive_listing",
+      "retrieved_at": "2026-07-26T11:37:36Z",
+      "source_file_sha256": "e03bb43961b8e063b094f8078e413281f242b6867df36aa78e1e1618f7f36745",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/s_list_4.shtml",
+      "title": null
+    },
+    {
+      "byte_count": 7056,
+      "final_url": "https://www.sse.com.cn/market/sseindex/diclosure/s_list_5.shtml",
+      "media_type": "text/html",
+      "parent_url": null,
+      "purpose": "official_archive_listing",
+      "retrieved_at": "2026-07-26T11:37:37Z",
+      "source_file_sha256": "a48224fe81277d956b4732effa63fe34c20c006769171d2ebedf31268a3c84d3",
+      "source_url": "https://www.sse.com.cn/market/sseindex/diclosure/s_list_5.shtml",
+      "title": null
+    }
+  ],
+  "protocol": {
+    "path": "config/p4_star100_v1.yaml",
+    "sha256": "b6a70ec4a686e21f1a7480a8639a46e291f2f669df600e3189b53a3087af1a6c"
+  },
+  "schema_version": "p4-star100-tracked-manifest-v1",
+  "scope": "official_membership_lineage_and_source_data_gate_only",
+  "verdict": "NO_GO"
+}
