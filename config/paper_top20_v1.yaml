@@ -1,5 +1,5 @@
 schema_version: "paper-comparison-account-protocol-v1"
-protocol_id: "paper-top20-v1"
+protocol_id: "paper-top20-v1.1"
 protocol_status: "FROZEN_BEFORE_RESULTS"
 frozen_on: "2026-07-26"
 production_authorization: "PENDING_ENGINEERING_ACCEPTANCE"
@@ -11,7 +11,7 @@ paper_portfolio:
   currency: "RMB"
   benchmark: "000906.SH"
   execution_policy_version: "paper-top20-v1"
-  forward_start_date: "2026-07-23"
+  forward_start_date: "2026-07-27"
   commission_rate: 0.0003
   minimum_commission: 5.0
   stamp_tax_rate: 0.0005
@@ -33,4 +33,3 @@ result_firewall:
   baseline_account_must_remain_byte_immutable: true
   production_scheduler_must_remain_on_last_good_release_until_acceptance: true
   strategy_effective: "NOT_EVALUATED"
-
