@@ -1,0 +1,50 @@
+protocol_id: p3-web-paper-accounts-v1
+schema_version: web-paper-accounts-v1
+protocol_status: FROZEN_BEFORE_IMPLEMENTATION
+frozen_on: "2026-07-27"
+timezone: Asia/Shanghai
+read_only: true
+
+default_account_id: model_baseline
+allowed_accounts:
+  - account_id: model_baseline
+    display_name: "主账户 · Top30"
+    role: PRIMARY_BASELINE
+    target_security_count: 30
+    execution_policy_version: paper-v1
+  - account_id: model_top20
+    display_name: "比较账户 · Top20"
+    role: COMPARISON_ACCOUNT
+    target_security_count: 20
+    execution_policy_version: paper-top20-v1
+
+api:
+  account_parameter: account_id
+  endpoints:
+    - /api/v1/paper/portfolio
+    - /api/v1/paper/nav
+    - /api/v1/paper/forward
+    - /api/v1/paper/replay
+  unknown_account_behavior: HTTP_422
+  same_snapshot_required: true
+
+presentation:
+  baseline_remains_default: true
+  account_selector_required: true
+  show_account_role: true
+  show_observation_type: true
+  show_forward_count: true
+  top20_backfill_only_message_required: true
+  combined_performance_comparison_enabled: false
+  minimum_matched_forward_observations_for_comparison: null
+
+forbidden:
+  - strategy_effectiveness_claim
+  - backfill_as_forward
+  - mixed_observation_performance_comparison
+  - client_side_ledger_scan
+  - browser_file_scan
+  - write_or_trade_control
+  - production_scheduler_change
+  - model_or_gate_change
+  - bse_security
