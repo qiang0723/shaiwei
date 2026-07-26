@@ -1,0 +1,186 @@
+schema_version: p4-star100-data-protocol-v1
+frozen_at: "2026-07-26T19:25:00+08:00"
+scope: official_membership_lineage_and_source_data_gate_only
+production_authorization: none
+
+identity:
+  research_family: p4-star100-v1
+  index_name: 上证科创板100指数
+  index_code: 000698.SH
+  index_provider_code: "000698"
+  benchmark_qlib_code: SH000698
+  launch_announcement_date: "2023-07-21"
+  official_live_start: "2023-08-07"
+  methodology_base_date: "2019-12-31"
+  source_cutoff_date: "2026-07-26"
+  last_complete_trade_date: "2026-07-24"
+  dataset_id: star100-official-lineage-v1
+  config_id: p4-star100-data-protocol-v1
+  raw_source_root: data/research/star100/p4-star100-v1/official_sources
+  initial_set_artifact: data/research/star100/p4-star100-v1/initial_set.parquet
+  membership_events_artifact: data/research/star100/p4-star100-v1/membership_events.parquet
+  daily_membership_artifact: data/research/star100/p4-star100-v1/daily_membership.parquet
+  collection_report: data/research/star100/p4-star100-v1/collection_report.json
+  quality_report: data/research/star100/p4-star100-v1/quality_report.json
+  tracked_manifest: config/p4_star100_manifest_v1.json
+
+official_source_policy:
+  primary_domains:
+    - sse.com.cn
+    - www.sse.com.cn
+    - csindex.com.cn
+    - www.csindex.com.cn
+    - oss-ch.csindex.com.cn
+  third_party_membership_source_allowed: false
+  launch_announcement_url: https://www.sse.com.cn/market/sseindex/diclosure/c/c_20230721_5724116.shtml
+  methodology_revision_url: https://www.sse.com.cn/market/sseindex/diclosure/c/c_20250226_10772987.shtml
+  current_methodology_url: https://www.sse.com.cn/market/sseindex/diclosure/c/10772987/files/29107a047f044deeb2631a1b1bae2190.pdf
+  archive_url: https://www.sse.com.cn/market/sseindex/diclosure/
+  discovery_start_date: "2023-07-21"
+  discovery_end_date: "2026-07-26"
+  archive_scan_must_reach_before_start: true
+  every_adjustment_notice_in_window_must_be_classified: true
+  official_attachment_required_for_membership_change: true
+  retrieve_to_project_only: true
+  retrieval_execution: serial
+  minimum_request_interval_seconds: 1.0
+  maximum_attempts: 3
+  retry_base_seconds: 1.0
+  maximum_file_bytes: 52428800
+  redirect_must_remain_official: true
+  immutable_storage: content_addressed_sha256
+  overwrite_existing_content: false
+
+methodology_lineage_contract:
+  launch_version_required: true
+  revision_2025_03_17_required: true
+  revision_effective_date: "2025-03-17"
+  launch_new_listing_age_rule: six_months
+  revised_new_listing_age_rule: twelve_months
+  old_sample_transition_must_be_recorded: true
+  current_methodology_cannot_backfill_prior_rule: true
+  methodology_base_date_cannot_authorize_membership_before_live_start: true
+
+initial_set_contract:
+  required_member_count: 100
+  publication_must_be_no_later_than: "2023-08-06"
+  strategy_usable_date_if_complete: "2023-08-07"
+  required_fields:
+    - code
+    - source_url
+    - source_file_sha256
+    - retrieved_at
+    - parser_version
+  bse_suffix_forbidden: .BJ
+  current_constituent_backfill_forbidden: true
+
+event_contract:
+  grain: one_row_per_out_in_replacement_pair
+  required_fields:
+    - announcement_date
+    - effective_date
+    - out_code
+    - in_code
+    - source_url
+    - source_file_sha256
+    - retrieved_at
+    - parser_version
+  event_types:
+    - regular_adjustment
+    - temporary_adjustment
+  announcement_after_effective_forbidden: true
+  missing_pair_forbidden: true
+  duplicate_pair_forbidden: true
+  manual_membership_edit_forbidden: true
+  future_announcement_backfill_forbidden: true
+  apply_on_effective_date: true
+  member_count_after_every_event: 100
+  unexplained_event_gap_maximum: 0
+  ambiguous_announcement_or_effective_date_maximum: 0
+  unparsed_official_attachment_maximum: 0
+
+tushare_source_contract:
+  APIs:
+    - index_daily
+    - index_weight
+  index_daily_start: "2023-08-07"
+  index_daily_end: "2026-07-24"
+  index_weight_completed_month_start: "2023-08"
+  index_weight_completed_month_end: "2026-06"
+  expected_completed_month_count: 35
+  request_partition:
+    index_daily: calendar_year
+    index_weight: calendar_month
+  immediate_double_query_required: true
+  immediate_revision_mismatch_count_maximum: 0
+  index_daily_duplicate_key_count_maximum: 0
+  index_weight_duplicate_key_count_maximum: 0
+  snapshot_trade_dates_per_completed_month_exact: 1
+  snapshot_rows_per_completed_month_exact: 100
+  snapshot_unique_constituents_per_completed_month_exact: 100
+  bse_row_count_maximum: 0
+  secondary_weight_values_usable: false
+  secondary_trade_date_as_official_effective_date: false
+  secondary_role: exact_monthly_constituent_set_crosscheck_only
+  historical_revision_fields_required_for_primary_truth: true
+  historical_revision_fields_available: false
+
+quality_gate:
+  index_daily_official_trade_date_coverage_minimum: 1.0
+  daily_ohlc_or_nonnegative_violation_count_maximum: 0
+  daily_pct_change_mismatch_count_maximum: 0
+  official_daily_member_count_exact: 100
+  official_membership_duplicate_key_count_maximum: 0
+  official_to_tushare_completed_month_set_difference_maximum: 0
+  official_to_tushare_missing_completed_month_maximum: 0
+  current_constituent_backfill_count_maximum: 0
+  future_announcement_backfill_count_maximum: 0
+  bse_row_count_maximum: 0
+  same_input_rerun_must_reuse: true
+  raw_and_derived_sha256_required: true
+
+verdict_contract:
+  required_report_fields:
+    - official_launch_set_complete
+    - official_adjustment_lineage_complete
+    - methodology_lineage_complete
+    - tushare_source_collection_pass
+    - tushare_crosscheck_pass
+    - pit_constructible
+    - engineering_complete
+    - strategy_results_inspected
+    - strategy_effective
+    - production_authorization
+    - verdict
+  go_requires:
+    - official_launch_set_complete
+    - official_adjustment_lineage_complete
+    - methodology_lineage_complete
+    - tushare_source_collection_pass
+    - tushare_crosscheck_pass
+    - pit_constructible
+  engineering_complete: false
+  strategy_results_inspected: false
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+  any_failed_required_gate: NO_GO
+
+prohibited_actions:
+  - use_methodology_base_date_as_strategy_start
+  - use_current_constituents_for_history
+  - use_tushare_weight_as_official_membership_truth
+  - qlib_build
+  - feature_calculation
+  - model_training
+  - prediction
+  - ranking
+  - ic_calculation
+  - return_calculation
+  - backtest
+  - signal_generation
+  - strategy_parameter_selection
+  - csi800_change
+  - star50_evidence_rewrite
+  - scheduler_image_change
+  - production_config_change
+  - web_contract_change
