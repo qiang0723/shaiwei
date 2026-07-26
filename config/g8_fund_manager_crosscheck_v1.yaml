@@ -1,0 +1,269 @@
+protocol_id: g8-fund-manager-crosscheck-v1
+schema_version: g8-manager-crosscheck-v1
+status: RESULT_BEFORE_EXECUTION_FROZEN
+frozen_at: "2026-07-26"
+timezone: Asia/Shanghai
+execution_authorized: true
+production_authorization: none
+
+primary_capture_binding:
+  protocol_path: config/g8_fund_primary_capture_recovery_v1.yaml
+  protocol_sha256: cc0e5ab4bee5ac5016b613c0736b25c16da302e0b13421ee49ae6c6facb64bde
+  acceptance_path: docs/G8_FUND_PRIMARY_CAPTURE_ACCEPTANCE_20260726.md
+  ledger_path: ledger/g8_fund_evidence.csv
+  ledger_sha256: 0b05e285df85442d65b06cb441d9bc57b9382fbc68a9533ae126a54338a13b96
+  recovery_manifest_sha256: 915d013b109b88797dd154d911728b3496d173934d004810261d3e51bdb6fb2e
+  usable_nav_rows: 48
+  prior_verdict: GO_G8_2_CROSSCHECK_AND_FEE_LINEAGE_ONLY
+  g8_status_before_execution: NOT_READY
+
+scope:
+  capture_start: "2026-07-15"
+  capture_end: "2026-07-24"
+  product_count: 6
+  expected_dates_per_product: 8
+  expected_manager_nav_rows: 48
+  official_manager_https_crosscheck: true
+  effective_dated_subscription_redemption_fee_lineage: true
+  strategy_results_access: false
+  g8_evaluation: false
+  total_return_construction: false
+  dividend_total_return_construction: false
+  scheduler_integration: false
+  web_changes: false
+  production_writes: false
+
+transport:
+  required_scheme: https
+  tls_verification: required
+  user_agent: Mozilla/5.0 (compatible; ShaiweiEvidence/1.0; +official-source-audit)
+  request_timeout_seconds: 30
+  minimum_request_start_interval_seconds: 0.5
+  automatic_retries: 0
+  observations_per_logical_request: 2
+  preserve_both_observations: true
+  html_comparison: exact_response_body_bytes
+  json_comparison:
+    canonical_json_sort_keys: true
+    allowed_volatile_paths: [timestamp]
+    all_other_fields_exact: true
+  redirect_policy:
+    maximum_redirects: 3
+    destination_must_be_allowlisted_manager_host: true
+  forbidden_authority:
+    - aggregation_site
+    - search_result_snippet
+    - cninfo_as_manager_https_substitute
+    - regulator_http_as_manager_https_substitute
+    - browser_cache
+
+nav_crosscheck:
+  required_dates:
+    - "2026-07-15"
+    - "2026-07-16"
+    - "2026-07-17"
+    - "2026-07-20"
+    - "2026-07-21"
+    - "2026-07-22"
+    - "2026-07-23"
+    - "2026-07-24"
+  identity_fields: [product_code, expected_name, share_class]
+  value_fields: [unit_nav, cumulative_nav]
+  decimal_comparison: exact_numeric_value
+  one_row_per_product_date: true
+  unknown_or_duplicate_row_action: fail_closed
+  missing_date_action: fail_closed
+  manager_primary_conflict_action: persist_quarantine_and_fail
+  product_name_or_code_conflict_action: persist_quarantine_and_fail
+  mutable_manager_page_role: authenticated_crosscheck_only
+
+fee_lineage:
+  fee_types: [subscription, redemption]
+  share_class: A
+  standard_schedule_only: true
+  channel_discount_assumption: forbidden
+  current_mutable_page_role: current_schedule_crosscheck_only
+  legal_authority_documents:
+    - fund_contract
+    - prospectus
+    - product_summary
+    - fee_change_manager_notice
+  required_coverage:
+    lineage_start: fund_inception
+    lineage_end: "2026-07-26"
+    latest_pre_comparator_freeze_anchor_required: true
+    all_fee_change_notices_after_anchor_required: true
+    explicit_publication_date_required: true
+    explicit_effective_date_required_for_change: true
+  extracted_row_fields:
+    - product_code
+    - share_class
+    - fee_type
+    - amount_or_holding_lower_bound
+    - amount_or_holding_upper_bound
+    - lower_bound_inclusive
+    - upper_bound_inclusive
+    - rate_or_fixed_amount
+    - currency
+    - effective_from
+    - effective_to
+    - source_document_sha256
+    - source_page_or_section
+  forbidden:
+    - current_fee_backfill
+    - infer_effective_date_from_download_time
+    - infer_no_change_from_missing_search_result
+    - treat_sales_platform_discount_as_statutory_base_fee
+    - overwrite_prior_document_or_fee_row
+
+storage:
+  data_root: data/g8/manager_evidence
+  bundle_directory: data/g8/manager_evidence/bundles
+  report_path: data/g8/manager_evidence/reports/g8_manager_crosscheck_report.json
+  manifest_path: data/g8/manager_evidence/manifests/g8_manager_crosscheck_manifest.json
+  ledger_path: ledger/g8_manager_evidence.csv
+  immutable_raw_observations: true
+  ledger_append_only: true
+  tracked_ledger_contains_values: false
+  tracked_ledger_contains_absolute_paths: false
+  tracked_ledger_contains_credentials: false
+
+products:
+  - code: "016276"
+    expected_name: 招商中证800指数增强A
+    share_class: A
+    manager: 招商基金管理有限公司
+    allowed_hosts: [www.cmfchina.com, static.cmfchina.com, cmfchina.com]
+    nav_request:
+      method: GET
+      url: https://www.cmfchina.com/web/fundDetail/016276/index.html
+      parser: cmfchina_html_utf8
+    current_fee_request:
+      method: GET
+      url: https://www.cmfchina.com/web/fundDetail/016276/index.html
+      parser: cmfchina_html_utf8
+    legal_document_discovery:
+      method: GET
+      url: https://www.cmfchina.com/web/fundDetail/016276/index.html
+
+  - code: "017985"
+    expected_name: 华夏中证800指数增强A
+    share_class: A
+    manager: 华夏基金管理有限公司
+    allowed_hosts: [fund.chinaamc.com, www.chinaamc.com]
+    nav_request:
+      method: GET
+      url: https://fund.chinaamc.com/fund/017985/index.shtml
+      parser: chinaamc_html_gb18030
+    current_fee_request:
+      method: GET
+      url: https://fund.chinaamc.com/fund/017985/jijinfeilv.shtml
+      parser: chinaamc_html_gb18030
+    legal_document_discovery:
+      method: GET
+      url: https://www.chinaamc.com/product/publishGgList.do?fundcode=017985
+
+  - code: "022513"
+    expected_name: 人保中证800指数增强A
+    share_class: A
+    manager: 中国人保资产管理有限公司
+    allowed_hosts: [fund.piccamc.com]
+    nav_request:
+      method: GET
+      url: https://fund.piccamc.com/h5/product/historynav?fundcode=022513
+      headers:
+        Referer: https://fund.piccamc.com/
+      parser: piccamc_html_utf8
+    current_fee_request:
+      method: GET
+      url: https://fund.piccamc.com/h5/product/rate?fundcode=022513
+      headers:
+        Referer: https://fund.piccamc.com/
+      parser: piccamc_html_utf8
+    legal_document_discovery:
+      method: GET
+      url: https://fund.piccamc.com/pc/product/productInfo?fund_code=022513&fund_id=4005af7301184e0abdee7e2c97833c39&fund_type=3
+
+  - code: "022461"
+    expected_name: 华商中证A500指数增强A
+    share_class: A
+    manager: 华商基金管理有限公司
+    allowed_hosts: [www.hsfund.com, hsfund.com, www.wideip.hsfund.com]
+    nav_request:
+      method: GET
+      url: https://www.hsfund.com/osoa/views/fund/detail/022461.html?fund_code=022461
+      parser: hsfund_html_utf8
+    current_fee_request:
+      method: GET
+      url: https://www.hsfund.com/osoa/views/fund/detail/022461.html?fund_code=022461
+      parser: hsfund_html_utf8
+    legal_document_discovery:
+      method: GET
+      url: https://www.hsfund.com/osoa/views/fund/detail/022461.html?fund_code=022461
+
+  - code: "022485"
+    expected_name: 国金中证A500指数增强A
+    share_class: A
+    manager: 国金基金管理有限公司
+    allowed_hosts: [www.gfund.com, gfund.com]
+    nav_request:
+      method: GET
+      url: https://www.gfund.com/fundDetail/022485/index.html
+      parser: gfund_html_utf8
+    current_fee_request:
+      method: GET
+      url: https://www.gfund.com/fundDetail/022485/index.html
+      parser: gfund_html_utf8
+    legal_document_discovery:
+      method: GET
+      url: https://www.gfund.com/fundDetail/022485/index.html
+
+  - code: "022467"
+    expected_name: 国泰海通中证A500指数增强A
+    share_class: A
+    manager: 上海国泰海通证券资产管理有限公司
+    allowed_hosts: [www.gthtzg.com, gthtzg.com]
+    nav_request:
+      method: POST
+      url: https://www.gthtzg.com/middle-platform-gateway/wechatwork-product-biz/front/api/nav
+      json:
+        fundCode: "022467"
+        pageNo: 1
+        pageSize: 10
+      parser: gthtzg_json_nav
+    identity_request:
+      method: POST
+      url: https://www.gthtzg.com/middle-platform-gateway/wechatwork-product-biz/front/api/fund/info?fundCode=022467&previewCode=
+      json:
+        fundCode: "022467"
+        previewCode: ""
+      parser: gthtzg_json_identity
+    current_fee_request:
+      method: POST
+      url: https://www.gthtzg.com/middle-platform-gateway/wechatwork-product-biz/front/api/rate/list
+      json:
+        fundCode: "022467"
+      parser: gthtzg_json_fee
+    legal_document_discovery:
+      method: POST
+      url: https://www.gthtzg.com/middle-platform-gateway/wechatwork-product-biz/front/api/protocol/list/new
+      json:
+        fundCode: "022467"
+        pageNo: 1
+        pageSize: 100
+
+acceptance:
+  products_with_authenticated_https_identity: 6
+  products_with_exact_eight_date_nav_match: 6
+  products_with_complete_fee_lineage: 6
+  manager_primary_nav_conflicts_maximum: 0
+  duplicate_manager_product_dates_maximum: 0
+  missing_manager_product_dates_maximum: 0
+  tls_or_http_failures_maximum: 0
+  double_fetch_mismatches_maximum: 0
+  legal_document_hash_failures_maximum: 0
+  fee_lineage_gaps_maximum: 0
+  tracked_sensitive_values_maximum: 0
+  terminal_verdict_if_all_pass: GO_G8_3_TOTAL_RETURN_CONSTRUCTION_PROTOCOL_ONLY
+  terminal_verdict_if_any_fail: NO_GO_G8_2
+  g8_status_after_execution: NOT_READY
