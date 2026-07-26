@@ -2,13 +2,13 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 const pages = [
-  { route: "/overview", heading: "今天可信、有效、要行动吗" },
-  { route: "/paper", heading: "实际成交后，账户发生了什么" },
-  { route: "/signals", heading: "为什么入选，今天是否需要调仓" },
-  { route: "/data-quality", heading: "这批数据，足以支持今天的信号吗" },
-  { route: "/system-runs", heading: "今天的运行闭环，在哪里失败过、是否恢复" },
-  { route: "/factors", heading: "当前有什么可用因子，为什么还没有入库" },
-  { route: "/experiments", heading: "这些实验是什么，哪些结论当前有效" }
+  { route: "/overview", heading: "今日概览" },
+  { route: "/paper", heading: "模拟组合" },
+  { route: "/signals", heading: "股票池与信号" },
+  { route: "/data-quality", heading: "数据质量" },
+  { route: "/system-runs", heading: "系统运行" },
+  { route: "/factors", heading: "因子工厂" },
+  { route: "/experiments", heading: "研究证据" }
 ];
 
 interface RealFactorCatalog {
@@ -44,7 +44,7 @@ interface RealExperimentCatalog {
   meta: { as_of: string };
 }
 
-test("deployed read-only UI serves real evidence under strict CSP", async ({ page, baseURL }) => {
+test("deployed read-only UI serves real evidence under strict CSP", async ({ page, baseURL }, testInfo) => {
   const errors: string[] = [];
   const foreignOrigins = new Set<string>();
   page.on("pageerror", (error) => errors.push(`pageerror:${error.message}`));
@@ -86,8 +86,21 @@ test("deployed read-only UI serves real evidence under strict CSP", async ({ pag
     const blocking = results.violations.filter(
       (violation) => violation.impact === "critical" || violation.impact === "serious"
     );
+    const pageWidth = await page.evaluate(() => ({
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth
+    }));
     expect(blocking, JSON.stringify(blocking, null, 2)).toEqual([]);
+    expect(pageWidth.scrollWidth).toBeLessThanOrEqual(pageWidth.clientWidth + 1);
     expect(cspViolations).toEqual([]);
+    const captureDir = process.env.P3_CAPTURE_REAL_DIR;
+    if (captureDir) {
+      const name = item.route.slice(1).replaceAll("/", "-") || "root";
+      await page.screenshot({
+        path: `${captureDir}/${name}-${testInfo.project.name}.png`,
+        fullPage: true
+      });
+    }
   }
 
   expect(errors).toEqual([]);
@@ -98,7 +111,7 @@ test("root route enters overview without changing evidence date semantics", asyn
   const response = await page.goto("/");
   expect(response?.status()).toBe(200);
   await expect(page).toHaveURL(/\/overview$/);
-  await expect(page.getByRole("heading", { name: "今天可信、有效、要行动吗" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible();
 });
 
 test("real factor projection drives catalog, tear sheet, history and strict comparison", async ({ page }) => {

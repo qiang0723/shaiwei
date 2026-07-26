@@ -143,8 +143,8 @@ export default function DataQualityPage() {
     <div className="page-stack">
       <PageHeader
         eyebrow="DATA QUALITY"
-        title="这批数据，足以支持今天的信号吗"
-        description="结论、证据强度和未评估范围分开呈现；账本身份一致不等于原始文件已重新哈希。"
+        title="数据质量"
+        description="数据门、证据强度与未评估范围分列；账本一致不等于原始文件已重验。"
         status={d.status}
         asOf={d.as_of}
         generatedAt={meta.generated_at}

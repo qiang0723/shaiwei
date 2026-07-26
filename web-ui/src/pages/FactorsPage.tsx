@@ -373,8 +373,8 @@ function CatalogPage() {
     <div className="page-stack factor-page">
       <PageHeader
         eyebrow="FACTOR FACTORY"
-        title="当前有什么可用因子，为什么还没有入库"
-        description="目录只呈现已进入 G1 的研究因子；REJECT 是研究结果，不是系统运行失败。"
+        title="因子工厂"
+        description="当前权威准入、拒绝与历史证据分列；REJECT 是研究结果，不是运行失败。"
         status="OBSERVING"
         evidence={evidence}
         {...researchHeaderProps(meta)}
@@ -404,7 +404,9 @@ function CatalogPage() {
             <span className="section-kicker">CATALOG</span>
             <h2 id="factor-catalog-heading">因子目录</h2>
           </div>
-          <div className="factor-filters" aria-label="因子目录筛选">
+          <details className="filter-disclosure">
+            <summary>精确筛选 · 3 项</summary>
+            <div className="factor-filters" aria-label="因子目录筛选">
             <Select
               aria-label="生命周期筛选"
               value={status}
@@ -428,7 +430,8 @@ function CatalogPage() {
               onChange={(value) => setFilter("data_category", value)}
               options={[{ value: "ALL", label: "全部数据" }, ...categories.map((value) => ({ value, label: value }))]}
             />
-          </div>
+            </div>
+          </details>
         </div>
 
         {asOf ? (

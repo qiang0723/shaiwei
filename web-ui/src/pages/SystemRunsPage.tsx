@@ -165,8 +165,8 @@ export default function SystemRunsPage() {
     <div className="page-stack">
       <PageHeader
         eyebrow="SYSTEM OPERATIONS"
-        title="今天的运行闭环，在哪里失败过、是否恢复"
-        description="核心任务、通知通道和实时身份能力严格分列；最终通过不会覆盖先前失败。"
+        title="系统运行"
+        description="核心任务、通知与实时身份分列；最终通过不覆盖先前失败。"
         status={d.status}
         asOf={d.as_of}
         generatedAt={meta.generated_at}

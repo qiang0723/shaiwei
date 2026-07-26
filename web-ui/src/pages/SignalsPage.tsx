@@ -110,7 +110,7 @@ export default function SignalsPage() {
     { title: "目标权重", dataIndex: "target_weight", key: "target_weight", align: "right", width: 118, render: (value: string) => formatPercent(value) },
     { title: `实际权重 · ${displayDate(d.actual_weight_as_of)}`, dataIndex: "actual_weight", key: "actual_weight", align: "right", width: 178, render: (value: string) => formatPercent(value) },
     {
-      title: "计划权重差",
+      title: "目标权重差",
       dataIndex: "planned_weight_delta",
       key: "planned_weight_delta",
       align: "right",
@@ -130,8 +130,8 @@ export default function SignalsPage() {
     <div className="page-stack">
       <PageHeader
         eyebrow="UNIVERSE & SIGNAL"
-        title="为什么入选，今天是否需要调仓"
-        description="目标权重与最近实际持仓并列展示；计划差不是订单，执行日前不预测可成交性。"
+        title="股票池与信号"
+        description="目标权重与最近实际持仓并列；目标差不是订单，执行日前不预测可成交性。"
         status={d.execution_evidence_status}
         asOf={meta.as_of}
         generatedAt={d.generated_at}
@@ -165,8 +165,8 @@ export default function SignalsPage() {
         </div>
         <div className="metric-grid five-up">
           <MetricCard label="目标证券" value={`${d.target_count} 只`} detail={`新增 ${changeCounts.ADDED ?? 0} · 保留 ${changeCounts.RETAINED ?? 0}`} icon={<AimOutlined />} />
-          <MetricCard label="计划交易腿" value={`${d.planned_trade_leg_count} 条`} detail={d.rebalance_due ? "信号时点计划" : "非调仓日机械为 0"} icon={<SwapOutlined />} />
-          <MetricCard label="实际交易腿" value={d.executed_trade_leg_count == null ? "待证据" : `${d.executed_trade_leg_count} 条`} detail="不以计划腿代替" />
+          <MetricCard label="目标变更证券数" value={`${d.planned_trade_leg_count} 只`} detail={d.rebalance_due ? "当前目标相对上一目标" : "非调仓日固定为 0"} icon={<SwapOutlined />} />
+          <MetricCard label="已执行订单腿" value={d.executed_trade_leg_count == null ? "待证据" : `${d.executed_trade_leg_count} 条`} detail="仅来自执行日对账" />
           <MetricCard label="执行证据" value={<StatusBadge status={d.execution_evidence_status} compact />} detail={displayDate(d.next_execution_date)} icon={<CalendarOutlined />} />
           <MetricCard label="北交所" value={`${d.bse_count} 只`} detail="非 0 将整页阻断" icon={<SafetyCertificateOutlined />} />
         </div>
@@ -215,7 +215,7 @@ export default function SignalsPage() {
           emptyText={<Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="当前筛选没有目标" />}
         />
         <div className="table-caption">
-          目标权重来自不可变信号；实际权重来自 {displayDate(d.actual_weight_as_of)} 已完成模拟账户日；计划权重差不代表订单或成交。
+          目标权重来自不可变信号；实际权重来自 {displayDate(d.actual_weight_as_of)} 已完成模拟账户日；目标权重差只用于诊断，不代表订单或成交。
         </div>
       </section>
 
@@ -244,7 +244,7 @@ export default function SignalsPage() {
               <Descriptions.Item label="目标变化">{CHANGE_LABELS[selected.target_change]}</Descriptions.Item>
               <Descriptions.Item label="目标权重">{formatPercent(selected.target_weight)}</Descriptions.Item>
               <Descriptions.Item label={`实际权重 · ${displayDate(d.actual_weight_as_of)}`}>{formatPercent(selected.actual_weight)}</Descriptions.Item>
-              <Descriptions.Item label="计划权重差"><span className={numericTone(selected.planned_weight_delta)}>{formatPercent(selected.planned_weight_delta, { signed: true })}</span></Descriptions.Item>
+              <Descriptions.Item label="目标权重差"><span className={numericTone(selected.planned_weight_delta)}>{formatPercent(selected.planned_weight_delta, { signed: true })}</span></Descriptions.Item>
               <Descriptions.Item label="模型分数">{formatNumber(selected.score, 6)}</Descriptions.Item>
               <Descriptions.Item label="执行证据"><StatusBadge status={d.execution_evidence_status} /></Descriptions.Item>
               <Descriptions.Item label="实际权重产物"><code className="full-hash">{d.actual_weight_artifact_sha256}</code></Descriptions.Item>

@@ -425,8 +425,8 @@ function CatalogPage() {
     <div className="page-stack experiment-page">
       <PageHeader
         eyebrow="MODEL / BACKTEST EVIDENCE"
-        title="这些实验是什么，哪些结论当前有效"
-        description="目录包含运行、发现、判决、工程和历史效果证据；一条记录不等于一个有效模型。"
+        title="研究证据"
+        description="运行、发现、判决、工程与历史效果分层；一条记录不等于一个有效模型。"
         status={meta.freshness_status}
         evidence={evidence}
         {...experimentHeaderProps(meta)}
@@ -460,20 +460,23 @@ function CatalogPage() {
             <p>历史切片 {data.counters.as_of_count} 条 · 筛选后 {data.counters.filtered_count} 条 · 当前第 {pageNumber}/{pageCount} 页</p>
           </div>
         </div>
-        <div className="experiment-filters" aria-label="实验目录筛选">
-          {filterSpecs.map((spec) => (
-            <Select
-              key={spec.key}
-              aria-label={spec.label}
-              value={filters[spec.key] ?? "ALL"}
-              onChange={(value) => setFilter(spec.key, value)}
-              options={[
-                { value: "ALL", label: spec.label.replace("筛选", "：全部") },
-                ...spec.values.map((value) => ({ value, label: spec.valueLabel ? `${spec.valueLabel(value)} · ${value}` : value }))
-              ]}
-            />
-          ))}
-        </div>
+        <details className="filter-disclosure">
+          <summary>精确筛选 · 7 项</summary>
+          <div className="experiment-filters" aria-label="实验目录筛选">
+            {filterSpecs.map((spec) => (
+              <Select
+                key={spec.key}
+                aria-label={spec.label}
+                value={filters[spec.key] ?? "ALL"}
+                onChange={(value) => setFilter(spec.key, value)}
+                options={[
+                  { value: "ALL", label: spec.label.replace("筛选", "：全部") },
+                  ...spec.values.map((value) => ({ value, label: spec.valueLabel ? `${spec.valueLabel(value)} · ${value}` : value }))
+                ]}
+              />
+            ))}
+          </div>
+        </details>
 
         <div className="experiment-desktop-catalog">
           <DataTable

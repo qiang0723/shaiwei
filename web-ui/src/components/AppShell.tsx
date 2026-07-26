@@ -60,7 +60,7 @@ function Navigation({ close }: { close?: () => void }) {
   const { link } = useAsOf();
   return (
     <nav aria-label="主导航" className="sidebar-nav">
-      <div className="nav-group-label">全局结论</div>
+      <div className="nav-group-label">今日</div>
       {overview.map((item) => (
         <RouterLink
           key={item.path}
@@ -73,7 +73,7 @@ function Navigation({ close }: { close?: () => void }) {
           <span>{item.label}</span>
         </RouterLink>
       ))}
-      <div className="nav-group-label deferred-label">研究</div>
+      <div className="nav-group-label deferred-label">研究证据</div>
       {research.map((item) => (
         <RouterLink
           key={item.path}
@@ -86,7 +86,7 @@ function Navigation({ close }: { close?: () => void }) {
           <span>{item.label}</span>
         </RouterLink>
       ))}
-      <div className="nav-group-label deferred-label">组合与行动</div>
+      <div className="nav-group-label deferred-label">组合与执行</div>
       {decisions.map((item) => (
         <RouterLink
           key={item.path}
@@ -99,7 +99,7 @@ function Navigation({ close }: { close?: () => void }) {
           <span>{item.label}</span>
         </RouterLink>
       ))}
-      <div className="nav-group-label deferred-label">运行与证据</div>
+      <div className="nav-group-label deferred-label">数据与运行</div>
       {operations.map((item) => (
         <RouterLink
           key={item.path}
@@ -133,7 +133,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <span className="brand-mark">筛</span>
           <span>
             <strong>筛微</strong>
-            <small>Evidence first</small>
+            <small>研究与证据</small>
           </span>
         </RouterLink>
         <Navigation />
@@ -157,7 +157,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           />
           <div className="topbar-context">
             <ReadOutlined aria-hidden="true" />
-            <span>量化研究决策台</span>
+            <span>因子研究工作台</span>
             <span className="readonly-pill">READ ONLY</span>
           </div>
           <div className="asof-control">

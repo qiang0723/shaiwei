@@ -204,26 +204,30 @@ test("overview uses one atomic response and preserves as_of during drilldown", a
   const requests: string[] = [];
   await mockApi(page, requests);
   await page.goto("/overview?as_of=2026-07-24");
-  await expect(page.getByRole("heading", { name: "今天可信、有效、要行动吗" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible();
   await expect(page.getByText("-0.55 个百分点")).toBeVisible();
   await expect(page.getByText("核心任务", { exact: true })).toBeVisible();
+  await expectNoPageOverflow(page);
   await captureVisual(page, testInfo, "overview");
   expect(requests).toEqual(["/api/v1/overview"]);
   await page.getByRole("link", { name: /查看完整组合证据/ }).click();
   await expect(page).toHaveURL(/\/paper\?as_of=2026-07-24/);
-  await expect(page.getByRole("heading", { name: "实际成交后，账户发生了什么" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "模拟组合" })).toBeVisible();
   await expectNoPageOverflow(page);
 });
 
 test("paper separates forward performance from full-account audit and exposes day evidence", async ({ page }, testInfo) => {
   await mockApi(page);
   await page.goto("/paper");
-  await expect(page.getByRole("heading", { name: "实际成交后，账户发生了什么" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "模拟组合" })).toBeVisible();
   await expect(page.getByText("FORWARD", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("样本不足，不绘制趋势")).toBeVisible();
+  await expect(page.getByRole("region", { name: "FORWARD 精确值" }).getByRole("row")).toHaveCount(3);
+  await expect(page.getByRole("img", { name: "FORWARD 模拟组合与中证800归一化净值折线图" })).toHaveCount(0);
   await captureVisual(page, testInfo, "paper");
-  await expect(page.getByText(/BACKFILL 仅作工程与账务审计/)).toBeHidden();
+  await expect(page.getByText(/BACKFILL 1 日只作工程与账务审计/)).toBeHidden();
   await page.getByText("全账户", { exact: true }).click();
-  await expect(page.getByText(/BACKFILL 仅作工程与账务审计/)).toBeVisible();
+  await expect(page.getByText(/BACKFILL 1 日只作工程与账务审计/)).toBeVisible();
   await page.getByRole("button", { name: "2026-07-24" }).click();
   await expect(page.getByText("产物哈希")).toBeVisible();
   await page.keyboard.press("Escape");
@@ -233,9 +237,12 @@ test("paper separates forward performance from full-account audit and exposes da
 test("signals keep planned deltas separate from execution facts", async ({ page }, testInfo) => {
   await mockApi(page);
   await page.goto("/signals");
-  await expect(page.getByRole("heading", { name: "为什么入选，今天是否需要调仓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "股票池与信号" })).toBeVisible();
   await expect(page.getByText("执行日证据尚未到期")).toBeVisible();
-  await expect(page.getByText("实际交易腿")).toBeVisible();
+  await expect(page.getByText("目标变更证券数")).toBeVisible();
+  await expect(page.getByText("已执行订单腿")).toBeVisible();
+  await expect(page.getByText("计划交易腿")).toHaveCount(0);
+  await expect(page.getByText("实际交易腿")).toHaveCount(0);
   await captureVisual(page, testInfo, "signals");
   await page.getByRole("button", { name: "688008.SH" }).click();
   await expect(page.getByText("暂无可审计的因子贡献分解")).toBeVisible();
@@ -249,7 +256,7 @@ test("data quality keeps PASS separate from evidence WARN and does not invent a 
   const requests: string[] = [];
   await mockApi(page, requests);
   await page.goto("/data-quality?as_of=2026-07-24");
-  await expect(page.getByRole("heading", { name: "这批数据，足以支持今天的信号吗" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "数据质量" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "数据门通过，可进入已冻结的信号流程" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "证据仍有明确缺口，不能宣称全量重验" })).toBeVisible();
   await expect(page.getByText("IDENTITY_MATCH_UNHASHED")).toBeVisible();
@@ -264,7 +271,7 @@ test("system runs preserves recovery and opens notification as a separate snapsh
   const requests: string[] = [];
   await mockApi(page, requests);
   await page.goto("/system-runs");
-  await expect(page.getByRole("heading", { name: "今天的运行闭环，在哪里失败过、是否恢复" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "系统运行" })).toBeVisible();
   await expect(page.getByText("ForwardQlibError", { exact: true })).toBeVisible();
   await expect(page.getByText("Legacy 不可寻址")).toBeVisible();
   await captureVisual(page, testInfo, "system-runs");
@@ -284,13 +291,14 @@ test("factor catalog tells the zero-library truth and launches a strict comparis
   const requests: string[] = [];
   await mockApi(page, requests);
   await page.goto("/factors");
-  await expect(page.getByRole("heading", { name: "当前有什么可用因子，为什么还没有入库" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "因子工厂" })).toBeVisible();
   await expect(page.getByRole("heading", { name: /正式因子库 0/ })).toBeVisible();
   await expect(page.getByText("10", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("8", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("2", { exact: true }).first()).toBeVisible();
   expect(requests).toEqual(["/api/v1/factors"]);
 
+  await page.getByText("精确筛选 · 3 项").click();
   await page.getByLabel("生命周期筛选").click();
   await page.getByLabel("生命周期筛选").press("ArrowDown");
   await page.getByLabel("生命周期筛选").press("Enter");
@@ -333,11 +341,12 @@ test("experiment catalog separates records from valid models and preserves exact
   const requests: string[] = [];
   await mockApi(page, requests, { delayFilteredExperimentCatalog: true });
   await page.goto("/experiments");
-  await expect(page.getByRole("heading", { name: "这些实验是什么，哪些结论当前有效" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "研究证据" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "4 条实验记录，不是 4 个有效模型" })).toBeVisible();
   await expect(page.getByText("READ ONLY · NO RANKING")).toBeVisible();
   expect(requests).toEqual(["/api/v1/experiments"]);
 
+  await page.getByText("精确筛选 · 7 项").click();
   await page.getByLabel("结论语义筛选").click();
   await page
     .locator(".ant-select-dropdown:visible .ant-select-item-option")
@@ -453,7 +462,7 @@ test("refresh keeps old evidence visible and an error blocks stale numbers befor
   await expect(page.getByRole("heading", { name: "只读查询服务不可用" })).toBeVisible();
   await expect(page.getByText("-0.55 个百分点")).toBeHidden();
   await page.getByRole("button", { name: "重新读取" }).click();
-  await expect(page.getByRole("heading", { name: "今天可信、有效、要行动吗" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible();
 });
 
 test("primary routes have no serious or critical axe violations", async ({ page }, testInfo) => {
@@ -473,6 +482,18 @@ test("primary routes have no serious or critical axe violations", async ({ page 
     await page.locator("h1").waitFor();
     await expectNoCriticalAccessibilityViolations(page);
   }
+});
+
+test("mobile navigation is keyboard operable and restores focus", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-390");
+  await mockApi(page);
+  await page.goto("/overview");
+  const trigger = page.getByRole("button", { name: "打开导航" });
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("dialog", { name: "筛微 · 只读决策台" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
 });
 
 function comparePathForTest(versions: string[]) {

@@ -11,7 +11,7 @@ import {
   SyncOutlined,
   WalletOutlined
 } from "@ant-design/icons";
-import { Alert, Button, Divider, Progress, Steps } from "antd";
+import { Alert, Button, Divider, Steps } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOverview } from "../api";
 import { useAsOf } from "../components/AppShell";
@@ -71,15 +71,20 @@ export default function OverviewPage() {
 
   const warning = d.overall_status !== "PASS";
   const actionSentence = d.action.rebalance_due
-    ? `本期需要调仓，已登记 ${d.action.planned_trade_leg_count} 条计划交易腿。`
+    ? `本期需要调仓，目标相对上一目标有 ${d.action.planned_trade_leg_count} 只证券发生变化。`
     : "本期不调仓，目标组合保持不变。";
+  const decisionTitle = d.action.rebalance_due
+    ? "需要调仓；先核对执行证据"
+    : warning
+      ? "无需调仓；核心已恢复，通知仍需关注"
+      : "无需调仓；当前证据完整";
 
   return (
     <div className="page-stack">
       <PageHeader
         eyebrow="DECISION OVERVIEW"
-        title="今天可信、有效、要行动吗"
-        description="先看证据完整性和行动，再看短样本结果；通知与核心任务始终分开。"
+        title="今日概览"
+        description="系统、证据、行动与前瞻成熟度分列；短样本不作策略有效性结论。"
         status={d.overall_status}
         asOf={d.as_of}
         generatedAt={d.generated_at}
@@ -87,26 +92,30 @@ export default function OverviewPage() {
       />
       {query.isFetching ? <RefreshNotice asOf={d.as_of} generatedAt={d.generated_at} /> : null}
 
-      <section className={`status-hero status-hero-${d.overall_status.toLowerCase()}`}>
-        <div className="status-hero-main">
-          <div className="status-hero-icon" aria-hidden="true">
-            {warning ? <ExclamationCircleOutlined /> : <CheckCircleOutlined />}
-          </div>
-          <div>
-            <div className="eyebrow">当前结论</div>
-            <h2>{warning ? "核心证据可用，但仍有需要解释的恢复历史" : "当前证据完整且运行正常"}</h2>
-            <p>{actionSentence}</p>
-            <div className="status-reasons">
-              {d.status_reason.length ? d.status_reason.map((item) => (
-                <span key={item}>{reasonLabel(item)}</span>
-              )) : <span>没有阻断或警告原因</span>}
+      <section className={`status-hero overview-command status-hero-${d.overall_status.toLowerCase()}`} aria-label="今日四轴判断">
+        <div className="overview-command-summary">
+          <div className="status-hero-main">
+            <div className="status-hero-icon" aria-hidden="true">
+              {warning ? <ExclamationCircleOutlined /> : <CheckCircleOutlined />}
+            </div>
+            <div>
+              <div className="eyebrow">当前判断</div>
+              <h2>{decisionTitle}</h2>
+              <p>{actionSentence} 前瞻仅 {d.forward.forward_observation_count} 个自然账户日，继续观察。</p>
             </div>
           </div>
+          <div className="status-reasons" aria-label="需关注原因">
+            {d.status_reason.length ? d.status_reason.map((item) => (
+              <span key={item}>{reasonLabel(item)}</span>
+            )) : <span>没有阻断或警告原因</span>}
+          </div>
         </div>
-        <div className="status-hero-time">
-          <span>最新完整交易日</span>
-          <strong>{displayDate(d.latest_complete_trade_date)}</strong>
-          <small>原子快照 {shortHash(d.snapshot_id)}</small>
+        <div className="decision-axis-grid">
+          <div><span>核心运行</span><StatusBadge status={d.runtime.task_status} /></div>
+          <div><span>证据完整</span><StatusBadge status={d.evidence_status} /></div>
+          <div><span>今日行动</span><strong>{d.action.rebalance_due ? "调仓" : "不调仓"}</strong></div>
+          <div><span>结果成熟度</span><StatusBadge status={d.forward.performance_maturity} /></div>
+          <div className="axis-time"><span>最新完整交易日</span><strong>{displayDate(d.latest_complete_trade_date)}</strong><small>快照 {shortHash(d.snapshot_id)}</small></div>
         </div>
       </section>
 
@@ -126,7 +135,7 @@ export default function OverviewPage() {
           <dl className="detail-list">
             <div><dt>信号日期</dt><dd>{displayDate(d.action.signal_date)}</dd></div>
             <div><dt>目标证券</dt><dd>{d.action.target_count} 只</dd></div>
-            <div><dt>计划交易腿</dt><dd>{d.action.planned_trade_leg_count} 条</dd></div>
+            <div><dt>目标变更证券数</dt><dd>{d.action.planned_trade_leg_count} 只</dd></div>
             <div><dt>下一执行日</dt><dd>{displayDate(d.action.next_execution_date)}</dd></div>
           </dl>
           <RouterLink className="panel-link" to={route("/signals", asOf)}>
@@ -153,22 +162,12 @@ export default function OverviewPage() {
               </p>
               <div className="nav-comparison" aria-label="组合与中证800净值比较">
                 <div>
-                  <span>模拟组合</span><strong>{formatNav(latest.forward_portfolio_nav)}</strong>
-                  <Progress
-                    aria-label="模拟组合归一化净值"
-                    percent={Math.max(0, Math.min(100, Number(latest.forward_portfolio_nav) * 100))}
-                    showInfo={false}
-                    strokeColor="#174e72"
-                  />
+                  <span><i className="series-key portfolio" aria-hidden="true" />模拟组合</span>
+                  <strong>{formatNav(latest.forward_portfolio_nav)}</strong>
                 </div>
                 <div>
-                  <span>中证800</span><strong>{formatNav(latest.forward_benchmark_nav)}</strong>
-                  <Progress
-                    aria-label="中证800归一化净值"
-                    percent={Math.max(0, Math.min(100, Number(latest.forward_benchmark_nav) * 100))}
-                    showInfo={false}
-                    strokeColor="#7d8993"
-                  />
+                  <span><i className="series-key benchmark" aria-hidden="true" />中证800</span>
+                  <strong>{formatNav(latest.forward_benchmark_nav)}</strong>
                 </div>
               </div>
               <div className="forward-guardrail">

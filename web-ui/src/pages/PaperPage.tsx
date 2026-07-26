@@ -26,7 +26,32 @@ import {
   numericTone,
   shortHash
 } from "../format";
-import type { EvidencePayload, NavPoint, Position } from "../types";
+import type { EvidencePayload, ForwardPoint, NavPoint, Position } from "../types";
+
+function ForwardEvidenceTable({ series }: { series: ForwardPoint[] }) {
+  return (
+    <div className="short-series-evidence">
+      <div className="short-series-message" role="status">
+        <strong>样本不足，不绘制趋势</strong>
+        <span>连续趋势至少需要 8 个可比 FORWARD 账户日；当前展示精确值，不扩大短样本确定性。</span>
+      </div>
+      <div className="compact-value-table" role="region" aria-label="FORWARD 精确值" tabIndex={0}>
+        <table>
+          <thead><tr><th>日期</th><th>组合净值</th><th>中证800</th><th>净值差</th><th>回撤</th></tr></thead>
+          <tbody>{series.map((point) => (
+            <tr key={point.trade_date}>
+              <td>{displayDate(point.trade_date)}</td>
+              <td>{formatNav(point.forward_portfolio_nav)}</td>
+              <td>{formatNav(point.forward_benchmark_nav)}</td>
+              <td className={numericTone(point.forward_net_excess)}>{formatPercentagePoints(point.forward_net_excess)}</td>
+              <td className={numericTone(point.forward_drawdown)}>{formatPercent(point.forward_drawdown)}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
 export default function PaperPage() {
   const { asOf } = useAsOf();
@@ -173,7 +198,6 @@ export default function PaperPage() {
       yField: "value",
       colorField: "series",
       height: 320,
-      shapeField: "smooth",
       axis: {
         x: { title: false },
         y: { title: "归一化净值", labelFormatter: (value: number) => Number(value).toFixed(3) }
@@ -188,8 +212,8 @@ export default function PaperPage() {
     <div className="page-stack">
       <PageHeader
         eyebrow="PAPER PORTFOLIO"
-        title="实际成交后，账户发生了什么"
-        description="目标、订单、成交、实际持仓与现金严格分开；本页只陈述已登记模拟账户事实。"
+        title="模拟组合"
+        description="目标、订单、成交、持仓与现金严格分开；短样本只展示已登记账户事实。"
         status={replay.status}
         asOf={bundle.asOf}
         generatedAt={bundle.generatedAt}
@@ -233,7 +257,7 @@ export default function PaperPage() {
           />
           <MetricCard label="覆盖率" value={<StatusBadge status={forward.coverage_status} compact />} detail={forward.coverage_reason} />
         </div>
-        {forwardChart.length >= 4 ? (
+        {forward.series.length >= 8 ? (
           <>
             <div className="chart-canvas" role="img" aria-label="FORWARD 模拟组合与中证800归一化净值折线图">
               <Line {...chartConfig} data={forwardChart} />
@@ -248,9 +272,7 @@ export default function PaperPage() {
               </table>
             </details>
           </>
-        ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="至少两个 FORWARD 账户日后绘制趋势；当前数字仍按证据展示" />
-        )}
+        ) : <ForwardEvidenceTable series={forward.series} />}
         <div className="chart-footnote">
           <span>观察类型：FORWARD</span><span>基准：000906.SH</span><span>费用：实际成交费用</span><span>策略：{portfolio.execution_policy_version}</span>
         </div>
@@ -275,7 +297,7 @@ export default function PaperPage() {
           <div><span className="section-kicker">AUDIT HISTORY</span><h2 id="audit-heading">全账户审计历史</h2></div>
           <Segmented options={["前瞻专属", "全账户"]} value={historyMode} onChange={(value) => setHistoryMode(String(value))} />
         </div>
-        {historyMode === "前瞻专属" ? (
+        {historyMode === "前瞻专属" && forward.series.length >= 8 ? (
           <div className="split-charts">
             <div>
               <h3>锚定净值</h3>
@@ -291,11 +313,28 @@ export default function PaperPage() {
               />
             </div>
           </div>
-        ) : (
+        ) : historyMode === "全账户" && nav.series.length >= 8 ? (
           <>
             <div className="audit-boundary-note"><ArrowDownOutlined /> BACKFILL 仅作工程与账务审计，FORWARD 才是自然观察；两段不合并为前瞻结论。</div>
             <Line {...chartConfig} data={auditChart} height={300} />
           </>
+        ) : (
+          <div className="short-audit-summary">
+            <ArrowDownOutlined aria-hidden="true" />
+            <div>
+              {historyMode === "前瞻专属" ? (
+                <>
+                  <strong>FORWARD 序列共 {forward.series.length} 个账户日，不绘制趋势</strong>
+                  <p>仅陈述锚点后的自然观察，BACKFILL 不进入本范围；精确值见上方前瞻表及下方账户日证据。</p>
+                </>
+              ) : (
+                <>
+                  <strong>全账户审计序列共 {nav.series.length} 个账户日，不绘制趋势</strong>
+                  <p>BACKFILL {replay.mode_counts.BACKFILL ?? 0} 日只作工程与账务审计；FORWARD {replay.mode_counts.FORWARD ?? 0} 日是自然观察。逐日精确值见下方“账户日与证据”。</p>
+                </>
+              )}
+            </div>
+          </div>
         )}
         <div className="chart-footnote"><span>全账户最大回撤 {formatPercent(maxDrawdown)}</span><span>BACKFILL {replay.mode_counts.BACKFILL ?? 0} 日</span><span>FORWARD {replay.mode_counts.FORWARD ?? 0} 日</span></div>
       </section>
