@@ -1,0 +1,84 @@
+{
+  "schema_version": "d1-review-semantic-gate-acceptance-v1",
+  "protocol_id": "d1-review-semantic-gate-v1",
+  "protocol_freeze_commit": "45734b1a8992d530be4a60b01bbd3692e866c4bf",
+  "implementation_commit": "8d3ee9775a33e3a9887e00e528b51476cd3cec2c",
+  "protocol_sha256": "8faf36d33744aec06ec4331266dccf4d96dee904bac0a3d0fb603940e6aef15a",
+  "code_snapshot_sha256": "50c3af0f20e5746dfff834144d534178de34ffcef8d8909ff1c331c6c3d714ae",
+  "fixture_sha256": "977666411d87801205f8ee3c4ff81bb20ecfcb67fc65d009255e8841e320ce1b",
+  "audit_stdout_sha256": "3446e874b8d88859875ac47aa00e8132c2de874a1c8da1a414626124099e672a",
+  "review_protocol_sha256": "ad5ab9720198a2bab41912391a25cb09c5ca38c7accb37bef3904824c943f6da",
+  "review_ledger_sha256": "9029ea65490711dbd6bddc592d2f3116ad1b7e811059cad926caca283d13e280",
+  "correction_sha256": "de8b331cd8c923bb3b7b3f3a9e8c0aeb342db410cda647be72981f69a34917b2",
+  "counts": {
+    "PASS_SEMANTIC_CONTRACT": 5,
+    "FAIL_SEMANTIC_CONTRACT": 3,
+    "MANUAL_REVIEW_REQUIRED": 0
+  },
+  "classification_matches_correction": true,
+  "prior_authoritative_gate": "STOP_SEMANTIC_CONTRACT_VIOLATION",
+  "prior_authoritative_gate_unchanged": true,
+  "engineering_gate": "GO_SEMANTIC_GATE_ENGINEERING_ONLY",
+  "provider_calls": 0,
+  "additional_cost_usd": 0.0,
+  "performance_results_read": false,
+  "production_authorization": "none",
+  "reviews": [
+    {
+      "review_id": "708781185309964adecb",
+      "response_sha256": "76294d582edb97ad7a8da0bfa9fbbd773b59723ae28935cae8706ee7888ce26e",
+      "inspected_text_sha256": "c4651d4982a4edeb02b0ea499ef1b6a0b7dfb37c9aa6aa5dbf4d14c88852b6c3",
+      "status": "FAIL_SEMANTIC_CONTRACT",
+      "reason_codes": ["ALTERNATIVE_CONSTRUCT_ACTION"]
+    },
+    {
+      "review_id": "f39f23f8455f1bd78456",
+      "response_sha256": "9078b780d11bea1a4936e859ef09222774d31f90902fe6f0d36a2fb6ee10830d",
+      "inspected_text_sha256": "cfdabeba0ea07513a28cd5e95f35c1a1ce4a2d2b25870f536370cee85066dd80",
+      "status": "PASS_SEMANTIC_CONTRACT",
+      "reason_codes": []
+    },
+    {
+      "review_id": "b901cc486ec7881a2424",
+      "response_sha256": "7a2fd11d2e222a35aebe9e32bc77e7b77f7a47d64b674b64c68608b8c2352166",
+      "inspected_text_sha256": "3f802897b6c4cc871da15b855d899abf49cfdd4da4aaecbe18b4a0befb73dd64",
+      "status": "PASS_SEMANTIC_CONTRACT",
+      "reason_codes": []
+    },
+    {
+      "review_id": "b7ba1329435b0ca55dc2",
+      "response_sha256": "9d9255304a55354c1ffcec9ee425284ee8caebfbb1518277bd31e06f9287bc3a",
+      "inspected_text_sha256": "95d4107f4bacc886d52fdf10e789756f3db87911f1af4f56f9e8aca37b4ed017",
+      "status": "FAIL_SEMANTIC_CONTRACT",
+      "reason_codes": ["ALTERNATIVE_CONSTRUCT_ACTION", "LOOKBACK_CHANGE_ACTION"]
+    },
+    {
+      "review_id": "fb9abc2c08eb24201de9",
+      "response_sha256": "e313c41445d1cd433f1401d7106b52f528dab69a0c93df53b792ee8a42db9197",
+      "inspected_text_sha256": "8fe01a650d22d35f0e084b76cfd1ea0fb77eab76999173783803561147bb90ad",
+      "status": "FAIL_SEMANTIC_CONTRACT",
+      "reason_codes": ["ALTERNATIVE_CONSTRUCT_ACTION"]
+    },
+    {
+      "review_id": "38cd3f0d05599071e037",
+      "response_sha256": "e47dbdff280435ed69f2bd0a50457582bd816bca382ebc181b59dc631e6418e7",
+      "inspected_text_sha256": "618abffc37abbbd54806fc3f8801429ab7cf07e3ea5b5f6338c0ae9c8c657413",
+      "status": "PASS_SEMANTIC_CONTRACT",
+      "reason_codes": []
+    },
+    {
+      "review_id": "14bb547b30d26a371f94",
+      "response_sha256": "182a8ff0ef537a36f2706b4205003fa8911620d2522000b7e5bb1fad2e4da199",
+      "inspected_text_sha256": "d2449fc9b19b5eb82c80743743971921ed287348d31a1e8a61f66a412a00d5e0",
+      "status": "PASS_SEMANTIC_CONTRACT",
+      "reason_codes": []
+    },
+    {
+      "review_id": "f8788e64e842daa72f51",
+      "response_sha256": "b446f1f820a2c08d861969adfc1a871e7fb6e488693969925fc507a26ecd9d2f",
+      "inspected_text_sha256": "b16430ceff414e99a8d652e800335fc8dc07f6b02b842a06a794178a586754f7",
+      "status": "PASS_SEMANTIC_CONTRACT",
+      "reason_codes": []
+    }
+  ]
+}
