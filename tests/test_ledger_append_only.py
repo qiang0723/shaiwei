@@ -19,6 +19,7 @@ LEDGERS = [
     "ledger/paper_accounts.csv",
     "ledger/paper_events.csv",
     "ledger/paper_runs.csv",
+    "ledger/g8_fund_evidence.csv",
 ]
 
 

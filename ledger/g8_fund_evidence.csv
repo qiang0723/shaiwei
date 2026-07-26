@@ -1,0 +1,1 @@
+evidence_id,protocol_id,request_id,evidence_kind,product_code,period_start,period_end,parent_request_id,captured_at,first_http_status,second_http_status,first_body_sha256,second_body_sha256,bundle_path,bundle_sha256,parsed_row_count,source_transport,verification_status,revision_of_evidence_id,error_code,operator
