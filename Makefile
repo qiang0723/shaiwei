@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-d1-fixture docker-d1-live docker-d1-review-live docker-g8-primary-build docker-g8-primary-capture docker-g8-primary-verify docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-research-project docker-web-up docker-web-status docker-web-logs docker-web-down
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-d1-fixture docker-d1-live docker-d1-review-live docker-d1-semantic-verify docker-g8-primary-build docker-g8-primary-capture docker-g8-primary-verify docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-research-project docker-web-up docker-web-status docker-web-logs docker-web-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -109,6 +109,8 @@ docker-d1-live: ## D1-2B 受控真实40次生成；调用前须冻结提交、�
 	docker compose -f compose.research.yaml --profile research-live run --rm d1-live
 docker-d1-review-live: ## D1-3A 恰好8次盲态对抗复核；不生成候选、不读W1-W6或运行G1
 	docker compose -f compose.research.yaml --profile research-review-live run --rm d1-review-live
+docker-d1-semantic-verify: ## D1语义门断网只读复核；零provider调用、不改旧批
+	docker compose -f compose.research.yaml --profile research-semantic-verify run --rm d1-semantic-verify
 docker-g8-primary-build: ## 以已提交代码身份构建 G8-1 无凭据一次性采集镜像
 	@test -n "$(G8_RELEASE_GIT_HEAD)" || (echo "G8_RELEASE_GIT_HEAD is required"; exit 2)
 	SHAIWEI_G8_RELEASE_GIT_HEAD="$(G8_RELEASE_GIT_HEAD)" docker compose -f compose.research.yaml --profile g8-primary-capture-live build g8-primary-capture

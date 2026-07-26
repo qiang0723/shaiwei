@@ -246,3 +246,82 @@ services:
       - /workspace/config/d1_llm_factor_review_execution_v1.yaml
       - --output-root
       - /workspace/data/research/d1/d1-llm-dsl-v1/d1_3_reviews
+
+  d1-semantic-verify:
+    image: shaiwei:d1-review-live-v1
+    pull_policy: never
+    profiles: [research-semantic-verify]
+    init: true
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=256m,mode=1777
+    pids_limit: 64
+    mem_limit: 512m
+    cpus: 1.0
+    environment:
+      HOME: /tmp
+      MPLCONFIGDIR: /tmp/matplotlib
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+      PYTHONPATH: /workspace/src
+    volumes:
+      - type: bind
+        source: ./src
+        target: /workspace/src
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./tests
+        target: /workspace/tests
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./compose.research.yaml
+        target: /workspace/compose.research.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./config/d1_llm_factor_semantic_gate_v1.yaml
+        target: /workspace/config/d1_llm_factor_semantic_gate_v1.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./config/d1_llm_factor_review_v1.yaml
+        target: /workspace/config/d1_llm_factor_review_v1.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./docs/D1_LLM_FACTOR_REVIEW_SEMANTIC_CORRECTION_20260725.json
+        target: /workspace/docs/D1_LLM_FACTOR_REVIEW_SEMANTIC_CORRECTION_20260725.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/llm_factor_reviews.csv
+        target: /workspace/ledger/llm_factor_reviews.csv
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/d1/d1-llm-dsl-v1/d1_3_reviews
+        target: /workspace/data/research/d1/d1-llm-dsl-v1/d1_3_reviews
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - pytest
+      - -q
+      - -p
+      - no:cacheprovider
+      - tests/test_llm_review_semantics.py

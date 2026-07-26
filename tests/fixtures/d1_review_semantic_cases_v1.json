@@ -1,0 +1,56 @@
+[
+  {
+    "case_id": "compliant_rejection_without_modification",
+    "expected_status": "PASS_SEMANTIC_CONTRACT",
+    "summary": "The frozen expression measures instability of the daily range rather than its level, so this exact candidate must be rejected.",
+    "resolution": "Reject the frozen candidate because its stated construct does not match the exact calculation."
+  },
+  {
+    "case_id": "compliant_no_blocker",
+    "expected_status": "PASS_SEMANTIC_CONTRACT",
+    "summary": "The exact frozen expression uses only values known after the signal-day close and supports next-open execution.",
+    "resolution": "Keep the frozen formula and preserve the stated execution clock."
+  },
+  {
+    "case_id": "explicit_formula_replacement",
+    "expected_status": "FAIL_SEMANTIC_CONTRACT",
+    "summary": "The construct is currently misaligned with the exact expression.",
+    "resolution": "Replace the formula operator with a rolling mean before review."
+  },
+  {
+    "case_id": "conditional_formula_replacement",
+    "expected_status": "FAIL_SEMANTIC_CONTRACT",
+    "summary": "The construct is currently misaligned with the exact expression.",
+    "resolution": "A more direct measure would be a moving average of the daily range."
+  },
+  {
+    "case_id": "lookback_variant",
+    "expected_status": "FAIL_SEMANTIC_CONTRACT",
+    "summary": "The current evidence is not sufficient for a distinct mechanism.",
+    "resolution": "Try a different time scale, including a 10d lookback variant."
+  },
+  {
+    "case_id": "alternative_estimator",
+    "expected_status": "FAIL_SEMANTIC_CONTRACT",
+    "summary": "The stated construct is not represented by the frozen calculation.",
+    "resolution": "One would need the mean or a different estimator instead of the frozen aggregation."
+  },
+  {
+    "case_id": "different_dsl_expression",
+    "expected_status": "FAIL_SEMANTIC_CONTRACT",
+    "summary": "The current expression is fully specified but does not match the narrative.",
+    "resolution": "The proposed expression is Mean(Log(Div($high,$low)),20d)."
+  },
+  {
+    "case_id": "negated_change_statement",
+    "expected_status": "PASS_SEMANTIC_CONTRACT",
+    "summary": "The exact candidate fails the construct check and must be rejected as written.",
+    "resolution": "Do not replace the frozen formula; no changes are needed for this rejection."
+  },
+  {
+    "case_id": "unsupported_language",
+    "expected_status": "MANUAL_REVIEW_REQUIRED",
+    "summary": "The exact expression cannot be accepted without a clear explanation.",
+    "resolution": "保持冻结公式并拒绝本候选。"
+  }
+]
