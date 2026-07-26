@@ -1,0 +1,199 @@
+protocol_id: g8-fund-primary-capture-recovery-v1
+schema_version: g8-primary-capture-recovery-v1
+status: RESULT_BEFORE_EXECUTION_FROZEN
+frozen_at: "2026-07-26"
+timezone: Asia/Shanghai
+execution_authorized: true
+production_authorization: none
+
+source_feasibility_binding:
+  protocol_path: config/g8_fund_evidence_source_v1.yaml
+  protocol_sha256: 9608a979519eaefec1d7836c699baaa24f507c011848ec9b2d6eb9c172918f5c
+  prior_verdict: GO_G8_1_PRIMARY_CAPTURE_ONLY
+  g8_status_before_capture: NOT_READY
+
+recovery_binding:
+  original_protocol_path: config/g8_fund_primary_capture_v1.yaml
+  original_protocol_sha256: 3fcac039dd12217c63b8e7e4b71bedc6aadee143e8e4803967a517600686ec07
+  original_implementation_git_head: 1a974d24726bc452a111e8dea0df57b350a16e29
+  attempted_image_claimed_git_head: 1a974d2c6ea63c61d73d581f6036644163929c52
+  attempted_image_claimed_git_head_matches_repository: false
+  attempted_image_code_snapshot_sha256: b91148c481b0d42b76b6828a88ecfbab2cfcbd5d5c879b76f68f05b9f479ef4d
+  attempted_image_id: sha256:427593a0ed7ce66ef4f7eac67ff41ec2142c2da8dc06129a77ba53723aacef0c
+  failure_ledger_sha256: 15934f0879ff4128b6324b88b578e406605cf56ee5250fdb86cd5e9107db3f64
+  failure_evidence_id: d169e0b5af4aab1bb28263f39f50b9c0139c4c7860beb29259ecb0a67bdce46f
+  failure_bundle_sha256: 736637e2ec2afa9c959c5d3c3f4f9e941e3d224d47aee5b66796d5c8bff67bf7
+  failure_http_statuses: [502, 502]
+  failure_bodies_empty: true
+  docker_default_network_probe: EMPTY_502
+  docker_host_network_probe: EMPTY_502
+  original_failed_evidence_remains_immutable: true
+  original_attempt_counts_for_recovery_acceptance: false
+  changed_variable_only: execution_environment
+
+scope:
+  capture_start: "2026-07-15"
+  capture_end: "2026-07-24"
+  product_count: 6
+  expected_nav_requests: 6
+  expected_usable_nav_rows: 48
+  expected_dividend_requests: 48
+  expected_logical_requests: 54
+  expected_http_observations: 108
+  strategy_results_access: false
+  g8_evaluation: false
+  total_return_construction: false
+  manager_https_crosscheck: false
+  fee_document_collection: false
+  scheduler_integration: false
+  web_changes: false
+
+source:
+  role: statutory_central_disclosure_primary
+  scheme: http
+  host: eid.csrc.gov.cn
+  port: 80
+  origin: http://eid.csrc.gov.cn
+  authenticated_transport: false
+  execution_environment: host_one_shot_no_env_file
+  trust_environment_proxy: false
+  request_timeout_seconds: 30
+  minimum_request_start_interval_seconds: 0.5
+  automatic_retries: 0
+  allowed_paths:
+    - /fund/disclose/getPublicFundJZInfoMore.do
+    - /fund/disclose/getDividendInfo.do
+  forbidden_authority:
+    - aggregation_site
+    - current_fee_backfill
+    - inferred_dividend
+  post_capture_independent_verifier: immutable_docker_image_offline
+
+nav_request:
+  method: GET
+  path: /fund/disclose/getPublicFundJZInfoMore.do
+  query_parameter: aoData
+  ao_data_order:
+    - [sEcho, 1]
+    - [iDisplayStart, 0]
+    - [iDisplayLength, 100]
+    - [fundType, all]
+    - [fundCompanyShortName, ""]
+    - [fundCode, PRODUCT_CODE]
+    - [fundName, ""]
+    - [startDate, CAPTURE_START]
+    - [endDate, CAPTURE_END]
+  response_container: aaData
+  usable_row:
+    classification_code: 2030-1010
+    code_equals_product: true
+    short_name_equals_expected: true
+    share_net_value_nonempty_decimal: true
+    total_net_value_nonempty_decimal: true
+    valuation_date_within_capture_window: true
+    fund_id_equals_frozen_identity: true
+    upload_detail_id_positive_integer: true
+  ignored_master_row:
+    classification_code: 2030-1030
+    share_net_value_empty: true
+    total_net_value_empty: true
+    exact_one_per_usable_valuation_date: true
+  expected_usable_rows_per_product: 8
+  unknown_or_duplicate_row_action: fail_closed
+
+dividend_request:
+  method: POST
+  path: /fund/disclose/getDividendInfo.do
+  one_request_per_usable_nav_row: true
+  form_mapping:
+    uploadDetailId: NAV_ROW_UPLOAD_DETAIL_ID
+    fundName: EXPECTED_PRODUCT_NAME
+    fundCode: PRODUCT_CODE
+    thisLevel: "1"
+    thisName: EXPECTED_PRODUCT_NAME
+    thisCode: PRODUCT_CODE
+  response_identity_must_match_request: true
+  required_fields:
+    - fundCode
+    - fundName
+    - isFenji
+    - specialPoint.fenhongjinE
+    - specialPoint.changwai
+    - specialPoint.changnei
+    - specialPoint.remark
+    - specialPoint.specialPoint
+  empty_special_point_is_valid_evidence: true
+  dividend_inference_from_nav_change: false
+
+double_fetch:
+  observations_per_logical_request: 2
+  compare: exact_response_body_bytes
+  required_http_status: 200
+  mismatch_action: persist_quarantine_and_fail
+  schema_failure_action: persist_quarantine_and_fail
+  prior_same_request_new_content_action: persist_revision_quarantine_and_fail
+  identical_existing_content_action: verify_and_reuse_without_append
+
+storage:
+  data_root: data/g8/fund_evidence
+  bundle_directory: data/g8/fund_evidence/bundles
+  bundle_schema: g8-primary-evidence-bundle-v1
+  bundle_body_encoding: base64
+  observations_preserved: 2
+  response_headers_allowlist:
+    - date
+    - content-type
+    - content-length
+    - last-modified
+    - etag
+    - server
+    - cache-control
+    - expires
+    - content-encoding
+    - transfer-encoding
+  response_headers_forbidden:
+    - set-cookie
+    - authorization
+    - proxy-authenticate
+  overwrite_existing_bundle: false
+  ledger_path: ledger/g8_fund_evidence.csv
+  ledger_append_only: true
+  raw_or_parsed_values_in_tracked_ledger: false
+  absolute_paths_in_tracked_ledger: false
+
+products:
+  - code: "016276"
+    expected_name: 招商中证800指数增强A
+    fund_id: 11567
+  - code: "017985"
+    expected_name: 华夏中证800指数增强A
+    fund_id: 12429
+  - code: "022513"
+    expected_name: 人保中证800指数增强A
+    fund_id: 14507
+  - code: "022461"
+    expected_name: 华商中证A500指数增强A
+    fund_id: 14414
+  - code: "022485"
+    expected_name: 国金中证A500指数增强A
+    fund_id: 14443
+  - code: "022467"
+    expected_name: 国泰海通中证A500指数增强A
+    fund_id: 14494
+
+acceptance:
+  nav_evidence_rows: 6
+  dividend_evidence_rows: 48
+  ledger_rows: 54
+  usable_nav_rows: 48
+  original_failed_rows_preserved: 1
+  duplicate_product_dates_maximum: 0
+  double_fetch_mismatches_maximum: 0
+  http_failures_maximum: 0
+  schema_failures_maximum: 0
+  revision_conflicts_maximum: 0
+  bundle_hash_failures_maximum: 0
+  tracked_sensitive_values_maximum: 0
+  verification_status: PRIMARY_CAPTURED_UNAUTHENTICATED
+  terminal_verdict_if_all_pass: GO_G8_2_CROSSCHECK_AND_FEE_LINEAGE_ONLY
+  g8_status_after_capture: NOT_READY

@@ -86,12 +86,22 @@ def test_g8_primary_capture_freezes_exact_request_and_acceptance_counts() -> Non
     assert acceptance["usable_nav_rows"] == 48
 
 
-def test_g8_primary_capture_ledger_starts_with_sanitized_header_only() -> None:
+def test_g8_primary_capture_ledger_preserves_sanitized_append_only_rows() -> None:
     with LEDGER_PATH.open(newline="", encoding="utf-8") as handle:
         reader = csv.reader(handle)
         rows = list(reader)
 
-    assert rows == [list(EXPECTED_LEDGER_HEADER)]
+    assert rows[0] == list(EXPECTED_LEDGER_HEADER)
+    assert len(rows) >= 2
+    evidence_id_index = EXPECTED_LEDGER_HEADER.index("evidence_id")
+    protocol_id_index = EXPECTED_LEDGER_HEADER.index("protocol_id")
+    bundle_path_index = EXPECTED_LEDGER_HEADER.index("bundle_path")
+    for row in rows[1:]:
+        assert len(row) == len(EXPECTED_LEDGER_HEADER)
+        assert len(row[evidence_id_index]) == 64
+        assert row[protocol_id_index].startswith("g8-fund-primary-capture-")
+        assert row[bundle_path_index].startswith("data/g8/fund_evidence/bundles/")
+        assert not Path(row[bundle_path_index]).is_absolute()
 
 
 def test_g8_primary_capture_container_has_no_secret_or_broad_write_mount() -> None:
