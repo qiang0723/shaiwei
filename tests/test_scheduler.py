@@ -52,11 +52,38 @@ def test_scheduler_runs_paper_as_isolated_subprocess(monkeypatch):
         "shaiwei.pipeline.scheduler.subprocess.run",
         lambda argv, check: calls.append((argv, check)),
     )
-    monkeypatch.setattr("shaiwei.pipeline.scheduler.paper_replay_ready", lambda: True)
+    monkeypatch.setattr(
+        "shaiwei.pipeline.scheduler.TOP20_RELEASE_PATH",
+        Path("config/paper_top20_v1.yaml"),
+    )
+    monkeypatch.setattr(
+        "shaiwei.pipeline.scheduler.load_paper_top20_release",
+        lambda _path: type("Release", (), {"account_id": "model_top20"})(),
+    )
+    monkeypatch.setattr("shaiwei.pipeline.scheduler.paper_replay_ready", lambda account_id: True)
     run_paper_cycle(load())
-    assert calls[0][0][-2:] == ["-m", "shaiwei.pipeline.paper_cycle"]
-    assert calls[0][1] is True
-    assert calls[1][0][-3:] == ["-m", "shaiwei.paper.query", "verify"]
-    assert calls[1][1] is True
-    assert calls[2][0][-3:] == ["-m", "shaiwei.paper.query", "acceptance"]
-    assert calls[2][1] is True
+    assert len(calls) == 6
+    for offset, account_id in ((0, "model_baseline"), (3, "model_top20")):
+        assert calls[offset][0][-2:] == ["--account-id", account_id]
+        assert calls[offset][0][1:3] == ["-m", "shaiwei.pipeline.paper_cycle"]
+        assert calls[offset][1] is True
+        assert calls[offset + 1][0][-3:] == ["verify", "--account-id", account_id]
+        assert calls[offset + 1][1] is True
+        assert calls[offset + 2][0][-3:] == ["acceptance", "--account-id", account_id]
+        assert calls[offset + 2][1] is True
+
+
+def test_scheduler_does_not_run_top20_before_distinct_release(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        "shaiwei.pipeline.scheduler.subprocess.run",
+        lambda argv, check: calls.append((argv, check)),
+    )
+    monkeypatch.setattr("shaiwei.pipeline.scheduler.paper_replay_ready", lambda account_id: False)
+    monkeypatch.setattr(
+        "shaiwei.pipeline.scheduler.TOP20_RELEASE_PATH",
+        Path("config/paper_top20_release_v1.yaml.missing"),
+    )
+    run_paper_cycle(load())
+    assert len(calls) == 1
+    assert calls[0][0][-2:] == ["--account-id", "model_baseline"]

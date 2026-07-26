@@ -17,7 +17,14 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 
-from shaiwei.config import PROJECT_ROOT, Settings, load
+from shaiwei.config import (
+    PROJECT_ROOT,
+    PaperPortfolio,
+    PaperTop20Portfolio,
+    Settings,
+    load,
+    load_paper_top20_protocol,
+)
 from shaiwei.ingest.catalog import latest_request_evidence, load_latest_api, load_latest_request
 from shaiwei.ingest.tushare import Request, public_request_params
 from shaiwei.ledger import (
@@ -35,6 +42,7 @@ from shaiwei.ledger import (
 )
 from shaiwei.notify.feishu import FeishuNotifier
 from shaiwei.paper.engine import PortfolioState, execute_day, policy_sha256
+from shaiwei.paper.projection import project_top20_signal
 from shaiwei.provenance import code_snapshot_sha256
 from shaiwei.shadow.manifest import verify_signal_manifest
 
@@ -174,8 +182,8 @@ def _verify_reconciliation(row: dict[str, str]) -> Path:
     return path
 
 
-def _existing_account(settings: Settings, policy_hash: str) -> bool:
-    rows = [row for row in _read(PAPER_ACCOUNTS) if row["account_id"] == settings.paper_portfolio.account_id]
+def _existing_account(policy: PaperPortfolio, policy_hash: str) -> bool:
+    rows = [row for row in _read(PAPER_ACCOUNTS) if row["account_id"] == policy.account_id]
     if not rows:
         return False
     if len(rows) != 1 or rows[0]["policy_sha256"] != policy_hash:
@@ -209,7 +217,11 @@ def _verify_paper_document(path: Path) -> dict[str, object]:
     return document
 
 
-def _event_rows(document: dict[str, object]) -> list[dict[str, object]]:
+def _event_rows(
+    document: dict[str, object],
+    *,
+    operator: str = "docker-scheduler",
+) -> list[dict[str, object]]:
     run_id = str(document["run_id"])
     account_id = str(document["account_id"])
     effective = str(document["execution_trade_date"])
@@ -260,7 +272,7 @@ def _event_rows(document: dict[str, object]) -> list[dict[str, object]]:
                 "position_after": payload.get("position_after", payload.get("quantity", "")),
                 "payload_json": payload,
                 "evidence_sha256": evidence,
-                "operator": "docker-scheduler",
+                "operator": operator,
             }
         )
     return rows
@@ -289,8 +301,14 @@ def _write_artifact(path: Path, payload: dict[str, object]) -> dict[str, object]
     return document
 
 
-def _journal(document: dict[str, object], artifact: Path, reconciliation_hash: str) -> None:
-    events = _event_rows(document)
+def _journal(
+    document: dict[str, object],
+    artifact: Path,
+    reconciliation_hash: str,
+    *,
+    operator: str = "docker-scheduler",
+) -> None:
+    events = _event_rows(document, operator=operator)
     for event in events:
         append_paper_event(**event)
     nav = dict(dict(document["result"])["nav"])
@@ -317,17 +335,19 @@ def _journal(document: dict[str, object], artifact: Path, reconciliation_hash: s
         benchmark_nav=nav["benchmark_nav"],
         freshness_status=nav["freshness_status"],
         error_type="",
+        operator=operator,
     )
 
 
 def _append_failure(
     *,
-    settings: Settings,
+    policy: PaperPortfolio,
     reconciliation: dict[str, str],
     policy_hash: str,
     code_hash: str,
     started_at: str,
     error: Exception,
+    operator: str,
 ) -> None:
     try:
         data_hash = ingest_snapshot_sha256()
@@ -336,7 +356,7 @@ def _append_failure(
     append_paper_run(
         run_id=f"fail-{uuid.uuid4().hex[:15]}",
         started_at=started_at,
-        account_id=settings.paper_portfolio.account_id,
+        account_id=policy.account_id,
         signal_trade_date=reconciliation["signal_trade_date"],
         execution_trade_date=reconciliation["execution_trade_date"],
         status="FAIL",
@@ -355,15 +375,42 @@ def _append_failure(
         benchmark_nav="",
         freshness_status="FAIL",
         error_type=type(error).__name__,
+        operator=operator,
     )
 
 
-def run_once(settings: Settings | None = None) -> PaperCycleResult:
+def _notification_contract(policy: PaperPortfolio) -> tuple[str, str, str, str]:
+    if isinstance(policy, PaperTop20Portfolio):
+        return (
+            "paper_top20_cycle_started",
+            "Top20模拟组合处理开始",
+            "paper_top20_cycle_completed",
+            "Top20模拟组合处理完成",
+        )
+    return (
+        "paper_cycle_started",
+        "模拟组合处理开始",
+        "paper_cycle_completed",
+        "模拟组合处理完成",
+    )
+
+
+def run_once(
+    settings: Settings | None = None,
+    *,
+    policy: PaperPortfolio | None = None,
+    operator: str = "docker-scheduler",
+) -> PaperCycleResult:
     settings = settings or load()
-    policy = settings.paper_portfolio
+    policy = policy or settings.paper_portfolio
     if not policy.enabled:
         return PaperCycleResult("DISABLED", policy.account_id, (), "")
+    if operator not in {"docker-scheduler", "docker-top20-backfill"}:
+        raise PaperCycleError("paper cycle operator is not authorized")
+    if operator == "docker-top20-backfill" and not isinstance(policy, PaperTop20Portfolio):
+        raise PaperCycleError("Top20 backfill operator cannot run the baseline account")
     notifier = FeishuNotifier(settings.notifications)
+    started_event, started_title, completed_event, completed_title = _notification_contract(policy)
     with paper_lock():
         reconciliations = sorted(
             _latest_passes(
@@ -388,8 +435,8 @@ def run_once(settings: Settings | None = None) -> PaperCycleResult:
         policy_hash = policy_sha256(policy)
         code_hash = code_snapshot_sha256()
         notifier.send(
-            "paper_cycle_started",
-            "模拟组合处理开始",
+            started_event,
+            started_title,
             {
                 "account_id": policy.account_id,
                 "pending_trade_days": len(pending),
@@ -411,6 +458,15 @@ def run_once(settings: Settings | None = None) -> PaperCycleResult:
                 signal_path = _manifest_for(reconciliation)
                 reconciliation_path = _verify_reconciliation(reconciliation)
                 signal = json.loads(signal_path.read_text(encoding="utf-8"))
+                projection_evidence: dict[str, object] | None = None
+                if isinstance(policy, PaperTop20Portfolio):
+                    projection = project_top20_signal(
+                        signal,
+                        source_signal_sha256=reconciliation["signal_sha256"],
+                        policy=policy,
+                    )
+                    signal = projection.signal
+                    projection_evidence = projection.evidence
                 signal_date = reconciliation["signal_trade_date"]
                 execution_date = reconciliation["execution_trade_date"]
                 _validate_temporal_contract(
@@ -455,6 +511,8 @@ def run_once(settings: Settings | None = None) -> PaperCycleResult:
                     document = _verify_paper_document(artifact)
                     if document.get("prior_state_sha256") != prior_state_hash:
                         raise PaperCycleError("existing paper artifact is not continuous with prior state")
+                    if document.get("signal_projection") != projection_evidence:
+                        raise PaperCycleError("existing paper artifact projection evidence differs")
                 else:
                     result = execute_day(
                         policy=policy,
@@ -513,8 +571,10 @@ def run_once(settings: Settings | None = None) -> PaperCycleResult:
                             },
                         ],
                     }
+                    if projection_evidence is not None:
+                        payload["signal_projection"] = projection_evidence
                     document = _write_artifact(artifact, payload)
-                if not _existing_account(settings, policy_hash):
+                if not _existing_account(policy, policy_hash):
                     append_paper_account(
                         account_id=policy.account_id,
                         created_at=str(document["generated_at"]),
@@ -525,23 +585,32 @@ def run_once(settings: Settings | None = None) -> PaperCycleResult:
                         execution_policy_version=policy.execution_policy_version,
                         policy_sha256=policy_hash,
                         code_snapshot_sha256=code_hash,
+                        operator=operator,
                     )
-                _journal(document, artifact, reconciliation["artifact_sha256"])
+                _journal(
+                    document,
+                    artifact,
+                    reconciliation["artifact_sha256"],
+                    operator=operator,
+                )
                 state = PortfolioState.from_dict(dict(document["state"]))
                 latest_artifact = str(artifact)
                 completed.append(execution_date)
         except Exception as error:
             _append_failure(
-                settings=settings,
+                policy=policy,
                 reconciliation=reconciliation,
                 policy_hash=policy_hash,
                 code_hash=code_hash,
                 started_at=started_at,
                 error=error,
+                operator=operator,
             )
             notifier.send(
-                "paper_cycle_failed",
-                "模拟组合处理失败",
+                f"{started_event.removesuffix('_started')}_failed",
+                "Top20模拟组合处理失败"
+                if isinstance(policy, PaperTop20Portfolio)
+                else "模拟组合处理失败",
                 {
                     "account_id": policy.account_id,
                     "execution_date": reconciliation["execution_trade_date"],
@@ -550,8 +619,8 @@ def run_once(settings: Settings | None = None) -> PaperCycleResult:
             )
             raise
         notifier.send(
-            "paper_cycle_completed",
-            "模拟组合处理完成",
+            completed_event,
+            completed_title,
             {
                 "account_id": policy.account_id,
                 "completed_trade_days": len(completed),
@@ -568,9 +637,22 @@ def run_once(settings: Settings | None = None) -> PaperCycleResult:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.parse_args(argv)
+    parser.add_argument(
+        "--account-id",
+        choices=("model_baseline", "model_top20"),
+        default="model_baseline",
+    )
+    parser.add_argument(
+        "--operator",
+        choices=("docker-scheduler", "docker-top20-backfill"),
+        default="docker-scheduler",
+    )
+    args = parser.parse_args(argv)
     try:
-        result = run_once()
+        policy: PaperPortfolio | None = None
+        if args.account_id == "model_top20":
+            policy = load_paper_top20_protocol().paper_portfolio
+        result = run_once(policy=policy, operator=args.operator)
         print(json.dumps(asdict(result), ensure_ascii=False, sort_keys=True))
         return 0
     except Exception as error:

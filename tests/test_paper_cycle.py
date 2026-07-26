@@ -228,13 +228,13 @@ def test_paper_cycle_backfills_once_and_exposes_verified_read_only_queries(monke
     real_journal = paper_cycle._journal
     journal_attempts = 0
 
-    def interrupt_after_first_event(document, artifact, reconciliation_hash):
+    def interrupt_after_first_event(document, artifact, reconciliation_hash, **kwargs):
         nonlocal journal_attempts
         journal_attempts += 1
         if journal_attempts == 1:
             paper_cycle.append_paper_event(**paper_cycle._event_rows(document)[0])
             raise OSError("simulated interruption after first paper event")
-        return real_journal(document, artifact, reconciliation_hash)
+        return real_journal(document, artifact, reconciliation_hash, **kwargs)
 
     monkeypatch.setattr(paper_cycle, "_journal", interrupt_after_first_event)
     with pytest.raises(OSError, match="simulated interruption"):

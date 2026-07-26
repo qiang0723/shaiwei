@@ -1,6 +1,6 @@
 from datetime import date
 
-from shaiwei.config import load
+from shaiwei.config import load, load_paper_top20_protocol
 
 
 def test_frozen_config_loads():
@@ -65,3 +65,17 @@ def test_frozen_config_loads():
     assert settings.g8_evaluation.minimum_positive_funds == 4
     assert settings.g8_evaluation.minimum_positive_subperiods == 2
     assert settings.g8_evaluation.maximum_risk_weight == 1.0
+
+
+def test_top20_protocol_is_result_before_and_independent():
+    protocol = load_paper_top20_protocol()
+    policy = protocol.paper_portfolio
+    assert protocol.protocol_id == "paper-top20-v1.2"
+    assert protocol.result_firewall.strategy_results_inspected_before_freeze is False
+    assert policy.account_id == "model_top20"
+    assert policy.source_account_id == "model_baseline"
+    assert policy.initial_cash == 500_000
+    assert policy.source_signal_topk == 30
+    assert policy.target_topk == 20
+    assert policy.target_weight == 0.05
+    assert policy.forward_start_date == date(2026, 7, 27)

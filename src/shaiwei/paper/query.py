@@ -10,7 +10,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from shaiwei.config import PROJECT_ROOT, load
+from shaiwei.config import PROJECT_ROOT, PaperPortfolio, load, load_paper_top20_protocol
 from shaiwei.ledger import (
     PAPER_ACCOUNTS,
     PAPER_EVENTS,
@@ -65,28 +65,40 @@ def _document(row: dict[str, str]) -> tuple[Path, dict[str, object]]:
 def _execution_policy_version(document: dict[str, object]) -> str:
     if version := str(document.get("execution_policy_version", "")).strip():
         return version
-    policy = load().paper_portfolio
+    policy = _policy_for_account(str(document.get("account_id", "")))
     if document.get("policy_sha256") != policy_sha256(policy):
         raise PaperQueryError("legacy paper artifact policy cannot be resolved from current config")
     return policy.execution_policy_version
 
 
+def _policy_for_account(account_id: str) -> PaperPortfolio:
+    if account_id == "model_baseline":
+        return load().paper_portfolio
+    if account_id == "model_top20":
+        return load_paper_top20_protocol().paper_portfolio
+    raise PaperQueryError(f"unsupported paper account: {account_id}")
+
+
 def _common(document: dict[str, object], artifact: Path) -> dict[str, object]:
+    evidence_hashes = {
+        "artifact_sha256": sha256_file(artifact),
+        "content_sha256": document["content_sha256"],
+        "signal_sha256": document["signal_sha256"],
+        "reconciliation_sha256": document["reconciliation_sha256"],
+        "policy_sha256": document["policy_sha256"],
+        "code_snapshot_sha256": document["code_snapshot_sha256"],
+        "data_snapshot_sha256": document["data_snapshot_sha256"],
+    }
+    projection = document.get("signal_projection")
+    if isinstance(projection, dict) and projection.get("projection_sha256"):
+        evidence_hashes["signal_projection_sha256"] = projection["projection_sha256"]
     return {
         "as_of": document["execution_trade_date"],
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "account_id": document["account_id"],
         "execution_policy_version": _execution_policy_version(document),
         "source_refs": document["source_refs"],
-        "evidence_hashes": {
-            "artifact_sha256": sha256_file(artifact),
-            "content_sha256": document["content_sha256"],
-            "signal_sha256": document["signal_sha256"],
-            "reconciliation_sha256": document["reconciliation_sha256"],
-            "policy_sha256": document["policy_sha256"],
-            "code_snapshot_sha256": document["code_snapshot_sha256"],
-            "data_snapshot_sha256": document["data_snapshot_sha256"],
-        },
+        "evidence_hashes": evidence_hashes,
     }
 
 
@@ -413,7 +425,7 @@ def paper_forward_acceptance(
     if not str(document.get("execution_policy_version", "")).strip():
         raise PaperQueryError("FORWARD artifact does not freeze execution policy version")
     expected_code = expected_code_sha256 or code_snapshot_sha256()
-    expected_policy = expected_policy_sha256 or policy_sha256(load().paper_portfolio)
+    expected_policy = expected_policy_sha256 or policy_sha256(_policy_for_account(account_id))
     if document["code_snapshot_sha256"] != expected_code:
         raise PaperQueryError("FORWARD artifact code snapshot is not current controlled code")
     if document["policy_sha256"] != expected_policy:
@@ -436,7 +448,12 @@ def paper_forward_acceptance(
             if str(record.get("delivered_at", ""))[:10] == run["finished_at"][:10]:
                 notification_records.append(record)
     delivery: dict[str, dict[str, object]] = {}
-    for event in ("paper_cycle_started", "paper_cycle_completed"):
+    expected_events = (
+        ("paper_top20_cycle_started", "paper_top20_cycle_completed")
+        if account_id == "model_top20"
+        else ("paper_cycle_started", "paper_cycle_completed")
+    )
+    for event in expected_events:
         passes = [
             record
             for record in notification_records

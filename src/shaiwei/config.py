@@ -1,4 +1,5 @@
 """配置加载与 schema 校验：所有代码只准从这里取配置，禁止散落的魔法数字。"""
+import hashlib
 import os
 from datetime import date
 from pathlib import Path
@@ -114,6 +115,54 @@ class PaperPortfolio(BaseModel):
     st_main_ten_percent_effective: date
     stale_price_trade_days: int = Field(ge=1, le=120)
     accounting_tolerance: float = Field(gt=0, le=1)
+
+
+class PaperTop20Portfolio(PaperPortfolio):
+    """Independent comparison account over a deterministic baseline-signal projection."""
+
+    account_id: Literal["model_top20"]
+    execution_policy_version: Literal["paper-top20-v1"]
+    source_account_id: Literal["model_baseline"]
+    source_signal_topk: Literal[30]
+    target_topk: Literal[20]
+    target_projection: Literal["rank_head_equal_weight"]
+    target_weight: float = Field(gt=0, lt=1)
+    rebalance_days: Literal[10]
+
+    @model_validator(mode="after")
+    def validate_projection_weights(self) -> "PaperTop20Portfolio":
+        if abs(self.target_topk * self.target_weight - 1.0) > 1e-12:
+            raise ValueError("Top20 target weights must sum exactly to one")
+        return self
+
+
+class PaperTop20ResultFirewall(BaseModel):
+    strategy_results_inspected_before_freeze: Literal[False]
+    baseline_account_must_remain_byte_immutable: Literal[True]
+    production_scheduler_must_remain_on_last_good_release_until_acceptance: Literal[True]
+    strategy_effective: Literal["NOT_EVALUATED"]
+
+
+class PaperTop20Protocol(BaseModel):
+    schema_version: Literal["paper-comparison-account-protocol-v1"]
+    protocol_id: Literal["paper-top20-v1.2"]
+    protocol_status: Literal["FROZEN_BEFORE_RESULTS"]
+    frozen_on: date
+    production_authorization: Literal["PENDING_ENGINEERING_ACCEPTANCE"]
+    paper_portfolio: PaperTop20Portfolio
+    result_firewall: PaperTop20ResultFirewall
+
+
+class PaperTop20Release(BaseModel):
+    schema_version: Literal["paper-comparison-account-release-v1"]
+    release_id: Literal["paper-top20-scheduler-v1"]
+    status: Literal["PAPER_ONLY_AUTHORIZED"]
+    account_id: Literal["model_top20"]
+    protocol_path: Literal["config/paper_top20_v1.yaml"]
+    protocol_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    authorized_on: date
+    broker_connection: Literal[False]
+    strategy_effective: Literal["NOT_EVALUATED"]
 
 
 class G1Admission(BaseModel):
@@ -320,3 +369,30 @@ def load(path: str | Path | None = None) -> Settings:
     data_root = Path(runtime["data_root"])
     runtime["data_root"] = data_root if data_root.is_absolute() else (project_root / data_root).resolve()
     return Settings.model_validate(raw)
+
+
+def load_paper_top20_protocol(path: str | Path | None = None) -> PaperTop20Protocol:
+    """Load the result-before Top20 protocol without reading environment secrets."""
+    config_path = (
+        Path(path)
+        if path is not None
+        else PROJECT_ROOT / "config" / "paper_top20_v1.yaml"
+    )
+    raw = yaml.safe_load(config_path.resolve().read_text(encoding="utf-8"))
+    return PaperTop20Protocol.model_validate(raw)
+
+
+def load_paper_top20_release(path: str | Path | None = None) -> PaperTop20Release:
+    """Load a distinct post-engineering scheduler authorization and bind its protocol."""
+    release_path = (
+        Path(path)
+        if path is not None
+        else PROJECT_ROOT / "config" / "paper_top20_release_v1.yaml"
+    ).resolve()
+    raw = yaml.safe_load(release_path.read_text(encoding="utf-8"))
+    release = PaperTop20Release.model_validate(raw)
+    protocol_path = PROJECT_ROOT / release.protocol_path
+    digest = hashlib.sha256(protocol_path.read_bytes()).hexdigest()
+    if digest != release.protocol_sha256:
+        raise ValueError("Top20 scheduler release does not bind the frozen protocol")
+    return release

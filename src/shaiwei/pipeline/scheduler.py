@@ -13,12 +13,19 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
-from shaiwei.config import PROJECT_ROOT, Settings, load
+from shaiwei.config import (
+    PROJECT_ROOT,
+    Settings,
+    load,
+    load_paper_top20_protocol,
+    load_paper_top20_release,
+)
 from shaiwei.ledger import PAPER_RUNS
 from shaiwei.notify.feishu import FeishuNotifier
 from shaiwei.pipeline.daily import AlreadyRunning, run_once
 
 HEALTH_PATH = PROJECT_ROOT / "logs" / "scheduler" / "health.json"
+TOP20_RELEASE_PATH = PROJECT_ROOT / "config" / "paper_top20_release_v1.yaml"
 
 
 def run_shadow_cycle(settings: Settings) -> None:
@@ -33,26 +40,57 @@ def run_shadow_cycle(settings: Settings) -> None:
 def run_paper_cycle(settings: Settings) -> None:
     if not settings.paper_portfolio.enabled:
         return
-    subprocess.run(
-        [sys.executable, "-m", "shaiwei.pipeline.paper_cycle"],
-        check=True,
-    )
-    if paper_replay_ready():
+    accounts = [settings.paper_portfolio.account_id]
+    top20 = load_paper_top20_protocol().paper_portfolio
+    if top20.enabled and TOP20_RELEASE_PATH.is_file():
+        release = load_paper_top20_release(TOP20_RELEASE_PATH)
+        if release.account_id != top20.account_id:
+            raise RuntimeError("Top20 scheduler release account differs from protocol")
+        accounts.append(top20.account_id)
+    for account_id in accounts:
         subprocess.run(
-            [sys.executable, "-m", "shaiwei.paper.query", "verify"],
+            [
+                sys.executable,
+                "-m",
+                "shaiwei.pipeline.paper_cycle",
+                "--account-id",
+                account_id,
+            ],
             check=True,
         )
-        subprocess.run(
-            [sys.executable, "-m", "shaiwei.paper.query", "acceptance"],
-            check=True,
-        )
+        if paper_replay_ready(account_id):
+            subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "shaiwei.paper.query",
+                    "verify",
+                    "--account-id",
+                    account_id,
+                ],
+                check=True,
+            )
+            subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "shaiwei.paper.query",
+                    "acceptance",
+                    "--account-id",
+                    account_id,
+                ],
+                check=True,
+            )
 
 
-def paper_replay_ready(path: Path = PAPER_RUNS) -> bool:
+def paper_replay_ready(account_id: str = "model_baseline", path: Path = PAPER_RUNS) -> bool:
     if not path.is_file():
         return False
     with path.open(newline="", encoding="utf-8") as handle:
-        return any(row["status"] == "PASS" for row in csv.DictReader(handle))
+        return any(
+            row["status"] == "PASS" and row["account_id"] == account_id
+            for row in csv.DictReader(handle)
+        )
 
 
 def write_health(status: str, *, detail: str = "", path: Path = HEALTH_PATH) -> None:
