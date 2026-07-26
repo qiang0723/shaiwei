@@ -702,4 +702,5 @@ export interface EvidencePayload {
   hashes: Record<string, string>;
   sources: string[];
   facts?: Array<{ label: string; value: string }>;
+  technicalFacts?: Array<{ label: string; value: string }>;
 }

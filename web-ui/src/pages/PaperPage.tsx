@@ -24,7 +24,7 @@ import {
   formatPercentagePoints,
   formatPercent,
   numericTone,
-  shortHash
+  STATUS_LABELS
 } from "../format";
 import type { EvidencePayload, ForwardPoint, NavPoint, Position } from "../types";
 
@@ -33,9 +33,9 @@ function ForwardEvidenceTable({ series }: { series: ForwardPoint[] }) {
     <div className="short-series-evidence">
       <div className="short-series-message" role="status">
         <strong>样本不足，不绘制趋势</strong>
-        <span>连续趋势至少需要 8 个可比 FORWARD 账户日；当前展示精确值，不扩大短样本确定性。</span>
+        <span>连续趋势至少需要 8 个可比前瞻账户日；当前展示精确值，不扩大短样本确定性。</span>
       </div>
-      <div className="compact-value-table" role="region" aria-label="FORWARD 精确值" tabIndex={0}>
+      <div className="compact-value-table" role="region" aria-label="前瞻观察精确值" tabIndex={0}>
         <table>
           <thead><tr><th>日期</th><th>组合净值</th><th>中证800</th><th>净值差</th><th>回撤</th></tr></thead>
           <tbody>{series.map((point) => (
@@ -77,24 +77,27 @@ export default function PaperPage() {
     hashes: { ...meta.evidence_hashes, ...portfolio.evidence_hashes },
     sources: meta.source_refs,
     facts: [
-      { label: "账户", value: portfolio.account_id },
-      { label: "执行策略", value: portfolio.execution_policy_version },
-      { label: "账本重放", value: replay.status },
+      { label: "账本重放", value: STATUS_LABELS[replay.status] },
       { label: "北交所计数", value: String(replay.bse_count) }
+    ],
+    technicalFacts: [
+      { label: "账户 ID", value: portfolio.account_id },
+      { label: "执行策略版本", value: portfolio.execution_policy_version },
+      { label: "观察类型枚举", value: portfolio.mode }
     ]
   };
 
   const forwardChart = forward.series.flatMap((point) => [
-    { date: point.trade_date, series: "模拟组合 · FORWARD", value: Number(point.forward_portfolio_nav) },
-    { date: point.trade_date, series: "中证800 · FORWARD", value: Number(point.forward_benchmark_nav) }
+    { date: point.trade_date, series: "模拟组合 · 前瞻", value: Number(point.forward_portfolio_nav) },
+    { date: point.trade_date, series: "中证800 · 前瞻", value: Number(point.forward_benchmark_nav) }
   ]);
   const auditChart = nav.series.flatMap((point) => [
-    { date: point.trade_date, series: `模拟组合 · ${point.mode}`, value: Number(point.normalized_nav) },
-    { date: point.trade_date, series: `中证800 · ${point.mode}`, value: Number(point.benchmark_nav) }
+    { date: point.trade_date, series: `模拟组合 · ${point.mode === "FORWARD" ? "前瞻" : "工程回放"}`, value: Number(point.normalized_nav) },
+    { date: point.trade_date, series: `中证800 · ${point.mode === "FORWARD" ? "前瞻" : "工程回放"}`, value: Number(point.benchmark_nav) }
   ]);
   const drawdownChart = forward.series.map((point) => ({
     date: point.trade_date,
-    series: "FORWARD 回撤",
+    series: "前瞻回撤",
     value: Number(point.forward_drawdown)
   }));
   const maxDrawdown = Math.min(...nav.series.map((item) => Number(item.drawdown)));
@@ -184,7 +187,7 @@ export default function PaperPage() {
         </Button>
       )
     },
-    { title: "观察类型", dataIndex: "mode", key: "mode", render: (value: string) => <span className={`mode-label mode-${value.toLowerCase()}`}>{value}</span> },
+    { title: "观察类型", dataIndex: "mode", key: "mode", render: (value: string) => <span className={`mode-label mode-${value.toLowerCase()}`} title={value}>{value === "FORWARD" ? "前瞻观察" : "工程回放"}</span> },
     { title: "组合净值", dataIndex: "normalized_nav", key: "normalized_nav", align: "right", render: formatNav },
     { title: "中证800", dataIndex: "benchmark_nav", key: "benchmark_nav", align: "right", render: formatNav },
     { title: "净值差", dataIndex: "net_excess", key: "net_excess", align: "right", render: (value: string) => <span className={numericTone(value)}>{formatPercentagePoints(value)}</span> },
@@ -224,10 +227,10 @@ export default function PaperPage() {
       ) : null}
 
       <section className="identity-strip" aria-label="模拟组合身份">
-        <div><span>账户</span><strong>{portfolio.account_id}</strong></div>
-        <div><span>执行策略</span><strong>{portfolio.execution_policy_version}</strong></div>
+        <div><span>账户</span><strong title={portfolio.account_id}>主模拟账户</strong></div>
+        <div><span>执行规则</span><strong title={portfolio.execution_policy_version}>固定模拟规则</strong></div>
         <div><span>基准</span><strong>000906.SH · 中证800</strong></div>
-        <div><span>观察类型</span><strong className={`mode-label mode-${portfolio.mode.toLowerCase()}`}>{portfolio.mode}</strong></div>
+        <div><span>观察类型</span><strong className={`mode-label mode-${portfolio.mode.toLowerCase()}`} title={portfolio.mode}>{portfolio.mode === "FORWARD" ? "前瞻观察" : "工程回放"}</strong></div>
         <div><span>账本重放</span><StatusBadge status={replay.status} compact /></div>
       </section>
 
@@ -259,7 +262,7 @@ export default function PaperPage() {
         </div>
         {forward.series.length >= 8 ? (
           <>
-            <div className="chart-canvas" role="img" aria-label="FORWARD 模拟组合与中证800归一化净值折线图">
+            <div className="chart-canvas" role="img" aria-label="前瞻模拟组合与中证800归一化净值折线图">
               <Line {...chartConfig} data={forwardChart} />
             </div>
             <details className="accessible-data-table">
@@ -274,7 +277,7 @@ export default function PaperPage() {
           </>
         ) : <ForwardEvidenceTable series={forward.series} />}
         <div className="chart-footnote">
-          <span>观察类型：FORWARD</span><span>基准：000906.SH</span><span>费用：实际成交费用</span><span>策略：{portfolio.execution_policy_version}</span>
+          <span>观察类型：前瞻观察</span><span>基准：000906.SH</span><span>费用：实际成交费用</span><span title={portfolio.execution_policy_version}>策略：固定模拟规则</span>
         </div>
       </section>
 
@@ -324,19 +327,19 @@ export default function PaperPage() {
             <div>
               {historyMode === "前瞻专属" ? (
                 <>
-                  <strong>FORWARD 序列共 {forward.series.length} 个账户日，不绘制趋势</strong>
-                  <p>仅陈述锚点后的自然观察，BACKFILL 不进入本范围；精确值见上方前瞻表及下方账户日证据。</p>
+                  <strong>前瞻序列共 {forward.series.length} 个账户日，不绘制趋势</strong>
+                  <p>仅陈述锚点后的自然观察，工程回放不进入本范围；精确值见上方前瞻表及下方账户日证据。</p>
                 </>
               ) : (
                 <>
                   <strong>全账户审计序列共 {nav.series.length} 个账户日，不绘制趋势</strong>
-                  <p>BACKFILL {replay.mode_counts.BACKFILL ?? 0} 日只作工程与账务审计；FORWARD {replay.mode_counts.FORWARD ?? 0} 日是自然观察。逐日精确值见下方“账户日与证据”。</p>
+                  <p>工程回放 {replay.mode_counts.BACKFILL ?? 0} 日只作工程与账务审计；前瞻观察 {replay.mode_counts.FORWARD ?? 0} 日是自然观察。逐日精确值见下方“账户日与证据”。</p>
                 </>
               )}
             </div>
           </div>
         )}
-        <div className="chart-footnote"><span>全账户最大回撤 {formatPercent(maxDrawdown)}</span><span>BACKFILL {replay.mode_counts.BACKFILL ?? 0} 日</span><span>FORWARD {replay.mode_counts.FORWARD ?? 0} 日</span></div>
+        <div className="chart-footnote"><span>全账户最大回撤 {formatPercent(maxDrawdown)}</span><span>工程回放 {replay.mode_counts.BACKFILL ?? 0} 日</span><span>前瞻观察 {replay.mode_counts.FORWARD ?? 0} 日</span></div>
       </section>
 
       <section className="table-surface" aria-labelledby="positions-heading">
@@ -373,8 +376,8 @@ export default function PaperPage() {
 
       <section className="replay-strip" aria-label="重放摘要">
         <SafetyCertificateOutlined />
-        <div><strong>不可变账本独立重放 {replay.status}</strong><span>{replay.run_count} 个账户日 · {replay.event_count} 个事件 · {replay.order_count} 笔订单 · {replay.fill_count} 笔成交 · .BJ={replay.bse_count}</span></div>
-        <code>{shortHash(bundle.snapshotId)}</code>
+        <div><strong>不可变账本独立重放：{STATUS_LABELS[replay.status]}</strong><span>{replay.run_count} 个账户日 · {replay.event_count} 个事件 · {replay.order_count} 笔订单 · {replay.fill_count} 笔成交 · 北交所 {replay.bse_count} 只</span></div>
+        <span>证据已校验</span>
       </section>
 
       <Drawer
@@ -388,8 +391,8 @@ export default function PaperPage() {
         destroyOnHidden
       >
         {selectedDay ? (
-          <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="观察类型"><span className={`mode-label mode-${selectedDay.mode.toLowerCase()}`}>{selectedDay.mode}</span></Descriptions.Item>
+          <><Descriptions column={1} bordered size="small">
+            <Descriptions.Item label="观察类型"><span className={`mode-label mode-${selectedDay.mode.toLowerCase()}`} title={selectedDay.mode}>{selectedDay.mode === "FORWARD" ? "前瞻观察" : "工程回放"}</span></Descriptions.Item>
             <Descriptions.Item label="组合净值">{formatNav(selectedDay.normalized_nav)}</Descriptions.Item>
             <Descriptions.Item label="中证800">{formatNav(selectedDay.benchmark_nav)}</Descriptions.Item>
             <Descriptions.Item label="全账户净值差">{formatPercentagePoints(selectedDay.net_excess)}</Descriptions.Item>
@@ -397,8 +400,11 @@ export default function PaperPage() {
             <Descriptions.Item label="换手">{formatPercent(selectedDay.turnover)}</Descriptions.Item>
             <Descriptions.Item label="现金比例">{formatPercent(selectedDay.cash_ratio)}</Descriptions.Item>
             <Descriptions.Item label="当日费用">{formatMoney(selectedDay.daily_fees)}</Descriptions.Item>
-            <Descriptions.Item label="产物哈希"><code className="full-hash">{selectedDay.artifact_sha256}</code></Descriptions.Item>
           </Descriptions>
+          <details className="technical-details drawer-technical-details">
+            <summary>查看账户日技术标识</summary>
+            <dl><div><dt>产物校验值</dt><dd><code className="full-hash">{selectedDay.artifact_sha256}</code></dd></div></dl>
+          </details></>
         ) : null}
       </Drawer>
     </div>

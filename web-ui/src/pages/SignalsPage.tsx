@@ -21,7 +21,7 @@ import {
   formatNumber,
   formatPercent,
   numericTone,
-  shortHash
+  STATUS_LABELS
 } from "../format";
 import type { EvidencePayload, SignalTarget } from "../types";
 
@@ -147,13 +147,13 @@ export default function SignalsPage() {
           <h2>{d.rebalance_due ? "本期需要调仓" : "本期不调仓，目标组合保持"}</h2>
           <p>
             信号生成于 {formatDateTime(d.generated_at)}；执行证据
-            <strong> {d.execution_evidence_status}</strong>，下一执行日
+            <strong> {STATUS_LABELS[d.execution_evidence_status]}</strong>，下一执行日
             <strong> {displayDate(d.next_execution_date)}</strong>。
           </p>
         </div>
         <div className="signal-identity">
-          <span>信号 SHA-256</span>
-          <code>{shortHash(d.signal_sha256)}</code>
+          <span>信号证据</span>
+          <strong>已锁定并校验</strong>
           <small>数据截至 {formatDateTime(d.data_complete_at)}</small>
         </div>
       </section>
@@ -219,12 +219,10 @@ export default function SignalsPage() {
         </div>
       </section>
 
-      <section className="model-evidence-strip" aria-label="信号证据身份">
+      <section className="model-evidence-strip" aria-label="信号证据校验状态">
         <FileSearchOutlined />
-        <div><span>模型产物</span><code>{shortHash(d.model_artifact_sha256)}</code></div>
-        <div><span>qlib 产物</span><code>{shortHash(d.qlib_artifact_sha256)}</code></div>
-        <div><span>代码快照</span><code>{shortHash(d.code_snapshot_sha256)}</code></div>
-        <div><span>数据快照</span><code>{shortHash(d.data_snapshot_sha256)}</code></div>
+        <div><span>模型、研究环境、代码与数据证据</span><strong>已锁定并相互校验</strong></div>
+        <span>完整技术标识请使用页面顶部“查看技术证据”</span>
       </section>
 
       <Drawer
@@ -247,9 +245,14 @@ export default function SignalsPage() {
               <Descriptions.Item label="目标权重差"><span className={numericTone(selected.planned_weight_delta)}>{formatPercent(selected.planned_weight_delta, { signed: true })}</span></Descriptions.Item>
               <Descriptions.Item label="模型分数">{formatNumber(selected.score, 6)}</Descriptions.Item>
               <Descriptions.Item label="执行证据"><StatusBadge status={d.execution_evidence_status} /></Descriptions.Item>
-              <Descriptions.Item label="实际权重产物"><code className="full-hash">{d.actual_weight_artifact_sha256}</code></Descriptions.Item>
-              <Descriptions.Item label="信号哈希"><code className="full-hash">{d.signal_sha256}</code></Descriptions.Item>
             </Descriptions>
+            <details className="technical-details drawer-technical-details">
+              <summary>查看证券信号技术标识</summary>
+              <dl>
+                <div><dt>实际权重产物</dt><dd><code className="full-hash">{d.actual_weight_artifact_sha256}</code></dd></div>
+                <div><dt>信号校验值</dt><dd><code className="full-hash">{d.signal_sha256}</code></dd></div>
+              </dl>
+            </details>
             <div className="contract-gap-note">
               暂无可审计的因子贡献分解；不展示 AI 置信度或前端推断。
             </div>

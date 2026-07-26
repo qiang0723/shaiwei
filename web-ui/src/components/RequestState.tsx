@@ -35,18 +35,18 @@ export function PageError({ error, retry }: { error: unknown; retry: () => void 
     <section className="request-error" role="alert">
       <div className="error-kicker">只读查询已阻断</div>
       <h1>{message}</h1>
-      <p>
-        错误码 <code>{code}</code>
-        {queryError?.requestId ? (
-          <>
-            {" · "}请求 <code>{queryError.requestId}</code>
-          </>
-        ) : null}
-      </p>
       <p className="muted">旧数字不会继续作为当前证据展示。</p>
       <Button icon={<ReloadOutlined />} onClick={retry}>
         重新读取
       </Button>
+      <details className="technical-details request-technical-details">
+        <summary>查看技术诊断信息</summary>
+        <dl>
+          <div><dt>错误码</dt><dd><code>{code}</code></dd></div>
+          {queryError?.requestId ? <div><dt>请求编号</dt><dd><code>{queryError.requestId}</code></dd></div> : null}
+        </dl>
+        <p>这些字段用于排障和审计，不代表新的业务结论。</p>
+      </details>
     </section>
   );
 }

@@ -27,7 +27,7 @@ import {
   formatPercent,
   numericTone,
   reasonLabel,
-  shortHash
+  STATUS_LABELS
 } from "../format";
 import type { EvidencePayload } from "../types";
 import { RouterLink } from "../routing";
@@ -47,7 +47,7 @@ export default function OverviewPage() {
   if (query.isPending) return <PageLoading />;
   if (query.isError) return <PageError error={query.error} retry={() => query.refetch()} />;
 
-  const { data: d, meta } = query.data;
+  const { data: d } = query.data;
   const latest = d.forward.latest;
   const evidence: EvidencePayload = {
     title: "总览原子快照",
@@ -63,9 +63,12 @@ export default function OverviewPage() {
     },
     sources: d.evidence.source_refs,
     facts: [
-      { label: "快照范围", value: d.evidence.acceptance_scope },
-      { label: "账本重放", value: d.evidence.replay_status },
+      { label: "账本重放", value: STATUS_LABELS[d.evidence.replay_status] },
       { label: "北交所计数", value: String(d.evidence.bse_count) }
+    ],
+    technicalFacts: [
+      { label: "快照范围", value: d.evidence.acceptance_scope },
+      ...(d.runtime.first_failed_step ? [{ label: "核心首次失败技术步骤", value: d.runtime.first_failed_step }] : [])
     ]
   };
 
@@ -115,7 +118,7 @@ export default function OverviewPage() {
           <div><span>证据完整</span><StatusBadge status={d.evidence_status} /></div>
           <div><span>今日行动</span><strong>{d.action.rebalance_due ? "调仓" : "不调仓"}</strong></div>
           <div><span>结果成熟度</span><StatusBadge status={d.forward.performance_maturity} /></div>
-          <div className="axis-time"><span>最新完整交易日</span><strong>{displayDate(d.latest_complete_trade_date)}</strong><small>快照 {shortHash(d.snapshot_id)}</small></div>
+          <div className="axis-time"><span>最新完整交易日</span><strong>{displayDate(d.latest_complete_trade_date)}</strong><small>技术证据已锁定</small></div>
         </div>
       </section>
 
@@ -157,8 +160,8 @@ export default function OverviewPage() {
                 {formatPercentagePoints(latest.forward_net_excess)}
               </div>
               <p className="forward-caption">
-                最后 BACKFILL 日 {displayDate(d.forward.forward_anchor_trade_date)} 重新锚定；
-                当前仅 {d.forward.forward_observation_count} 个自然 FORWARD 账户日。
+                最后工程回放日 {displayDate(d.forward.forward_anchor_trade_date)} 重新锚定；
+                当前仅 {d.forward.forward_observation_count} 个自然前瞻账户日。
               </p>
               <div className="nav-comparison" aria-label="组合与中证800净值比较">
                 <div>
@@ -221,11 +224,11 @@ export default function OverviewPage() {
             direction="vertical"
             size="small"
             items={[
-              { title: "数据快照已绑定", description: shortHash(d.evidence.data_snapshot_sha256), status: "finish", icon: <DatabaseOutlined /> },
-              { title: "模型产物已绑定", description: shortHash(d.evidence.model_artifact_sha256), status: "finish" },
-              { title: "信号已登记", description: shortHash(d.action.signal_sha256), status: "finish" },
-              { title: "执行证据", description: d.action.execution_evidence_status, status: d.action.execution_evidence_status === "NOT_DUE" ? "wait" : "finish", icon: <CalendarOutlined /> },
-              { title: "模拟仓与重放", description: d.paper.replay_status, status: d.paper.replay_status === "PASS" ? "finish" : "error" }
+              { title: "数据证据已校验", description: "完整标识可在技术证据中查看", status: "finish", icon: <DatabaseOutlined /> },
+              { title: "模型证据已校验", description: "模型产物与本次信号一致", status: "finish" },
+              { title: "信号已登记", description: `信号日期 ${displayDate(d.action.signal_date)}`, status: "finish" },
+              { title: "执行证据", description: STATUS_LABELS[d.action.execution_evidence_status], status: d.action.execution_evidence_status === "NOT_DUE" ? "wait" : "finish", icon: <CalendarOutlined /> },
+              { title: "模拟仓与重放", description: STATUS_LABELS[d.paper.replay_status], status: d.paper.replay_status === "PASS" ? "finish" : "error" }
             ]}
           />
         </article>
@@ -247,7 +250,7 @@ export default function OverviewPage() {
               type="warning"
               showIcon
               message="失败尝试已保留，后续恢复不覆盖历史"
-              description={`核心首次失败：${d.runtime.first_failed_step ?? "无"}；核心恢复：${d.runtime.recovered ? "是" : "否"}；通知恢复消息：${d.runtime.notification.recovered_message_count}。`}
+              description={`核心周期${d.runtime.recovered ? "曾失败，现已恢复" : "仍需处理"}；通知通道有 ${d.runtime.notification.recovered_message_count} 条失败后恢复记录。原始技术错误名可在技术证据中核对。`}
             />
           ) : (
             <Alert type="success" showIcon message="当前范围没有失败尝试" />
@@ -264,9 +267,9 @@ export default function OverviewPage() {
       </section>
 
       <footer className="page-evidence-footer">
-        <span>快照 {shortHash(meta.snapshot_id)}</span>
-        <span>策略结果成熟度 {d.forward.performance_maturity}</span>
-        <span>覆盖率 {d.forward.coverage_status}</span>
+        <span>技术证据已锁定</span>
+        <span>策略结果成熟度：{STATUS_LABELS[d.forward.performance_maturity]}</span>
+        <span>覆盖率：{STATUS_LABELS[d.forward.coverage_status]}</span>
         <span>年化 / Sharpe / 信息比率：已按门槛隐藏</span>
       </footer>
     </div>

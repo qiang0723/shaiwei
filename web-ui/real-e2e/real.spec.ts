@@ -94,6 +94,19 @@ test("deployed read-only UI serves real evidence under strict CSP", async ({ pag
     expect(blocking, JSON.stringify(blocking, null, 2)).toEqual([]);
     expect(pageWidth.scrollWidth).toBeLessThanOrEqual(pageWidth.clientWidth + 1);
     expect(cspViolations).toEqual([]);
+    if (item.route === "/experiments") {
+      const catalogResponse = await page.request.get("/api/v1/experiments?limit=25&offset=0");
+      expect(catalogResponse.status()).toBe(200);
+      const catalog = await catalogResponse.json() as RealExperimentCatalog;
+      const primaryCatalog = testInfo.project.name === "real-mobile"
+        ? page.getByRole("table", { name: "移动端实验目录" })
+        : page.locator(".experiment-desktop-catalog");
+      const primaryCatalogText = await primaryCatalog.innerText();
+      for (const experiment of catalog.data.items) {
+        expect(primaryCatalogText).not.toContain(experiment.experiment_id);
+      }
+      await expect(primaryCatalog.getByText("实验 1", { exact: true })).toBeVisible();
+    }
     if (item.route === "/experiments" && testInfo.project.name === "real-mobile") {
       const mobileCatalog = page.getByRole("table", { name: "移动端实验目录" });
       await expect(mobileCatalog).toBeVisible();
@@ -128,6 +141,39 @@ test("root route enters overview without changing evidence date semantics", asyn
   await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible();
 });
 
+test("real primary views keep technical identifiers behind explicit evidence interactions", async ({ page }) => {
+  const overviewResponse = await page.request.get("/api/v1/overview");
+  const overviewPayload = await overviewResponse.json() as {
+    data: { evidence: { data_snapshot_sha256: string } };
+  };
+  const signalResponse = await page.request.get("/api/v1/signals/latest");
+  const signalPayload = await signalResponse.json() as { data: { signal_sha256: string } };
+  const qualityResponse = await page.request.get("/api/v1/data-quality");
+  const qualityPayload = await qualityResponse.json() as {
+    data: { batch_chain: { incremental_batches: Array<{ batch_id: string; content_sha256: string }> } };
+  };
+
+  await page.goto("/overview");
+  const dataHash = overviewPayload.data.evidence.data_snapshot_sha256;
+  await expect(page.getByText(dataHash, { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "查看技术证据" }).click();
+  await expect(page.getByText(dataHash, { exact: true })).toBeHidden();
+  await page.getByText("展开技术标识与来源").click();
+  await expect(page.getByText(dataHash, { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  await page.goto("/signals");
+  await expect(page.getByText(signalPayload.data.signal_sha256, { exact: true })).toHaveCount(0);
+  await expect(page.getByText("模型、研究环境、代码与数据证据")).toBeVisible();
+
+  await page.goto("/data-quality");
+  for (const batch of qualityPayload.data.batch_chain.incremental_batches) {
+    await expect(page.getByText(batch.batch_id, { exact: true })).toHaveCount(0);
+    await expect(page.getByText(batch.content_sha256, { exact: true })).toHaveCount(0);
+  }
+  await expect(page.getByText("主视图只显示来源、行数与采集时刻")).toBeVisible();
+});
+
 test("real factor projection drives catalog, tear sheet, history and strict comparison", async ({ page }) => {
   const response = await page.request.get("/api/v1/factors");
   expect(response.status()).toBe(200);
@@ -153,7 +199,7 @@ test("real factor projection drives catalog, tear sheet, history and strict comp
   await page.goto(`/factors/${first!.factor_id}?version=${first!.current_factor_version}`);
   await expect(page.getByRole("heading", { name: "单因子研究证据" })).toBeVisible();
   await expect(page.getByRole("region", { name: "G1 十五门" }).getByRole("row")).toHaveCount(16);
-  await expect(page.getByText("NOT_EVALUATED · recomputed=false", { exact: true })).toHaveCount(4);
+  await expect(page.getByText("未评估 · 未在前端补算", { exact: true })).toHaveCount(4);
 
   await page.goto(`/factors/${first!.factor_id}/admissions`);
   await expect(page.getByRole("heading", { name: "旧判决保留，当前权威另列" })).toBeVisible();
@@ -165,7 +211,7 @@ test("real factor projection drives catalog, tear sheet, history and strict comp
   await page.goto(`/factors/compare?${parameters.toString()}`);
   await expect(page.getByRole("heading", { name: "只比较同口径的当前权威版本" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "六窗口 RankIC 稳定性" })).toBeVisible();
-  await expect(page.getByText("后端 fingerprint 是唯一裁判；选择顺序保留，结果不按表现重排。"))
+  await expect(page.getByText("后端一致性校验是唯一裁判；选择顺序保留，结果不按表现重排。"))
     .toBeVisible();
 });
 
@@ -196,8 +242,8 @@ test("real experiment projection preserves authority, invalidation and typed eff
   await expect(page.getByText("没有逐日 NAV，页面不绘制净值、日回撤或交易时序")).toBeVisible();
 
   await page.getByRole("link", { name: "查看权威纠错实验" }).click();
-  await expect(page.getByText("权威历史 REJECT")).toBeVisible();
-  await expect(page.getByText("历史效果拒绝 · HISTORICAL_EFFECT_REJECTED")).toBeVisible();
+  await expect(page.getByText("权威历史拒绝")).toBeVisible();
+  await expect(page.getByText("历史效果拒绝", { exact: true })).toBeVisible();
 });
 
 test("overview first contentful paint stays within the local budget", async ({ page }) => {

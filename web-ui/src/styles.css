@@ -1161,6 +1161,120 @@ code,
   gap: 22px;
 }
 
+.technical-details {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.technical-details > summary {
+  padding: 11px 13px;
+  color: var(--navy-700);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.technical-details[open] > summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.evidence-technical-details > section,
+.technical-snapshot {
+  padding: 13px;
+}
+
+.evidence-technical-details > section + section {
+  border-top: 1px solid var(--line);
+}
+
+.technical-snapshot {
+  display: grid;
+  grid-template-columns: minmax(110px, auto) 1fr auto;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.technical-snapshot span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.technical-snapshot code {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.request-technical-details {
+  width: min(520px, 100%);
+  margin-top: 14px;
+  text-align: left;
+}
+
+.request-technical-details dl,
+.request-technical-details p {
+  margin: 0;
+  padding: 12px 14px;
+}
+
+.request-technical-details dl > div {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 8px;
+}
+
+.request-technical-details dt {
+  color: var(--muted);
+}
+
+.request-technical-details dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.request-technical-details p {
+  padding-top: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.drawer-technical-details,
+.experiment-failure-details {
+  margin-top: 16px;
+}
+
+.drawer-technical-details dl,
+.experiment-failure-details ul {
+  margin: 0;
+  padding: 13px;
+}
+
+.drawer-technical-details dl > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.35fr) minmax(0, 1fr);
+  gap: 10px;
+  padding: 7px 0;
+}
+
+.drawer-technical-details dt {
+  color: var(--muted);
+}
+
+.drawer-technical-details dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.experiment-failure-details .experiment-failure-list {
+  border: 0;
+  background: transparent;
+}
+
 .evidence-content h2 {
   margin: 0 0 8px;
   font-size: 15px;
@@ -3630,15 +3744,16 @@ body {
   }
 
   .experiment-mobile-id a,
-  .experiment-mobile-id code {
+  .experiment-human-id {
     display: block;
     min-width: 0;
   }
 
-  .experiment-mobile-id code {
+  .experiment-human-id {
     overflow: hidden;
     color: var(--ink);
-    font-size: 11px;
+    font-size: 12px;
+    font-weight: 700;
     line-height: 1.35;
     text-overflow: ellipsis;
     white-space: nowrap;

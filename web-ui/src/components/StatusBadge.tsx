@@ -27,14 +27,19 @@ const ICONS: Record<DomainStatus, ReactNode> = {
 
 export function StatusBadge({
   status,
-  compact = false
+  compact: _compact = false
 }: {
   status: DomainStatus;
   compact?: boolean;
 }) {
   return (
-    <Tag className={`status-badge status-${status.toLowerCase()}`} icon={ICONS[status]}>
-      {compact ? status : `${STATUS_LABELS[status]} · ${status}`}
+    <Tag
+      className={`status-badge status-${status.toLowerCase()}`}
+      icon={ICONS[status]}
+      title={`${STATUS_LABELS[status]} · ${status}`}
+      aria-label={`${STATUS_LABELS[status]}，机器状态 ${status}`}
+    >
+      {STATUS_LABELS[status]}
     </Tag>
   );
 }

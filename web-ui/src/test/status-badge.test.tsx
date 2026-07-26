@@ -5,6 +5,9 @@ import { StatusBadge } from "../components/StatusBadge";
 describe("StatusBadge", () => {
   it("uses readable text in addition to color", () => {
     render(<StatusBadge status="WARN" />);
-    expect(screen.getByText("需关注 · WARN")).toBeVisible();
+    const badge = screen.getByText("需关注");
+    expect(badge).toBeVisible();
+    expect(badge.closest(".ant-tag")).toHaveAttribute("title", "需关注 · WARN");
+    expect(screen.queryByText("WARN", { exact: true })).not.toBeInTheDocument();
   });
 });

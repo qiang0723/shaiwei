@@ -17,7 +17,7 @@ import { useAsOf } from "../components/AppShell";
 import { MetricCard } from "../components/MetricCard";
 import { PageHeader } from "../components/PageHeader";
 import { PageError, PageLoading, RefreshNotice } from "../components/RequestState";
-import { formatDateTime, formatNumber, formatPercent, shortHash } from "../format";
+import { formatDateTime, formatNumber, formatPercent } from "../format";
 import { RouterLink, useRouter } from "../routing";
 import type {
   ApiMeta,
@@ -39,6 +39,14 @@ const KIND_LABELS: Record<ExperimentKind, string> = {
   p2_effect_correction: "P2 权威纠错"
 };
 
+function researchFamilyLabel(value: string) {
+  if (value === "p1-moneyflow-v1") return "资金流研究";
+  if (value === "stage1-gp-preflight-v1") return "GP 预检研究";
+  if (value.includes("star50") || value.includes("p2")) return "科创50研究";
+  if (value.includes("d1") || value.includes("llm")) return "LLM 发现研究";
+  return "其他研究记录";
+}
+
 const TIER_LABELS: Record<ExperimentEvidenceTier, string> = {
   BASELINE_BACKTEST: "基线回测记录",
   SHADOW_SIGNAL: "影子信号",
@@ -58,16 +66,35 @@ const AUTHORITY_LABELS: Record<ExperimentAuthorityStatus, string> = {
   DISCOVERY_ONLY: "仅发现层",
   HISTORICAL_NON_AUTHORITATIVE: "历史非权威",
   INVALIDATED_METHOD: "方法已失效",
-  PROVISIONAL_HISTORICAL: "历史 provisional",
+  PROVISIONAL_HISTORICAL: "历史暂定",
   RECORDED_EXPERIMENT: "仅登记实验",
   SUPERSEDED_ENGINEERING_GENERATION: "被替代工程代"
+};
+
+const EVIDENCE_STATUS_LABELS = {
+  VERIFIED: "已核验",
+  LEDGER_RECORDED_PROVISIONAL: "账本已登记，证据暂定"
+} as const;
+
+const MACHINE_VALUE_LABELS: Record<string, string> = {
+  PASS: "通过",
+  FAIL: "失败",
+  FAILED: "失败",
+  REJECT: "拒绝",
+  REJECTED: "拒绝",
+  ADMITTED: "已准入",
+  NOT_READY: "未就绪",
+  NOT_EVALUATED: "未评估",
+  NOT_APPLICABLE: "不适用",
+  NO_GO: "不通过",
+  GO: "通过"
 };
 
 const LIFECYCLE_LABELS: Record<ExperimentLifecycleStatus, string> = {
   COMPLETED: "已完成记录",
   DISCOVERY_ATTEMPT: "发现尝试",
   DISCOVERY_EVALUATED: "发现期已评估",
-  ENGINEERING_GO_ONLY: "仅工程 GO",
+  ENGINEERING_GO_ONLY: "仅工程通过",
   FAILED: "执行失败",
   REJECT: "发现层拒绝",
   REJECTED: "研究拒绝",
@@ -101,7 +128,7 @@ const OUTCOME_COPY: Record<ExperimentOutcome, {
   },
   G1_REJECTED: {
     label: "G1 未准入",
-    description: "已有 G1 拒绝结论；REJECT 是研究结果，不是系统故障。",
+    description: "已有 G1 拒绝结论；这是研究结果，不是系统故障。",
     tone: "warning"
   },
   G1_ADMITTED: {
@@ -115,13 +142,13 @@ const OUTCOME_COPY: Record<ExperimentOutcome, {
     tone: "warning"
   },
   ENGINEERING_GO_ONLY: {
-    label: "仅工程 GO",
+    label: "仅工程通过",
     description: "只证明数据与工程通路，不代表策略有效。",
     tone: "neutral"
   },
   HISTORICAL_EFFECT_REJECTED: {
     label: "历史效果拒绝",
-    description: "当前权威历史效果结论为 REJECT，且没有生产授权。",
+    description: "当前权威历史效果结论为拒绝，且没有生产授权。",
     tone: "warning"
   },
   INVALIDATED_METHOD: {
@@ -191,7 +218,7 @@ function outcomeIcon(outcome: ExperimentOutcome) {
   return <InfoCircleFilled />;
 }
 
-function OutcomeBadge({ outcome, showMachineCode = true }: { outcome: ExperimentOutcome; showMachineCode?: boolean }) {
+function OutcomeBadge({ outcome, showMachineCode = false }: { outcome: ExperimentOutcome; showMachineCode?: boolean }) {
   const copy = OUTCOME_COPY[outcome];
   return (
     <Tag
@@ -207,7 +234,7 @@ function OutcomeBadge({ outcome, showMachineCode = true }: { outcome: Experiment
 
 function AuthorityBadge({
   authority,
-  showMachineCode = true
+  showMachineCode = false
 }: {
   authority: ExperimentAuthorityStatus;
   showMachineCode?: boolean;
@@ -233,7 +260,7 @@ function HistoricalBanner({ visible }: { visible: boolean }) {
       type="warning"
       showIcon
       message="历史记录已应用当前权威覆盖"
-      description="记录按查询截止日期裁剪，但 authority 使用当前已知纠错；这是按当前知识回看，不是重演当时状态。"
+      description="记录按查询截止日期裁剪，但权威解释使用当前已知纠错；这是按当前知识回看，不是重演当时状态。"
     />
   );
 }
@@ -245,6 +272,7 @@ function experimentEvidence(
     hashes?: Record<string, string>;
     sources?: string[];
     facts?: Array<{ label: string; value: string }>;
+    technicalFacts?: Array<{ label: string; value: string }>;
   } = {}
 ): EvidencePayload {
   return {
@@ -254,7 +282,8 @@ function experimentEvidence(
     generatedAt: meta.generated_at,
     hashes: { ...meta.evidence_hashes, ...options.hashes },
     sources: options.sources ?? meta.source_refs,
-    facts: options.facts
+    facts: options.facts,
+    technicalFacts: options.technicalFacts
   };
 }
 
@@ -275,10 +304,6 @@ function experimentPath(
   return `/experiments/${kind}/${encodeURIComponent(experimentId)}${search}`;
 }
 
-function shortIdentity(value: string) {
-  return value.length > 20 ? `${value.slice(0, 17)}…` : value;
-}
-
 function formatDecisionNumber(value: number, key: string) {
   if (/net_excess|drawdown/.test(key)) return formatPercent(value, { signed: /net_excess/.test(key) });
   if (/rank_ic/.test(key)) return formatNumber(value, 4);
@@ -290,9 +315,12 @@ function DecisionValue({ value, metric }: { value: JsonMetric; metric: string })
   if (typeof value === "boolean") return <span>{value ? "是" : "否"}</span>;
   if (typeof value === "number") return <span>{formatDecisionNumber(value, metric)}</span>;
   if (typeof value === "string") {
-    return value.length >= 32 && /^[0-9a-f]+$/.test(value)
-      ? <code title={value}>{shortHash(value)}</code>
-      : <span>{value}</span>;
+    if (/sha|hash|identity|_id$|version/.test(metric) || value.length >= 32 && /^[0-9a-f]+$/.test(value)) {
+      return <span title={value}>已登记，技术标识可查</span>;
+    }
+    if (MACHINE_VALUE_LABELS[value]) return <span title={value}>{MACHINE_VALUE_LABELS[value]}</span>;
+    if (/^[A-Z][A-Z0-9_]+$/.test(value)) return <span title={value}>已登记技术状态</span>;
+    return <span>{value}</span>;
   }
   if (Array.isArray(value)) {
     return (
@@ -369,20 +397,22 @@ function CatalogPage() {
     navigate(`/experiments${next.size ? `?${next.toString()}` : ""}`);
   };
   const search = location.search;
+  const humanExperimentLabel = (index: number) => `实验 ${data.page.offset + index + 1}`;
   const columns: DataColumn<ExperimentCatalogItem>[] = [
     {
-      title: "实验 ID",
+      title: "实验",
       dataIndex: "experiment_id",
       key: "experiment_id",
       fixed: "left",
       width: 190,
-      render: (value: string, item) => (
+      render: (value: string, item, index) => (
         <RouterLink
           className="table-factor-link"
-          title={value}
+          title={`技术标识：${value}`}
+          aria-label={`查看${humanExperimentLabel(index)}的类型化证据，技术标识 ${value}`}
           to={experimentPath(item.experiment_kind, value, search)}
         >
-          <code>{shortIdentity(value)}</code>
+          {humanExperimentLabel(index)}
         </RouterLink>
       )
     },
@@ -401,11 +431,11 @@ function CatalogPage() {
       render: (value: ExperimentAuthorityStatus) => <AuthorityBadge authority={value} />
     },
     { title: "证据层级", dataIndex: "evidence_tier", key: "tier", width: 230, render: (value: ExperimentEvidenceTier) => TIER_LABELS[value] },
-    { title: "研究家族", dataIndex: "research_family", key: "family", width: 230 },
-    { title: "模型 / 引擎", dataIndex: "model_or_engine", key: "engine", width: 210 },
+    { title: "研究家族", dataIndex: "research_family", key: "family", width: 230, render: (value: string) => <span title={value}>{researchFamilyLabel(value)}</span> },
+    { title: "实验类型", dataIndex: "experiment_kind", key: "kind", width: 180, render: (value: ExperimentKind) => KIND_LABELS[value] },
     { title: "失败项", dataIndex: "failed_reason_count", key: "failures", align: "right", width: 80 },
     { title: "记录时间", dataIndex: "recorded_at", key: "recorded", width: 190, render: formatDateTime },
-    { title: "证据", dataIndex: "evidence_status", key: "evidence", width: 190 }
+    { title: "证据", dataIndex: "evidence_status", key: "evidence", width: 190, render: (value: keyof typeof EVIDENCE_STATUS_LABELS) => EVIDENCE_STATUS_LABELS[value] }
   ];
   const pageNumber = Math.floor(data.page.offset / data.page.limit) + 1;
   const pageCount = Math.max(1, Math.ceil(data.counters.filtered_count / data.page.limit));
@@ -414,8 +444,11 @@ function CatalogPage() {
       { label: "投影记录", value: String(data.counters.projected_total_count) },
       { label: "历史切片", value: String(data.counters.as_of_count) },
       { label: "筛选后", value: String(data.counters.filtered_count) },
-      { label: "固定排序", value: data.sort.join(" → ") },
-      { label: "按表现排序", value: String(data.sorted_by_performance) }
+      { label: "按表现排序", value: data.sorted_by_performance ? "是" : "否" }
+    ],
+    technicalFacts: [
+      { label: "目录协议", value: data.catalog_protocol_id },
+      { label: "固定排序字段", value: data.sort.join(" → ") }
     ]
   });
 
@@ -428,10 +461,10 @@ function CatalogPage() {
     { key: "outcome_status", label: "结论语义筛选", values: data.available_filters.outcome_status, valueLabel: (value) => OUTCOME_COPY[value as ExperimentOutcome].label },
     { key: "authority_status", label: "权威状态筛选", values: data.available_filters.authority_status, valueLabel: (value) => AUTHORITY_LABELS[value as ExperimentAuthorityStatus] },
     { key: "evidence_tier", label: "证据层级筛选", values: data.available_filters.evidence_tier, valueLabel: (value) => TIER_LABELS[value as ExperimentEvidenceTier] },
-    { key: "research_family", label: "研究家族筛选", values: data.available_filters.research_family },
+    { key: "research_family", label: "研究家族筛选", values: data.available_filters.research_family, valueLabel: (value) => `研究家族 ${data.available_filters.research_family.indexOf(value) + 1}` },
     { key: "experiment_kind", label: "实验类型筛选", values: data.available_filters.experiment_kind, valueLabel: (value) => KIND_LABELS[value as ExperimentKind] },
     { key: "lifecycle_status", label: "生命周期筛选", values: data.available_filters.lifecycle_status, valueLabel: (value) => LIFECYCLE_LABELS[value as ExperimentLifecycleStatus] },
-    { key: "evidence_status", label: "证据状态筛选", values: data.available_filters.evidence_status }
+    { key: "evidence_status", label: "证据状态筛选", values: data.available_filters.evidence_status, valueLabel: (value) => EVIDENCE_STATUS_LABELS[value as keyof typeof EVIDENCE_STATUS_LABELS] }
   ];
 
   return (
@@ -455,7 +488,7 @@ function CatalogPage() {
           </h2>
           <p>先看证据层级与权威状态，再看已登记结果；页面不提供成功率、收益排名或“最佳策略”。</p>
         </div>
-        <Tag icon={<SafetyCertificateFilled />}>READ ONLY · NO RANKING</Tag>
+        <Tag icon={<SafetyCertificateFilled />}>只读 · 不做排名</Tag>
       </section>
 
       <section className="metric-grid experiment-kind-grid" aria-label="实验记录类型计数">
@@ -484,7 +517,7 @@ function CatalogPage() {
                 onChange={(value) => setFilter(spec.key, value)}
                 options={[
                   { value: "ALL", label: spec.label.replace("筛选", "：全部") },
-                  ...spec.values.map((value) => ({ value, label: spec.valueLabel ? `${spec.valueLabel(value)} · ${value}` : value }))
+                  ...spec.values.map((value) => ({ value, label: spec.valueLabel ? spec.valueLabel(value) : value, title: value }))
                 ]}
               />
             ))}
@@ -503,11 +536,11 @@ function CatalogPage() {
         </div>
         <div className="experiment-mobile-cards" role="table" aria-label="移动端实验目录">
           <div className="experiment-mobile-header" role="row">
-            <span role="columnheader">实验 ID</span>
+            <span role="columnheader">实验</span>
             <span role="columnheader">结论</span>
             <span role="columnheader">权威状态</span>
           </div>
-          {data.items.map((item) => (
+          {data.items.map((item, index) => (
             <article
               key={`${item.experiment_kind}|${item.experiment_id}`}
               className="experiment-catalog-card"
@@ -516,9 +549,10 @@ function CatalogPage() {
               <div className="experiment-mobile-id" role="cell">
                 <RouterLink
                   to={experimentPath(item.experiment_kind, item.experiment_id, search)}
-                  aria-label={`查看实验 ${item.experiment_id} 的类型化证据`}
+                  title={`技术标识：${item.experiment_id}`}
+                  aria-label={`查看${humanExperimentLabel(index)}的类型化证据，技术标识 ${item.experiment_id}`}
                 >
-                  <code title={item.experiment_id}>{shortIdentity(item.experiment_id)}</code>
+                  <span className="experiment-human-id">{humanExperimentLabel(index)}</span>
                 </RouterLink>
                 <small>{KIND_LABELS[item.experiment_kind]}</small>
               </div>
@@ -620,7 +654,7 @@ function G1GateTable({ gates }: { gates: Record<string, JsonMetric> }) {
             return (
               <tr key={name}>
                 <th>{decisionLabel(name)}</th>
-                <td><Tag color={passed ? "success" : "warning"}>{passed ? "PASS" : "REJECT"}</Tag></td>
+                <td><Tag color={passed ? "success" : "warning"} title={passed ? "PASS" : "REJECT"}>{passed ? "通过" : "未通过"}</Tag></td>
                 <td><DecisionValue value={gate.actual ?? null} metric={name} /></td>
                 <td>{String(gate.rule ?? "")}</td>
               </tr>
@@ -656,7 +690,7 @@ function P2EffectSection({ data }: { data: ExperimentDetailData }) {
             <span className="section-kicker">REGISTERED WINDOW EVIDENCE</span>
             <h2 id="experiment-window-heading">冻结窗口与成本场景</h2>
           </div>
-          {invalidated ? <Tag color="error">可复算 · 非权威</Tag> : <Tag color="warning">权威历史 REJECT</Tag>}
+          {invalidated ? <Tag color="error">可复算 · 非权威</Tag> : <Tag color="warning" title="HISTORICAL_EFFECT_REJECTED">权威历史拒绝</Tag>}
         </div>
         <div className="chart-canvas" role="img" aria-label="三个冻结窗口在四种成本场景下的净超额分组柱状图">
           <Column
@@ -712,9 +746,18 @@ function DetailPage({ kind, experimentId }: { kind: ExperimentKind; experimentId
     sources: data.source_refs,
     facts: [
       { label: "实验类型", value: KIND_LABELS[data.experiment_kind] },
-      { label: "结论语义", value: data.outcome_status },
-      { label: "权威状态", value: data.authority_status },
-      { label: "证据层级", value: data.evidence_tier }
+      { label: "结论语义", value: OUTCOME_COPY[data.outcome_status].label },
+      { label: "权威状态", value: AUTHORITY_LABELS[data.authority_status] },
+      { label: "证据层级", value: TIER_LABELS[data.evidence_tier] }
+    ],
+    technicalFacts: [
+      { label: "实验 ID", value: data.experiment_id },
+      { label: "结论枚举", value: data.outcome_status },
+      { label: "权威状态枚举", value: data.authority_status },
+      { label: "证据层级枚举", value: data.evidence_tier },
+      { label: "模型 / 引擎", value: data.model_or_engine },
+      { label: "引擎版本", value: data.engine_version },
+      { label: "随机种子", value: data.seed }
     ]
   });
   const generalDecision = Object.entries(data.decision).filter(
@@ -728,7 +771,7 @@ function DetailPage({ kind, experimentId }: { kind: ExperimentKind; experimentId
       <PageHeader
         eyebrow="EXPERIMENT EVIDENCE"
         title="实验结论与证据"
-        description="先确认 evidence tier、authority 与 outcome，再阅读已登记数值；页面不重算任何效果。"
+        description="先确认结论层级、当前权威与结果语义，再阅读已登记数值；页面不重算任何效果。"
         status={meta.freshness_status}
         evidence={evidence}
         {...experimentHeaderProps(meta)}
@@ -746,18 +789,18 @@ function DetailPage({ kind, experimentId }: { kind: ExperimentKind; experimentId
           <div className="experiment-badge-stack"><OutcomeBadge outcome={data.outcome_status} /><AuthorityBadge authority={data.authority_status} /></div>
         </div>
         <dl className="experiment-identity-grid">
-          <div><dt>实验 ID</dt><dd><code title={data.experiment_id}>{data.experiment_id}</code></dd></div>
+          <div><dt>实验标识</dt><dd title={data.experiment_id}>已登记，技术证据可查</dd></div>
           <div><dt>实验类型</dt><dd>{KIND_LABELS[data.experiment_kind]}</dd></div>
-          <div><dt>证据层级</dt><dd>{TIER_LABELS[data.evidence_tier]} · <code>{data.evidence_tier}</code></dd></div>
-          <div><dt>生命周期</dt><dd>{LIFECYCLE_LABELS[data.lifecycle_status]} · <code>{data.lifecycle_status}</code></dd></div>
-          <div><dt>研究家族</dt><dd>{data.research_family}</dd></div>
-          <div><dt>模型 / 引擎</dt><dd>{data.model_or_engine}</dd></div>
-          <div><dt>引擎版本</dt><dd><code title={data.engine_version}>{shortIdentity(data.engine_version)}</code></dd></div>
+          <div><dt>证据层级</dt><dd title={data.evidence_tier}>{TIER_LABELS[data.evidence_tier]}</dd></div>
+          <div><dt>生命周期</dt><dd title={data.lifecycle_status}>{LIFECYCLE_LABELS[data.lifecycle_status]}</dd></div>
+          <div><dt>研究家族</dt><dd title={data.research_family}>{researchFamilyLabel(data.research_family)}</dd></div>
+          <div><dt>研究实现</dt><dd title={data.model_or_engine}>已登记</dd></div>
+          <div><dt>实现版本</dt><dd title={data.engine_version}>已锁定</dd></div>
           <div><dt>记录时间</dt><dd>{formatDateTime(data.recorded_at)}</dd></div>
           <div><dt>训练区间</dt><dd>{data.train_period || "未登记"}</dd></div>
           <div><dt>验证区间</dt><dd>{data.valid_period || "未登记"}</dd></div>
-          <div><dt>seed</dt><dd>{data.seed || "未登记"}</dd></div>
-          <div><dt>证据状态</dt><dd>{data.evidence_status}</dd></div>
+          <div><dt>随机性控制</dt><dd title={data.seed}>{data.seed ? "已登记" : "未登记"}</dd></div>
+          <div><dt>证据状态</dt><dd title={data.evidence_status}>{EVIDENCE_STATUS_LABELS[data.evidence_status]}</dd></div>
         </dl>
       </section>
 
@@ -782,7 +825,13 @@ function DetailPage({ kind, experimentId }: { kind: ExperimentKind; experimentId
       <section className="surface-panel" aria-labelledby="experiment-failures-heading">
         <div className="section-heading"><div><span className="section-kicker">FAILURES / LIMITS</span><h2 id="experiment-failures-heading">失败原因与证据缺口</h2></div></div>
         {data.failed_reasons.length ? (
-          <ul className="experiment-failure-list">{data.failed_reasons.map((reason) => <li key={reason}><WarningFilled /><code>{reason}</code></li>)}</ul>
+          <>
+            <Alert type="warning" showIcon message={`登记了 ${data.failed_reasons.length} 项失败或限制原因`} description="业务结论已在页面上方说明；原始技术原因按需展开，不用机器错误名占据主视图。" />
+            <details className="technical-details experiment-failure-details">
+              <summary>查看原始技术原因</summary>
+              <ul className="experiment-failure-list">{data.failed_reasons.map((reason) => <li key={reason}><WarningFilled /><code>{reason}</code></li>)}</ul>
+            </details>
+          </>
         ) : <p className="muted">没有登记失败原因；这不等于策略有效，只表示本记录未附失败项。</p>}
         <Alert
           type="info"
@@ -791,7 +840,7 @@ function DetailPage({ kind, experimentId }: { kind: ExperimentKind; experimentId
           description="experiment_summary 只登记聚合证据；浏览器不会从其他文件、账本或端点补算。"
         />
       </section>
-      <p className="page-evidence-footer">详情只消费一个类型化响应；decision 按证据层级白名单渲染，未知键会阻断页面而不是通用 JSON 展示。</p>
+      <p className="page-evidence-footer">详情只消费一个类型化响应；结论字段按证据层级白名单渲染，未知键会阻断页面，不做通用数据倾倒。</p>
     </div>
   );
 }

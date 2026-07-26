@@ -7,6 +7,7 @@ import {
   experimentG1,
   experimentOriginal,
   EXPERIMENT_CORRECTION_ID,
+  EXPERIMENT_ENGINEERING_ID,
   EXPERIMENT_G1_ID,
   EXPERIMENT_ORIGINAL_ID,
   factorCatalog,
@@ -207,9 +208,16 @@ test("overview uses one atomic response and preserves as_of during drilldown", a
   await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible();
   await expect(page.getByText("-0.55 个百分点")).toBeVisible();
   await expect(page.getByText("核心任务", { exact: true })).toBeVisible();
+  await expect(page.getByText(overview.evidence.data_snapshot_sha256, { exact: true })).toHaveCount(0);
   await expectNoPageOverflow(page);
   await captureVisual(page, testInfo, "overview");
   expect(requests).toEqual(["/api/v1/overview"]);
+  await page.getByRole("button", { name: "查看技术证据" }).click();
+  await expect(page.getByText("技术证据已锁定，可按需核验")).toBeVisible();
+  await expect(page.getByText(overview.evidence.data_snapshot_sha256, { exact: true })).toBeHidden();
+  await page.getByText("展开技术标识与来源").click();
+  await expect(page.getByText(overview.evidence.data_snapshot_sha256, { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
   await page.getByRole("link", { name: /查看完整组合证据/ }).click();
   await expect(page).toHaveURL(/\/paper\?as_of=2026-07-24/);
   await expect(page.getByRole("heading", { name: "模拟组合" })).toBeVisible();
@@ -220,16 +228,19 @@ test("paper separates forward performance from full-account audit and exposes da
   await mockApi(page);
   await page.goto("/paper");
   await expect(page.getByRole("heading", { name: "模拟组合" })).toBeVisible();
-  await expect(page.getByText("FORWARD", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("前瞻观察", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("样本不足，不绘制趋势")).toBeVisible();
-  await expect(page.getByRole("region", { name: "FORWARD 精确值" }).getByRole("row")).toHaveCount(3);
-  await expect(page.getByRole("img", { name: "FORWARD 模拟组合与中证800归一化净值折线图" })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "前瞻观察精确值" }).getByRole("row")).toHaveCount(3);
+  await expect(page.getByRole("img", { name: "前瞻模拟组合与中证800归一化净值折线图" })).toHaveCount(0);
   await captureVisual(page, testInfo, "paper");
-  await expect(page.getByText(/BACKFILL 1 日只作工程与账务审计/)).toBeHidden();
+  await expect(page.getByText(/工程回放 1 日只作工程与账务审计/)).toBeHidden();
   await page.getByText("全账户", { exact: true }).click();
-  await expect(page.getByText(/BACKFILL 1 日只作工程与账务审计/)).toBeVisible();
+  await expect(page.getByText(/工程回放 1 日只作工程与账务审计/)).toBeVisible();
   await page.getByRole("button", { name: "2026-07-24" }).click();
-  await expect(page.getByText("产物哈希")).toBeVisible();
+  await expect(page.getByText("查看账户日技术标识")).toBeVisible();
+  await expect(page.getByText(nav.series[2]!.artifact_sha256, { exact: true })).toBeHidden();
+  await page.getByText("查看账户日技术标识").click();
+  await expect(page.getByText(nav.series[2]!.artifact_sha256, { exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
   await expectNoPageOverflow(page);
 });
@@ -243,9 +254,11 @@ test("signals keep planned deltas separate from execution facts", async ({ page 
   await expect(page.getByText("已执行订单腿")).toBeVisible();
   await expect(page.getByText("计划交易腿")).toHaveCount(0);
   await expect(page.getByText("实际交易腿")).toHaveCount(0);
+  await expect(page.getByText(signal.signal_sha256, { exact: true })).toHaveCount(0);
   await captureVisual(page, testInfo, "signals");
   await page.getByRole("button", { name: "688008.SH" }).click();
   await expect(page.getByText("暂无可审计的因子贡献分解")).toBeVisible();
+  await expect(page.getByText("查看证券信号技术标识")).toBeVisible();
   await page.keyboard.press("Escape");
   await page.getByLabel("搜索证券代码").fill("999999");
   await expect(page.getByText("当前筛选没有目标")).toBeVisible();
@@ -259,8 +272,8 @@ test("data quality keeps PASS separate from evidence WARN and does not invent a 
   await expect(page.getByRole("heading", { name: "数据质量" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "数据门通过，可进入已冻结的信号流程" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "证据仍有明确缺口，不能宣称全量重验" })).toBeVisible();
-  await expect(page.getByText("IDENTITY_MATCH_UNHASHED")).toBeVisible();
-  await expect(page.getByText("NOT_APPLICABLE", { exact: true })).toBeVisible();
+  await expect(page.getByText("IDENTITY_MATCH_UNHASHED")).toHaveCount(0);
+  await expect(page.getByText("不适用", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "数据哨兵矩阵" })).toBeVisible();
   await captureVisual(page, testInfo, "data-quality");
   expect(requests).toEqual(["/api/v1/data-quality"]);
@@ -272,14 +285,16 @@ test("system runs preserves recovery and opens notification as a separate snapsh
   await mockApi(page, requests);
   await page.goto("/system-runs");
   await expect(page.getByRole("heading", { name: "系统运行" })).toBeVisible();
-  await expect(page.getByText("ForwardQlibError", { exact: true })).toBeVisible();
-  await expect(page.getByText("Legacy 不可寻址")).toBeVisible();
+  await expect(page.getByText("ForwardQlibError", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("旧版不可查看")).toBeVisible();
   await captureVisual(page, testInfo, "system-runs");
-  await page.getByRole("button", { name: /ce3bfbf96e9ec474/ }).click();
+  await page.getByRole("button", { name: /查看故障消息 1/ }).click();
   await expect(page.getByText("这是独立证据切片")).toBeVisible();
+  await expect(page.getByText("NetworkError")).toBeHidden();
+  await page.getByText("查看通知技术字段与脱敏来源").click();
   await expect(page.getByText("NetworkError")).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("button", { name: /ce3bfbf96e9ec474/ })).toBeFocused();
+  await expect(page.getByRole("button", { name: /查看故障消息 1/ })).toBeFocused();
   expect(requests).toEqual([
     "/api/v1/system/runs",
     "/api/v1/notifications/ce3bfbf96e9ec474"
@@ -305,8 +320,8 @@ test("factor catalog tells the zero-library truth and launches a strict comparis
   await expect(page.locator("strong:visible", { hasText: "正式因子库仍为 0" })).toBeVisible();
   await page.locator("button:visible", { hasText: "查看全部研究证据" }).click();
 
-  await page.getByRole("checkbox", { name: /111111111111/ }).check();
-  await page.getByRole("checkbox", { name: /222222222222/ }).check();
+  await page.getByRole("checkbox", { name: "选择因子 1 进行比较" }).check();
+  await page.getByRole("checkbox", { name: "选择因子 2 进行比较" }).check();
   await page.getByRole("button", { name: "严格比较所选因子" }).click();
   await expect(page).toHaveURL(comparePathForTest([VERSION_A, VERSION_B]));
   await expect(page.getByRole("heading", { name: "只比较同口径的当前权威版本" })).toBeVisible();
@@ -322,7 +337,7 @@ test("factor tear sheet keeps fifteen gates, unavailable evidence and append-onl
   await expect(page.getByRole("heading", { name: "单因子研究证据" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "全部准入门" })).toBeVisible();
   await expect(page.getByText(/未通过：/)).toContainText("Newey-West(10) t");
-  await expect(page.getByText("NOT_EVALUATED · recomputed=false")).toHaveCount(4);
+  await expect(page.getByText("未评估 · 未在前端补算")).toHaveCount(4);
   expect(requests).toEqual([`/api/v1/factors/${FACTOR_A}`]);
   await captureVisual(page, testInfo, "factor-detail");
 
@@ -343,8 +358,22 @@ test("experiment catalog separates records from valid models and preserves exact
   await page.goto("/experiments");
   await expect(page.getByRole("heading", { name: "研究证据" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "4 条实验记录，不是 4 个有效模型" })).toBeVisible();
-  await expect(page.getByText("READ ONLY · NO RANKING")).toBeVisible();
+  await expect(page.getByText("只读 · 不做排名")).toBeVisible();
   expect(requests).toEqual(["/api/v1/experiments"]);
+
+  const primaryCatalog = testInfo.project.name === "mobile-390" || testInfo.project.name === "zoom-400-reflow"
+    ? page.getByRole("table", { name: "移动端实验目录" })
+    : page.locator(".experiment-desktop-catalog");
+  const primaryCatalogText = await primaryCatalog.innerText();
+  for (const experimentId of [
+    EXPERIMENT_CORRECTION_ID,
+    EXPERIMENT_ORIGINAL_ID,
+    EXPERIMENT_ENGINEERING_ID,
+    EXPERIMENT_G1_ID
+  ]) {
+    expect(primaryCatalogText).not.toContain(experimentId);
+  }
+  await expect(primaryCatalog.getByText("实验 1", { exact: true })).toBeVisible();
 
   if (testInfo.project.name === "mobile-390" || testInfo.project.name === "zoom-400-reflow") {
     const mobileCatalog = page.getByRole("table", { name: "移动端实验目录" });
@@ -373,12 +402,12 @@ test("experiment catalog separates records from valid models and preserves exact
   await page.getByLabel("结论语义筛选").click();
   await page
     .locator(".ant-select-dropdown:visible .ant-select-item-option")
-    .filter({ hasText: "方法已失效 · INVALIDATED_METHOD" })
+    .filter({ hasText: "方法已失效" })
     .click();
   await expect(page).toHaveURL(/outcome_status=INVALIDATED_METHOD/);
   await expect(page.getByText("正在核对实验目录、权威覆盖与分页身份…")).toBeVisible();
-  await expect(page.locator(`[title="${EXPERIMENT_CORRECTION_ID}"]`)).toHaveCount(0);
-  await expect(page.locator(`[title="${EXPERIMENT_ORIGINAL_ID}"]:visible`).first()).toBeVisible();
+  await expect(page.locator(`[title="技术标识：${EXPERIMENT_CORRECTION_ID}"]`)).toHaveCount(0);
+  await expect(page.locator(`[title="技术标识：${EXPERIMENT_ORIGINAL_ID}"]:visible`).first()).toBeVisible();
   await expect(page.getByText(EXPERIMENT_CORRECTION_ID, { exact: true })).toHaveCount(0);
   await captureVisual(page, testInfo, "experiment-catalog");
   await expectNoPageOverflow(page);
@@ -398,8 +427,8 @@ test("invalidated P2 evidence links to the authoritative correction without inve
 
   await page.getByRole("link", { name: "查看权威纠错实验" }).click();
   await expect(page).toHaveURL(new RegExp(`/p2_effect_correction/${EXPERIMENT_CORRECTION_ID}\\?as_of=2026-07-24`));
-  await expect(page.getByText("权威历史 REJECT")).toBeVisible();
-  await expect(page.getByText(/当前权威历史效果结论为 REJECT/)).toBeVisible();
+  await expect(page.getByText("权威历史拒绝")).toBeVisible();
+  await expect(page.getByText(/当前权威历史效果结论为拒绝/)).toBeVisible();
   expect(requests).toEqual([
     `/api/v1/experiments/p2_effect_original/${EXPERIMENT_ORIGINAL_ID}`,
     `/api/v1/experiments/p2_effect_correction/${EXPERIMENT_CORRECTION_ID}`
@@ -413,7 +442,7 @@ test("G1 experiment detail renders all fifteen gates from one typed response", a
   await page.goto(`/experiments/research_experiment/${EXPERIMENT_G1_ID}`);
   await expect(page.getByRole("heading", { name: "全部 G1 门" })).toBeVisible();
   await expect(page.getByRole("region", { name: "实验 G1 十五门" }).getByRole("row")).toHaveCount(16);
-  await expect(page.getByText("G1 未准入 · G1_REJECTED")).toBeVisible();
+  await expect(page.getByText("G1 未准入", { exact: true })).toBeVisible();
   expect(requests).toEqual([`/api/v1/experiments/research_experiment/${EXPERIMENT_G1_ID}`]);
   await expectNoPageOverflow(page);
 });
@@ -425,7 +454,7 @@ test("historical factor view applies the authority banner and sends no compare r
   await expect(page.getByText("历史记录已应用当前权威覆盖")).toBeVisible();
   await expect(page.getByText("历史查询不允许因子比较")).toBeVisible();
   await expect(page.getByLabel("研究查询截止日期，留空表示最新")).toHaveValue("2026-07-23");
-  await expect(page.getByRole("checkbox", { name: /111111111111/ })).toBeDisabled();
+  await expect(page.getByRole("checkbox", { name: "选择因子 1 进行比较" })).toBeDisabled();
   expect(requests).toEqual(["/api/v1/factors"]);
 });
 
@@ -443,8 +472,10 @@ test("factor comparison conflict keeps selections and renders no charts", async 
   });
   await page.goto(comparePathForTest([VERSION_A, VERSION_B]));
   await expect(page.getByRole("heading", { name: "所选因子不具备严格可比性" })).toBeVisible();
-  await expect(page.getByText(VERSION_A)).toBeVisible();
-  await expect(page.getByText(VERSION_B)).toBeVisible();
+  await expect(page.locator(".factor-version-list")).toContainText("因子 1");
+  await expect(page.locator(".factor-version-list")).toContainText("因子 2");
+  await expect(page.getByText(VERSION_A, { exact: true })).toHaveCount(0);
+  await expect(page.getByText(VERSION_B, { exact: true })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "六窗口 RankIC 稳定性" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "压力期最大回撤" })).toHaveCount(0);
 });

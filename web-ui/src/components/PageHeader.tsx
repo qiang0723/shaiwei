@@ -47,7 +47,7 @@ export function PageHeader({
           <strong>{formatDateTime(generatedAt)}</strong>
         </div>
         <Button icon={<FileSearchOutlined />} onClick={() => openEvidence(evidence)}>
-          查看证据
+          查看技术证据
         </Button>
       </div>
     </header>

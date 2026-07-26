@@ -27,7 +27,7 @@ import { MetricCard } from "../components/MetricCard";
 import { PageHeader } from "../components/PageHeader";
 import { PageError, PageLoading, RefreshNotice } from "../components/RequestState";
 import { StatusBadge } from "../components/StatusBadge";
-import { displayDate, formatDateTime, formatNumber, formatPercent, shortHash } from "../format";
+import { displayDate, formatDateTime, formatNumber, formatPercent } from "../format";
 import { RouterLink, useRouter } from "../routing";
 import type {
   ApiMeta,
@@ -44,6 +44,24 @@ import type {
 
 const VERSION = /^[0-9a-f]{12}$/;
 const WINDOWS = ["W1", "W2", "W3", "W4", "W5", "W6"] as const;
+
+const RESEARCH_FAMILY_LABELS: Record<string, string> = {
+  "p1-moneyflow-v1": "资金流研究",
+  "stage1-gp-preflight-v1": "GP 预检研究"
+};
+
+const DATA_CATEGORY_LABELS: Record<string, string> = {
+  moneyflow: "资金流数据",
+  price_volume: "量价数据"
+};
+
+function researchFamilyLabel(value: string) {
+  return RESEARCH_FAMILY_LABELS[value] ?? "其他研究家族";
+}
+
+function dataCategoryLabel(value: string) {
+  return DATA_CATEGORY_LABELS[value] ?? "其他研究数据";
+}
 
 const AUTHORITY_LABELS: Record<FactorAuthorityStatus, string> = {
   AUTHORITATIVE_CURRENT: "当前权威",
@@ -91,8 +109,10 @@ function AuthorityBadge({ authority }: { authority: FactorAuthorityStatus }) {
     <Tag
       className={`factor-authority factor-authority-${current ? "current" : "historical"}`}
       icon={current ? <SafetyCertificateFilled /> : <HistoryOutlined />}
+      title={`${AUTHORITY_LABELS[authority]} · ${authority}`}
+      aria-label={`${AUTHORITY_LABELS[authority]}，机器状态 ${authority}`}
     >
-      {AUTHORITY_LABELS[authority]} · {authority}
+      {AUTHORITY_LABELS[authority]}
     </Tag>
   );
 }
@@ -102,8 +122,10 @@ function DecisionBadge({ decision }: { decision: "ADMITTED" | "REJECTED" }) {
     <Tag
       className={`factor-decision factor-decision-${decision.toLowerCase()}`}
       icon={decision === "ADMITTED" ? <CheckCircleFilled /> : <CloseCircleFilled />}
+      title={`${decision === "ADMITTED" ? "已准入" : "未准入"} · ${decision}`}
+      aria-label={`${decision === "ADMITTED" ? "已准入" : "未准入"}，机器状态 ${decision}`}
     >
-      {decision === "ADMITTED" ? "已准入" : "未准入"} · {decision}
+      {decision === "ADMITTED" ? "已准入" : "未准入"}
     </Tag>
   );
 }
@@ -116,7 +138,7 @@ function HistoricalBanner({ visible }: { visible: boolean }) {
       type="warning"
       showIcon
       message="历史记录已应用当前权威覆盖"
-      description="事件按查询截止日期裁剪，但 authority 使用当前已知纠错；这是按当前知识回看，不是重演当时的权威状态。"
+      description="事件按查询截止日期裁剪，但权威解释使用当前已知纠错；这是按当前知识回看，不是重演当时的权威状态。"
     />
   );
 }
@@ -128,6 +150,7 @@ function researchEvidence(
     hashes?: Record<string, string>;
     sources?: string[];
     facts?: Array<{ label: string; value: string }>;
+    technicalFacts?: Array<{ label: string; value: string }>;
   } = {}
 ): EvidencePayload {
   return {
@@ -137,7 +160,8 @@ function researchEvidence(
     generatedAt: meta.generated_at,
     hashes: { ...meta.evidence_hashes, ...options.hashes },
     sources: options.sources ?? meta.source_refs,
-    facts: options.facts
+    facts: options.facts,
+    technicalFacts: options.technicalFacts
   };
 }
 
@@ -275,6 +299,7 @@ function CatalogPage() {
     item.current_factor_version ? selected.includes(item.current_factor_version) : false
   );
   const selectedFamily = selectedItems[0]?.research_family;
+  const factorLabel = (factorId: string) => `因子 ${data.items.findIndex((item) => item.factor_id === factorId) + 1}`;
 
   const setFilter = (key: "status" | "family" | "data_category", value: string) => {
     const next = new URLSearchParams(location.search);
@@ -302,14 +327,14 @@ function CatalogPage() {
           <Checkbox
             checked={Boolean(version && selected.includes(version))}
             disabled={disabled}
-            aria-label={`选择因子 ${shortHash(item.factor_id)} 进行比较`}
+            aria-label={`选择${factorLabel(item.factor_id)} 进行比较`}
             onChange={(event) => toggleCompare(item, event.target.checked)}
           />
         );
       }
     },
     {
-      title: "因子 ID",
+      title: "因子",
       dataIndex: "factor_id",
       key: "factor_id",
       fixed: "left",
@@ -320,12 +345,12 @@ function CatalogPage() {
           title={value}
           to={factorPath(value, { version: item.current_factor_version ?? undefined, asOf })}
         >
-          {shortHash(value)}
+          {factorLabel(value)}
         </RouterLink>
       )
     },
-    { title: "研究家族", dataIndex: "research_family", key: "family", width: 190 },
-    { title: "数据类别", dataIndex: "data_category", key: "category", width: 128 },
+    { title: "研究家族", dataIndex: "research_family", key: "family", width: 190, render: (value: string) => <span title={value}>{researchFamilyLabel(value)}</span> },
+    { title: "数据类别", dataIndex: "data_category", key: "category", width: 128, render: (value: string) => <span title={value}>{dataCategoryLabel(value)}</span> },
     {
       title: "研究结论",
       dataIndex: "latest_recorded_decision",
@@ -346,10 +371,10 @@ function CatalogPage() {
       dataIndex: "current_factor_version",
       key: "current",
       width: 132,
-      render: (value: string | null) => value ? <code>{value}</code> : <span className="muted">无当前版本</span>
+      render: (value: string | null) => value ? <span title={value}>可比较版本</span> : <span className="muted">无当前版本</span>
     },
     { title: "研究尝试 N", dataIndex: "experiment_attempt_n", key: "attempts", align: "right", width: 112 },
-    { title: "证据", dataIndex: "evidence_status", key: "evidence", width: 94 }
+    { title: "证据", dataIndex: "evidence_status", key: "evidence", width: 94, render: () => "已核验" }
   ];
 
   const empty = status === "ADMITTED" ? (
@@ -364,8 +389,14 @@ function CatalogPage() {
     facts: [
       { label: "正式库", value: String(data.counters.formal_library_count) },
       { label: "已研究因子", value: String(data.counters.researched_factor_count) },
-      { label: "当前权威 REJECT", value: String(data.counters.authoritative_rejected_count) },
-      { label: "排序", value: data.sort.join(" → ") }
+      { label: "当前权威未准入", value: String(data.counters.authoritative_rejected_count) }
+    ],
+    technicalFacts: [
+      { label: "目录排序字段", value: data.sort.join(" → ") },
+      ...data.items.filter((item) => item.current_factor_version).map((item) => ({
+        label: `${factorLabel(item.factor_id)} 当前版本`,
+        value: item.current_factor_version!
+      }))
     ]
   });
 
@@ -374,7 +405,7 @@ function CatalogPage() {
       <PageHeader
         eyebrow="FACTOR FACTORY"
         title="因子工厂"
-        description="当前权威准入、拒绝与历史证据分列；REJECT 是研究结果，不是运行失败。"
+        description="当前权威准入、未准入与历史证据分列；研究拒绝不是系统运行失败。"
         status="OBSERVING"
         evidence={evidence}
         {...researchHeaderProps(meta)}
@@ -392,9 +423,9 @@ function CatalogPage() {
       </section>
 
       <section className="metric-grid factor-counter-grid" aria-label="因子工厂关键事实">
-        <MetricCard label="正式因子库" value={data.counters.formal_library_count} detail="当前权威 ADMITTED" />
+        <MetricCard label="正式因子库" value={data.counters.formal_library_count} detail="当前权威已准入" />
         <MetricCard label="已研究因子" value={data.counters.researched_factor_count} detail="稳定因子身份，非实验行数" />
-        <MetricCard label="当前权威 REJECT" value={data.counters.authoritative_rejected_count} detail="有证据的研究结论" tone="warning" />
+        <MetricCard label="当前权威未准入" value={data.counters.authoritative_rejected_count} detail="有证据的研究结论" tone="warning" />
         <MetricCard label="仅历史因子" value={data.counters.historical_only_count} detail="不代表当前权威版本" />
       </section>
 
@@ -422,13 +453,13 @@ function CatalogPage() {
               aria-label="研究家族筛选"
               value={family}
               onChange={(value) => setFilter("family", value)}
-              options={[{ value: "ALL", label: "全部家族" }, ...families.map((value) => ({ value, label: value }))]}
+              options={[{ value: "ALL", label: "全部家族" }, ...families.map((value) => ({ value, label: researchFamilyLabel(value), title: value }))]}
             />
             <Select
               aria-label="数据类别筛选"
               value={dataCategory}
               onChange={(value) => setFilter("data_category", value)}
-              options={[{ value: "ALL", label: "全部数据" }, ...categories.map((value) => ({ value, label: value }))]}
+              options={[{ value: "ALL", label: "全部数据" }, ...categories.map((value) => ({ value, label: dataCategoryLabel(value), title: value }))]}
             />
             </div>
           </details>
@@ -459,11 +490,11 @@ function CatalogPage() {
             <article key={item.factor_id} className="factor-catalog-card">
               <div className="factor-card-heading">
                 <RouterLink to={factorPath(item.factor_id, { version: item.current_factor_version ?? undefined, asOf })}>
-                  <code title={item.factor_id}>{shortHash(item.factor_id)}</code>
+                  <span title={item.factor_id}>{factorLabel(item.factor_id)}</span>
                 </RouterLink>
                 <DecisionBadge decision={item.latest_recorded_decision} />
               </div>
-              <p>{item.research_family} · {item.data_category}</p>
+              <p title={`${item.research_family} · ${item.data_category}`}>{researchFamilyLabel(item.research_family)} · {dataCategoryLabel(item.data_category)}</p>
               <AuthorityBadge authority={item.authority_status} />
               <dl>
                 <div><dt>阶段</dt><dd>{LIFECYCLE_LABELS[item.lifecycle_status]}</dd></div>
@@ -473,7 +504,7 @@ function CatalogPage() {
               <div className="factor-card-actions">
                 <RouterLink to={factorPath(item.factor_id, { version: item.current_factor_version ?? undefined, asOf })}>查看证据</RouterLink>
                 <Checkbox
-                  aria-label={`选择因子 ${shortHash(item.factor_id)} 进行比较`}
+                  aria-label={`选择${factorLabel(item.factor_id)} 进行比较`}
                   checked={Boolean(item.current_factor_version && selected.includes(item.current_factor_version))}
                   disabled={!item.current_factor_version || Boolean(asOf) || selected.length >= 3 && !selected.includes(item.current_factor_version) || Boolean(selectedFamily && selectedFamily !== item.research_family)}
                   onChange={(event) => toggleCompare(item, event.target.checked)}
@@ -489,7 +520,7 @@ function CatalogPage() {
         <div>
           <SwapOutlined aria-hidden="true" />
           <span>已选 {selected.length}/3</span>
-          {selectedItems.map((item) => <code key={item.factor_id}>{shortHash(item.factor_id)}</code>)}
+          {selectedItems.map((item, index) => <span key={item.factor_id} title={item.factor_id}>因子 {index + 1}</span>)}
         </div>
         <Button
           type="primary"
@@ -499,7 +530,7 @@ function CatalogPage() {
           严格比较所选因子
         </Button>
       </section>
-      <p className="page-evidence-footer">目录只发出一个 catalog 请求，不批量拼详情；固定按研究家族、因子 ID 排序，不按收益或 IC 排名。</p>
+      <p className="page-evidence-footer">目录只发出一次分页读取，不批量拼详情；固定按研究家族和稳定因子标识排序，不按收益或 IC 排名。</p>
     </div>
   );
 }
@@ -527,10 +558,12 @@ function DetailPage({ factorId }: { factorId: string }) {
     hashes: evidenceHashes,
     sources: data.source_refs,
     facts: [
+      { label: "记录判决", value: data.recorded_decision === "ADMITTED" ? "已准入" : "未准入" },
+      { label: "权威状态", value: AUTHORITY_LABELS[data.authority_status] }
+    ],
+    technicalFacts: [
       { label: "因子 ID", value: data.factor_id },
-      { label: "版本", value: data.factor_version },
-      { label: "记录判决", value: data.recorded_decision },
-      { label: "权威状态", value: data.authority_status }
+      { label: "因子版本", value: data.factor_version }
     ]
   });
   const gateColumns: DataColumn<{ name: string; gate: G1GateEvidence }>[] = [
@@ -577,8 +610,8 @@ function DetailPage({ factorId }: { factorId: string }) {
 
       <section className="factor-detail-hero">
         <div className="factor-definition">
-          <span className="section-kicker">{sections.identity.research_family} · {sections.identity.data_category}</span>
-          <h2><code title={data.factor_id}>{shortHash(data.factor_id)}</code> · {data.factor_version}</h2>
+          <span className="section-kicker" title={`${sections.identity.research_family} · ${sections.identity.data_category}`}>{researchFamilyLabel(sections.identity.research_family)} · {dataCategoryLabel(sections.identity.data_category)}</span>
+          <h2 title={`${data.factor_id} · ${data.factor_version}`}>冻结因子定义</h2>
           <p>{sections.frozen_definition_and_direction.economic_rationale}</p>
           <div className="factor-formula">
             <span>冻结公式</span>
@@ -705,7 +738,7 @@ function DetailPage({ factorId }: { factorId: string }) {
           {unavailable.map(([label, section]) => (
             <article key={label}>
               <MinusCircleFilled aria-hidden="true" />
-              <div><strong>{label}</strong><span>{section.status} · recomputed=false</span></div>
+              <div><strong>{label}</strong><span title={`${section.status} · recomputed=false`}>未评估 · 未在前端补算</span></div>
             </article>
           ))}
         </div>
@@ -732,9 +765,15 @@ function AdmissionsPage({ factorId }: { factorId: string }) {
   const evidence = researchEvidence("因子准入历史证据", meta, {
     hashes,
     facts: [
-      { label: "因子 ID", value: factorId },
       { label: "追加式记录", value: String(data.items.length) },
-      { label: "append_only", value: String(data.append_only) }
+      { label: "是否只追加", value: data.append_only ? "是" : "否" }
+    ],
+    technicalFacts: [
+      { label: "因子 ID", value: factorId },
+      ...data.items.flatMap((item, index) => [
+        { label: `记录 ${index + 1} 因子版本`, value: item.factor_version },
+        { label: `记录 ${index + 1} 规则版本`, value: item.decision_rule_version }
+      ])
     ]
   });
   const columns: DataColumn<FactorAdmissionItem>[] = [
@@ -744,15 +783,15 @@ function AdmissionsPage({ factorId }: { factorId: string }) {
       dataIndex: "factor_version",
       key: "version",
       width: 132,
-      render: (value: string) => <RouterLink className="table-factor-link" to={factorPath(factorId, { version: value, asOf })}>{value}</RouterLink>
+      render: (value: string) => <RouterLink className="table-factor-link" title={value} to={factorPath(factorId, { version: value, asOf })}>查看该版本</RouterLink>
     },
     { title: "记录判决", dataIndex: "recorded_decision", key: "decision", width: 142, render: (value: "ADMITTED" | "REJECTED") => <DecisionBadge decision={value} /> },
     { title: "当前权威解释", dataIndex: "authority_status", key: "authority", width: 238, render: (value: FactorAuthorityStatus) => <AuthorityBadge authority={value} /> },
     { title: "研究 N", dataIndex: "trial_count", key: "trials", align: "right", width: 94 },
     { title: "失败门", dataIndex: "failed_gates", key: "failed", width: 280, render: (value: string[]) => value.length ? value.map(metricLabel).join("、") : "无" },
-    { title: "规则版本", dataIndex: "decision_rule_version", key: "rule", width: 132 },
-    { title: "报告", dataIndex: "report_sha256", key: "report", width: 126, render: (value: string) => <code title={value}>{shortHash(value)}</code> },
-    { title: "证据", dataIndex: "evidence_sha256", key: "evidence", width: 126, render: (value: string) => <code title={value}>{shortHash(value)}</code> }
+    { title: "规则", dataIndex: "decision_rule_version", key: "rule", width: 132, render: (value: string) => <span title={value}>已锁定</span> },
+    { title: "报告", dataIndex: "report_sha256", key: "report", width: 126, render: (value: string) => <span title={value}>已校验</span> },
+    { title: "证据", dataIndex: "evidence_sha256", key: "evidence", width: 126, render: (value: string) => <span title={value}>已校验</span> }
   ];
   return (
     <div className="page-stack factor-page">
@@ -769,14 +808,14 @@ function AdmissionsPage({ factorId }: { factorId: string }) {
       <RouterLink className="factor-back-link" to={`/factors${asOf ? `?as_of=${encodeURIComponent(asOf)}` : ""}`}><ArrowLeftOutlined /> 返回因子目录</RouterLink>
       <FactorTabs factorId={factorId} active="admissions" asOf={asOf} />
       <section className="factor-library-hero append-only-hero">
-        <div><span className="section-kicker">APPEND ONLY</span><h2>{data.items.length} 条准入判决，旧记录从未覆盖</h2><p><code title={factorId}>{shortHash(factorId)}</code> · 记录判决与 authority 分列。</p></div>
+        <div><span className="section-kicker">APPEND ONLY</span><h2>{data.items.length} 条准入判决，旧记录从未覆盖</h2><p title={factorId}>记录判决与当前权威解释分列，完整因子标识见技术证据。</p></div>
         <StatusBadge status="PASS" />
       </section>
       <section className="table-surface" aria-labelledby="admission-table-heading">
         <div className="section-heading"><div><span className="section-kicker">LEDGER ORDER</span><h2 id="admission-table-heading">准入历史</h2></div><span className="section-note">按记录时间升序</span></div>
         <DataTable label="因子准入历史" columns={columns} data={data.items} rowKey="decision_id" minimumWidth="wide" />
       </section>
-      <p className="page-evidence-footer">历史行不因后续纠错而删除；authority 列说明当前如何解释该记录，不改写原 recorded_decision。</p>
+      <p className="page-evidence-footer">历史行不因后续纠错而删除；“当前权威解释”说明现在如何理解该记录，不改写原始判决。</p>
     </div>
   );
 }
@@ -792,7 +831,7 @@ function CompareSetup({ versions, asOf }: { versions: string[]; asOf: string }) 
       <section className="request-error factor-compare-setup" role="alert">
         <InfoCircleOutlined />
         <h2>{historical ? "比较已阻断，未发出请求" : `当前选择 ${versions.length} 个版本`}</h2>
-        <div className="factor-version-list">{versions.map((version) => <code key={version}>{version}</code>)}</div>
+        <div className="factor-version-list">{versions.map((version, index) => <span key={version} title={version}>因子 {index + 1}</span>)}</div>
         <div><Button onClick={() => navigate("/factors")}>返回目录</Button>{historical && versions.length >= 2 && versions.length <= 3 ? <Button type="primary" onClick={() => navigate(comparePath(versions))}>切到最新并比较</Button> : null}</div>
       </section>
     </div>
@@ -812,7 +851,7 @@ function ComparePage() {
   });
 
   if (asOf || !valid) return <CompareSetup versions={versions} asOf={asOf} />;
-  if (query.isPending) return <PageLoading label="正在由后端核对完整比较 fingerprint…" />;
+  if (query.isPending) return <PageLoading label="正在由后端核对比较口径是否完全一致…" />;
 
   const remove = (version: string) => {
     const next = versions.filter((item) => item !== version);
@@ -824,8 +863,9 @@ function ComparePage() {
       <div className="page-stack factor-page">
         <header className="page-header factor-static-header"><div><div className="eyebrow">STRICT COMPARISON</div><div className="page-title-line"><h1>所选因子不具备严格可比性</h1><StatusBadge status="NOT_EVALUATED" /></div><p>没有保留旧图，也没有转换口径；请移除一个版本或返回目录。</p></div></header>
         <section className="request-error factor-conflict" role="alert">
-          <div className="error-kicker">{error.code}</div><h2>{error.message}</h2>
-          <div className="factor-version-list">{versions.map((version) => <span key={version}><code>{version}</code><Button type="link" onClick={() => remove(version)}>移除</Button></span>)}</div>
+          <div className="error-kicker">比较已阻断</div><h2>{error.message}</h2>
+          <div className="factor-version-list">{versions.map((version, index) => <span key={version} title={version}>因子 {index + 1}<Button type="link" onClick={() => remove(version)}>移除</Button></span>)}</div>
+          <details className="technical-details request-technical-details"><summary>查看技术诊断信息</summary><dl><div><dt>错误码</dt><dd><code>{error.code}</code></dd></div></dl></details>
           <div><Button onClick={() => navigate("/factors")}>返回目录</Button><Button onClick={() => query.refetch()}>重新核对</Button></div>
         </section>
       </div>
@@ -833,22 +873,26 @@ function ComparePage() {
   }
 
   const { data, meta } = query.data;
+  const compareLabel = (version: string) => `因子 ${data.factor_versions.indexOf(version) + 1}`;
   const evidence = researchEvidence("因子严格比较证据", meta, {
     facts: [
       { label: "比较版本数", value: String(data.factor_versions.length) },
-      { label: "按表现排序", value: String(data.sorted_by_performance) },
-      { label: "选择顺序", value: data.factor_versions.join(" → ") }
+      { label: "按表现排序", value: data.sorted_by_performance ? "是" : "否" }
+    ],
+    technicalFacts: [
+      ...data.factor_versions.map((value, index) => ({ label: `因子 ${index + 1} 版本`, value })),
+      ...Object.entries(data.fingerprint).map(([key, value]) => ({ label: `比较口径：${metricLabel(key)}`, value }))
     ]
   });
   const lineData = data.items.flatMap((item) => WINDOWS.map((window) => ({
     window,
-    version: item.factor_version,
+    version: compareLabel(item.factor_version),
     value: item.six_oos_window_rank_ic[window]
   })));
   const stressPeriods = Object.keys(data.items[0]!.stress_max_drawdown);
   const stressData = data.items.flatMap((item) => stressPeriods.map((period) => ({
     period,
-    version: item.factor_version,
+    version: compareLabel(item.factor_version),
     value: item.stress_max_drawdown[period]!
   })));
   const portfolioRows: Array<[string, (item: FactorCompareItem) => number, "percent" | "number"]> = [
@@ -863,35 +907,35 @@ function ComparePage() {
 
   return (
     <div className="page-stack factor-page">
-      <PageHeader eyebrow="STRICT COMPARISON" title="只比较同口径的当前权威版本" description="后端 fingerprint 是唯一裁判；选择顺序保留，结果不按表现重排。" status={meta.freshness_status} evidence={evidence} {...researchHeaderProps(meta)} />
+      <PageHeader eyebrow="STRICT COMPARISON" title="只比较同口径的当前权威版本" description="后端一致性校验是唯一裁判；选择顺序保留，结果不按表现重排。" status={meta.freshness_status} evidence={evidence} {...researchHeaderProps(meta)} />
       {query.isFetching ? <RefreshNotice asOf={meta.as_of} generatedAt={meta.generated_at} /> : null}
       <RouterLink className="factor-back-link" to="/factors"><ArrowLeftOutlined /> 返回因子目录</RouterLink>
       <section className="factor-selection-strip" aria-label="比较选择">
-        {data.items.map((item) => <span key={item.factor_version}><code>{item.factor_version}</code><small>{shortHash(item.factor_id)}</small><Button type="link" onClick={() => remove(item.factor_version)}>移除</Button></span>)}
+        {data.items.map((item) => <span key={item.factor_version} title={`${item.factor_id} · ${item.factor_version}`}><strong>{compareLabel(item.factor_version)}</strong><small>当前权威版本</small><Button type="link" onClick={() => remove(item.factor_version)}>移除</Button></span>)}
       </section>
       <section className="surface-panel" aria-labelledby="fingerprint-heading">
-        <div className="section-heading"><div><span className="section-kicker">COMPARISON FINGERPRINT</span><h2 id="fingerprint-heading">这些口径已由后端判定完全一致</h2></div><StatusBadge status="PASS" /></div>
-        <dl className="factor-fingerprint-grid">{Object.entries(data.fingerprint).map(([key, value]) => <div key={key}><dt>{metricLabel(key)}</dt><dd><code title={value}>{value.length > 24 ? shortHash(value) : value}</code></dd></div>)}</dl>
+        <div className="section-heading"><div><span className="section-kicker">COMPARISON CONTRACT</span><h2 id="fingerprint-heading">这些口径已由后端判定完全一致</h2></div><StatusBadge status="PASS" /></div>
+        <dl className="factor-fingerprint-grid">{Object.entries(data.fingerprint).map(([key, value]) => <div key={key}><dt>{metricLabel(key)}</dt><dd title={value}>已核对一致</dd></div>)}</dl>
       </section>
       <section className="chart-surface primary-chart" aria-labelledby="compare-windows-heading">
         <div className="section-heading"><div><span className="section-kicker">SIX OOS WINDOWS</span><h2 id="compare-windows-heading">六窗口 RankIC 稳定性</h2></div><span className="section-note">按 URL 选择顺序；不产生综合分</span></div>
         <div className="chart-canvas" role="img" aria-label="二至三个当前权威因子的六窗口 RankIC 折线比较图">
           <Line data={lineData} xField="window" yField="value" colorField="version" seriesField="version" height={330} point={{ size: 5 }} axis={{ y: { labelFormatter: (value: number) => Number(value).toFixed(4) } }} legend={{ color: { position: "top" } }} animate={false} />
         </div>
-        <details className="accessible-data-table"><summary>查看六窗口比较精确数据</summary><table><thead><tr><th>窗口</th>{data.items.map((item) => <th key={item.factor_version}>{item.factor_version}</th>)}</tr></thead><tbody>{WINDOWS.map((window) => <tr key={window}><td>{window}</td>{data.items.map((item) => <td key={item.factor_version}>{formatNumber(item.six_oos_window_rank_ic[window], 4)}</td>)}</tr>)}</tbody></table></details>
+        <details className="accessible-data-table"><summary>查看六窗口比较精确数据</summary><table><thead><tr><th>窗口</th>{data.items.map((item) => <th key={item.factor_version}>{compareLabel(item.factor_version)}</th>)}</tr></thead><tbody>{WINDOWS.map((window) => <tr key={window}><td>{window}</td>{data.items.map((item) => <td key={item.factor_version}>{formatNumber(item.six_oos_window_rank_ic[window], 4)}</td>)}</tr>)}</tbody></table></details>
       </section>
       <section className="chart-surface" aria-labelledby="compare-stress-heading">
         <div className="section-heading"><div><span className="section-kicker">STRESS PERIODS</span><h2 id="compare-stress-heading">压力期最大回撤</h2></div></div>
         <div className="chart-canvas" role="img" aria-label="二至三个当前权威因子的压力期最大回撤分组柱状图">
           <Column data={stressData} xField="period" yField="value" colorField="version" group height={320} axis={{ y: { labelFormatter: (value: number) => `${(Number(value) * 100).toFixed(0)}%` } }} legend={{ color: { position: "top" } }} animate={false} />
         </div>
-        <details className="accessible-data-table"><summary>查看压力期比较精确数据</summary><table><thead><tr><th>压力期</th>{data.items.map((item) => <th key={item.factor_version}>{item.factor_version}</th>)}</tr></thead><tbody>{stressPeriods.map((period) => <tr key={period}><td>{period}</td>{data.items.map((item) => <td key={item.factor_version}>{formatPercent(item.stress_max_drawdown[period]!)}</td>)}</tr>)}</tbody></table></details>
+        <details className="accessible-data-table"><summary>查看压力期比较精确数据</summary><table><thead><tr><th>压力期</th>{data.items.map((item) => <th key={item.factor_version}>{compareLabel(item.factor_version)}</th>)}</tr></thead><tbody>{stressPeriods.map((period) => <tr key={period}><td>{period}</td>{data.items.map((item) => <td key={item.factor_version}>{formatPercent(item.stress_max_drawdown[period]!)}</td>)}</tr>)}</tbody></table></details>
       </section>
       <section className="table-surface" aria-labelledby="compare-portfolio-heading">
         <div className="section-heading"><div><span className="section-kicker">PORTFOLIO / COST</span><h2 id="compare-portfolio-heading">组合与成本精确比较</h2></div></div>
-        <div className="factor-comparison-table-wrap" role="region" aria-label="因子组合与成本比较" tabIndex={0}><table className="factor-metric-table"><thead><tr><th>指标</th>{data.items.map((item) => <th key={item.factor_version}>{item.factor_version}</th>)}</tr></thead><tbody>{portfolioRows.map(([label, accessor, kind]) => <tr key={label}><th>{label}</th>{data.items.map((item) => <td key={item.factor_version}>{kind === "percent" ? formatPercent(accessor(item), { signed: true }) : formatNumber(accessor(item), 3)}</td>)}</tr>)}</tbody></table></div>
+        <div className="factor-comparison-table-wrap" role="region" aria-label="因子组合与成本比较" tabIndex={0}><table className="factor-metric-table"><thead><tr><th>指标</th>{data.items.map((item) => <th key={item.factor_version}>{compareLabel(item.factor_version)}</th>)}</tr></thead><tbody>{portfolioRows.map(([label, accessor, kind]) => <tr key={label}><th>{label}</th>{data.items.map((item) => <td key={item.factor_version}>{kind === "percent" ? formatPercent(accessor(item), { signed: true }) : formatNumber(accessor(item), 3)}</td>)}</tr>)}</tbody></table></div>
       </section>
-      <p className="page-evidence-footer">比较响应只提供投影级证据；查看单因子来源与三层哈希请返回对应 tear sheet。页面未推断“最佳因子”。</p>
+      <p className="page-evidence-footer">比较响应只提供投影级证据；查看单因子来源与完整技术校验值请返回对应研究证据页。页面未推断“最佳因子”。</p>
     </div>
   );
 }
