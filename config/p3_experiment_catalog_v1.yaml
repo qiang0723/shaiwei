@@ -1,0 +1,175 @@
+protocol_id: p3-experiment-catalog-v1
+schema_version: web-v1
+timezone: Asia/Shanghai
+status: FROZEN_BEFORE_IMPLEMENTATION
+read_only: true
+
+depends_on:
+  projection_protocol: p3-factor-experiment-query-v1
+  detail_query: experiment_summary
+  current_projection_snapshot: 9afe4d11e3a6a3b36db47c31568b3eb6d4e3a5a7f81d516ed70a075369180f13
+
+scope:
+  endpoint: /api/v1/experiments
+  query_name: experiment_catalog
+  page_authorized: false
+  ui_proxy_authorized: false
+  model_or_backtest_execution: false
+  performance_recalculation: false
+  authority_reinterpretation: false
+
+source_scope:
+  projection_key: experiments
+  projected_total_count_at_freeze: 783
+  kind_counts_at_freeze:
+    research_experiment: 778
+    p2_engineering_run: 3
+    p2_effect_original: 1
+    p2_effect_correction: 1
+  required_identity_missing_at_freeze: 0
+  raw_ledger_read_by_web_query: false
+  raw_research_directory_read_by_web_query: false
+  projection_rebuild_required: true
+  protocol_file_hash_bound_to_projection: true
+
+query:
+  signature: experiment_catalog(experiment_kind=null,research_family=null,evidence_tier=null,authority_status=null,lifecycle_status=null,outcome_status=null,evidence_status=null,as_of=null,offset=0,limit=25)
+  allowed_filters:
+    - experiment_kind
+    - research_family
+    - evidence_tier
+    - authority_status
+    - lifecycle_status
+    - outcome_status
+    - evidence_status
+    - as_of
+  exact_match_filters_only: true
+  unknown_filter_value_error: INVALID_ARGUMENT
+  unknown_query_parameter_error: INVALID_ARGUMENT
+  default_offset: 0
+  minimum_offset: 0
+  default_limit: 25
+  minimum_limit: 1
+  maximum_limit: 100
+  pagination: bounded_offset_on_immutable_snapshot
+  page_merge_requires_same_snapshot_id: true
+  default_sort:
+    - recorded_at_desc
+    - experiment_kind_asc
+    - experiment_id_asc
+  client_sort: false
+  performance_sort: false
+  search: false
+
+item_fields:
+  - experiment_kind
+  - experiment_id
+  - recorded_at
+  - research_family
+  - evidence_tier
+  - authority_status
+  - lifecycle_status
+  - outcome_status
+  - model_or_engine
+  - engine_version
+  - failed_reason_count
+  - evidence_status
+
+response_fields:
+  - catalog_protocol_id
+  - items
+  - counters
+  - filters
+  - available_filters
+  - page
+  - sort
+  - sorted_by_performance
+  - historical_response_banner
+
+outcome_status:
+  allowed:
+    - RECORDED
+    - FAILED
+    - DISCOVERY_ONLY
+    - DISCOVERY_REJECTED
+    - G1_REJECTED
+    - G1_ADMITTED
+    - REVIEW_STOPPED
+    - ENGINEERING_GO_ONLY
+    - HISTORICAL_EFFECT_REJECTED
+    - INVALIDATED_METHOD
+  precedence:
+    - invalidated_method
+    - authoritative_review_stop
+    - p2_engineering_only
+    - p2_authoritative_historical_effect
+    - g1_decision
+    - d1_discovery
+    - gp_discovery
+    - recorded_baseline_or_signal
+  unknown_combination_error: NOT_EVALUATED
+  strategy_effectiveness_inferred: false
+  numeric_result_inspected: false
+
+time_semantics:
+  as_of_filters_recorded_at: true
+  latest_authority_overlay_always_applied: true
+  historical_response_banner: CURRENT_AUTHORITY_APPLIED_TO_HISTORICAL_RECORDS
+  query_clock_creates_business_state: false
+
+projection_binding:
+  retain_primary_protocol_id: p3-factor-experiment-query-v1
+  add_protocol_ids:
+    - p3-factor-experiment-query-v1
+    - p3-experiment-catalog-v1
+  manifest_protocol_ids_required: true
+  source_hash_required: config/p3_experiment_catalog_v1.yaml
+  builder_code_hash_required: true
+  write_once: true
+  deterministic_double_build_required: true
+
+security:
+  methods: [GET, HEAD]
+  maximum_response_bytes: 1048576
+  web_query_host_port: null
+  ui_proxy_path_added: false
+  load_dotenv: false
+  docker_socket: false
+  run_as_non_root: true
+  root_read_only: true
+  source_mounts_read_only: true
+  direct_research_mount: false
+  raw_params_json_returned: false
+  raw_result_json_returned: false
+  numeric_metrics_returned: false
+  source_paths_returned: false
+  bse_fail_closed: true
+
+forbidden:
+  - page_implementation
+  - ui_proxy_allowlist_expansion
+  - performance_sort_or_filter
+  - free_text_search
+  - arbitrary_query_parameters
+  - raw_json_or_daily_series
+  - model_or_backtest_execution
+  - g1_or_llm_execution
+  - research_or_authority_mutation
+  - frontend_ledger_scan
+  - export
+  - remote_access
+  - scheduler_control
+  - bse_security
+
+acceptance:
+  - protocol_commit_pushed_before_implementation
+  - all_783_records_are_listable_once
+  - catalog_and_detail_identity_match
+  - adapter_outcomes_are_exhaustive_and_fixture_locked
+  - filters_are_exact_and_facets_are_source_backed
+  - pagination_is_deterministic_and_bounded
+  - historical_cut_is_explicit
+  - no_numeric_performance_or_raw_json_in_catalog
+  - projection_double_build_is_identical
+  - docker_and_git_hygiene_pass
+  - scheduler_identity_is_unchanged
