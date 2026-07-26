@@ -597,6 +597,290 @@ export const factorCompare = {
   sorted_by_performance: false
 };
 
+export const EXPERIMENT_G1_ID = "25a43f7363ed";
+export const EXPERIMENT_ENGINEERING_ID = "p2-star50-engineering-v1-a4cfad049e36";
+export const EXPERIMENT_ORIGINAL_ID = "p2-star50-effect-v1-b43a7fa3e77f";
+export const EXPERIMENT_CORRECTION_ID = "p2-star50-effect-correction-v1-8aca90da0d09";
+
+const experimentCatalogItems = [
+  {
+    experiment_kind: "p2_effect_correction",
+    experiment_id: EXPERIMENT_CORRECTION_ID,
+    recorded_at: "2026-07-24T17:39:10+00:00",
+    research_family: "p2-star50-effect-correction-v1",
+    evidence_tier: "P2_EFFECT_AUTHORITATIVE",
+    authority_status: "AUTHORITATIVE_CURRENT",
+    lifecycle_status: "REJECTED",
+    outcome_status: "HISTORICAL_EFFECT_REJECTED",
+    model_or_engine: "Alpha158-LightGBM-TopK",
+    engine_version: C,
+    failed_reason_count: 4,
+    evidence_status: "VERIFIED"
+  },
+  {
+    experiment_kind: "p2_effect_original",
+    experiment_id: EXPERIMENT_ORIGINAL_ID,
+    recorded_at: "2026-07-24T17:03:00+00:00",
+    research_family: "p2-star50-effect-v1",
+    evidence_tier: "P2_EFFECT_INVALIDATED",
+    authority_status: "INVALIDATED_METHOD",
+    lifecycle_status: "REJECTED",
+    outcome_status: "INVALIDATED_METHOD",
+    model_or_engine: "Alpha158-LightGBM-TopK",
+    engine_version: B,
+    failed_reason_count: 4,
+    evidence_status: "VERIFIED"
+  },
+  {
+    experiment_kind: "p2_engineering_run",
+    experiment_id: EXPERIMENT_ENGINEERING_ID,
+    recorded_at: "2026-07-24T16:00:00+00:00",
+    research_family: "p2-star50-engineering-v1",
+    evidence_tier: "P2_ENGINEERING",
+    authority_status: "AUTHORITATIVE_CURRENT",
+    lifecycle_status: "ENGINEERING_GO_ONLY",
+    outcome_status: "ENGINEERING_GO_ONLY",
+    model_or_engine: "Alpha158-LightGBM-TopK",
+    engine_version: A,
+    failed_reason_count: 0,
+    evidence_status: "VERIFIED"
+  },
+  {
+    experiment_kind: "research_experiment",
+    experiment_id: EXPERIMENT_G1_ID,
+    recorded_at: "2026-07-24T04:09:44+00:00",
+    research_family: "p1-moneyflow-v1",
+    evidence_tier: "G1_FACTOR_DECISION",
+    authority_status: "SUPERSEDED_ENGINEERING_GENERATION",
+    lifecycle_status: "REJECTED",
+    outcome_status: "G1_REJECTED",
+    model_or_engine: "Alpha158 + frozen moneyflow rank blend",
+    engine_version: "p1-moneyflow-comparison-v1",
+    failed_reason_count: 5,
+    evidence_status: "VERIFIED"
+  }
+] as const;
+
+export const experimentCatalog = {
+  catalog_protocol_id: "p3-experiment-catalog-v1",
+  items: experimentCatalogItems,
+  counters: {
+    projected_total_count: 4,
+    as_of_count: 4,
+    filtered_count: 4,
+    returned_count: 4,
+    kind_counts: {
+      p2_effect_correction: 1,
+      p2_effect_original: 1,
+      p2_engineering_run: 1,
+      research_experiment: 1
+    }
+  },
+  filters: {
+    experiment_kind: null,
+    research_family: null,
+    evidence_tier: null,
+    authority_status: null,
+    lifecycle_status: null,
+    outcome_status: null,
+    evidence_status: null,
+    as_of: null
+  },
+  available_filters: {
+    experiment_kind: [
+      "p2_effect_correction",
+      "p2_effect_original",
+      "p2_engineering_run",
+      "research_experiment"
+    ],
+    research_family: [
+      "p1-moneyflow-v1",
+      "p2-star50-effect-correction-v1",
+      "p2-star50-effect-v1",
+      "p2-star50-engineering-v1"
+    ],
+    evidence_tier: [
+      "G1_FACTOR_DECISION",
+      "P2_EFFECT_AUTHORITATIVE",
+      "P2_EFFECT_INVALIDATED",
+      "P2_ENGINEERING"
+    ],
+    authority_status: [
+      "AUTHORITATIVE_CURRENT",
+      "INVALIDATED_METHOD",
+      "SUPERSEDED_ENGINEERING_GENERATION"
+    ],
+    lifecycle_status: ["ENGINEERING_GO_ONLY", "REJECTED"],
+    outcome_status: [
+      "ENGINEERING_GO_ONLY",
+      "G1_REJECTED",
+      "HISTORICAL_EFFECT_REJECTED",
+      "INVALIDATED_METHOD"
+    ],
+    evidence_status: ["VERIFIED"]
+  },
+  page: {
+    offset: 0,
+    limit: 25,
+    has_previous: false,
+    has_more: false,
+    previous_offset: null,
+    next_offset: null
+  },
+  sort: ["recorded_at:desc", "experiment_kind:asc", "experiment_id:asc"],
+  sorted_by_performance: false,
+  historical_response_banner: null
+};
+
+const experimentWindows = [
+  {
+    window: "STAR-W1",
+    trade_days: 242,
+    rebalance_count: 25,
+    base_net_excess: -0.085092,
+    base_maximum_drawdown: 0.302019,
+    cost_1_5x_net_excess: -0.090281,
+    double_cost_net_excess: -0.095437,
+    extra_slippage_net_excess: -0.094821
+  },
+  {
+    window: "STAR-W2",
+    trade_days: 242,
+    rebalance_count: 25,
+    base_net_excess: -0.192534,
+    base_maximum_drawdown: 0.318114,
+    cost_1_5x_net_excess: -0.198713,
+    double_cost_net_excess: -0.204852,
+    extra_slippage_net_excess: -0.204227
+  },
+  {
+    window: "STAR-W3",
+    trade_days: 243,
+    rebalance_count: 25,
+    base_net_excess: -0.238656,
+    base_maximum_drawdown: 0.221532,
+    cost_1_5x_net_excess: -0.245317,
+    double_cost_net_excess: -0.251937,
+    extra_slippage_net_excess: -0.251237
+  }
+];
+
+const experimentPooled = {
+  trade_days: 727,
+  base_net_excess: -0.529687,
+  cost_1_5x_net_excess: -0.545946,
+  double_cost_net_excess: -0.561902,
+  extra_slippage_net_excess: -0.560171
+};
+
+export const experimentCorrection = {
+  experiment_kind: "p2_effect_correction",
+  experiment_id: EXPERIMENT_CORRECTION_ID,
+  recorded_at: "2026-07-24T17:39:10+00:00",
+  research_family: "p2-star50-effect-correction-v1",
+  evidence_tier: "P2_EFFECT_AUTHORITATIVE",
+  authority_status: "AUTHORITATIVE_CURRENT",
+  lifecycle_status: "REJECTED",
+  outcome_status: "HISTORICAL_EFFECT_REJECTED",
+  model_or_engine: "Alpha158-LightGBM-TopK",
+  engine_version: C,
+  seed: "42",
+  train_period: "THREE_FROZEN_WINDOWS",
+  valid_period: "THREE_FROZEN_WINDOWS",
+  code_snapshot_sha256: C,
+  data_snapshot_sha256: B,
+  decision: {
+    historical_effect_gate: "NO_GO",
+    strategy_effective: "REJECT",
+    production_authorization: "none",
+    window_gate_pass: false,
+    cost_gate_pass: false,
+    drawdown_gate_pass: false,
+    diversification_gate_status: "NOT_EVALUABLE",
+    determinism_pass: true,
+    window_metrics: experimentWindows,
+    pooled: experimentPooled,
+    original_p2_2_model_valid: false,
+    original_p2_2_execution_valid: false,
+    results_known_before_correction: true
+  },
+  failed_reasons: [
+    "WINDOW_GATE",
+    "COST_GATE",
+    "DRAWDOWN_GATE",
+    "DIVERSIFICATION_NOT_EVALUABLE"
+  ],
+  evidence_status: "VERIFIED",
+  source_refs: [
+    `p2_effect_correction:${EXPERIMENT_CORRECTION_ID}`,
+    `p2_effect_correction_admission:${EXPERIMENT_CORRECTION_ID}-authoritative-decision`
+  ],
+  evidence_hashes: [A, B, C],
+  historical_response_banner: null
+};
+
+export const experimentOriginal = {
+  ...experimentCorrection,
+  experiment_kind: "p2_effect_original",
+  experiment_id: EXPERIMENT_ORIGINAL_ID,
+  recorded_at: "2026-07-24T17:03:00+00:00",
+  research_family: "p2-star50-effect-v1",
+  evidence_tier: "P2_EFFECT_INVALIDATED",
+  authority_status: "INVALIDATED_METHOD",
+  outcome_status: "INVALIDATED_METHOD",
+  engine_version: B,
+  code_snapshot_sha256: B,
+  decision: {
+    historical_effect_gate: "NO_GO",
+    strategy_effective: "REJECT",
+    production_authorization: "none",
+    window_gate_pass: false,
+    cost_gate_pass: false,
+    drawdown_gate_pass: false,
+    diversification_gate_status: "NOT_EVALUABLE",
+    determinism_pass: true,
+    window_metrics: experimentWindows,
+    pooled: experimentPooled,
+    numeric_results_status: "REPRODUCIBLE_NOT_AUTHORITATIVE",
+    authoritative_successor_kind: "p2_effect_correction",
+    authoritative_successor_id: EXPERIMENT_CORRECTION_ID
+  },
+  source_refs: [
+    `p2_effect_original:${EXPERIMENT_ORIGINAL_ID}`,
+    `p2_effect_original_admission:${EXPERIMENT_ORIGINAL_ID}-historical-decision`
+  ]
+};
+
+export const experimentG1 = {
+  experiment_kind: "research_experiment",
+  experiment_id: EXPERIMENT_G1_ID,
+  recorded_at: "2026-07-24T04:09:44+00:00",
+  research_family: "p1-moneyflow-v1",
+  evidence_tier: "G1_FACTOR_DECISION",
+  authority_status: "SUPERSEDED_ENGINEERING_GENERATION",
+  lifecycle_status: "REJECTED",
+  outcome_status: "G1_REJECTED",
+  model_or_engine: "Alpha158 + frozen moneyflow rank blend",
+  engine_version: "p1-moneyflow-comparison-v1",
+  seed: "42",
+  train_period: "2016-01-01~2018-12-31",
+  valid_period: "W1-W6 + frozen stress periods",
+  code_snapshot_sha256: A,
+  data_snapshot_sha256: B,
+  decision: { recorded_decision: "REJECTED", trial_count: 6, all_gates: factorGates },
+  failed_reasons: [
+    "deflated_sharpe",
+    "hac_t",
+    "incremental_net_excess",
+    "incremental_net_icir",
+    "rank_ic_retention"
+  ],
+  evidence_status: "VERIFIED",
+  source_refs: [`experiment:${EXPERIMENT_G1_ID}`, "g1_report:520691c764ee93fc"],
+  evidence_hashes: [A, B, C],
+  historical_response_banner: null
+};
+
 export function response(data: unknown, asOf?: string | null) {
   return {
     schema_version: "web-v1",

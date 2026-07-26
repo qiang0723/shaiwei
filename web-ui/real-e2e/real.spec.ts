@@ -7,7 +7,8 @@ const pages = [
   { route: "/signals", heading: "为什么入选，今天是否需要调仓" },
   { route: "/data-quality", heading: "这批数据，足以支持今天的信号吗" },
   { route: "/system-runs", heading: "今天的运行闭环，在哪里失败过、是否恢复" },
-  { route: "/factors", heading: "当前有什么可用因子，为什么还没有入库" }
+  { route: "/factors", heading: "当前有什么可用因子，为什么还没有入库" },
+  { route: "/experiments", heading: "这些实验是什么，哪些结论当前有效" }
 ];
 
 interface RealFactorCatalog {
@@ -23,6 +24,22 @@ interface RealFactorCatalog {
       current_factor_version: string | null;
       research_family: string;
     }>;
+  };
+  meta: { as_of: string };
+}
+
+interface RealExperimentCatalog {
+  data: {
+    counters: {
+      projected_total_count: number;
+      kind_counts: Record<string, number>;
+    };
+    items: Array<{
+      experiment_kind: string;
+      experiment_id: string;
+      outcome_status: string;
+    }>;
+    sorted_by_performance: false;
   };
   meta: { as_of: string };
 }
@@ -123,6 +140,37 @@ test("real factor projection drives catalog, tear sheet, history and strict comp
   await expect(page.getByRole("heading", { name: "六窗口 RankIC 稳定性" })).toBeVisible();
   await expect(page.getByText("后端 fingerprint 是唯一裁判；选择顺序保留，结果不按表现重排。"))
     .toBeVisible();
+});
+
+test("real experiment projection preserves authority, invalidation and typed effect evidence", async ({ page }) => {
+  const catalogResponse = await page.request.get("/api/v1/experiments?limit=25&offset=0");
+  expect(catalogResponse.status()).toBe(200);
+  const catalog = await catalogResponse.json() as RealExperimentCatalog;
+  expect(catalog.data.counters.projected_total_count).toBe(783);
+  expect(catalog.data.counters.kind_counts).toEqual({
+    p2_effect_correction: 1,
+    p2_effect_original: 1,
+    p2_engineering_run: 3,
+    research_experiment: 778
+  });
+  expect(catalog.data.sorted_by_performance).toBe(false);
+
+  const originalResponse = await page.request.get(
+    "/api/v1/experiments?experiment_kind=p2_effect_original&limit=25&offset=0"
+  );
+  const originalCatalog = await originalResponse.json() as RealExperimentCatalog;
+  const original = originalCatalog.data.items[0];
+  expect(original?.outcome_status).toBe("INVALIDATED_METHOD");
+
+  await page.goto(`/experiments/${original!.experiment_kind}/${original!.experiment_id}`);
+  await expect(page.getByText(/方法已失效：以下旧数值可复算/)).toBeVisible();
+  await expect(page.getByRole("region", { name: "P2 窗口与成本精确数据" }).getByRole("row"))
+    .toHaveCount(4);
+  await expect(page.getByText("没有逐日 NAV，页面不绘制净值、日回撤或交易时序")).toBeVisible();
+
+  await page.getByRole("link", { name: "查看权威纠错实验" }).click();
+  await expect(page.getByText("权威历史 REJECT")).toBeVisible();
+  await expect(page.getByText("历史效果拒绝 · HISTORICAL_EFFECT_REJECTED")).toBeVisible();
 });
 
 test("overview first contentful paint stays within the local budget", async ({ page }) => {

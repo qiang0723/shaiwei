@@ -13,6 +13,7 @@ const SignalsPage = lazy(() => import("./pages/SignalsPage"));
 const DataQualityPage = lazy(() => import("./pages/DataQualityPage"));
 const SystemRunsPage = lazy(() => import("./pages/SystemRunsPage"));
 const FactorsPage = lazy(() => import("./pages/FactorsPage"));
+const ExperimentsPage = lazy(() => import("./pages/ExperimentsPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,7 +44,7 @@ function NotFound() {
     <section className="request-error" role="alert">
       <div className="error-kicker">404</div>
       <h1>此只读页面未开放</h1>
-      <p>当前只提供总览、因子工厂、模拟组合、股票池/信号、数据质量和系统运行。</p>
+      <p>当前只提供总览、因子工厂、模型/回测、模拟组合、股票池/信号、数据质量和系统运行。</p>
     </section>
   );
 }
@@ -62,6 +63,10 @@ function AppRoutes() {
     location.pathname === "/factors/compare" ||
     /^\/factors\/[0-9a-f]{64}(?:\/admissions)?$/.test(location.pathname)
   ) page = <FactorsPage />;
+  else if (
+    location.pathname === "/experiments" ||
+    /^\/experiments\/(?:research_experiment|p2_engineering_run|p2_effect_original|p2_effect_correction)\/[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(location.pathname)
+  ) page = <ExperimentsPage />;
   else page = <NotFound />;
 
   return <AppShell>{page}</AppShell>;

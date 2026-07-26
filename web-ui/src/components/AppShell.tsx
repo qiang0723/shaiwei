@@ -10,7 +10,7 @@ import {
   SettingOutlined,
   StockOutlined
 } from "@ant-design/icons";
-import { Button, Drawer, Tooltip } from "antd";
+import { Button, Drawer } from "antd";
 import { useMemo, useState, type ReactNode } from "react";
 import { RouterLink, useRouter } from "../routing";
 
@@ -19,7 +19,8 @@ const overview = [
 ];
 
 const research = [
-  { path: "/factors", label: "因子工厂", short: "因子", icon: <ExperimentOutlined /> }
+  { path: "/factors", label: "因子工厂", short: "因子", icon: <ExperimentOutlined /> },
+  { path: "/experiments", label: "模型 / 回测", short: "实验", icon: <ApartmentOutlined /> }
 ];
 
 const decisions = [
@@ -32,14 +33,12 @@ const operations = [
   { path: "/system-runs", label: "系统运行", short: "运行", icon: <SettingOutlined /> }
 ];
 
-const deferred = [
-  { label: "模型 / 回测", icon: <ApartmentOutlined /> }
-];
-
-const mobile = [...overview, ...research, decisions[0]!];
+const mobile = [...overview, research[0]!, decisions[0]!];
 
 function pathIsActive(current: string, target: string): boolean {
-  return target === "/factors" ? current.startsWith("/factors") : current === target;
+  return target === "/factors" || target === "/experiments"
+    ? current.startsWith(target)
+    : current === target;
 }
 
 export function useAsOf() {
@@ -113,16 +112,6 @@ function Navigation({ close }: { close?: () => void }) {
           <span>{item.label}</span>
         </RouterLink>
       ))}
-      <div className="nav-group-label deferred-label">后续只读能力</div>
-      {deferred.map((item) => (
-        <Tooltip title="查询契约尚未开放" placement="right" key={item.label}>
-          <span className="nav-item disabled" aria-disabled="true">
-            {item.icon}
-            <span>{item.label}</span>
-            <small>待接入</small>
-          </span>
-        </Tooltip>
-      ))}
     </nav>
   );
 }
@@ -131,7 +120,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [mobileMenu, setMobileMenu] = useState(false);
   const { asOf, setAsOf, link } = useAsOf();
   const { location } = useRouter();
-  const researchContext = location.pathname.startsWith("/factors");
+  const researchContext =
+    location.pathname.startsWith("/factors") || location.pathname.startsWith("/experiments");
 
   return (
     <div className="app-shell">

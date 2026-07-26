@@ -2,8 +2,8 @@
 
 > 本文区分“已实现只读查询”和“Web 需求提案”。P3-0 已将 P-WEB-01/02/03/03A 落地为 HTTP
 > 只读契约，P3-2A 已落地 P-WEB-05/06；P3-3B 已落地 P-WEB-04/07 的类型化 HTTP 与安全投影，
-> P3-3C 已完成 P-WEB-07 四层页面；P3-4A 已落地内部只读 `experiment_catalog`。模型/回测页面与
-> UI 代理仍未授权，须另立 P3-4B。
+> P3-3C 已完成 P-WEB-07 四层页面；P3-4A 已落地 `experiment_catalog`，P3-4B 已完成模型/回测
+> 目录、类型化详情与严格 UI 代理。七类页面均保持本机只读。
 
 ## 1. 已实现契约
 
@@ -58,7 +58,7 @@
 | 组合重放 | `GET /api/v1/paper/replay` | 是 | 独立事件/状态链重放 |
 | 股票池/信号 | `GET /api/v1/signals/latest`、`signals/reconciliation` | 是 | 正式页面与原因展示待 P3-1 |
 | 因子目录与 tear sheet | `GET /api/v1/factors`、详情、比较、准入历史 | 是，P3-3C 页面已完成 | 四类历史未统一登记指标固定 `NOT_EVALUATED` |
-| 模型/回测 | 内部 `GET /api/v1/experiments`、已知 ID 详情 | 后端是，页面否 | P3-4A 目录后端已完成；UI 代理和页面须另立 P3-4B |
+| 模型/回测 | `GET /api/v1/experiments`、已知 ID 详情 | 是，P3-4B 页面已完成 | 无逐日 NAV，不画净值；不提供搜索、表现排序或比较 |
 | 数据质量 | `GET /api/v1/data-quality` | 是，P3-2B 页面已完成 | 哨兵报告尚未历史哈希绑定，证据状态固定 WARN；原始 Parquet 重哈希 NOT_EVALUATED |
 | 系统运行/通知 | `GET /api/v1/system/runs`、`GET /api/v1/notifications/{message_id}` | 是，P3-2B 页面已完成 | 实时 Docker 身份 NOT_EVALUATED；旧通知 schema 只计数、不可按消息寻址 |
 
@@ -111,9 +111,9 @@ GO 必须应用语义纠错后展示权威 STOP；原 P2-2 必须标 `INVALIDATE
 
 本端点只支持已知 ID 的详情；发现与翻页由下述 P-WEB-04A 提供。前端仍不得扫描账本补齐。
 
-### P-WEB-04A `experiment_catalog(...)`（P3-4A 已实现内部后端）
+### P-WEB-04A `experiment_catalog(...)`（P3-4A 后端、P3-4B 页面已实现）
 
-端点：内部 `GET/HEAD /api/v1/experiments`。当前没有 UI 代理路径。
+端点：`GET/HEAD /api/v1/experiments`，由本机 UI 同源精确代理开放。
 
 目的：在不读取原始账本、研究目录或 raw JSON 的前提下，对 P3-3B 不可变投影中的 783 条实验记录
 提供类型化发现、精确筛选和有界分页。每行只返回身份、证据层级、authority/lifecycle、适配器级
@@ -121,7 +121,8 @@ GO 必须应用语义纠错后展示权威 STOP；原 P2-2 必须标 `INVALIDATE
 
 支持 `experiment_kind/research_family/evidence_tier/authority_status/lifecycle_status/outcome_status/
 evidence_status/as_of` 精确筛选，limit 1—100，固定按 UTC 时间降序、kind 与 ID 升序。未知组合
-fail closed，禁止表现排序。模型/回测页面仍须在 P3-4B 单独冻结后才能开放代理和施工。
+fail closed，禁止表现排序。P3-4B 目录固定每页 25 条，详情按 evidence tier 白名单展示；无逐日
+NAV 时明确不画净值，原 P2-2 必须链接权威 P2-2C。
 
 ### P-WEB-05 `data_quality_summary(as_of)`（P3-2A 已实现）
 

@@ -1290,6 +1290,7 @@ def experiment_summary(
         raise WebQueryError("NO_DATA", "实验不存在", status_code=404)
     return {
         **row,
+        "outcome_status": _experiment_outcome(row),
         "historical_response_banner": "CURRENT_AUTHORITY_APPLIED_TO_HISTORICAL_RECORDS" if as_of else None,
     }
 

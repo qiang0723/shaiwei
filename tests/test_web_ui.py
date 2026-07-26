@@ -27,7 +27,8 @@ def test_ui_serves_only_frozen_routes_and_hashed_assets(tmp_path: Path) -> None:
     for route in (
         "/", "/overview", "/paper", "/signals", "/data-quality", "/system-runs",
         "/factors", "/factors/compare", f"/factors/{factor_id}",
-        f"/factors/{factor_id}/admissions",
+        f"/factors/{factor_id}/admissions", "/experiments",
+        "/experiments/research_experiment/a1b2c3d4e5f6",
     ):
         response = client.get(route)
         assert response.status_code == 200
@@ -138,5 +139,33 @@ def test_factor_ui_and_proxy_paths_are_exact_and_bounded() -> None:
     assert _allowed_api_path(f"/api/v1/factors/{factor_id}/admissions")
     assert not _allowed_api_path("/api/v1/factors/not-a-factor")
     assert not _allowed_api_path(f"/api/v1/factors/{factor_id}/extra")
-    assert not _allowed_api_path("/api/v1/experiments")
-    assert not _allowed_api_path("/api/v1/experiments/research_experiment/example")
+
+
+def test_experiment_ui_and_proxy_paths_are_exact_and_bounded() -> None:
+    detail = "/experiments/research_experiment/a1b2c3d4e5f6"
+    api_detail = f"/api/v1{detail}"
+    assert _allowed_ui_path("/experiments")
+    assert _allowed_ui_path(detail)
+    assert _allowed_api_path("/api/v1/experiments")
+    assert _allowed_api_path(api_detail)
+    assert _allowed_ui_path("/experiments/p2_effect_correction/run-20260725")
+    assert not _allowed_ui_path("/experiments/unknown/a1b2c3d4e5f6")
+    assert not _allowed_ui_path("/experiments/research_experiment/a/b")
+    assert not _allowed_ui_path("/experiments/research_experiment/%2e%2e")
+    assert not _allowed_api_path("/api/v1/experiments/research_experiment")
+    assert not _allowed_api_path(f"{api_detail}/extra")
+    assert not _allowed_api_path("/api/v1/experiments/../../.env")
+
+
+def test_experiment_ui_machine_protocol_is_frozen_and_narrow() -> None:
+    config = yaml.safe_load(
+        Path("config/p3_experiment_ui_v1.yaml").read_text(encoding="utf-8")
+    )
+    assert config["protocol_id"] == "p3-experiment-ui-v1"
+    assert config["status"] == "FROZEN_BEFORE_IMPLEMENTATION"
+    assert config["structural_baseline"]["projected_total_count"] == 783
+    assert config["page_contract"]["performance_sort_or_filter"] is False
+    assert config["page_contract"]["client_outcome_inference"] is False
+    assert config["detail"]["outcome_from_backend"] is True
+    assert config["detail"]["daily_nav_chart"] is False
+    assert config["security"]["ui_host_bind"] == "127.0.0.1"

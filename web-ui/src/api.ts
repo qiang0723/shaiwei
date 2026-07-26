@@ -7,6 +7,9 @@ import type {
   FactorCatalogData,
   FactorCompareData,
   FactorDetailData,
+  ExperimentCatalogData,
+  ExperimentDetailData,
+  ExperimentKind,
   ForwardData,
   NavData,
   NotificationData,
@@ -24,6 +27,8 @@ import {
   assertFactorCatalog,
   assertFactorCompare,
   assertFactorDetail,
+  assertExperimentCatalog,
+  assertExperimentDetail,
   assertForward,
   assertNav,
   assertNotification,
@@ -306,6 +311,120 @@ export async function fetchFactorCompare(
   );
   if (envelope.data.factor_versions.some((version, index) => version !== versions[index])) {
     throw new UiQueryError("EVIDENCE_MISMATCH", "因子比较响应改变了选择顺序", {
+      requestId: envelope.request_id
+    });
+  }
+  return envelope;
+}
+
+const EXPERIMENT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+const EXPERIMENT_FILTER = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+const EXPERIMENT_KINDS = new Set<ExperimentKind>([
+  "research_experiment",
+  "p2_engineering_run",
+  "p2_effect_original",
+  "p2_effect_correction"
+]);
+
+function requireExperimentKind(value: string): asserts value is ExperimentKind {
+  if (!EXPERIMENT_KINDS.has(value as ExperimentKind)) {
+    throw new UiQueryError("INVALID_ARGUMENT", "实验类型格式无效");
+  }
+}
+
+function requireExperimentId(value: string): void {
+  if (!EXPERIMENT_ID.test(value)) {
+    throw new UiQueryError("INVALID_ARGUMENT", "实验身份格式无效");
+  }
+}
+
+export async function fetchExperimentCatalog(
+  filters: {
+    experimentKind?: string;
+    researchFamily?: string;
+    evidenceTier?: string;
+    authorityStatus?: string;
+    lifecycleStatus?: string;
+    outcomeStatus?: string;
+    evidenceStatus?: string;
+    asOf?: string;
+    offset: number;
+  },
+  signal: AbortSignal
+): Promise<ApiEnvelope<ExperimentCatalogData>> {
+  if (!Number.isInteger(filters.offset) || filters.offset < 0) {
+    throw new UiQueryError("INVALID_ARGUMENT", "实验目录 offset 无效");
+  }
+  const parameters = new URLSearchParams({
+    offset: String(filters.offset),
+    limit: "25"
+  });
+  const values: Array<[string, string | undefined]> = [
+    ["experiment_kind", filters.experimentKind],
+    ["research_family", filters.researchFamily],
+    ["evidence_tier", filters.evidenceTier],
+    ["authority_status", filters.authorityStatus],
+    ["lifecycle_status", filters.lifecycleStatus],
+    ["outcome_status", filters.outcomeStatus],
+    ["evidence_status", filters.evidenceStatus]
+  ];
+  for (const [key, value] of values) {
+    if (!value) continue;
+    if (!EXPERIMENT_FILTER.test(value)) {
+      throw new UiQueryError("INVALID_ARGUMENT", `${key} 筛选格式无效`);
+    }
+    parameters.set(key, value);
+  }
+  const envelope = await getEnvelope(
+    "/api/v1/experiments",
+    filters.asOf,
+    signal,
+    assertExperimentCatalog,
+    parameters
+  );
+  const expectedFilters: Record<string, string | null> = {
+    experiment_kind: filters.experimentKind ?? null,
+    research_family: filters.researchFamily ?? null,
+    evidence_tier: filters.evidenceTier ?? null,
+    authority_status: filters.authorityStatus ?? null,
+    lifecycle_status: filters.lifecycleStatus ?? null,
+    outcome_status: filters.outcomeStatus ?? null,
+    evidence_status: filters.evidenceStatus ?? null,
+    as_of: filters.asOf || null
+  };
+  if (
+    envelope.data.page.offset !== filters.offset ||
+    envelope.data.page.limit !== 25 ||
+    Object.entries(expectedFilters).some(
+      ([key, expected]) => envelope.data.filters[key] !== expected
+    )
+  ) {
+    throw new UiQueryError("EVIDENCE_MISMATCH", "实验目录响应改变了筛选或分页身份", {
+      requestId: envelope.request_id
+    });
+  }
+  return envelope;
+}
+
+export async function fetchExperimentDetail(
+  kind: string,
+  experimentId: string,
+  asOf: string | undefined,
+  signal: AbortSignal
+): Promise<ApiEnvelope<ExperimentDetailData>> {
+  requireExperimentKind(kind);
+  requireExperimentId(experimentId);
+  const envelope = await getEnvelope(
+    `/api/v1/experiments/${kind}/${encodeURIComponent(experimentId)}`,
+    asOf,
+    signal,
+    assertExperimentDetail
+  );
+  if (
+    envelope.data.experiment_kind !== kind ||
+    envelope.data.experiment_id !== experimentId
+  ) {
+    throw new UiQueryError("EVIDENCE_MISMATCH", "实验详情响应与请求身份不一致", {
       requestId: envelope.request_id
     });
   }

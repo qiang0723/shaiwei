@@ -26,6 +26,7 @@ ALLOWED_UI_PATHS = {
     "/system-runs",
     "/factors",
     "/factors/compare",
+    "/experiments",
 }
 ALLOWED_API_PATHS = {
     "/api/v1/overview",
@@ -39,6 +40,7 @@ ALLOWED_API_PATHS = {
     "/api/v1/system/runs",
     "/api/v1/factors",
     "/api/v1/factors/compare",
+    "/api/v1/experiments",
 }
 ALLOWED_NOTIFICATION_PATH = re.compile(r"^/api/v1/notifications/[0-9a-f]{16}$")
 ALLOWED_FACTOR_UI_PATH = re.compile(
@@ -46,6 +48,17 @@ ALLOWED_FACTOR_UI_PATH = re.compile(
 )
 ALLOWED_FACTOR_API_PATH = re.compile(
     r"^/api/v1/factors/[0-9a-f]{64}(?:/admissions)?$"
+)
+EXPERIMENT_KIND = (
+    r"(?:research_experiment|p2_engineering_run|"
+    r"p2_effect_original|p2_effect_correction)"
+)
+EXPERIMENT_ID = r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}"
+ALLOWED_EXPERIMENT_UI_PATH = re.compile(
+    rf"^/experiments/{EXPERIMENT_KIND}/{EXPERIMENT_ID}$"
+)
+ALLOWED_EXPERIMENT_API_PATH = re.compile(
+    rf"^/api/v1/experiments/{EXPERIMENT_KIND}/{EXPERIMENT_ID}$"
 )
 ASSET_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 STYLE_NONCE_PLACEHOLDER = b"__P3_STYLE_NONCE__"
@@ -64,11 +77,16 @@ def _allowed_api_path(path: str) -> bool:
         path in ALLOWED_API_PATHS
         or ALLOWED_NOTIFICATION_PATH.fullmatch(path) is not None
         or ALLOWED_FACTOR_API_PATH.fullmatch(path) is not None
+        or ALLOWED_EXPERIMENT_API_PATH.fullmatch(path) is not None
     )
 
 
 def _allowed_ui_path(path: str) -> bool:
-    return path in ALLOWED_UI_PATHS or ALLOWED_FACTOR_UI_PATH.fullmatch(path) is not None
+    return (
+        path in ALLOWED_UI_PATHS
+        or ALLOWED_FACTOR_UI_PATH.fullmatch(path) is not None
+        or ALLOWED_EXPERIMENT_UI_PATH.fullmatch(path) is not None
+    )
 
 
 def _default_static_root() -> Path:
@@ -180,6 +198,7 @@ def create_app(
     @app.api_route("/system-runs", methods=["GET", "HEAD"])
     @app.api_route("/factors", methods=["GET", "HEAD"])
     @app.api_route("/factors/compare", methods=["GET", "HEAD"])
+    @app.api_route("/experiments", methods=["GET", "HEAD"])
     async def page(request: Request) -> Response:
         if not _allowed_ui_path(request.url.path):
             return Response("Not found", status_code=404, media_type="text/plain")
@@ -192,6 +211,21 @@ def create_app(
     @app.api_route("/factors/{factor_id}", methods=["GET", "HEAD"])
     @app.api_route("/factors/{factor_id}/admissions", methods=["GET", "HEAD"])
     async def factor_page(request: Request, factor_id: str) -> Response:
+        if not _allowed_ui_path(request.url.path):
+            return Response("Not found", status_code=404, media_type="text/plain")
+        return _index_response(
+            index_path,
+            head=request.method == "HEAD",
+            style_nonce=request.state.style_nonce,
+        )
+
+    @app.api_route(
+        "/experiments/{experiment_kind}/{experiment_id}",
+        methods=["GET", "HEAD"],
+    )
+    async def experiment_page(
+        request: Request, experiment_kind: str, experiment_id: str,
+    ) -> Response:
         if not _allowed_ui_path(request.url.path):
             return Response("Not found", status_code=404, media_type="text/plain")
         return _index_response(

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchFactorCompare, fetchPaperBundle } from "../api";
+import { fetchExperimentCatalog, fetchFactorCompare, fetchPaperBundle } from "../api";
 import { formatMoney, formatPercentagePoints, formatPercent } from "../format";
 import { dataVerdictCopy, notificationCopy, systemCoreCopy } from "../operationsPresentation";
 import {
@@ -8,6 +8,8 @@ import {
   assertFactorCatalog,
   assertFactorCompare,
   assertFactorDetail,
+  assertExperimentCatalog,
+  assertExperimentDetail,
   assertNotification,
   assertReplay,
   assertSignal,
@@ -15,6 +17,10 @@ import {
 } from "../validation";
 import {
   dataQuality,
+  experimentCatalog,
+  experimentCorrection,
+  experimentG1,
+  experimentOriginal,
   factorCatalog,
   factorCompare,
   factorDetail,
@@ -362,5 +368,56 @@ describe("P3-3C factor factory evidence contract", () => {
       new AbortController().signal
     );
     expect(result.data.sorted_by_performance).toBe(false);
+  });
+});
+
+describe("P3-4B model and backtest evidence contract", () => {
+  it("accepts the catalog, authoritative effect, invalidated method and G1 shapes", () => {
+    expect(() => assertExperimentCatalog(structuredClone(experimentCatalog))).not.toThrow();
+    expect(() => assertExperimentDetail(structuredClone(experimentCorrection))).not.toThrow();
+    expect(() => assertExperimentDetail(structuredClone(experimentOriginal))).not.toThrow();
+    expect(() => assertExperimentDetail(structuredClone(experimentG1))).not.toThrow();
+  });
+
+  it("rejects performance ranking, generic payloads and unknown decision keys", () => {
+    const ranked = structuredClone(experimentCatalog);
+    ranked.sorted_by_performance = true;
+    expect(() => assertExperimentCatalog(ranked)).toThrow("禁止按表现排序");
+
+    const raw = structuredClone(experimentCorrection) as typeof experimentCorrection & {
+      result_json?: object;
+    };
+    raw.result_json = { hidden: true };
+    expect(() => assertExperimentDetail(raw)).toThrow("未知字段");
+
+    const unknown = structuredClone(experimentCorrection) as typeof experimentCorrection;
+    (unknown.decision as Record<string, unknown>).sharpe = 3.2;
+    expect(() => assertExperimentDetail(unknown)).toThrow("未冻结 decision 键");
+  });
+
+  it("requires all G1 gates and a typed authoritative successor for invalidated evidence", () => {
+    const missingGate = structuredClone(experimentG1);
+    delete (missingGate.decision.all_gates as Record<string, unknown>).hac_t;
+    expect(() => assertExperimentDetail(missingGate)).toThrow("15 项门");
+
+    const missingSuccessor = structuredClone(experimentOriginal);
+    delete (missingSuccessor.decision as Record<string, unknown>).authoritative_successor_id;
+    expect(() => assertExperimentDetail(missingSuccessor)).toThrow("successor_id");
+  });
+
+  it("binds the catalog response to the exact requested filter and fixed pagination", async () => {
+    const mismatch = structuredClone(experimentCatalog);
+    mismatch.filters.outcome_status = null;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(envelope(mismatch)), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      }))
+    );
+    await expect(fetchExperimentCatalog({
+      outcomeStatus: "INVALIDATED_METHOD",
+      offset: 0
+    }, new AbortController().signal)).rejects.toMatchObject({ code: "EVIDENCE_MISMATCH" });
   });
 });

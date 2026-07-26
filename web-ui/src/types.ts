@@ -570,6 +570,130 @@ export interface FactorCompareData {
   sorted_by_performance: false;
 }
 
+export type ExperimentKind =
+  | "research_experiment"
+  | "p2_engineering_run"
+  | "p2_effect_original"
+  | "p2_effect_correction";
+
+export type ExperimentOutcome =
+  | "RECORDED"
+  | "FAILED"
+  | "DISCOVERY_ONLY"
+  | "DISCOVERY_REJECTED"
+  | "G1_REJECTED"
+  | "G1_ADMITTED"
+  | "REVIEW_STOPPED"
+  | "ENGINEERING_GO_ONLY"
+  | "HISTORICAL_EFFECT_REJECTED"
+  | "INVALIDATED_METHOD";
+
+export type ExperimentEvidenceTier =
+  | "BASELINE_BACKTEST"
+  | "SHADOW_SIGNAL"
+  | "FORWARD_SHADOW_SIGNAL"
+  | "G1_FACTOR_DECISION"
+  | "GP_DISCOVERY_ATTEMPT"
+  | "GP_STAGE1_ATTEMPT"
+  | "D1_DISCOVERY_ATTEMPT_WITH_REVIEW_OVERLAY"
+  | "P2_ENGINEERING"
+  | "P2_EFFECT_AUTHORITATIVE"
+  | "P2_EFFECT_INVALIDATED";
+
+export type ExperimentAuthorityStatus =
+  | "AUTHORITATIVE_CURRENT"
+  | "AUTHORITATIVE_STOP"
+  | "DISCOVERY_ONLY"
+  | "HISTORICAL_NON_AUTHORITATIVE"
+  | "INVALIDATED_METHOD"
+  | "PROVISIONAL_HISTORICAL"
+  | "RECORDED_EXPERIMENT"
+  | "SUPERSEDED_ENGINEERING_GENERATION";
+
+export type ExperimentLifecycleStatus =
+  | "COMPLETED"
+  | "DISCOVERY_ATTEMPT"
+  | "DISCOVERY_EVALUATED"
+  | "ENGINEERING_GO_ONLY"
+  | "FAILED"
+  | "REJECT"
+  | "REJECTED"
+  | "REVIEW_STOPPED";
+
+export type ExperimentEvidenceStatus = "VERIFIED" | "LEDGER_RECORDED_PROVISIONAL";
+
+export interface ExperimentCatalogItem {
+  experiment_kind: ExperimentKind;
+  experiment_id: string;
+  recorded_at: string;
+  research_family: string;
+  evidence_tier: ExperimentEvidenceTier;
+  authority_status: ExperimentAuthorityStatus;
+  lifecycle_status: ExperimentLifecycleStatus;
+  outcome_status: ExperimentOutcome;
+  model_or_engine: string;
+  engine_version: string;
+  failed_reason_count: number;
+  evidence_status: ExperimentEvidenceStatus;
+}
+
+export interface ExperimentCatalogData {
+  catalog_protocol_id: "p3-experiment-catalog-v1";
+  items: ExperimentCatalogItem[];
+  counters: {
+    projected_total_count: number;
+    as_of_count: number;
+    filtered_count: number;
+    returned_count: number;
+    kind_counts: Record<ExperimentKind, number>;
+  };
+  filters: Record<string, string | null> & { as_of: string | null };
+  available_filters: {
+    experiment_kind: ExperimentKind[];
+    research_family: string[];
+    evidence_tier: ExperimentEvidenceTier[];
+    authority_status: ExperimentAuthorityStatus[];
+    lifecycle_status: ExperimentLifecycleStatus[];
+    outcome_status: ExperimentOutcome[];
+    evidence_status: ExperimentEvidenceStatus[];
+  };
+  page: {
+    offset: number;
+    limit: number;
+    has_previous: boolean;
+    has_more: boolean;
+    previous_offset: number | null;
+    next_offset: number | null;
+  };
+  sort: ["recorded_at:desc", "experiment_kind:asc", "experiment_id:asc"];
+  sorted_by_performance: false;
+  historical_response_banner: string | null;
+}
+
+export interface ExperimentDetailData {
+  experiment_kind: ExperimentKind;
+  experiment_id: string;
+  recorded_at: string;
+  research_family: string;
+  evidence_tier: ExperimentEvidenceTier;
+  authority_status: ExperimentAuthorityStatus;
+  lifecycle_status: ExperimentLifecycleStatus;
+  outcome_status: ExperimentOutcome;
+  model_or_engine: string;
+  engine_version: string;
+  seed: string;
+  train_period: string;
+  valid_period: string;
+  code_snapshot_sha256: string;
+  data_snapshot_sha256: string;
+  decision: Record<string, JsonMetric>;
+  failed_reasons: string[];
+  evidence_status: ExperimentEvidenceStatus;
+  source_refs: string[];
+  evidence_hashes: string[];
+  historical_response_banner: string | null;
+}
+
 export interface EvidencePayload {
   title: string;
   snapshotId?: string;

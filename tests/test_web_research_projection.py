@@ -312,6 +312,7 @@ def test_projection_loader_api_and_invalidated_experiment_are_typed(tmp_path: Pa
     loaded = load_research_projection(tmp_path)
     old = experiment_summary(loaded, "p2_effect_original", "p2-old")
     assert old["authority_status"] == "INVALIDATED_METHOD"
+    assert old["outcome_status"] == "INVALIDATED_METHOD"
     assert old["decision"]["numeric_results_status"] == "REPRODUCIBLE_NOT_AUTHORITATIVE"
     corrected = experiment_summary(loaded, "p2_effect_correction", "p2-new")
     assert corrected["authority_status"] == "AUTHORITATIVE_CURRENT"
@@ -413,6 +414,19 @@ def test_experiment_catalog_is_typed_stable_filtered_and_bounded(tmp_path: Path)
     assert client.post("/api/v1/experiments").status_code == 405
     assert client.get("/api/v1/experiments?sort=performance").status_code == 422
     assert client.get("/api/v1/experiments?limit=2&limit=3").status_code == 422
+    detail = client.get("/api/v1/experiments/p2_effect_original/p2-old")
+    assert detail.status_code == 200
+    assert detail.json()["data"]["outcome_status"] == "INVALIDATED_METHOD"
+    assert (
+        client.get("/api/v1/experiments/p2_effect_original/p2-old?sort=performance").status_code
+        == 422
+    )
+    assert (
+        client.get(
+            "/api/v1/experiments/p2_effect_original/p2-old?as_of=2026-07-24&as_of=2026-07-23"
+        ).status_code
+        == 422
+    )
     assert '"decision"' not in response.text
     assert "params_json" not in response.text
     assert "result_json" not in response.text
@@ -479,6 +493,17 @@ def test_experiment_catalog_unknown_outcome_and_missing_field_fail_closed():
     with pytest.raises(WebQueryError) as missing:
         experiment_catalog(bundle)
     assert missing.value.code == "EVIDENCE_MISMATCH"
+
+
+def test_experiment_summary_reuses_catalog_outcome_adapter():
+    bundle = _bundle()
+    catalog = experiment_catalog(bundle, limit=100)
+    by_identity = {
+        (row["experiment_kind"], row["experiment_id"]): row["outcome_status"]
+        for row in catalog["items"]
+    }
+    for identity, expected in by_identity.items():
+        assert experiment_summary(bundle, *identity)["outcome_status"] == expected
 
 
 def test_projection_manifest_tampering_and_symbolic_link_fail_closed(tmp_path: Path):

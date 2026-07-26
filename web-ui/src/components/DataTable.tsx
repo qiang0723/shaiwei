@@ -15,7 +15,7 @@ interface DataTableProps<T> {
   label: string;
   columns: DataColumn<T>[];
   data: T[];
-  rowKey: keyof T;
+  rowKey: keyof T | ((record: T) => string);
   minimumWidth: "medium" | "wide";
   emptyText?: ReactNode;
 }
@@ -48,7 +48,7 @@ export function DataTable<T>({
         <tbody>
           {data.length ? (
             data.map((record, rowIndex) => (
-              <tr key={String(record[rowKey])}>
+              <tr key={typeof rowKey === "function" ? rowKey(record) : String(record[rowKey])}>
                 {columns.map((column) => {
                   const value = column.dataIndex ? record[column.dataIndex] : undefined;
                   return (

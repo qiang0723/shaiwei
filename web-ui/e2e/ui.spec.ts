@@ -2,6 +2,13 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import {
   dataQuality,
+  experimentCatalog,
+  experimentCorrection,
+  experimentG1,
+  experimentOriginal,
+  EXPERIMENT_CORRECTION_ID,
+  EXPERIMENT_G1_ID,
+  EXPERIMENT_ORIGINAL_ID,
   factorCatalog,
   factorCompare,
   factorDetail,
@@ -25,15 +32,94 @@ test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
 });
 
-async function mockApi(page: Page, requests: string[] = []) {
+function experimentCatalogFor(url: URL) {
+  const filterKeys = [
+    "experiment_kind",
+    "research_family",
+    "evidence_tier",
+    "authority_status",
+    "lifecycle_status",
+    "outcome_status",
+    "evidence_status"
+  ] as const;
+  const asOf = url.searchParams.get("as_of");
+  const asOfItems = experimentCatalog.items.filter(
+    (item) => !asOf || item.recorded_at.slice(0, 10) <= asOf
+  );
+  const filtered = asOfItems.filter((item) => filterKeys.every((key) => {
+    const requested = url.searchParams.get(key);
+    return !requested || item[key] === requested;
+  }));
+  const offset = Number(url.searchParams.get("offset") ?? "0");
+  const limit = Number(url.searchParams.get("limit") ?? "25");
+  const items = filtered.slice(offset, offset + limit);
+  return {
+    ...experimentCatalog,
+    items,
+    counters: {
+      projected_total_count: experimentCatalog.items.length,
+      as_of_count: asOfItems.length,
+      filtered_count: filtered.length,
+      returned_count: items.length,
+      kind_counts: {
+        p2_effect_correction: asOfItems.filter((item) => item.experiment_kind === "p2_effect_correction").length,
+        p2_effect_original: asOfItems.filter((item) => item.experiment_kind === "p2_effect_original").length,
+        p2_engineering_run: asOfItems.filter((item) => item.experiment_kind === "p2_engineering_run").length,
+        research_experiment: asOfItems.filter((item) => item.experiment_kind === "research_experiment").length
+      }
+    },
+    filters: Object.fromEntries([
+      ...filterKeys.map((key) => [key, url.searchParams.get(key)]),
+      ["as_of", asOf]
+    ]),
+    page: {
+      offset,
+      limit,
+      has_previous: offset > 0,
+      has_more: offset + items.length < filtered.length,
+      previous_offset: offset > 0 ? Math.max(0, offset - limit) : null,
+      next_offset: offset + items.length < filtered.length ? offset + items.length : null
+    },
+    historical_response_banner: asOf ? "CURRENT_AUTHORITY_APPLIED_TO_HISTORICAL_RECORDS" : null
+  };
+}
+
+function experimentDetailFor(url: URL) {
+  const original = url.pathname.endsWith(`/${EXPERIMENT_ORIGINAL_ID}`);
+  const correction = url.pathname.endsWith(`/${EXPERIMENT_CORRECTION_ID}`);
+  const detail = original ? experimentOriginal : correction ? experimentCorrection : experimentG1;
+  return {
+    ...detail,
+    historical_response_banner: url.searchParams.has("as_of")
+      ? "CURRENT_AUTHORITY_APPLIED_TO_HISTORICAL_RECORDS"
+      : null
+  };
+}
+
+async function mockApi(
+  page: Page,
+  requests: string[] = [],
+  options: { delayFilteredExperimentCatalog?: boolean } = {}
+) {
   await page.route("**/api/v1/**", async (route) => {
     const url = new URL(route.request().url());
     requests.push(url.pathname);
+    if (
+      options.delayFilteredExperimentCatalog &&
+      url.pathname === "/api/v1/experiments" &&
+      url.searchParams.has("outcome_status")
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
     const requestedVersion = url.searchParams.get("version");
     const historicalBanner = url.searchParams.has("as_of")
       ? "CURRENT_AUTHORITY_APPLIED_TO_HISTORICAL_RECORDS"
       : null;
-    const data = url.pathname === "/api/v1/factors/compare"
+    const data = url.pathname === "/api/v1/experiments"
+      ? experimentCatalogFor(url)
+      : /^\/api\/v1\/experiments\/(research_experiment|p2_effect_original|p2_effect_correction)\//.test(url.pathname)
+        ? experimentDetailFor(url)
+        : url.pathname === "/api/v1/factors/compare"
       ? factorCompare
       : url.pathname.endsWith("/admissions")
         ? { ...factorHistory, historical_response_banner: historicalBanner }
@@ -87,10 +173,23 @@ async function expectNoCriticalAccessibilityViolations(page: Page) {
 }
 
 async function expectNoPageOverflow(page: Page) {
-  const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
-  );
-  expect(overflow).toBe(false);
+  const result = await page.evaluate(() => {
+    const clientWidth = document.documentElement.clientWidth;
+    const overflow = document.documentElement.scrollWidth > clientWidth + 1;
+    const offenders = overflow
+      ? [...document.querySelectorAll("body *")]
+          .filter((element) => element.getBoundingClientRect().right > clientWidth + 1)
+          .slice(0, 10)
+          .map((element) => ({
+            className: element.className?.toString().slice(0, 120) ?? "",
+            right: Math.round(element.getBoundingClientRect().right),
+            tag: element.tagName,
+            text: element.textContent?.trim().slice(0, 80) ?? ""
+          }))
+      : [];
+    return { overflow, offenders };
+  });
+  expect(result).toEqual({ overflow: false, offenders: [] });
 }
 
 async function captureVisual(page: Page, testInfo: TestInfo, name: string) {
@@ -230,6 +329,63 @@ test("factor tear sheet keeps fifteen gates, unavailable evidence and append-onl
   await expectNoPageOverflow(page);
 });
 
+test("experiment catalog separates records from valid models and preserves exact filters", async ({ page }, testInfo) => {
+  const requests: string[] = [];
+  await mockApi(page, requests, { delayFilteredExperimentCatalog: true });
+  await page.goto("/experiments");
+  await expect(page.getByRole("heading", { name: "这些实验是什么，哪些结论当前有效" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "4 条实验记录，不是 4 个有效模型" })).toBeVisible();
+  await expect(page.getByText("READ ONLY · NO RANKING")).toBeVisible();
+  expect(requests).toEqual(["/api/v1/experiments"]);
+
+  await page.getByLabel("结论语义筛选").click();
+  await page
+    .locator(".ant-select-dropdown:visible .ant-select-item-option")
+    .filter({ hasText: "方法已失效 · INVALIDATED_METHOD" })
+    .click();
+  await expect(page).toHaveURL(/outcome_status=INVALIDATED_METHOD/);
+  await expect(page.getByText("正在核对实验目录、权威覆盖与分页身份…")).toBeVisible();
+  await expect(page.locator(`[title="${EXPERIMENT_CORRECTION_ID}"]`)).toHaveCount(0);
+  await expect(page.locator(`[title="${EXPERIMENT_ORIGINAL_ID}"]:visible`).first()).toBeVisible();
+  await expect(page.getByText(EXPERIMENT_CORRECTION_ID, { exact: true })).toHaveCount(0);
+  await captureVisual(page, testInfo, "experiment-catalog");
+  await expectNoPageOverflow(page);
+});
+
+test("invalidated P2 evidence links to the authoritative correction without inventing NAV", async ({ page }, testInfo) => {
+  const requests: string[] = [];
+  await mockApi(page, requests);
+  await page.goto(`/experiments/p2_effect_original/${EXPERIMENT_ORIGINAL_ID}?as_of=2026-07-24`);
+  await expect(page.getByRole("heading", { name: "实验结论与证据" })).toBeVisible();
+  await expect(page.getByText("历史记录已应用当前权威覆盖")).toBeVisible();
+  await expect(page.getByText(/方法已失效：以下旧数值可复算/)).toBeVisible();
+  await expect(page.getByText("可复算 · 非权威")).toBeVisible();
+  await expect(page.getByRole("region", { name: "P2 窗口与成本精确数据" }).getByRole("row")).toHaveCount(4);
+  await expect(page.getByText("没有逐日 NAV，页面不绘制净值、日回撤或交易时序")).toBeVisible();
+  await captureVisual(page, testInfo, "experiment-invalidated-detail");
+
+  await page.getByRole("link", { name: "查看权威纠错实验" }).click();
+  await expect(page).toHaveURL(new RegExp(`/p2_effect_correction/${EXPERIMENT_CORRECTION_ID}\\?as_of=2026-07-24`));
+  await expect(page.getByText("权威历史 REJECT")).toBeVisible();
+  await expect(page.getByText(/当前权威历史效果结论为 REJECT/)).toBeVisible();
+  expect(requests).toEqual([
+    `/api/v1/experiments/p2_effect_original/${EXPERIMENT_ORIGINAL_ID}`,
+    `/api/v1/experiments/p2_effect_correction/${EXPERIMENT_CORRECTION_ID}`
+  ]);
+  await expectNoPageOverflow(page);
+});
+
+test("G1 experiment detail renders all fifteen gates from one typed response", async ({ page }) => {
+  const requests: string[] = [];
+  await mockApi(page, requests);
+  await page.goto(`/experiments/research_experiment/${EXPERIMENT_G1_ID}`);
+  await expect(page.getByRole("heading", { name: "全部 G1 门" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "实验 G1 十五门" }).getByRole("row")).toHaveCount(16);
+  await expect(page.getByText("G1 未准入 · G1_REJECTED")).toBeVisible();
+  expect(requests).toEqual([`/api/v1/experiments/research_experiment/${EXPERIMENT_G1_ID}`]);
+  await expectNoPageOverflow(page);
+});
+
 test("historical factor view applies the authority banner and sends no compare request", async ({ page }) => {
   const requests: string[] = [];
   await mockApi(page, requests);
@@ -303,7 +459,16 @@ test("refresh keeps old evidence visible and an error blocks stale numbers befor
 test("primary routes have no serious or critical axe violations", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-1440" && testInfo.project.name !== "mobile-390");
   await mockApi(page);
-  for (const route of ["/overview", "/factors", "/paper", "/signals", "/data-quality", "/system-runs"]) {
+  for (const route of [
+    "/overview",
+    "/factors",
+    "/experiments",
+    `/experiments/p2_effect_correction/${EXPERIMENT_CORRECTION_ID}`,
+    "/paper",
+    "/signals",
+    "/data-quality",
+    "/system-runs"
+  ]) {
     await page.goto(route);
     await page.locator("h1").waitFor();
     await expectNoCriticalAccessibilityViolations(page);

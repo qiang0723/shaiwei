@@ -373,6 +373,14 @@ def create_app(project_root: Path | None = None) -> FastAPI:
         experiment_id: str,
         as_of: str | None = None,
     ) -> Response:
+        if set(request.query_params) - {"as_of"} or len(
+            request.query_params.getlist("as_of")
+        ) > 1:
+            raise WebQueryError(
+                "INVALID_ARGUMENT",
+                "实验详情包含未知或重复查询参数",
+                status_code=422,
+            )
         bundle = research_snapshot()
         return _success(
             request,
