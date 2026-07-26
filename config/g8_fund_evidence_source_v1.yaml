@@ -1,0 +1,154 @@
+protocol_id: g8-fund-evidence-source-v1
+schema_version: g8-source-v1
+status: SOURCE_FEASIBILITY_AUDITED
+audited_at: "2026-07-26"
+timezone: Asia/Shanghai
+
+scope:
+  comparator_freeze_date: "2026-07-15"
+  product_count: 6
+  changes_g8_formula_or_thresholds: false
+  strategy_results_inspected: false
+  g8_verdict_status: NOT_READY
+  production_authorization: none
+
+regulatory_basis:
+  disclosure_rule_url: https://www.csrc.gov.cn/csrc/c106256/c1653985/content.shtml
+  xbrl_rule_url: https://www.csrc.gov.cn/csrc/c101877/c1029609/content.shtml
+  electronic_disclosure_site_rule_url: https://fg.amac.org.cn/governmentrules_3854/zcgz_gfxwj/gfxwj_gmjj/gfxwj_gmjj_xxpl/201912/t20191222_24759.html
+  open_fund_nav_deadline: no_later_than_next_day_after_each_open_day
+  subscription_redemption_fee_source: fund_contract_prospectus_or_product_summary
+
+primary_source:
+  role: statutory_central_disclosure_primary
+  origin: http://eid.csrc.gov.cn
+  homepage_path: /fund/disclose/index.html
+  official_url_is_http: true
+  http_probe_status: PASS
+  https_probe_status: FAIL_TLS
+  authenticated_transport: false
+  source_can_be_verified_without_crosscheck: false
+  aggregation_sites_authoritative: false
+
+nav_contract:
+  method: GET
+  path: /fund/disclose/getPublicFundJZInfoMore.do
+  request_parameter: aoData
+  fixed_filters:
+    fundType: all
+    fundCompanyShortName: ""
+    fundName: ""
+    iDisplayStart: 0
+    iDisplayLength: 100
+  variable_filters: [fundCode, startDate, endDate]
+  usable_row:
+    code_matches_request: true
+    classification_code: 2030-1010
+    share_net_value_nonempty: true
+    total_net_value_nonempty: true
+    valuation_date_in_requested_range: true
+    exact_usable_rows_per_code_date: 1
+  observed_rows_per_code_date: 2
+  observed_empty_master_row: true
+  forbidden:
+    - use_empty_master_row
+    - forward_fill_missing_nav
+    - infer_dividend_from_nav_drop
+    - overwrite_prior_capture
+    - use_aggregation_site_as_authority
+
+dividend_contract:
+  method: POST
+  path: /fund/disclose/getDividendInfo.do
+  identity_fields:
+    - uploadDetailId
+    - fundName
+    - fundCode
+    - thisLevel
+    - thisName
+    - thisCode
+  response_fields:
+    - fundCode
+    - fundName
+    - isFenji
+    - specialPoint.fenhongjinE
+    - specialPoint.changwai
+    - specialPoint.changnei
+    - specialPoint.remark
+    - specialPoint.specialPoint
+  empty_special_point_is_valid_no_event_evidence: true
+  dividend_event_occurrence_proven_by_probe: false
+
+legal_document_contract:
+  fund_detail_path_template: /fund/disclose/fund_detail.do?fundId={fund_id}
+  required_sections:
+    - product_summary
+    - prospectus
+    - daily_nav
+    - manager_notice
+  fee_effective_timeline_status: NOT_IMPLEMENTED
+  document_download_and_hash_status: NOT_IMPLEMENTED
+  manual_fee_record_requires_source_document_sha256: true
+  manual_fee_record_requires_effective_date: true
+
+products:
+  - code: "016276"
+    expected_name: 招商中证800指数增强A
+    fund_id: 11567
+    probe_upload_detail_id: 33937275
+  - code: "017985"
+    expected_name: 华夏中证800指数增强A
+    fund_id: 12429
+    probe_upload_detail_id: 33940157
+  - code: "022513"
+    expected_name: 人保中证800指数增强A
+    fund_id: 14507
+    probe_upload_detail_id: 33933697
+  - code: "022461"
+    expected_name: 华商中证A500指数增强A
+    fund_id: 14414
+    probe_upload_detail_id: 33936866
+  - code: "022485"
+    expected_name: 国金中证A500指数增强A
+    fund_id: 14443
+    probe_upload_detail_id: 33928740
+  - code: "022467"
+    expected_name: 国泰海通中证A500指数增强A
+    fund_id: 14494
+    probe_upload_detail_id: 33927924
+
+source_probe:
+  start_date: "2026-07-15"
+  end_date: "2026-07-24"
+  primary_reported_max_valuation_date: "2026-07-24"
+  usable_dates_per_product: 8
+  total_usable_rows: 48
+  duplicate_usable_code_dates: 0
+  legal_document_sections_present_products: 6
+  immediate_double_fetch_product: "016276"
+  immediate_double_fetch_sha256: 52f093daa14e96d53335937a9ea167571e137fa9be006834ebcd1b92a91525f7
+  immediate_double_fetch_equal: true
+  historical_revision_lineage: NOT_PROVEN
+  nav_values_persisted_by_probe: false
+
+next_stage_authorization:
+  verdict: GO_G8_1_PRIMARY_CAPTURE_ONLY
+  collector_engineering_complete: false
+  raw_capture_written: false
+  append_only_ledger_written: false
+  manager_https_crosscheck_status: NOT_IMPLEMENTED
+  verified_total_return_series_status: NOT_IMPLEMENTED
+  fee_timeline_status: NOT_IMPLEMENTED
+  g8_evaluation_allowed: false
+  scheduler_integration_allowed: false
+  required_before_verified:
+    - immutable_raw_body_and_request_identity
+    - immediate_double_fetch_identity
+    - official_manager_https_crosscheck
+    - effective_dated_fee_documents_and_hashes
+    - revision_and_conflict_fail_closed
+  required_before_any_g8_evaluation:
+    - verified_nav_and_dividend_total_return_series
+    - verified_subscription_and_redemption_fee_timeline
+    - strategy_series_meets_existing_g8_v1_maturity
+    - immutable_g8_verdict_ledger
