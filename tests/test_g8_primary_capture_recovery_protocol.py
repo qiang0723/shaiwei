@@ -4,6 +4,7 @@ from pathlib import Path
 import yaml
 
 from shaiwei.evaluation.g8 import comparator_codes
+from shaiwei.ingest.g8_fund_evidence import G8CaptureProtocol
 from shaiwei.ledger import sha256_file
 
 
@@ -50,3 +51,7 @@ def test_g8_recovery_changes_only_execution_environment_and_remains_not_ready() 
     assert acceptance["ledger_rows"] == 54
     assert acceptance["original_failed_rows_preserved"] == 1
     assert acceptance["g8_status_after_capture"] == "NOT_READY"
+
+    loaded = G8CaptureProtocol.load(RECOVERY_PATH)
+    assert loaded.protocol_id == "g8-fund-primary-capture-recovery-v1"
+    assert loaded.operator == "host-g8-evidence-recovery"

@@ -1,5 +1,7 @@
 import csv
+import copy
 import json
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qs
@@ -32,6 +34,7 @@ VALUATION_DATES = (
     "2026-07-23",
     "2026-07-24",
 )
+RECOVERY_PROTOCOL_PATH = Path("config/g8_fund_primary_capture_recovery_v1.yaml")
 
 
 def _protocol() -> G8CaptureProtocol:
@@ -41,6 +44,74 @@ def _protocol() -> G8CaptureProtocol:
 def _ledger(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(",".join(LEDGER_HEADER) + "\n", encoding="utf-8")
+
+
+def _recovery_failure_fixture(tmp_path: Path) -> G8CaptureProtocol:
+    protocol = G8CaptureProtocol.load(RECOVERY_PROTOCOL_PATH)
+    document = copy.deepcopy(protocol.document)
+    binding = document["recovery_binding"]
+    ledger_path = tmp_path / "ledger/g8_fund_evidence.csv"
+    bundle_relative = Path("data/g8/fund_evidence/bundles/nav_range/016276/failure.json")
+    bundle_path = tmp_path / bundle_relative
+    bundle_path.parent.mkdir(parents=True, exist_ok=True)
+    empty_sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    observation = {
+        "received_at": "2026-07-26T06:02:58+00:00",
+        "http_status": 502,
+        "headers": [],
+        "body_sha256": empty_sha256,
+        "body_base64": "",
+        "error_class": "",
+    }
+    bundle = {
+        "schema_version": "g8-primary-evidence-bundle-v1",
+        "protocol_id": "g8-fund-primary-capture-v1",
+        "protocol_sha256": binding["original_protocol_sha256"],
+        "evidence_id": "d" * 64,
+        "request_id": "e" * 64,
+        "observations": [observation, observation],
+        "verification_status": "QUARANTINED_HTTP_STATUS",
+        "error_code": "HTTP_STATUS_INVALID",
+    }
+    bundle_path.write_text(json.dumps(bundle, sort_keys=True) + "\n", encoding="utf-8")
+    row = dict.fromkeys(LEDGER_HEADER, "")
+    row.update(
+        {
+            "evidence_id": bundle["evidence_id"],
+            "protocol_id": bundle["protocol_id"],
+            "request_id": bundle["request_id"],
+            "evidence_kind": "NAV_RANGE",
+            "product_code": "016276",
+            "period_start": "2026-07-15",
+            "period_end": "2026-07-24",
+            "captured_at": observation["received_at"],
+            "first_http_status": "502",
+            "second_http_status": "502",
+            "first_body_sha256": empty_sha256,
+            "second_body_sha256": empty_sha256,
+            "bundle_path": bundle_relative.as_posix(),
+            "bundle_sha256": sha256_file(bundle_path),
+            "parsed_row_count": "0",
+            "source_transport": "HTTP_UNAUTHENTICATED",
+            "verification_status": bundle["verification_status"],
+            "error_code": bundle["error_code"],
+            "operator": "docker-g8-evidence",
+        }
+    )
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    with ledger_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=LEDGER_HEADER)
+        writer.writeheader()
+        writer.writerow(row)
+    binding["failure_evidence_id"] = bundle["evidence_id"]
+    binding["failure_bundle_sha256"] = row["bundle_sha256"]
+    binding["failure_ledger_sha256"] = sha256_file(ledger_path)
+    return replace(
+        protocol,
+        document=document,
+        ledger_path=ledger_path,
+        data_root=tmp_path / "data/g8/fund_evidence",
+    )
 
 
 def _nav_document(product, *, version: int = 1, nonempty_master: bool = False) -> dict:
@@ -265,6 +336,26 @@ def test_ledger_verifier_detects_bundle_tampering(tmp_path: Path) -> None:
         verify_evidence_ledger(
             source.protocol,
             ledger_path=collector.ledger_path,
+            project_root=tmp_path,
+        )
+
+
+def test_recovery_verifier_requires_immutable_original_failure(tmp_path: Path) -> None:
+    protocol = _recovery_failure_fixture(tmp_path)
+    verification = verify_evidence_ledger(
+        protocol,
+        ledger_path=protocol.ledger_path,
+        project_root=tmp_path,
+    )
+    assert verification["ledger_rows"] == 0
+    assert verification["recovery_failure_preserved"] is True
+
+    failure_bundle = next(protocol.data_root.rglob("*.json"))
+    failure_bundle.write_text("{}\n", encoding="utf-8")
+    with pytest.raises(G8EvidenceError, match="RECOVERY_FAILURE_BUNDLE_HASH_MISMATCH"):
+        verify_evidence_ledger(
+            protocol,
+            ledger_path=protocol.ledger_path,
             project_root=tmp_path,
         )
 

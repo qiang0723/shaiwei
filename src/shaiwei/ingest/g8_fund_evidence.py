@@ -35,6 +35,9 @@ from shaiwei.provenance import code_snapshot_sha256, git_head
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_PROTOCOL_PATH = PROJECT_ROOT / "config" / "g8_fund_primary_capture_v1.yaml"
 DEFAULT_LEDGER_PATH = PROJECT_ROOT / "ledger" / "g8_fund_evidence.csv"
+PRIMARY_PROTOCOL_ID = "g8-fund-primary-capture-v1"
+RECOVERY_PROTOCOL_ID = "g8-fund-primary-capture-recovery-v1"
+ALLOWED_PROTOCOL_IDS = frozenset({PRIMARY_PROTOCOL_ID, RECOVERY_PROTOCOL_ID})
 BUNDLE_SCHEMA = "g8-primary-evidence-bundle-v1"
 NORMAL_STATUS = "PRIMARY_CAPTURED_UNAUTHENTICATED"
 SOURCE_TRANSPORT = "HTTP_UNAUTHENTICATED"
@@ -137,6 +140,68 @@ def _mapping(value: object, *, code: str) -> dict[str, Any]:
     return value
 
 
+def _read_yaml_mapping(path: Path, *, code: str) -> dict[str, Any]:
+    try:
+        document = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as error:
+        raise G8EvidenceError(code) from error
+    if not isinstance(document, dict):
+        raise G8EvidenceError(code)
+    return document
+
+
+def _validate_recovery_protocol(document: dict[str, Any], *, project_root: Path) -> None:
+    binding = _mapping(document.get("recovery_binding"), code="RECOVERY_BINDING_MISSING")
+    original_path = project_root / str(binding.get("original_protocol_path", ""))
+    if (
+        not original_path.is_file()
+        or binding.get("original_protocol_sha256") != sha256_file(original_path)
+    ):
+        raise G8EvidenceError("RECOVERY_ORIGINAL_PROTOCOL_HASH_MISMATCH")
+    original = _read_yaml_mapping(original_path, code="RECOVERY_ORIGINAL_PROTOCOL_INVALID")
+    if original.get("protocol_id") != PRIMARY_PROTOCOL_ID:
+        raise G8EvidenceError("RECOVERY_ORIGINAL_PROTOCOL_INVALID")
+
+    claimed_head = str(binding.get("attempted_image_claimed_git_head", ""))
+    implementation_head = str(binding.get("original_implementation_git_head", ""))
+    if (
+        re.fullmatch(r"[0-9a-f]{40}", claimed_head) is None
+        or re.fullmatch(r"[0-9a-f]{40}", implementation_head) is None
+        or claimed_head == implementation_head
+        or binding.get("attempted_image_claimed_git_head_matches_repository") is not False
+        or binding.get("original_failed_evidence_remains_immutable") is not True
+        or binding.get("original_attempt_counts_for_recovery_acceptance") is not False
+        or binding.get("changed_variable_only") != "execution_environment"
+    ):
+        raise G8EvidenceError("RECOVERY_BINDING_INVALID")
+
+    source = dict(_mapping(document.get("source"), code="SOURCE_MISSING"))
+    if source.pop("execution_environment", None) != "host_one_shot_no_env_file":
+        raise G8EvidenceError("RECOVERY_EXECUTION_ENVIRONMENT_INVALID")
+    if source.pop("post_capture_independent_verifier", None) != "immutable_docker_image_offline":
+        raise G8EvidenceError("RECOVERY_VERIFIER_INVALID")
+    if source != original.get("source"):
+        raise G8EvidenceError("RECOVERY_SOURCE_SEMANTICS_CHANGED")
+
+    acceptance = dict(_mapping(document.get("acceptance"), code="ACCEPTANCE_MISSING"))
+    if acceptance.pop("original_failed_rows_preserved", None) != 1:
+        raise G8EvidenceError("RECOVERY_FAILURE_PRESERVATION_INVALID")
+    if acceptance != original.get("acceptance"):
+        raise G8EvidenceError("RECOVERY_ACCEPTANCE_CHANGED")
+
+    unchanged_sections = (
+        "source_feasibility_binding",
+        "scope",
+        "nav_request",
+        "dividend_request",
+        "double_fetch",
+        "storage",
+        "products",
+    )
+    if any(document.get(key) != original.get(key) for key in unchanged_sections):
+        raise G8EvidenceError("RECOVERY_SEMANTICS_CHANGED")
+
+
 @dataclass(frozen=True)
 class Product:
     code: str
@@ -163,7 +228,8 @@ class G8CaptureProtocol:
             raise G8EvidenceError("PROTOCOL_UNREADABLE") from error
         if not isinstance(document, dict):
             raise G8EvidenceError("PROTOCOL_SCHEMA_INVALID")
-        if document.get("protocol_id") != "g8-fund-primary-capture-v1":
+        protocol_id = document.get("protocol_id")
+        if protocol_id not in ALLOWED_PROTOCOL_IDS:
             raise G8EvidenceError("PROTOCOL_ID_INVALID")
         if document.get("status") != "RESULT_BEFORE_EXECUTION_FROZEN":
             raise G8EvidenceError("PROTOCOL_NOT_FROZEN")
@@ -178,6 +244,9 @@ class G8CaptureProtocol:
             raise G8EvidenceError("SOURCE_PROTOCOL_HASH_MISMATCH")
         if binding.get("prior_verdict") != "GO_G8_1_PRIMARY_CAPTURE_ONLY":
             raise G8EvidenceError("SOURCE_GATE_NOT_GO")
+
+        if protocol_id == RECOVERY_PROTOCOL_ID:
+            _validate_recovery_protocol(document, project_root=project_root)
 
         scope = _mapping(document.get("scope"), code="SCOPE_MISSING")
         forbidden_true = (
@@ -273,6 +342,12 @@ class G8CaptureProtocol:
     @property
     def safe_response_headers(self) -> frozenset[str]:
         return frozenset(str(item).lower() for item in self.document["storage"]["response_headers_allowlist"])
+
+    @property
+    def operator(self) -> str:
+        if self.protocol_id == RECOVERY_PROTOCOL_ID:
+            return "host-g8-evidence-recovery"
+        return "docker-g8-evidence"
 
 
 @dataclass(frozen=True)
@@ -575,6 +650,77 @@ def _load_bundle(path: Path) -> dict[str, Any]:
     return document
 
 
+def _verify_recovery_failure_binding(
+    protocol: G8CaptureProtocol,
+    *,
+    ledger_path: Path,
+    project_root: Path,
+) -> bool:
+    if protocol.protocol_id != RECOVERY_PROTOCOL_ID:
+        return False
+    binding = _mapping(protocol.document.get("recovery_binding"), code="RECOVERY_BINDING_MISSING")
+    try:
+        ledger_lines = ledger_path.read_bytes().splitlines(keepends=True)
+    except OSError as error:
+        raise G8EvidenceError("LEDGER_UNREADABLE") from error
+    if len(ledger_lines) < 2:
+        raise G8EvidenceError("RECOVERY_FAILURE_LEDGER_PREFIX_MISSING")
+    frozen_prefix = b"".join(ledger_lines[:2])
+    if _sha256_bytes(frozen_prefix) != binding.get("failure_ledger_sha256"):
+        raise G8EvidenceError("RECOVERY_FAILURE_LEDGER_PREFIX_MISMATCH")
+
+    rows = _read_ledger(ledger_path)
+    matches = [row for row in rows if row["evidence_id"] == binding.get("failure_evidence_id")]
+    if len(matches) != 1:
+        raise G8EvidenceError("RECOVERY_FAILURE_ROW_MISSING")
+    row = matches[0]
+    empty_body_sha256 = _sha256_bytes(b"")
+    expected_statuses = [
+        _integer(row["first_http_status"], code="RECOVERY_FAILURE_HTTP_STATUS_INVALID"),
+        _integer(row["second_http_status"], code="RECOVERY_FAILURE_HTTP_STATUS_INVALID"),
+    ]
+    if (
+        row["protocol_id"] != PRIMARY_PROTOCOL_ID
+        or row["verification_status"] != "QUARANTINED_HTTP_STATUS"
+        or row["error_code"] != "HTTP_STATUS_INVALID"
+        or expected_statuses != binding.get("failure_http_statuses")
+        or row["first_body_sha256"] != empty_body_sha256
+        or row["second_body_sha256"] != empty_body_sha256
+        or binding.get("failure_bodies_empty") is not True
+        or row["bundle_sha256"] != binding.get("failure_bundle_sha256")
+    ):
+        raise G8EvidenceError("RECOVERY_FAILURE_ROW_MISMATCH")
+
+    relative_bundle = Path(row["bundle_path"])
+    if relative_bundle.is_absolute():
+        raise G8EvidenceError("RECOVERY_FAILURE_BUNDLE_PATH_INVALID")
+    bundle_path = (project_root / relative_bundle).resolve()
+    allowed_root = (project_root / "data/g8/fund_evidence/bundles").resolve()
+    if not bundle_path.is_relative_to(allowed_root):
+        raise G8EvidenceError("RECOVERY_FAILURE_BUNDLE_PATH_INVALID")
+    if not bundle_path.is_file() or sha256_file(bundle_path) != binding.get("failure_bundle_sha256"):
+        raise G8EvidenceError("RECOVERY_FAILURE_BUNDLE_HASH_MISMATCH")
+    bundle = _load_bundle(bundle_path)
+    observations = bundle.get("observations")
+    if not isinstance(observations, list) or len(observations) != 2:
+        raise G8EvidenceError("RECOVERY_FAILURE_BUNDLE_MISMATCH")
+    decoded = [
+        _decode_observation(item, allowed_headers=protocol.safe_response_headers)
+        for item in observations
+    ]
+    if (
+        bundle.get("protocol_id") != PRIMARY_PROTOCOL_ID
+        or bundle.get("protocol_sha256") != binding.get("original_protocol_sha256")
+        or bundle.get("evidence_id") != row["evidence_id"]
+        or bundle.get("request_id") != row["request_id"]
+        or bundle.get("verification_status") != row["verification_status"]
+        or bundle.get("error_code") != row["error_code"]
+        or decoded != [(empty_body_sha256, 502), (empty_body_sha256, 502)]
+    ):
+        raise G8EvidenceError("RECOVERY_FAILURE_BUNDLE_MISMATCH")
+    return True
+
+
 class EvidenceCollector:
     def __init__(
         self,
@@ -608,6 +754,11 @@ class EvidenceCollector:
         self.execution_git_head = execution_git_head or git_head()
         self._last_request_started: float | None = None
         _read_ledger(self.ledger_path)
+        _verify_recovery_failure_binding(
+            protocol,
+            ledger_path=self.ledger_path,
+            project_root=self.project_root,
+        )
         if self.minimum_interval_seconds < 0:
             raise G8EvidenceError("REQUEST_INTERVAL_INVALID")
         if re.fullmatch(r"[0-9a-f]{64}", self.execution_code_sha256) is None:
@@ -779,7 +930,7 @@ class EvidenceCollector:
             verification_status=status,
             revision_of_evidence_id=revision_of,
             error_code=error_code,
-            operator="docker-g8-evidence",
+            operator=self.protocol.operator,
         )
         result = CaptureResult(
             evidence_id=evidence_id,
@@ -832,6 +983,11 @@ def verify_evidence_ledger(
 ) -> dict[str, object]:
     path = ledger_path or protocol.ledger_path
     rows = _read_ledger(path)
+    recovery_failure_preserved = _verify_recovery_failure_binding(
+        protocol,
+        ledger_path=path,
+        project_root=project_root.resolve(),
+    )
     relevant = [row for row in rows if row["protocol_id"] == protocol.protocol_id]
     bundle_manifest: list[dict[str, str]] = []
     kind_counts: dict[str, int] = {}
@@ -937,6 +1093,7 @@ def verify_evidence_ledger(
         "bundle_manifest_sha256": _sha256_json(bundle_manifest),
         "execution_code_sha256": next(iter(execution_snapshots), ""),
         "execution_git_head": next(iter(execution_heads), ""),
+        "recovery_failure_preserved": recovery_failure_preserved,
     }
 
 
@@ -956,6 +1113,11 @@ def _assert_acceptance(protocol: G8CaptureProtocol, verification: dict[str, obje
         raise G8EvidenceError("ACCEPTANCE_PARSED_COUNTS_MISMATCH")
     if verification["status_counts"] != {NORMAL_STATUS: expected["ledger_rows"]}:
         raise G8EvidenceError("ACCEPTANCE_STATUS_COUNTS_MISMATCH")
+    if (
+        protocol.protocol_id == RECOVERY_PROTOCOL_ID
+        and verification["recovery_failure_preserved"] is not True
+    ):
+        raise G8EvidenceError("ACCEPTANCE_RECOVERY_FAILURE_NOT_PRESERVED")
 
 
 def run_capture(collector: EvidenceCollector) -> dict[str, object]:
