@@ -13,6 +13,9 @@
 >
 > 2026-07-27 实际持仓增加 PIT 中文简称，代码继续作为第二行审计标识；数据边界以
 > `WEB_SECURITY_NAMES_PROTOCOL_20260727.md` 为真身。
+>
+> 2026-07-27 内部模块化不改变本设计基线、HTTP/JSON契约或视觉规则；治理范围与等价证据以
+> `WEB_MODULARIZATION_PROTOCOL_20260727.md`、`WEB_MODULARIZATION_ACCEPTANCE_20260727.md` 为真身。
 
 ## 1. 冻结结论
 

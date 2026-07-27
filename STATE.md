@@ -2,13 +2,22 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-07-27 · Web 模块化治理第一阶段协议已冻结
+## 2026-07-27 · Web 模块化治理第一阶段 GO_MODULARIZATION_ONLY
 
-- 用户确认总量可能达到10万行，并授权当前适合时拆分 Web。`p3-web-modularization-v1` 只治理
-  `query.py`、前端 `validation.ts` 与 `styles.css` 三个最高风险热点，不改变功能、口径或视觉。
-- 本阶段不同时拆 `operations.py`、`research_projection.py` 和两张大型研究页面，避免改动面扩散；
-  成功后再依据真实结构收益决定下一阶段，不做连续无目标重构。
-- 协议见 `docs/WEB_MODULARIZATION_PROTOCOL_20260727.md`；尚未开始代码搬迁。
+- 用户确认总量可能达到10万行，并授权当前适合时拆分 Web。`p3-web-modularization-v1` 已严格按
+  结果前协议完成，只治理 `query.py`、前端 `validation.ts` 与 `styles.css` 三个最高风险热点；无功能、
+  HTTP/JSON 契约、错误码、页面文案、CSS 规则、视觉顺序或生产授权变化。
+- 后端1,548行查询单体已拆为474行门面与495/410/244行三个领域模块；前端1,484行校验单体已拆为
+  21行门面与454/380/255/244/244行五个领域模块；3,925行样式单体已拆为10行门面与10个不超过
+  577行的顺序片段。新增结构闸测试强制本批模块不超过600行并禁止查询层反向依赖配置/API。
+- 同一 `as_of` 下14个真实只读API响应重构前后SHA-256逐项一致；生产CSS两份产物名称和SHA-256
+  逐项一致。全仓357 PASS、前端单元25 PASS，Ruff、TypeScript、生产构建、Compose和diff-check
+  全部通过；`web-query`/`web-ui` healthy。
+- scheduler 仍为原容器、原镜像 `de87ec74...0261`、原创建时间且 healthy，未重启。第一阶段不拆
+  `operations.py`、`research_projection.py`、`FactorsPage.tsx` 和 `ExperimentsPage.tsx`；它们保留为
+  后续独立目标候选，不因本次成功立即扩大重构面。
+- 协议与验收见 `docs/WEB_MODULARIZATION_PROTOCOL_20260727.md`、
+  `docs/WEB_MODULARIZATION_ACCEPTANCE_20260727.md`。
 
 ## 2026-07-27 · Web 模拟仓中文简称展示 GO_LOCAL_READ_ONLY
 
