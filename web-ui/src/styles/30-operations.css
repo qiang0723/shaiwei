@@ -1,0 +1,248 @@
+
+.operations-hero,
+.system-status-hero {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.operations-hero > article,
+.system-status-hero > article {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--green);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.operations-hero > .operations-hero-warning,
+.operations-hero > article.warning,
+.system-status-hero > article.warning {
+  border-left-color: var(--amber);
+}
+
+.operations-hero > article.negative,
+.system-status-hero > article.negative {
+  border-left-color: var(--red);
+}
+
+.operations-hero > article.neutral,
+.system-status-hero > article.neutral {
+  border-left-color: var(--navy-700);
+}
+
+.operations-hero h2,
+.system-status-hero h2 {
+  margin: 4px 0 6px;
+  font-size: clamp(19px, 1.7vw, 24px);
+  line-height: 1.35;
+}
+
+.operations-hero p,
+.system-status-hero p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.operations-hero-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--green-soft);
+  color: var(--green);
+  font-size: 20px;
+}
+
+.operations-hero-icon.warning {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
+.operations-hero-icon.negative {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.operations-hero-icon.neutral {
+  background: var(--navy-100);
+  color: var(--navy-700);
+}
+
+.operations-metric-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.sentinel-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.sentinel-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--navy-700);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.sentinel-card-heading,
+.sentinel-facts {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sentinel-card-heading strong,
+.sentinel-card-heading span {
+  display: block;
+}
+
+.sentinel-card-heading strong {
+  font-size: 19px;
+}
+
+.sentinel-card-heading span,
+.sentinel-facts,
+.sentinel-metrics {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.sentinel-facts {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.sentinel-facts strong {
+  color: var(--ink);
+}
+
+.sentinel-metrics {
+  margin-top: 12px;
+}
+
+.sentinel-metrics summary {
+  min-height: 28px;
+  color: var(--navy-800);
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.sentinel-metrics dl {
+  display: grid;
+  gap: 5px;
+  margin: 8px 0 0;
+}
+
+.sentinel-metrics dl > div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #edf1f3;
+}
+
+.sentinel-metrics dt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sentinel-metrics dd {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.operations-boundary-alert {
+  margin-top: 16px;
+}
+
+.evidence-boundary-list {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding-left: 20px;
+  color: var(--muted);
+}
+
+.evidence-boundary-list strong {
+  color: var(--ink);
+}
+
+.operations-timeline {
+  overflow-x: auto;
+}
+
+.operations-timeline .ant-steps {
+  min-width: 820px;
+}
+
+.core-message-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.core-message-panel p {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+.message-id-list,
+.mount-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mount-chip-list code,
+.recorded-badge {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.recorded-badge {
+  color: var(--navy-800);
+  font-weight: 700;
+}
+
+.notification-detail-stack {
+  display: grid;
+  gap: 20px;
+}
+
+.error-kicker {
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+
+.muted {
+  color: var(--muted);
+}

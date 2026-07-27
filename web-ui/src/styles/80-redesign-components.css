@@ -1,0 +1,183 @@
+
+.short-series-evidence {
+  display: grid;
+  gap: 12px;
+}
+
+.short-series-message,
+.short-audit-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #cbd9e0;
+  border-radius: 6px;
+  background: var(--navy-100);
+}
+
+.short-series-message strong,
+.short-series-message span {
+  display: block;
+}
+
+.short-series-message span,
+.short-audit-summary p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.compact-value-table {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.compact-value-table table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.compact-value-table th,
+.compact-value-table td {
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.compact-value-table th:first-child,
+.compact-value-table td:first-child {
+  text-align: left;
+}
+
+.compact-value-table th {
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.compact-value-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.data-table-scroll {
+  border-radius: 6px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 9px 11px;
+}
+
+.data-table th {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.data-table td {
+  font-size: 12.5px;
+}
+
+.table-surface .status-badge,
+.table-surface .factor-authority,
+.table-surface .factor-decision,
+.table-surface .experiment-outcome,
+.table-surface .experiment-authority {
+  max-width: 190px;
+  padding-inline: 5px;
+}
+
+.filter-disclosure {
+  margin: 12px 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-soft);
+}
+
+.filter-disclosure summary {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 8px 11px;
+  color: var(--navy-800);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.filter-disclosure[open] summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.filter-disclosure .factor-filters,
+.filter-disclosure .experiment-filters {
+  padding: 10px;
+}
+
+.filter-disclosure .experiment-filters {
+  margin: 0;
+}
+
+.factor-library-hero,
+.experiment-scope-hero {
+  padding: 19px 21px;
+}
+
+.factor-library-hero h2,
+.experiment-scope-hero h2 {
+  font-size: 22px;
+}
+
+.operations-hero,
+.system-status-hero {
+  gap: 14px;
+}
+
+.operations-hero > article,
+.system-status-hero > article {
+  gap: 12px;
+  padding: 18px;
+}
+
+.operations-hero h2,
+.system-status-hero h2 {
+  font-size: 20px;
+}
+
+.operations-hero-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 17px;
+}
+
+.sentinel-grid {
+  gap: 8px;
+}
+
+.sentinel-card {
+  padding: 12px;
+  border-top-width: 2px;
+  border-radius: 6px;
+}
+
+.sentinel-card-heading strong {
+  font-size: 16px;
+}
+
+.page-evidence-footer,
+.chart-footnote,
+.table-caption {
+  padding: 9px 12px;
+  border-radius: 5px;
+}
+
+.request-state,
+.request-error {
+  min-height: 320px;
+  padding: 28px;
+  border-radius: 8px;
+}
