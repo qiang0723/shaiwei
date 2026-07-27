@@ -126,6 +126,9 @@ export interface Position {
   price_date: string;
   quantity: number;
   realized_pnl: string;
+  security_name: string | null;
+  security_name_source: "NAMECHANGE_PIT" | "STOCK_BASIC_CURRENT_FALLBACK" | "UNAVAILABLE";
+  security_name_status: DomainStatus;
   stale_trade_days: number;
   ts_code: string;
   unrealized_pnl: string;
@@ -152,6 +155,14 @@ export interface PortfolioData {
   normalized_nav: string;
   position_count: number;
   positions: Position[];
+  security_name_coverage: {
+    status: DomainStatus;
+    position_count: number;
+    pit_name_count: number;
+    fallback_name_count: number;
+    missing_name_count: number;
+    catalog_source_cutoff: string;
+  };
   source_ref: string;
   turnover: string;
 }

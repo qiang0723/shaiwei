@@ -1,0 +1,44 @@
+protocol_id: p3-web-security-names-v1
+schema_version: web-security-names-v1
+protocol_status: FROZEN_BEFORE_IMPLEMENTATION
+frozen_on: "2026-07-27"
+timezone: Asia/Shanghai
+read_only: true
+
+display_scope:
+  page: /paper
+  section: actual_positions
+  visible_label: "中文简称"
+  code_remains_visible: true
+
+sources:
+  primary: tushare.namechange
+  primary_resolution: latest_effective_interval_at_account_day
+  fallback: tushare.stock_basic
+  fallback_status: WARN
+  missing_status: NOT_READY
+
+projection:
+  path: data/web/security_names
+  content_addressed: true
+  current_pointer: current.json
+  raw_data_mounted_to_web_query: false
+  credentials_required: false
+  network_required: false
+
+gates:
+  duplicate_interval_behavior: FAIL_CLOSED
+  ambiguous_same_start_name_behavior: FAIL_CLOSED
+  bse_behavior: EXCLUDE_FROM_PROJECTION_AND_FAIL_IF_RETURNED
+  exchange_test_security_behavior: EXCLUDE_T_PREFIX_AND_COUNT
+  other_unsupported_security_behavior: FAIL_CLOSED
+  missing_name_behavior: SHOW_EXPLICIT_NOT_READY
+  snapshot_binds_projection_sha256: true
+
+forbidden:
+  - browser_hardcoded_name_map
+  - client_side_raw_data_scan
+  - current_name_silently_backfilled_as_pit
+  - model_or_account_rule_change
+  - scheduler_restart
+  - broker_or_trade_control

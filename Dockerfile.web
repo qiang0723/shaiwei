@@ -31,6 +31,7 @@ RUN groupadd --gid 10001 shaiwei \
        /workspace/data/shadow/signals \
        /workspace/data/shadow/reconciliations \
        /workspace/data/web/research_snapshots \
+       /workspace/data/web/security_names \
        /workspace/data/research/g1/stage1-gp-preflight-v1 \
        /workspace/data/research/moneyflow/experiments/p1-moneyflow-v1 \
        /workspace/data/research/star50/p2-star50-engineering-v1 \

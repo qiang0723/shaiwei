@@ -14,11 +14,16 @@
 仍为 `model_baseline`；未知账户 HTTP 422。四响应的 snapshot 必须绑定同一账户。Top20 当前0个自然
 FORWARD，返回 NOT_READY、空序列和空锚点，不允许前端补0或跨观察类型比较。
 
+同日起，`paper/portfolio` 的逐仓结果增加 `security_name/security_name_source/
+security_name_status`，并返回 `security_name_coverage`。名称主源为账户日时点的 `namechange`，当前
+`stock_basic` 只作 WARN 兜底；投影指针与 bundle 哈希进入原子 snapshot。常驻查询不挂 raw 数据，
+缺失名称不得丢弃持仓或伪造名称。
+
 ### 1.1 `paper_portfolio_snapshot(account_id="model_baseline", as_of=None)`
 
 - 选择不晚于 `as_of` 的最近一个 PASS 运行；无完成快照则抛 `PaperQueryError`。
 - 公共身份：`as_of/generated_at/account_id/execution_policy_version/source_refs/evidence_hashes`。
-- 结果字段：`freshness_status/mode/cash/market_value/net_asset/normalized_nav/benchmark_nav/net_excess/drawdown/cumulative_fees/cumulative_dividends/positions`。
+- 结果字段：`freshness_status/mode/cash/market_value/net_asset/normalized_nav/benchmark_nav/net_excess/drawdown/cumulative_fees/cumulative_dividends/positions/security_name_coverage`；逐仓含PIT简称、来源和状态。
 - 页面：模拟组合身份、会计卡、当前持仓、证据抽屉。
 - 限制：没有 `forward_status`；`positions` 的精确子字段以运行产物为准；没有目标权重或现金拖累。
 
@@ -57,7 +62,7 @@ FORWARD，返回 NOT_READY、空序列和空锚点，不允许前端补0或跨�
 |---|---|---|---|
 | 总览组合摘要 | `GET /api/v1/overview` | 是 | P3-0 原子快照；完整页面待 P3-1 |
 | 模拟组合净值 | `GET /api/v1/paper/nav`、`paper/forward` + 严格 `account_id` | 是 | 官方日历覆盖率暂为 NOT_EVALUATED；Top20 当前0 FORWARD |
-| 模拟组合当前账户 | `GET /api/v1/paper/portfolio` + 严格 `account_id` | 是 | Top30默认、Top20只读比较；已含实际权重、未实现盈亏与陈旧度 |
+| 模拟组合当前账户 | `GET /api/v1/paper/portfolio` + 严格 `account_id` | 是 | Top30默认、Top20只读比较；已含PIT中文简称、实际权重、未实现盈亏与陈旧度 |
 | 账户日执行 | orders | 是，需 signal hash | 页面需先从受控来源取得 signal hash |
 | 组合重放 | `GET /api/v1/paper/replay` + 严格 `account_id` | 是 | 两账户分别独立事件/状态链重放 |
 | 股票池/信号 | `GET /api/v1/signals/latest`、`signals/reconciliation` | 是 | 正式页面与原因展示待 P3-1 |

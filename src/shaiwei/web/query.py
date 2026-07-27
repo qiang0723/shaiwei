@@ -12,6 +12,12 @@ import json
 from pathlib import Path
 import re
 
+from shaiwei.web.security_names import (
+    POINTER_SCHEMA_VERSION as SECURITY_NAME_POINTER_SCHEMA,
+    SecurityNameCatalog,
+    SecurityNameError,
+)
+
 
 SCHEMA_VERSION = "web-v1"
 TIMEZONE = "Asia/Shanghai"
@@ -29,7 +35,9 @@ ARTIFACT_PREFIXES = (
     "data/shadow/signals/",
     "data/shadow/reconciliations/",
     "data/paper/",
+    "data/web/security_names/",
 )
+SECURITY_NAME_POINTER_PATH = "data/web/security_names/current.json"
 STATUS_PRECEDENCE = ("FAIL", "STALE", "WARN", "NOT_READY", "PASS")
 DATE_PATTERN = re.compile(r"^\d{4}-?\d{2}-?\d{2}$")
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
@@ -316,6 +324,32 @@ def _json_document(payload: bytes, label: str) -> dict[str, object]:
     return value
 
 
+def _read_security_name_catalog(
+    cut: _EvidenceCut,
+) -> tuple[SecurityNameCatalog, str, str, str]:
+    pointer_payload = cut._read(
+        SECURITY_NAME_POINTER_PATH,
+        prefixes=("data/web/security_names/",),
+    )
+    pointer = _json_document(pointer_payload, "证券简称投影指针")
+    if pointer.get("schema_version") != SECURITY_NAME_POINTER_SCHEMA:
+        raise WebQueryError("EVIDENCE_MISMATCH", "证券简称投影指针版本无效")
+    digest = _require_sha256(pointer.get("bundle_sha256"))
+    bundle_path = str(pointer.get("bundle_path", ""))
+    expected = f"data/web/security_names/{digest}/bundle.json"
+    if bundle_path != expected:
+        raise WebQueryError("EVIDENCE_MISMATCH", "证券简称投影路径与内容身份不一致")
+    bundle_payload = cut.artifact(bundle_path, prefix="data/web/security_names/")
+    if hashlib.sha256(bundle_payload).hexdigest() != digest:
+        raise WebQueryError("EVIDENCE_MISMATCH", "证券简称投影内容哈希不一致")
+    document = _json_document(bundle_payload, "证券简称投影")
+    try:
+        catalog = SecurityNameCatalog.from_document(document)
+    except SecurityNameError as error:
+        raise WebQueryError("EVIDENCE_MISMATCH", str(error)) from error
+    return catalog, SECURITY_NAME_POINTER_PATH, bundle_path, digest
+
+
 def _latest_by(
     rows: list[dict[str, str]],
     keys: tuple[str, ...],
@@ -464,6 +498,9 @@ def _instrument_to_tushare(value: str) -> str:
 def _paper_projection(
     row: dict[str, str],
     document: dict[str, object],
+    security_names: SecurityNameCatalog,
+    *,
+    security_name_bundle_sha256: str,
 ) -> dict[str, object]:
     result = dict(document.get("result", {}))
     nav = dict(result.get("nav", {}))
@@ -473,6 +510,7 @@ def _paper_projection(
     if net_asset <= 0 or cash + market_value != net_asset:
         raise WebQueryError("EVIDENCE_MISMATCH", "模拟组合会计恒等失败")
     positions: list[dict[str, object]] = []
+    name_statuses: list[str] = []
     position_market_value = Decimal("0")
     for value in list(nav.get("positions", [])):
         position = dict(value)
@@ -481,10 +519,16 @@ def _paper_projection(
             raise WebQueryError("FORBIDDEN_UNIVERSE", "模拟组合包含禁止的北交所证券")
         market = _money(position.get("market_value"))
         cost = _money(position.get("cost_basis"))
+        try:
+            name = security_names.resolve(code, str(document["execution_trade_date"]))
+        except SecurityNameError as error:
+            raise WebQueryError("EVIDENCE_MISMATCH", str(error)) from error
+        name_statuses.append(str(name["security_name_status"]))
         position_market_value += market
         positions.append(
             {
                 "ts_code": code,
+                **name,
                 "quantity": int(position.get("quantity", 0)),
                 "close": str(position.get("close", "")),
                 "price_date": str(position.get("price_date", "")),
@@ -498,6 +542,11 @@ def _paper_projection(
         )
     if position_market_value != market_value:
         raise WebQueryError("EVIDENCE_MISMATCH", "逐仓市值与账户市值不一致")
+    missing_names = sum(status == "NOT_READY" for status in name_statuses)
+    fallback_names = sum(status == "WARN" for status in name_statuses)
+    name_coverage_status = (
+        "NOT_READY" if missing_names else "WARN" if fallback_names else "PASS"
+    )
     freshness = str(nav.get("freshness_status", ""))
     if freshness not in {"PASS", "STALE"}:
         raise WebQueryError("EVIDENCE_MISMATCH", "模拟组合新鲜度状态无效")
@@ -521,6 +570,14 @@ def _paper_projection(
         "cumulative_dividends": str(nav["cumulative_dividends"]),
         "position_count": len(positions),
         "positions": positions,
+        "security_name_coverage": {
+            "status": name_coverage_status,
+            "position_count": len(positions),
+            "pit_name_count": sum(status == "PASS" for status in name_statuses),
+            "fallback_name_count": fallback_names,
+            "missing_name_count": missing_names,
+            "catalog_source_cutoff": security_names.source_cutoff,
+        },
         "bse_count": 0,
         "source_ref": row["artifact_path"],
         "evidence_hashes": {
@@ -531,6 +588,7 @@ def _paper_projection(
             "policy_sha256": document["policy_sha256"],
             "code_snapshot_sha256": document["code_snapshot_sha256"],
             "data_snapshot_sha256": document["data_snapshot_sha256"],
+            "security_name_bundle_sha256": security_name_bundle_sha256,
         },
     }
 
@@ -836,6 +894,9 @@ def _signal_projection(
     previous: dict[str, object] | None,
     paper_rows: list[dict[str, str]],
     paper_documents: list[dict[str, object]],
+    security_names: SecurityNameCatalog,
+    *,
+    security_name_bundle_sha256: str,
 ) -> dict[str, object]:
     generated_at = _parse_timestamp(signal["generated_at"])
     reference_indexes = [
@@ -850,6 +911,8 @@ def _signal_projection(
         reference_projection = _paper_projection(
             paper_rows[reference_index],
             paper_documents[reference_index],
+            security_names,
+            security_name_bundle_sha256=security_name_bundle_sha256,
         )
         actual_weights = {
             str(value["ts_code"]): _money(value["actual_weight"])
@@ -1104,7 +1167,15 @@ def _build_from_cut(
         paper_documents,
         account_id=account_id,
     )
-    paper_portfolio = _paper_projection(paper_rows[-1], paper_documents[-1])
+    security_names, name_pointer_ref, name_bundle_ref, name_bundle_sha256 = (
+        _read_security_name_catalog(cut)
+    )
+    paper_portfolio = _paper_projection(
+        paper_rows[-1],
+        paper_documents[-1],
+        security_names,
+        security_name_bundle_sha256=name_bundle_sha256,
+    )
     paper_nav = _paper_nav(paper_rows, paper_documents, account_id=account_id)
     paper_forward = _forward_projection(paper_rows, paper_documents)
     paper_replay = _paper_replay(
@@ -1122,6 +1193,8 @@ def _build_from_cut(
         previous_signal,
         paper_rows,
         paper_documents,
+        security_names,
+        security_name_bundle_sha256=name_bundle_sha256,
     )
     latest_signal["source_file_sha256"] = cut.sources[
         signal_row["signal_manifest_path"]
@@ -1237,6 +1310,8 @@ def _build_from_cut(
         "latest_signal_file_sha256": cut.sources[signal_row["signal_manifest_path"]].sha256,
         "latest_signal_sha256": signal_row["signal_sha256"],
         "latest_paper_artifact_sha256": paper_rows[-1]["artifact_sha256"],
+        "security_name_pointer_sha256": cut.sources[name_pointer_ref].sha256,
+        "security_name_bundle_sha256": name_bundle_sha256,
         **notification_hashes,
     }
     if previous_signal_row is not None:
@@ -1259,6 +1334,7 @@ def _build_from_cut(
         latest_terminal["finished_at"],
         signal["generated_at"],
         paper_documents[-1]["generated_at"],
+        security_names.source_cutoff,
         *notification_times,
     ]
     generated_at = _latest_timestamp(generated_times)
@@ -1273,6 +1349,8 @@ def _build_from_cut(
                     else []
                 ),
                 *(row["artifact_path"] for row in paper_rows),
+                name_pointer_ref,
+                name_bundle_ref,
                 *(
                     row["artifact_path"]
                     for row in reconciliation_rows

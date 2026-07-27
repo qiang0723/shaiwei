@@ -76,6 +76,14 @@ const portfolio = {
   normalized_nav: "1",
   position_count: 0,
   positions: [],
+  security_name_coverage: {
+    status: "PASS",
+    position_count: 0,
+    pit_name_count: 0,
+    fallback_name_count: 0,
+    missing_name_count: 0,
+    catalog_source_cutoff: "2026-07-24T11:30:00+00:00"
+  },
   source_ref: "data/paper/fixture.json",
   turnover: "0"
 };
@@ -304,6 +312,58 @@ describe("P3-1 fail-closed contract", () => {
       turnover: null
     };
     expect(() => assertSignal(invalidSignal)).toThrow("北交所");
+  });
+
+  it("rejects an unmarked or inconsistent missing security name", async () => {
+    const badPortfolio = {
+      ...portfolio,
+      position_count: 1,
+      positions: [
+        {
+          actual_weight: "0.9",
+          close: "9",
+          cost_basis: "900",
+          market_value: "900",
+          price_date: "20260724",
+          quantity: 100,
+          realized_pnl: "0",
+          security_name: null,
+          security_name_source: "NAMECHANGE_PIT",
+          security_name_status: "PASS",
+          stale_trade_days: 0,
+          ts_code: "600001.SH",
+          unrealized_pnl: "0"
+        }
+      ],
+      security_name_coverage: {
+        status: "PASS",
+        position_count: 1,
+        pit_name_count: 1,
+        fallback_name_count: 0,
+        missing_name_count: 0,
+        catalog_source_cutoff: "2026-07-24T11:30:00+00:00"
+      }
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const path = String(input);
+        const data = path.includes("portfolio")
+          ? badPortfolio
+          : path.includes("forward")
+            ? forward
+            : path.includes("replay")
+              ? replay
+              : nav;
+        return new Response(JSON.stringify(envelope(data)), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
+      })
+    );
+    await expect(
+      fetchPaperBundle(undefined, new AbortController().signal)
+    ).rejects.toThrow("缺失简称未显式标记");
   });
 });
 

@@ -2,6 +2,22 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-07-27 · Web 模拟仓中文简称展示 GO_LOCAL_READ_ONLY
+
+- `p3-web-security-names-v1` 已把模拟组合实际持仓首列升级为“中文简称 / 代码”；代码继续保留为审计
+  标识，名称不参与模型、信号、排序、估值、交易或判决。
+- 一次性断网投影器以已登记 `tushare.namechange` 为 PIT 主源、`stock_basic` 当前简称为显式 WARN
+  兜底，生成内容寻址 bundle；常驻 Web 只读挂载投影，不读取 raw Parquet、`.env` 或外网。
+- 真实源为13,448条名称历史/5,428只证券、5,535只基础简称；1条 `T600018.SH` 交易所测试证券排除并
+  计数，其他未知格式仍 fail closed。bundle `9651c35b...fc75` 两遍哈希一致。
+- 真实 Web API：Top30 最新账户日22/22、Top20最新账户日18/18均由 PIT 历史名称覆盖，fallback=0、
+  missing=0、`.BJ=0`；两账户合计40个持仓行、24只不同证券。
+- 全仓355 PASS、前端单元25 PASS、TypeScript/生产构建和真实本机API/静态分块核验通过；Web 镜像
+  `sha256:0998e8ea...59e8a`，`web-query`/`web-ui` 均 healthy。scheduler 仍为 `fd8e96152b53`、
+  原镜像、原创建时间且 healthy，未重启。
+- 协议与验收见 `docs/WEB_SECURITY_NAMES_PROTOCOL_20260727.md`、
+  `docs/WEB_SECURITY_NAMES_ACCEPTANCE_20260727.md`。
+
 ## 2026-07-27 · Top20 模拟账户已获生产调度授权，受控切换待机器门
 
 - 用户知悉 2026-07-26 完整 Docker 元数据工具输出曾包含环境变量，并接受继续使用现有 Tushare/

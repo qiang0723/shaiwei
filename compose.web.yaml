@@ -70,6 +70,12 @@ services:
         bind:
           create_host_path: false
       - type: bind
+        source: ./data/web/security_names
+        target: /workspace/data/web/security_names
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
         source: ./logs/notifications
         target: /workspace/logs/notifications
         read_only: true
@@ -193,6 +199,55 @@ services:
       - type: bind
         source: ./data/web/research_snapshots
         target: /workspace/data/web/research_snapshots
+        read_only: false
+        bind:
+          create_host_path: false
+
+  security-name-projector:
+    image: shaiwei:local
+    profiles: [security-name-projection]
+    init: true
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 1.0
+    restart: "no"
+    network_mode: none
+    command: ["python", "-m", "shaiwei.web.security_names"]
+    volumes:
+      - type: bind
+        source: ./src
+        target: /workspace/src
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/ingest_batches.csv
+        target: /workspace/ledger/ingest_batches.csv
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/raw/source=tushare/api=namechange
+        target: /workspace/data/raw/source=tushare/api=namechange
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/raw/source=tushare/api=stock_basic
+        target: /workspace/data/raw/source=tushare/api=stock_basic
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/web/security_names
+        target: /workspace/data/web/security_names
         read_only: false
         bind:
           create_host_path: false

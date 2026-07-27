@@ -532,14 +532,50 @@ export function assertPortfolio(value: unknown): asserts value is PortfolioData 
   );
   hashMap(root.evidence_hashes, "组合 evidence_hashes");
   if (!Array.isArray(root.positions)) throw new Error("组合 positions 缺失");
+  const nameCoverage = record(root.security_name_coverage, "组合 security_name_coverage");
+  const coverageStatus = status(nameCoverage.status, "组合 security_name_coverage.status");
+  timestamp(nameCoverage.catalog_source_cutoff, "组合 security_name_coverage.catalog_source_cutoff");
+  ["position_count", "pit_name_count", "fallback_name_count", "missing_name_count"].forEach(
+    (name) => integer(nameCoverage[name], `组合 security_name_coverage.${name}`)
+  );
+  if (nameCoverage.position_count !== root.positions.length) throw new Error("组合简称覆盖分母不一致");
+  if (
+    Number(nameCoverage.pit_name_count) + Number(nameCoverage.fallback_name_count) + Number(nameCoverage.missing_name_count)
+    !== root.positions.length
+  ) throw new Error("组合简称覆盖分层不闭合");
+  if (root.position_count !== root.positions.length) throw new Error("组合持仓计数不一致");
+  const resolvedStatuses: DomainStatus[] = [];
   root.positions.forEach((item, index) => {
     const position = record(item, `组合 position[${index}]`);
     text(position.ts_code, `组合 position[${index}].ts_code`);
+    const nameStatus = status(position.security_name_status, `组合 position[${index}].security_name_status`);
+    resolvedStatuses.push(nameStatus);
+    if (!["NAMECHANGE_PIT", "STOCK_BASIC_CURRENT_FALLBACK", "UNAVAILABLE"].includes(String(position.security_name_source))) {
+      throw new Error(`组合 position[${index}].security_name_source 无效`);
+    }
+    if (position.security_name === null) {
+      if (position.security_name_status !== "NOT_READY" || position.security_name_source !== "UNAVAILABLE") {
+        throw new Error(`组合 position[${index}] 缺失简称未显式标记`);
+      }
+    } else {
+      text(position.security_name, `组合 position[${index}].security_name`);
+    }
+    const validPair =
+      (position.security_name_source === "NAMECHANGE_PIT" && nameStatus === "PASS" && position.security_name !== null)
+      || (position.security_name_source === "STOCK_BASIC_CURRENT_FALLBACK" && nameStatus === "WARN" && position.security_name !== null)
+      || (position.security_name_source === "UNAVAILABLE" && nameStatus === "NOT_READY" && position.security_name === null);
+    if (!validPair) throw new Error(`组合 position[${index}] 简称来源与状态不一致`);
     ["actual_weight", "market_value", "cost_basis", "unrealized_pnl", "realized_pnl"].forEach(
       (name) => numberLike(position[name], `组合 position[${index}].${name}`)
     );
     integer(position.stale_trade_days, `组合 position[${index}].stale_trade_days`);
   });
+  const expectedCoverageStatus = resolvedStatuses.includes("NOT_READY")
+    ? "NOT_READY"
+    : resolvedStatuses.includes("WARN")
+      ? "WARN"
+      : "PASS";
+  if (coverageStatus !== expectedCoverageStatus) throw new Error("组合简称覆盖状态不一致");
   noBse(value);
 }
 

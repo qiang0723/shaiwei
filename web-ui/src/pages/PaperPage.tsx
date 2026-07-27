@@ -129,12 +129,21 @@ export default function PaperPage() {
 
   const positionColumns: DataColumn<Position>[] = [
     {
-      title: "证券",
+      title: "中文简称 / 代码",
       dataIndex: "ts_code",
       key: "ts_code",
       fixed: "left",
-      width: 116,
-      render: (value: string) => <code className="security-code">{value}</code>
+      width: 168,
+      render: (value: string, record) => (
+        <div className="security-name-cell">
+          <strong
+            title={record.security_name_source === "NAMECHANGE_PIT" ? "证券更名时点记录" : record.security_name_source === "STOCK_BASIC_CURRENT_FALLBACK" ? "A股基础信息当前简称；非历史PIT名称" : "名称来源尚未覆盖"}
+          >
+            {record.security_name ?? "名称待同步"}
+          </strong>
+          <code className="security-code">{value}</code>
+        </div>
+      )
     },
     { title: "数量", dataIndex: "quantity", key: "quantity", align: "right", width: 92 },
     {
@@ -402,7 +411,7 @@ export default function PaperPage() {
       <section className="table-surface" aria-labelledby="positions-heading">
         <div className="section-heading">
           <div><span className="section-kicker">ACTUAL POSITIONS</span><h2 id="positions-heading">实际持仓</h2></div>
-          <span className="section-note">目标权重不在本表冒充实际持仓</span>
+          <span className="section-note">中文简称按账户日解析；股票代码保留为审计标识</span>
         </div>
         <DataTable
           label="实际持仓横向滚动表格"

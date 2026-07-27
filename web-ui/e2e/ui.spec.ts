@@ -226,6 +226,10 @@ test("overview uses one atomic response and preserves as_of during drilldown", a
   await page.getByRole("link", { name: /查看完整组合证据/ }).click();
   await expect(page).toHaveURL(/\/paper\?as_of=2026-07-24/);
   await expect(page.getByRole("heading", { name: "模拟组合" })).toBeVisible();
+  await expect(page.getByText("深桑达A", { exact: true })).toBeVisible();
+  await expect(page.getByText("000032.SZ", { exact: true })).toBeVisible();
+  await expect(page.getByText("纽威股份", { exact: true })).toBeVisible();
+  await expect(page.getByText("603699.SH", { exact: true })).toBeVisible();
   await expectNoPageOverflow(page);
 });
 

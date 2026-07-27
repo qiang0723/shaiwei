@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-d1-fixture docker-d1-live docker-d1-review-live docker-d1-semantic-verify docker-g8-primary-build docker-g8-primary-capture docker-g8-primary-verify docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-research-project docker-web-up docker-web-status docker-web-logs docker-web-down
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-d1-fixture docker-d1-live docker-d1-review-live docker-d1-semantic-verify docker-g8-primary-build docker-g8-primary-capture docker-g8-primary-verify docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-research-project docker-web-security-names-project docker-web-up docker-web-status docker-web-logs docker-web-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -141,6 +141,8 @@ docker-web-build: ## 构建隔离的 P3-0 只读 Web 镜像，不启动服务
 	docker compose -f compose.web.yaml --profile web build web-query
 docker-web-research-project: ## 一次性构建 P3-3B 不可变研究投影；不启动 Web 或 scheduler
 	docker compose -f compose.web.yaml --profile research-projection run --rm research-projector
+docker-web-security-names-project: ## 断网构建内容寻址的证券简称投影；不启动 Web 或 scheduler
+	docker compose -f compose.web.yaml --profile security-name-projection run --rm security-name-projector
 docker-web-up: ## 显式启动两个 Web 服务；不会启动或重建 scheduler
 	docker compose -f compose.web.yaml --profile web up -d web-query web-ui
 docker-web-status: ## 查看隔离 Web 服务状态

@@ -122,9 +122,17 @@ export const portfolio = {
   normalized_nav: "0.9436498",
   position_count: 2,
   positions: [
-    { actual_weight: "0.02699", close: "14.15", cost_basis: "15548.16", market_value: "12735", price_date: "20260724", quantity: 900, realized_pnl: "0", stale_trade_days: 0, ts_code: "000032.SZ", unrealized_pnl: "-2813.16" },
-    { actual_weight: "0.03545", close: "41.81", cost_basis: "16505.17", market_value: "16724", price_date: "20260724", quantity: 400, realized_pnl: "0", stale_trade_days: 0, ts_code: "603699.SH", unrealized_pnl: "218.83" }
+    { actual_weight: "0.02699", close: "14.15", cost_basis: "15548.16", market_value: "12735", price_date: "20260724", quantity: 900, realized_pnl: "0", security_name: "深桑达A", security_name_source: "NAMECHANGE_PIT", security_name_status: "PASS", stale_trade_days: 0, ts_code: "000032.SZ", unrealized_pnl: "-2813.16" },
+    { actual_weight: "0.03545", close: "41.81", cost_basis: "16505.17", market_value: "16724", price_date: "20260724", quantity: 400, realized_pnl: "0", security_name: "纽威股份", security_name_source: "NAMECHANGE_PIT", security_name_status: "PASS", stale_trade_days: 0, ts_code: "603699.SH", unrealized_pnl: "218.83" }
   ],
+  security_name_coverage: {
+    status: "PASS",
+    position_count: 2,
+    pit_name_count: 2,
+    fallback_name_count: 0,
+    missing_name_count: 0,
+    catalog_source_cutoff: "2026-07-24T11:30:00+00:00"
+  },
   source_ref: "data/paper/example.json",
   turnover: "0"
 };

@@ -158,6 +158,53 @@ def _write_csv(path: Path, fields: list[str], rows: list[dict[str, object]]) -> 
             writer.writerow({field: row.get(field, "") for field in fields})
 
 
+def _write_security_name_projection(root: Path) -> str:
+    document = {
+        "schema_version": "web-security-name-catalog-v1",
+        "source_cutoff": "2026-07-24T11:30:00+00:00",
+        "sources": {},
+        "quality": {
+            "history_row_count": 1,
+            "history_security_count": 1,
+            "fallback_security_count": 1,
+            "excluded_bse_history_count": 0,
+            "excluded_bse_basic_count": 0,
+            "excluded_exchange_test_basic_count": 0,
+        },
+        "history": [
+            {
+                "ts_code": "600001.SH",
+                "name": "测试股份",
+                "start_date": "20100101",
+                "end_date": "",
+            }
+        ],
+        "fallback": [
+            {
+                "ts_code": "600001.SH",
+                "name": "测试股份",
+                "list_date": "20100101",
+                "list_status": "L",
+            }
+        ],
+    }
+    payload = _canonical(document) + b"\n"
+    digest = hashlib.sha256(payload).hexdigest()
+    relative = f"data/web/security_names/{digest}/bundle.json"
+    path = root / relative
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(payload)
+    pointer = {
+        "schema_version": "web-security-name-pointer-v1",
+        "bundle_path": relative,
+        "bundle_sha256": digest,
+    }
+    pointer_path = root / "data/web/security_names/current.json"
+    pointer_path.parent.mkdir(parents=True, exist_ok=True)
+    pointer_path.write_bytes(_canonical(pointer) + b"\n")
+    return digest
+
+
 def _paper_day(
     root: Path,
     *,
@@ -332,6 +379,7 @@ def _fixture(root: Path) -> str:
         "data/shadow/signals",
         "data/shadow/reconciliations",
         "data/paper",
+        "data/web/security_names",
         "logs/notifications",
         "logs/releases",
         "logs/scheduler",
@@ -339,6 +387,7 @@ def _fixture(root: Path) -> str:
         "ledger",
     ):
         (root / relative).mkdir(parents=True, exist_ok=True)
+    _write_security_name_projection(root)
     ingest_rows = [
         {
             "batch_id": "batch-daily",
@@ -683,7 +732,23 @@ def test_snapshot_replays_evidence_and_keeps_forward_separate(tmp_path: Path):
     assert first.latest_signal["execution_evidence_status"] == "NOT_DUE"
     assert first.latest_signal["next_execution_date"] is None
     assert first.overview["evidence"]["bse_count"] == 0
+    assert first.paper_portfolio["positions"][0]["security_name"] == "测试股份"
+    assert first.paper_portfolio["positions"][0]["security_name_source"] == "NAMECHANGE_PIT"
+    assert first.paper_portfolio["security_name_coverage"]["status"] == "PASS"
+    assert first.paper_portfolio["security_name_coverage"]["pit_name_count"] == 1
+    assert "data/web/security_names/current.json" in first.source_refs
     assert all(not Path(value).is_absolute() for value in first.source_refs)
+
+
+def test_security_name_projection_hash_is_fail_closed(tmp_path: Path):
+    _fixture(tmp_path)
+    pointer_path = tmp_path / "data/web/security_names/current.json"
+    pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
+    bundle_path = tmp_path / pointer["bundle_path"]
+    bundle_path.write_text("{}\n", encoding="utf-8")
+    with pytest.raises(WebQueryError, match="证券简称投影内容哈希不一致") as mismatch:
+        build_snapshot(project_root=tmp_path)
+    assert mismatch.value.code == "EVIDENCE_MISMATCH"
 
 
 def test_top20_snapshot_isolated_and_backfill_only(tmp_path: Path):
@@ -926,9 +991,15 @@ def test_operations_api_and_message_id_validation(tmp_path: Path):
 def test_web_compose_is_default_off_and_has_no_production_write_surface():
     root = Path(__file__).parents[1]
     compose = yaml.safe_load((root / "compose.web.yaml").read_text(encoding="utf-8"))
-    assert set(compose["services"]) == {"web-query", "research-projector", "web-ui"}
+    assert set(compose["services"]) == {
+        "web-query",
+        "research-projector",
+        "security-name-projector",
+        "web-ui",
+    }
     query = compose["services"]["web-query"]
     projector = compose["services"]["research-projector"]
+    name_projector = compose["services"]["security-name-projector"]
     ui = compose["services"]["web-ui"]
     for service in (query, ui):
         assert service["profiles"] == ["web"]
@@ -959,6 +1030,22 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
         value for value in projector["volumes"]
         if value["target"] == "/workspace/config/p3_experiment_catalog_v1.yaml"
     )["read_only"] is True
+    assert name_projector["profiles"] == ["security-name-projection"]
+    assert name_projector["read_only"] is True
+    assert name_projector["restart"] == "no"
+    assert name_projector["network_mode"] == "none"
+    assert "ports" not in name_projector
+    assert "env_file" not in name_projector
+    assert "docker.sock" not in json.dumps(name_projector)
+    assert all(
+        value["read_only"] is True
+        for value in name_projector["volumes"]
+        if value["target"] != "/workspace/data/web/security_names"
+    )
+    assert next(
+        value for value in name_projector["volumes"]
+        if value["target"] == "/workspace/data/web/security_names"
+    )["read_only"] is False
     assert ui["ports"] == ["127.0.0.1:8080:8080"]
     assert "volumes" not in ui
     assert set(query["networks"]) == {"web-internal"}
@@ -977,6 +1064,7 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
         "/workspace/data/shadow/signals",
         "/workspace/data/shadow/reconciliations",
         "/workspace/data/web/research_snapshots",
+        "/workspace/data/web/security_names",
         "/workspace/logs/notifications",
         "/workspace/logs/releases",
         "/workspace/logs/scheduler",
@@ -988,6 +1076,9 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
     assert "USER 10001:10001" in dockerfile
     query_source = (root / "src/shaiwei/web/query.py").read_text(encoding="utf-8")
     assert "load_dotenv" not in query_source
+    name_source = (root / "src/shaiwei/web/security_names.py").read_text(encoding="utf-8")
+    assert "shaiwei.config" not in name_source
+    assert "load_dotenv" not in name_source
     assert ' / ".env"' not in query_source
     research_source = (root / "src/shaiwei/web/research_projection.py").read_text(
         encoding="utf-8"
