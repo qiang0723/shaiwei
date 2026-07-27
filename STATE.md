@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-07-27 · Top20 模拟账户已获生产调度授权，受控切换待机器门
+
+- 用户知悉 2026-07-26 完整 Docker 元数据工具输出曾包含环境变量，并接受继续使用现有 Tushare/
+  飞书凭据的剩余风险；凭据轮换不再是 Top20 发布硬阻断。该裁决不改变凭据仅存 `.env`、不入 Git/
+  日志/文档以及禁止完整容器元数据/环境变量输出的边界。
+- `paper-top20-scheduler-v1` 只授权 `model_top20` 模拟账户随 scheduler 串行日更，绑定冻结
+  `paper-top20-v1.2` 哈希；无券商连接，策略有效性继续 `NOT_EVALUATED`，Top30 仍先运行且历史不变。
+- 2026-07-27 原 scheduler 已完成日增量、S1—S9、影子、Top30 前瞻第3日、重放与飞书开始/完成，
+  重复轮询为 NOOP。候选镜像可构建，但跨快照切换必须由新交易日 readiness 裁决；不为立即重启绕过
+  门禁。授权见 `docs/PAPER_TOP20_RELEASE_AUTHORIZATION_20260727.md`。
+
 ## 2026-07-27 · Web 模拟组合双账户切换 GO_LOCAL_READ_ONLY_REVIEW
 
 - `p3-web-paper-accounts-v1` 固定 `model_baseline` 为默认“主账户 · Top30”，并只新增
@@ -18,8 +29,9 @@
 - 全仓349 PASS、前端单元24 PASS、五视口64 PASS/11 skip、真实桌面/移动14 PASS；终版 Web
   镜像 `fa45aa76...2e0ba7`，两个 Web 容器 healthy。scheduler 仍为原容器 `fd8e96152b53`、原镜像、
   原创建时间并保持 healthy。
-- 结论只授权本机只读复核，不解除 Top20 凭据轮换/发布窗口阻断，不授权同图绩效比较、策略有效性或
-  生产。协议与验收见 `docs/WEB_PAPER_ACCOUNT_SWITCH_PROTOCOL_20260727.md`、
+- 本节结论只授权本机只读复核；后续生产调度授权已由独立
+  `PAPER_TOP20_RELEASE_AUTHORIZATION_20260727.md` 作出，不回写本节 Web 裁决。仍不授权同图绩效
+  比较、策略有效性或实盘。协议与验收见 `docs/WEB_PAPER_ACCOUNT_SWITCH_PROTOCOL_20260727.md`、
   `docs/WEB_PAPER_ACCOUNT_SWITCH_ACCEPTANCE_20260727.md`。
 
 ## 2026-07-26 · P4-0 科创100数据源PASS、官方历史谱系NO-GO

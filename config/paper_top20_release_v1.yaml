@@ -1,0 +1,9 @@
+schema_version: "paper-comparison-account-release-v1"
+release_id: "paper-top20-scheduler-v1"
+status: "PAPER_ONLY_AUTHORIZED"
+account_id: "model_top20"
+protocol_path: "config/paper_top20_v1.yaml"
+protocol_sha256: "d09a767ce75ce8ad95c5e2350ab410501cbd8a4d790498731553cadaefbca37e"
+authorized_on: "2026-07-27"
+broker_connection: false
+strategy_effective: "NOT_EVALUATED"

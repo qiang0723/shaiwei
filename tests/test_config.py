@@ -1,6 +1,6 @@
 from datetime import date
 
-from shaiwei.config import load, load_paper_top20_protocol
+from shaiwei.config import load, load_paper_top20_protocol, load_paper_top20_release
 
 
 def test_frozen_config_loads():
@@ -79,3 +79,13 @@ def test_top20_protocol_is_result_before_and_independent():
     assert policy.target_topk == 20
     assert policy.target_weight == 0.05
     assert policy.forward_start_date == date(2026, 7, 27)
+
+
+def test_top20_scheduler_release_is_narrow_and_protocol_bound():
+    release = load_paper_top20_release()
+    assert release.release_id == "paper-top20-scheduler-v1"
+    assert release.status == "PAPER_ONLY_AUTHORIZED"
+    assert release.account_id == "model_top20"
+    assert release.authorized_on == date(2026, 7, 27)
+    assert release.broker_connection is False
+    assert release.strategy_effective == "NOT_EVALUATED"

@@ -346,18 +346,24 @@ def release_start_readiness(
 
 def _container_contract(expected: dict[str, str]) -> dict[str, object]:
     container_id = _compose_container_id()
-    result = _run(["docker", "inspect", container_id])
+    result = _run(
+        [
+            "docker",
+            "inspect",
+            "--format",
+            "{{.Image}}\t{{.HostConfig.ReadonlyRootfs}}\t{{json .Mounts}}",
+            container_id,
+        ]
+    )
     try:
-        documents = json.loads(result.stdout)
-    except json.JSONDecodeError as error:
-        raise ReleaseError("scheduler inspect output is invalid JSON") from error
-    document = documents[0]
-    if str(document.get("Image")) != expected["image_id"]:
+        image_id, readonly_text, mounts_text = result.stdout.strip().split("\t", 2)
+        mounts = json.loads(mounts_text)
+    except (ValueError, json.JSONDecodeError) as error:
+        raise ReleaseError("scheduler targeted inspect output is invalid") from error
+    if image_id != expected["image_id"]:
         raise ReleaseError("scheduler container is not running the promoted image ID")
-    host = document.get("HostConfig")
-    if not isinstance(host, dict) or host.get("ReadonlyRootfs") is not True:
+    if readonly_text.lower() != "true":
         raise ReleaseError("scheduler root filesystem is not read-only")
-    mounts = document.get("Mounts")
     if not isinstance(mounts, list):
         raise ReleaseError("scheduler mounts are missing")
     destinations = {

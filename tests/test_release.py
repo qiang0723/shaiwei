@@ -95,6 +95,50 @@ def test_image_verification_binds_runtime_snapshot_and_revision(monkeypatch):
         release.verify_image("shaiwei:scheduler-fixed")
 
 
+def test_container_contract_never_requests_environment(monkeypatch):
+    expected = {
+        "image_id": "sha256:fixed",
+        "code_snapshot_sha256": "a" * 64,
+        "git_head": "b" * 40,
+    }
+    requests = []
+
+    def fake_run(argv, *, check=True):
+        requests.append(argv)
+        if argv[:3] == ["docker", "inspect", "--format"]:
+            assert ".Config.Env" not in argv[3]
+            mounts = json.dumps(
+                [
+                    {"Destination": "/workspace/data", "RW": True},
+                    {"Destination": "/workspace/ledger", "RW": True},
+                    {"Destination": "/workspace/logs", "RW": True},
+                ]
+            )
+            return SimpleNamespace(stdout=f"sha256:fixed\ttrue\t{mounts}\n")
+        return SimpleNamespace(
+            stdout=json.dumps(
+                {
+                    "code_snapshot_sha256": "a" * 64,
+                    "git_head": "b" * 40,
+                }
+            )
+            + "\n"
+        )
+
+    monkeypatch.setattr(release, "_compose_container_id", lambda: "scheduler-id")
+    monkeypatch.setattr(release, "_run", fake_run)
+
+    contract = release._container_contract(expected)
+
+    assert contract["read_only_rootfs"] is True
+    assert contract["mount_destinations"] == [
+        "/workspace/data",
+        "/workspace/ledger",
+        "/workspace/logs",
+    ]
+    assert all(".Config.Env" not in " ".join(request) for request in requests)
+
+
 def test_no_start_promote_and_rollback_swap_distinct_content_images(monkeypatch, tmp_path):
     monkeypatch.setattr(release, "STATE_PATH", tmp_path / "scheduler_state.json")
     monkeypatch.setattr(release, "AUDIT_PATH", tmp_path / "scheduler_releases.jsonl")
