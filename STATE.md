@@ -2,6 +2,14 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-07-27 · Web 模块化治理第一阶段协议已冻结
+
+- 用户确认总量可能达到10万行，并授权当前适合时拆分 Web。`p3-web-modularization-v1` 只治理
+  `query.py`、前端 `validation.ts` 与 `styles.css` 三个最高风险热点，不改变功能、口径或视觉。
+- 本阶段不同时拆 `operations.py`、`research_projection.py` 和两张大型研究页面，避免改动面扩散；
+  成功后再依据真实结构收益决定下一阶段，不做连续无目标重构。
+- 协议见 `docs/WEB_MODULARIZATION_PROTOCOL_20260727.md`；尚未开始代码搬迁。
+
 ## 2026-07-27 · Web 模拟仓中文简称展示 GO_LOCAL_READ_ONLY
 
 - `p3-web-security-names-v1` 已把模拟组合实际持仓首列升级为“中文简称 / 代码”；代码继续保留为审计
