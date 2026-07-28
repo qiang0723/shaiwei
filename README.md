@@ -37,6 +37,10 @@ Docker 启动时通过 Compose 的 `env_file: .env` 注入相同变量，禁止�
 
 ## Docker 与国内数据源直连
 
+本机完整的“海外控制面走 Clash、国内数据面直连、未来海外数据采集独立隔离”拓扑、故障定位和变更
+纪律见 [`docs/LOCAL_MAC_NETWORK_ROUTING.md`](docs/LOCAL_MAC_NETWORK_ROUTING.md)。当前已验证基线不要求
+切换 Clash 模式，也不要求修改 macOS 公网地址。
+
 完整 Stage 0 建议为 Docker Desktop 分配至少 **16 GiB** 内存。本机 1,058 万行行情的
 S1-S10 门禁实测最大 RSS 约 10.0 GiB、峰值 footprint 约 14.1 GiB；Docker 默认约
 8 GiB 会在 sentinel 阶段触发 OOM（退出码 `-9`）。本机当前使用约 20 GiB 上限。

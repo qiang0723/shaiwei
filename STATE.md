@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-07-28 · 本地 Mac 双出口网络路径已固化
+
+- 当前已验证基线保持不变：Codex、GitHub和海外网页经 macOS 系统代理进入 Clash 海外节点；生产
+  scheduler/国内采集容器显式清空应用代理，并通过 Docker Desktop bypass 与 `NO_PROXY` 从本地 ISP
+  直连 Tushare、Sina、Eastmoney、Baostock。无需修改 Mac 公网地址，也无需为了采集关闭 Clash。
+- Docker 镜像拉取继续使用 Docker Desktop → Clash 海外路径；镜像仓库不得加入国内 bypass。宿主机
+  临时国内采集只允许进程级直连，禁止通过反复切换 Clash 全局状态影响 Codex 和常驻服务。
+- 未来海外数据采集必须使用独立一次性进程或 `research-overseas` Docker profile 显式代理，不得把
+  代理重新注入 scheduler、复用生产服务或让国内/海外源在同一常驻容器内争夺网络口径；该 profile
+  当前仅为架构边界，尚未施工。
+- 2026-07-28 脱敏 `docker-network-check` 实测 Tushare交易日历8行、461ms、三类代理变量均未设置、
+  `tushare_no_proxy=true`，确认当前国内容器直连路径有效；检查未写数据或账本。
+- 拓扑、流量矩阵、诊断顺序和安全边界见 `docs/LOCAL_MAC_NETWORK_ROUTING.md`。本次只整理文档，
+  未修改 Clash、macOS、Docker Desktop、Compose或运行中容器。
+
 ## 2026-07-27 · Web 模块化治理第一阶段 GO_MODULARIZATION_ONLY
 
 - 用户确认总量可能达到10万行，并授权当前适合时拆分 Web。`p3-web-modularization-v1` 已严格按
