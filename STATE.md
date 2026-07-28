@@ -15,7 +15,12 @@
 - 相关测试40 PASS、全仓361 PASS，Ruff、compile和diff-check通过；fixture确认来源未齐时状态为
   `WAITING_SOURCE`，Parquet/账本/通知均为0，19:30边界恢复原正式路径；新增生产文件仍低于600行。
 - 工程结论仅为 `GO_EARLY_READINESS_ENGINEERING_ONLY`。协议见
-  `docs/DAILY_EARLY_READINESS_PROTOCOL_20260728.md`；不可变候选镜像与断网Docker复核尚待完成。
+  `docs/DAILY_EARLY_READINESS_PROTOCOL_20260728.md`；候选镜像
+  `shaiwei:scheduler-0963ed74efef91f9` / `sha256:0a5a64d4...f273` 已构建，断网、只读根、零capabilities
+  Docker专项40 PASS。验收见 `docs/DAILY_EARLY_READINESS_ENGINEERING_ACCEPTANCE_20260728.md`。
+- 首次异步构建仍在后台完成时又启动一次同身份构建，追加链因此永久保留两条内容完全相同的
+  `BUILD_PASS`，各自record哈希不同但镜像/代码/Git身份一致；22条release审计链终验PASS，未提升候选、
+  未改生产指针。该操作错误不包装为幂等单次，后续长构建必须持续轮询同一session而不重复发起。
 - 当前已提升但未启动的Top20候选镜像保持原样；早探测不得与Top20首次生产切换合并为同一发布变量。
 
 ## 2026-07-28 · 本地 Mac 双出口网络路径已固化
