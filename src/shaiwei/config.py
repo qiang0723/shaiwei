@@ -85,9 +85,19 @@ class DailyPipeline(BaseModel):
     poll_seconds: int = Field(ge=60, le=3600)
     ready_hour: int = Field(ge=0, le=23)
     ready_minute: int = Field(ge=0, le=59)
+    source_deadline_hour: int = Field(ge=0, le=23)
+    source_deadline_minute: int = Field(ge=0, le=59)
     max_catchup_trade_days: int = Field(ge=1, le=120)
     min_market_rows: int = Field(ge=1000, le=6000)
     health_stale_seconds: int = Field(ge=300, le=86400)
+
+    @model_validator(mode="after")
+    def validate_source_window(self) -> "DailyPipeline":
+        ready = self.ready_hour * 60 + self.ready_minute
+        deadline = self.source_deadline_hour * 60 + self.source_deadline_minute
+        if deadline <= ready:
+            raise ValueError("daily source deadline must be after the early readiness start")
+        return self
 
 
 class ShadowPipeline(BaseModel):

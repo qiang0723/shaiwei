@@ -155,6 +155,24 @@ def build_plan(
     )
 
 
+def early_readiness_decision(
+    *,
+    plan: DailyPlan,
+    now: datetime,
+    settings: Settings,
+) -> tuple[tuple[str, ...], str | None]:
+    """Choose formal catch-up dates or one current date for an in-memory readiness probe."""
+    local = now.astimezone(SHANGHAI)
+    deadline = time(settings.daily.source_deadline_hour, settings.daily.source_deadline_minute)
+    current = local.strftime(DATE_FORMAT)
+    if local.time().replace(tzinfo=None) >= deadline or current not in plan.missing_trade_dates:
+        return plan.missing_trade_dates, None
+    historical = tuple(value for value in plan.missing_trade_dates if value < current)
+    if historical:
+        return historical, None
+    return (), current
+
+
 def build_market_requests(settings: Settings, trade_date: str) -> list[Request]:
     day_partition = {"trade_date": trade_date}
     requests = [
@@ -236,6 +254,28 @@ def validate_trade_date(
     if set(index["ts_code"].astype(str)) != {settings.universe.index_code}:
         raise DailyPipelineError("index_daily benchmark row is missing or unexpected")
     return sum(len(frame) for frame in request_frames.values())
+
+
+def market_source_ready(
+    *,
+    settings: Settings,
+    trade_date: str,
+    client: object,
+    writer: RawBatchWriter,
+) -> bool:
+    """Apply the formal completeness gate to memory-only provider responses."""
+    try:
+        queried = TushareIngestor(client=client, writer=writer, settings=settings).query_frames(
+            build_market_requests(settings, trade_date)
+        )
+        validate_trade_date(
+            settings=settings,
+            trade_date=trade_date,
+            request_frames={request.api_name: frame for request, frame in queried},
+        )
+    except Exception:
+        return False
+    return True
 
 
 def _next_month_end(day: date) -> date:
@@ -339,6 +379,63 @@ def _execute_date(
         raise
 
 
+def _execute_dates(
+    *,
+    settings: Settings,
+    plan: DailyPlan,
+    trade_dates: tuple[str, ...],
+    client: object,
+    writer: RawBatchWriter,
+    notifier: FeishuNotifier,
+) -> DailyResult:
+    _notify(
+        notifier,
+        "daily_catchup_started",
+        "日增量补采开始",
+        {
+            "watermark": plan.watermark,
+            "target": plan.eligible_target,
+            "trade_days": len(trade_dates),
+        },
+    )
+    reference_batches = TushareIngestor(
+        client=client, writer=writer, settings=settings
+    ).run(build_reference_requests())
+    completed: list[str] = []
+    batch_count = len(reference_batches)
+    row_count = 0
+    for trade_date in trade_dates:
+        batches, rows = _execute_date(
+            settings=settings,
+            trade_date=trade_date,
+            client=client,
+            writer=writer,
+            notifier=notifier,
+        )
+        completed.append(trade_date)
+        batch_count += batches
+        row_count += rows
+    _notify(
+        notifier,
+        "daily_catchup_passed",
+        "日增量补采完成",
+        {
+            "from": completed[0],
+            "to": completed[-1],
+            "trade_days": len(completed),
+            "rows": row_count,
+        },
+    )
+    return DailyResult(
+        "PASS",
+        plan.watermark,
+        plan.eligible_target,
+        tuple(completed),
+        batch_count,
+        row_count,
+    )
+
+
 def run_once(*, settings: Settings | None = None, now: datetime | None = None) -> DailyResult:
     settings = settings or load()
     now = now or datetime.now(timezone.utc)
@@ -349,58 +446,44 @@ def run_once(*, settings: Settings | None = None, now: datetime | None = None) -
     client = create_client(token.get_secret_value())
     writer = RawBatchWriter(settings.runtime.data_root)
     with daily_lock():
-        calendar = refresh_trade_calendar(settings=settings, now=now, client=client, writer=writer)
+        calendar = load_latest_api("tushare.trade_cal")
         plan = build_plan(now=now, settings=settings, trade_cal=calendar)
         if not plan.missing_trade_dates:
-            return DailyResult("NOOP", plan.watermark, plan.eligible_target, (), 0, 0)
-        _notify(
-            notifier,
-            "daily_catchup_started",
-            "日增量补采开始",
-            {
-                "watermark": plan.watermark,
-                "target": plan.eligible_target,
-                "trade_days": len(plan.missing_trade_dates),
-            },
+            calendar = refresh_trade_calendar(
+                settings=settings, now=now, client=client, writer=writer
+            )
+            plan = build_plan(now=now, settings=settings, trade_cal=calendar)
+            if not plan.missing_trade_dates:
+                return DailyResult("NOOP", plan.watermark, plan.eligible_target, (), 0, 0)
+
+        formal_dates, probe_date = early_readiness_decision(
+            plan=plan, now=now, settings=settings
         )
-        # One current reference snapshot is sufficient for the whole catch-up
-        # window.  It is intentionally refreshed even though the API params
-        # match an older snapshot, so new listings are visible immediately.
-        reference_batches = TushareIngestor(
-            client=client, writer=writer, settings=settings
-        ).run(build_reference_requests())
-        completed: list[str] = []
-        batch_count = len(reference_batches)
-        row_count = 0
-        for trade_date in plan.missing_trade_dates:
-            batches, rows = _execute_date(
+        if probe_date is not None:
+            if not market_source_ready(
                 settings=settings,
-                trade_date=trade_date,
+                trade_date=probe_date,
                 client=client,
                 writer=writer,
-                notifier=notifier,
-            )
-            completed.append(trade_date)
-            batch_count += batches
-            row_count += rows
-        _notify(
-            notifier,
-            "daily_catchup_passed",
-            "日增量补采完成",
-            {
-                "from": completed[0],
-                "to": completed[-1],
-                "trade_days": len(completed),
-                "rows": row_count,
-            },
-        )
-        return DailyResult(
-            "PASS",
-            plan.watermark,
-            plan.eligible_target,
-            tuple(completed),
-            batch_count,
-            row_count,
+            ):
+                return DailyResult(
+                    "WAITING_SOURCE",
+                    plan.watermark,
+                    plan.eligible_target,
+                    (),
+                    0,
+                    0,
+                )
+            formal_dates = (probe_date,)
+
+        refresh_trade_calendar(settings=settings, now=now, client=client, writer=writer)
+        return _execute_dates(
+            settings=settings,
+            plan=plan,
+            trade_dates=formal_dates,
+            client=client,
+            writer=writer,
+            notifier=notifier,
         )
 
 

@@ -418,6 +418,10 @@ class TushareIngestor:
             )
         return frame.loc[:, fields]
 
+    def query_frames(self, requests: Iterable[Request]) -> list[tuple[Request, pd.DataFrame]]:
+        """Query and normalize responses without committing raw batches or ledger rows."""
+        return [(request, self._query(request)) for request in requests]
+
     def run(self, requests: Iterable[Request]) -> list[RawBatch]:
         iterator = enumerate(requests)
         workers = self.settings.ingest.max_concurrent_requests

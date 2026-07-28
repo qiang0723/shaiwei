@@ -39,8 +39,10 @@ ingest:
   history_window_years: 10            # 单票行情分窗；远小于 6000 个交易日
 daily:
   poll_seconds: 900                   # Docker 内每 15 分钟对账；休眠唤醒后自动补跑
-  ready_hour: 19                     # 北京时间 19:30 后才把当日视为可采完毕
-  ready_minute: 30
+  ready_hour: 16                     # 北京时间 16:00 起只读探测；五类输入齐全才正式采集
+  ready_minute: 0
+  source_deadline_hour: 19           # 19:30 后不再静默等待，恢复原 fail-closed 告警路径
+  source_deadline_minute: 30
   max_catchup_trade_days: 20         # 单轮最多补 20 个交易日，避免异常积压失控
   min_market_rows: 3000              # 沪深全市场最低行数哨兵（已排除北交所）
   health_stale_seconds: 3600         # 容器健康文件最大允许陈旧时间

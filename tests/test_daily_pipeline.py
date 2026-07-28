@@ -1,20 +1,28 @@
 import csv
 import json
+from contextlib import nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
 import pytest
 
+from pydantic import SecretStr
+
 from shaiwei.config import load
-from shaiwei.ingest.tushare import public_request_params
+from shaiwei.ingest.core import RawBatchWriter
+from shaiwei.ingest.tushare import FIELDS, public_request_params
 from shaiwei.pipeline.daily import (
+    DailyPlan,
     DailyPipelineError,
     bootstrap_watermark,
     build_market_requests,
     build_plan,
     current_watermark,
+    early_readiness_decision,
+    market_source_ready,
     _next_month_end,
+    run_once,
     validate_trade_date,
 )
 
@@ -94,14 +102,14 @@ def test_plan_catches_up_after_sleep_and_respects_ready_cutoff(tmp_path: Path):
     settings = load()
 
     before = build_plan(
-        now=datetime(2026, 7, 14, 11, 0, tzinfo=timezone.utc),  # 19:00 Shanghai
+        now=datetime(2026, 7, 14, 7, 59, tzinfo=timezone.utc),  # 15:59 Shanghai
         settings=settings,
         trade_cal=calendar,
         ingest_ledger_path=ingest,
         daily_ledger_path=daily,
     )
     after = build_plan(
-        now=datetime(2026, 7, 14, 12, 0, tzinfo=timezone.utc),  # 20:00 Shanghai
+        now=datetime(2026, 7, 14, 8, 0, tzinfo=timezone.utc),  # 16:00 Shanghai
         settings=settings,
         trade_cal=calendar,
         ingest_ledger_path=ingest,
@@ -183,3 +191,129 @@ def test_trade_date_validation_checks_cross_api_sets_and_bse():
     frames["daily"] = _frame(["000001.SZ", "920001.BJ"], "20260715")
     with pytest.raises(DailyPipelineError, match="BSE"):
         validate_trade_date(settings=settings, trade_date="20260715", request_frames=frames)
+
+
+def test_early_readiness_keeps_history_moving_and_current_day_in_memory_only():
+    settings = load()
+    now = datetime(2026, 7, 14, 8, 0, tzinfo=timezone.utc)
+    with_history = DailyPlan(
+        now="2026-07-14T16:00:00+08:00",
+        watermark="20260710",
+        eligible_target="20260714",
+        missing_trade_dates=("20260713", "20260714"),
+    )
+    assert early_readiness_decision(plan=with_history, now=now, settings=settings) == (
+        ("20260713",),
+        None,
+    )
+
+    current_only = DailyPlan(
+        now="2026-07-14T16:00:00+08:00",
+        watermark="20260713",
+        eligible_target="20260714",
+        missing_trade_dates=("20260714",),
+    )
+    assert early_readiness_decision(plan=current_only, now=now, settings=settings) == (
+        (),
+        "20260714",
+    )
+    deadline = datetime(2026, 7, 14, 11, 30, tzinfo=timezone.utc)
+    assert early_readiness_decision(plan=current_only, now=deadline, settings=settings) == (
+        ("20260714",),
+        None,
+    )
+
+
+def test_market_source_probe_reuses_formal_gate_without_writing(tmp_path: Path):
+    class ReadyClient:
+        def query(self, api_name: str, **kwargs):
+            fields = kwargs["fields"].split(",")
+            if api_name == "suspend_d":
+                return pd.DataFrame(columns=fields)
+            codes = (
+                [kwargs["ts_code"]]
+                if api_name == "index_daily"
+                else ["000001.SZ", "600000.SH"]
+            )
+            values = {
+                field: (
+                    codes
+                    if field == "ts_code"
+                    else [kwargs["trade_date"]] * len(codes)
+                    if field == "trade_date"
+                    else [0] * len(codes)
+                )
+                for field in fields
+            }
+            return pd.DataFrame(values)
+
+    settings = load()
+    settings.daily.min_market_rows = 2
+    settings.ingest.min_request_interval_seconds = 0
+    recorded = []
+    writer = RawBatchWriter(tmp_path, recorder=lambda **kw: recorded.append(kw) or "id")
+
+    assert market_source_ready(
+        settings=settings,
+        trade_date="20260715",
+        client=ReadyClient(),
+        writer=writer,
+    )
+    assert recorded == []
+    assert not list(tmp_path.rglob("*.parquet"))
+
+    class IncompleteClient(ReadyClient):
+        def query(self, api_name: str, **kwargs):
+            if api_name == "daily_basic":
+                return pd.DataFrame(columns=FIELDS[api_name])
+            return super().query(api_name, **kwargs)
+
+    settings.ingest.retry_base_seconds = 0
+    assert not market_source_ready(
+        settings=settings,
+        trade_date="20260715",
+        client=IncompleteClient(),
+        writer=writer,
+    )
+    assert recorded == []
+    assert not list(tmp_path.rglob("*.parquet"))
+
+
+def test_run_once_waiting_source_has_no_business_side_effects(monkeypatch, tmp_path: Path):
+    settings = load()
+    settings.runtime.tushare_token = SecretStr("test-token")
+    settings.runtime.data_root = tmp_path
+    plan = DailyPlan(
+        now="2026-07-14T16:00:00+08:00",
+        watermark="20260713",
+        eligible_target="20260714",
+        missing_trade_dates=("20260714",),
+    )
+    notifications = []
+    monkeypatch.setattr("shaiwei.pipeline.daily.create_client", lambda _token: object())
+    monkeypatch.setattr("shaiwei.pipeline.daily.daily_lock", lambda: nullcontext())
+    monkeypatch.setattr(
+        "shaiwei.pipeline.daily.load_latest_api",
+        lambda _api: pd.DataFrame({"cal_date": ["20260714"], "is_open": [1]}),
+    )
+    monkeypatch.setattr("shaiwei.pipeline.daily.build_plan", lambda **_kwargs: plan)
+    monkeypatch.setattr("shaiwei.pipeline.daily.market_source_ready", lambda **_kwargs: False)
+    monkeypatch.setattr(
+        "shaiwei.pipeline.daily.refresh_trade_calendar",
+        lambda **_kwargs: pytest.fail("waiting probe must not refresh or write the calendar"),
+    )
+    monkeypatch.setattr(
+        "shaiwei.pipeline.daily._notify",
+        lambda *_args, **_kwargs: notifications.append((_args, _kwargs)),
+    )
+
+    result = run_once(
+        settings=settings,
+        now=datetime(2026, 7, 14, 8, 0, tzinfo=timezone.utc),
+    )
+    assert result.status == "WAITING_SOURCE"
+    assert result.completed_trade_dates == ()
+    assert result.batch_count == 0
+    assert result.row_count == 0
+    assert notifications == []
+    assert not list(tmp_path.rglob("*.parquet"))

@@ -73,6 +73,25 @@ def test_ingestor_uses_explicit_fields_and_records_each_response(tmp_path: Path)
     assert recorded[0]["params"]["fields"] == ",".join(FIELDS["namechange"])
 
 
+def test_query_frames_normalizes_without_committing(tmp_path: Path):
+    settings = load()
+    settings.ingest.min_request_interval_seconds = 0
+    client = FakeClient()
+    recorded = []
+    writer = RawBatchWriter(tmp_path, recorder=lambda **kw: recorded.append(kw) or "id")
+    request = Request("namechange", {}, {"scope": "all"})
+
+    queried = TushareIngestor(
+        client=client, writer=writer, settings=settings
+    ).query_frames([request])
+
+    assert len(queried) == 1
+    assert queried[0][0] == request
+    assert queried[0][1].columns.tolist() == list(FIELDS["namechange"])
+    assert recorded == []
+    assert not list(tmp_path.rglob("*.parquet"))
+
+
 def test_ingestor_rejects_namechange_date_filters(tmp_path: Path):
     settings = load()
     writer = RawBatchWriter(tmp_path, recorder=lambda **_: "id")

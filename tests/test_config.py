@@ -28,8 +28,10 @@ def test_frozen_config_loads():
     assert settings.notifications.retry_base_seconds == 1.0
     assert settings.notifications.heartbeat_seconds == 1800
     assert settings.daily.poll_seconds == 900
-    assert settings.daily.ready_hour == 19
-    assert settings.daily.ready_minute == 30
+    assert settings.daily.ready_hour == 16
+    assert settings.daily.ready_minute == 0
+    assert settings.daily.source_deadline_hour == 19
+    assert settings.daily.source_deadline_minute == 30
     assert settings.daily.max_catchup_trade_days == 20
     assert settings.daily.min_market_rows == 3000
     assert settings.shadow_pipeline.enabled
