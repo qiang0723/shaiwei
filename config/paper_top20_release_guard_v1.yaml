@@ -1,0 +1,30 @@
+schema_version: paper-top20-release-guard-v1
+guard_id: paper-top20-release-guard-20260730
+timezone: Asia/Shanghai
+target_trade_date: "20260730"
+window:
+  not_before: "16:05:00"
+  expires_at: "19:00:00"
+candidate:
+  image: shaiwei:scheduler-4e5244b6b02739dd
+  image_id: sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76
+  code_snapshot_sha256: 4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708
+  git_head: 210af4dab33c85b38c05b28f56c176b7970c41db
+expected_running_release:
+  image_id: sha256:de87ec740981166b032b394fb256a978acdc8d35e999a369f1debc3466aa0261
+  code_snapshot_sha256: eb8e752132ac1fbe6a9557d26b4c7a65df36f6169d617b6e1e10db88d46b7fbd
+expected_latest_forward:
+  account_id: model_baseline
+  execution_trade_date: "20260729"
+  code_snapshot_sha256: eb8e752132ac1fbe6a9557d26b4c7a65df36f6169d617b6e1e10db88d46b7fbd
+requirements:
+  clean_worktree: true
+  head_equals_origin_main: true
+  release_audit_chain_pass: true
+  promoted_candidate_exact_match: true
+  target_is_only_new_trade_date: true
+  scheduler_healthy_before_start: true
+  start_current_once: true
+  run_daily_manually: false
+  promote_or_build: false
+  mutate_model_signal_or_gate: false
