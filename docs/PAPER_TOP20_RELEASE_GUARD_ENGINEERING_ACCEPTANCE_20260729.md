@@ -51,6 +51,8 @@
   明确 `|` 分隔并以真实容器复核通过，失败尝试未启动、重启或修改 scheduler。
 - 2026-07-29 实时时钟调用守护返回 `BLOCKED: guard target date does not equal the local date`，证明今晚
   不会提前执行。
+- 工程提交推送并恢复干净工作树后，以明日16:05时钟注入、真实其余依赖执行完整只读门，返回
+  `READY`、唯一新交易日`20260730`、最新旧快照执行日`20260729`和`start_invoked=false`。
 
 ## 5. 测试
 
@@ -60,9 +62,9 @@
 - Ruff、compileall、`git diff --check` PASS。
 - 容器专项前后生产 scheduler 的容器、镜像、创建周期和 healthy 状态不变。
 
-## 6. 待执行项
+## 6. 自动执行安排
 
-工程提交推送后，由 Codex 本机项目自动化在 2026-07-30 16:05 UTC+8 唤醒，只运行：
+Codex 本机项目一次性自动任务`top20`已安排在 2026-07-30 16:05 UTC+8 唤醒，只运行：
 
 ```text
 make docker-release-guard
