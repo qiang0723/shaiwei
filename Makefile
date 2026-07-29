@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-d1-fixture docker-d1-live docker-d1-review-live docker-d1-semantic-verify docker-g8-primary-build docker-g8-primary-capture docker-g8-primary-verify docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-research-project docker-web-security-names-project docker-web-up docker-web-status docker-web-logs docker-web-down
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-d1-fixture docker-d1-live docker-d1-review-live docker-d1-semantic-verify docker-g8-primary-build docker-g8-primary-capture docker-g8-primary-verify docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-guard docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-research-project docker-web-security-names-project docker-web-up docker-web-status docker-web-logs docker-web-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -127,6 +127,8 @@ docker-release-rollback: ## 回滚到上一不可变 scheduler 镜像并验收
 	$(PYTHON) -m shaiwei.release rollback
 docker-release-start: ## 启动已提升的 current 镜像并验收挂载/快照/健康
 	$(PYTHON) -m shaiwei.release start
+docker-release-guard: ## 只在冻结日期/时窗和精确身份门通过时单次启动 Top20 候选
+	$(PYTHON) -m shaiwei.release_guard --execute
 docker-release-status: ## 校验本地发布状态与哈希链审计
 	$(PYTHON) -m shaiwei.release status
 docker-scheduler-up: ## 启动已提升的不可变 scheduler 镜像；不隐式构建

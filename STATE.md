@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-07-29 · Top20单次发布守护工程GO，待安排明日自动执行
+
+- 结果前协议已先以`c619697`推送；新增独立342行`shaiwei.release_guard`，只在2026-07-30
+  16:05—19:00 UTC+8、干净且已同步Git、发布链/候选/旧容器/最新Top30/FORWARD/readiness逐项精确
+  PASS时调用一次既有`start_current()`。默认入口只检查，生产CLI没有时间覆盖参数。
+- 30个release/guard fixture覆盖日期/时窗、候选/容器/账本漂移、多交易日积压、所有阻断零启动、
+  唯一一次启动和已激活幂等；全仓382 PASS，Docker专项30 PASS，Ruff/compile/diff-check通过。
+- 真实定向复核曾发现Docker format分隔符兼容问题，守护在变更前BLOCKED；改用明确分隔后候选、
+  22条发布审计链和旧scheduler身份复核PASS。生产仍为原容器`fd8e9615...adbb`、原镜像
+  `de87ec74...0261`且healthy，未启动或重启。
+- 当前结论仅为`GO_ONE_SHOT_RELEASE_GUARD_ENGINEERING_ONLY`；工程提交推送后仍须创建明日16:05
+  本机项目自动化。启动成功不等于Top20前瞻PASS，晚间仍须另验整日链路。验收见
+  `docs/PAPER_TOP20_RELEASE_GUARD_ENGINEERING_ACCEPTANCE_20260729.md`。
+
 ## 2026-07-29 · Top20单次发布守护协议已冻结，尚未施工
 
 - 为解决连续两日人工通知晚于原scheduler完成时点的问题，已冻结
