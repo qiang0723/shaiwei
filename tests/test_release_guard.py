@@ -10,12 +10,13 @@ from shaiwei import release_guard
 
 
 PROTOCOL = Path(__file__).parents[1] / "config" / "paper_top20_release_guard_v1.yaml"
+V2_PROTOCOL = Path(__file__).parents[1] / "config" / "paper_top20_release_guard_v2.yaml"
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 
 
 class FakeEnvironment:
-    def __init__(self):
-        self.protocol = release_guard.load_protocol(PROTOCOL)
+    def __init__(self, protocol_path=PROTOCOL):
+        self.protocol = release_guard.load_protocol(protocol_path)
         self.start_calls = 0
         self.git = {"status": "", "head": "f" * 40, "origin_main": "f" * 40}
         self.current = self.protocol.candidate.model_dump()
@@ -182,6 +183,30 @@ def test_exact_candidate_already_active_is_idempotent():
     assert result["status"] == "ALREADY_ACTIVE"
     assert result["start_invoked"] is False
     assert env.start_calls == 0
+
+
+def test_v2_is_the_default_and_is_ready_on_august_3():
+    protocol = release_guard.load_protocol()
+    assert release_guard.PROTOCOL_PATH == V2_PROTOCOL
+    assert protocol.guard_id == "paper-top20-release-guard-20260803"
+    assert protocol.target_trade_date == "20260803"
+    assert protocol.expected_latest_forward.execution_trade_date == "20260731"
+    env = FakeEnvironment(V2_PROTOCOL)
+    result = release_guard.run_guard(
+        protocol,
+        now=datetime(2026, 8, 3, 16, 5, tzinfo=SHANGHAI),
+        execute=False,
+        environment=env,
+    )
+    assert result["status"] == "READY"
+    assert result["start_invoked"] is False
+
+
+def test_guard_id_date_must_equal_target_date():
+    document = release_guard.load_protocol(V2_PROTOCOL).model_dump(mode="json")
+    document["target_trade_date"] = "20260804"
+    with pytest.raises(ValueError, match="ID date"):
+        release_guard.GuardProtocol.model_validate(document)
 
 
 def test_targeted_docker_inspect_never_requests_environment(monkeypatch):

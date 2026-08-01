@@ -12,7 +12,7 @@ import subprocess
 from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 import yaml
 
 from shaiwei.config import PROJECT_ROOT
@@ -20,7 +20,7 @@ from shaiwei.ledger import PAPER_RUNS
 from shaiwei import release
 
 
-PROTOCOL_PATH = PROJECT_ROOT / "config" / "paper_top20_release_guard_v1.yaml"
+PROTOCOL_PATH = PROJECT_ROOT / "config" / "paper_top20_release_guard_v2.yaml"
 
 
 class GuardError(RuntimeError):
@@ -69,7 +69,7 @@ class GuardRequirements(FrozenModel):
 
 class GuardProtocol(FrozenModel):
     schema_version: Literal["paper-top20-release-guard-v1"]
-    guard_id: Literal["paper-top20-release-guard-20260730"]
+    guard_id: str = Field(pattern=r"^paper-top20-release-guard-[0-9]{8}$")
     timezone: Literal["Asia/Shanghai"]
     target_trade_date: str = Field(pattern=r"^[0-9]{8}$")
     window: GuardWindow
@@ -77,6 +77,12 @@ class GuardProtocol(FrozenModel):
     expected_running_release: RunningIdentity
     expected_latest_forward: ForwardIdentity
     requirements: GuardRequirements
+
+    @model_validator(mode="after")
+    def validate_guard_date(self) -> "GuardProtocol":
+        if self.guard_id.rsplit("-", 1)[-1] != self.target_trade_date:
+            raise ValueError("release guard ID date must equal target_trade_date")
+        return self
 
 
 @dataclass(frozen=True)
