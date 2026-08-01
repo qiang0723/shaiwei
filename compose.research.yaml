@@ -315,6 +315,8 @@ services:
       - /workspace/config/m1_star50_factor_execution_v1.yaml
       - --output-root
       - /workspace/data/research/m1/m1-star50-price-volume-v1
+      - --terminal-recovery
+      - /workspace/config/m1_star50_factor_terminal_recovery_v1.yaml
 
   d1-review-live:
     image: shaiwei:d1-review-live-v1

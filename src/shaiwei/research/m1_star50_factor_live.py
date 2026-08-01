@@ -30,6 +30,7 @@ from shaiwei.research.m1_star50_contract import (
     verify_star50_inputs,
 )
 from shaiwei.research.m1_star50_discovery import Star50DiscoveryEvaluator
+from shaiwei.research.m1_star50_recovery import M1Star50TerminalRecovery
 
 
 FATAL_FAILURES = {
@@ -109,6 +110,7 @@ def _report(
         "attempt_experiment_bijection": verify_attempt_experiment_bijection(
             PROJECT_ROOT / release.document["ledgers"]["attempt"],
             PROJECT_ROOT / release.document["ledgers"]["experiment"],
+            protocol_id=protocol.protocol_id,
         ),
         "actual_cost_usd": actual_cost,
         "batch_hard_ceiling_usd": release.batch_hard_ceiling_usd,
@@ -143,6 +145,7 @@ def run_live(
     protocol_path: Path,
     release_path: Path,
     output_root: Path,
+    recovery_path: Path | None = None,
 ) -> dict[str, Any]:
     protocol = D1Protocol.load(protocol_path)
     release = M1Star50ExecutionRelease.load(release_path, protocol)
@@ -167,18 +170,45 @@ def run_live(
             expected_count=len(rows),
         )
     if len(rows) == 40:
-        if not report_path.is_file():
-            raise D1ControlError("M1-1 completed batch is missing its terminal report")
-        report = json.loads(report_path.read_text(encoding="utf-8"))
         static = verify_static_evidence(
             release=release,
             attempt_rows=rows,
             transport_ledger_path=transport_path,
             artifact_root=artifact_root,
         )
-        if report.get("static_evidence") != static:
-            raise D1ControlError("M1-1 report differs from static evidence")
-        return {**report, "idempotent_reuse": True, "external_api_calls_this_run": 0}
+        if report_path.is_file():
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            if report.get("static_evidence") != static:
+                raise D1ControlError("M1-1 report differs from static evidence")
+            return {**report, "idempotent_reuse": True, "external_api_calls_this_run": 0}
+        if recovery_path is None:
+            raise D1ControlError("M1-1 completed batch is missing its terminal report")
+        recovery = M1Star50TerminalRecovery.load(recovery_path)
+        recovery.verify_frozen_evidence(
+            project_root=PROJECT_ROOT,
+            static_evidence=static,
+            report_path=report_path,
+        )
+        evaluator = Star50DiscoveryEvaluator(protocol, artifact_root)
+        report = _report(
+            protocol=protocol,
+            release=release,
+            rows=rows,
+            evaluator=evaluator,
+            code_sha256=recovery.original_code_snapshot_sha256,
+            release_git_head=recovery.original_release_git_head,
+            tls_certificate_sha256=tls_hostname_probe(release),
+        )
+        report["static_evidence"] = static
+        report["terminal_recovery"] = {
+            "recovery_id": recovery.document["recovery_id"],
+            "recovery_sha256": recovery.sha256,
+            "assembled_from_existing_40_response_evidence": True,
+            "additional_provider_calls": 0,
+            "tls_probe_repeated_without_api_request": True,
+        }
+        _write_once(report_path, json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+        return {**report, "idempotent_reuse": False, "external_api_calls_this_run": 0}
 
     evaluator = Star50DiscoveryEvaluator(protocol, artifact_root)
     if evaluator.data_snapshot_sha256 != input_identity.snapshot_sha256:
@@ -282,12 +312,14 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         default=PROJECT_ROOT / "data/research/m1/m1-star50-price-volume-v1",
     )
+    parser.add_argument("--terminal-recovery", type=Path, default=None)
     args = parser.parse_args(argv)
     try:
         report = run_live(
             protocol_path=args.protocol,
             release_path=args.execution_release,
             output_root=args.output_root,
+            recovery_path=args.terminal_recovery,
         )
     except (D1ControlError, OSError, RuntimeError, TypeError, ValueError) as error:
         print(_canonical_json({"status": "FAIL", "error_class": type(error).__name__}))

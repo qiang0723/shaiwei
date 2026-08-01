@@ -595,17 +595,21 @@ def _verify_experiment_link(
 
 
 def verify_attempt_experiment_bijection(
-    attempt_ledger_path: Path, experiment_ledger_path: Path
+    attempt_ledger_path: Path,
+    experiment_ledger_path: Path,
+    *,
+    protocol_id: str | None = None,
 ) -> dict[str, int]:
     attempts = _attempt_rows(attempt_ledger_path)
     experiments = _experiment_rows(experiment_ledger_path)
     attempt_experiment_ids = {row["experiment_id"] for row in attempts}
-    related = [
-        row
-        for row in experiments
-        if row["candidate_source"] == "LLM_DSL"
-        and json.loads(row["result_json"]).get("protocol_id")
-    ]
+    related = []
+    for row in experiments:
+        row_protocol_id = json.loads(row["result_json"]).get("protocol_id")
+        if row["candidate_source"] != "LLM_DSL" or not row_protocol_id:
+            continue
+        if protocol_id is None or row_protocol_id == protocol_id:
+            related.append(row)
     related_ids = {row["experiment_id"] for row in related}
     if len(related) != len(attempts) or related_ids != attempt_experiment_ids:
         raise D1ControlError("D1 attempt and experiment ledgers are not one-to-one")

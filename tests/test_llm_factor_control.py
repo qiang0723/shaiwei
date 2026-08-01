@@ -419,6 +419,41 @@ def test_attempt_and_experiment_ledgers_are_one_to_one_and_orphans_fail_closed(t
     assert result.row["experiment_id"]
 
 
+def test_bijection_can_scope_a_shared_experiment_ledger_by_exact_protocol(tmp_path: Path):
+    protocol = D1Protocol.load(PROTOCOL_PATH)
+    _, _, ledger_path = _run(tmp_path, protocol, 1, _response(protocol, _proposal()))
+    experiment_path = tmp_path / "ledger/experiments.csv"
+    with experiment_path.open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    foreign = dict(rows[0])
+    foreign["experiment_id"] = "foreign000001"
+    result = json.loads(foreign["result_json"])
+    result["protocol_id"] = "another-protocol"
+    foreign["result_json"] = json.dumps(result, sort_keys=True)
+    with experiment_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=llm_factor.EXPERIMENT_LEDGER_HEADER)
+        writer.writeheader()
+        writer.writerows([rows[0], foreign])
+
+    with pytest.raises(D1ControlError, match="not one-to-one"):
+        verify_attempt_experiment_bijection(ledger_path, experiment_path)
+    assert verify_attempt_experiment_bijection(
+        ledger_path, experiment_path, protocol_id=protocol.protocol_id
+    ) == {"attempt_rows": 1, "experiment_rows": 1}
+
+    foreign_result = json.loads(foreign["result_json"])
+    foreign_result["protocol_id"] = protocol.protocol_id
+    foreign["result_json"] = json.dumps(foreign_result, sort_keys=True)
+    with experiment_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=llm_factor.EXPERIMENT_LEDGER_HEADER)
+        writer.writeheader()
+        writer.writerows([rows[0], foreign])
+    with pytest.raises(D1ControlError, match="not one-to-one"):
+        verify_attempt_experiment_bijection(
+            ledger_path, experiment_path, protocol_id=protocol.protocol_id
+        )
+
+
 def test_d1_control_module_has_no_real_network_client_import():
     source = Path(llm_factor.__file__).read_text(encoding="utf-8")
     tree = ast.parse(source)

@@ -19,10 +19,12 @@ from shaiwei.research.llm_factor import (
 )
 from shaiwei.research.m1_star50_contract import M1Star50ExecutionRelease, verify_star50_inputs
 from shaiwei.research.m1_star50_discovery import discovery_input_summary, load_star50_exposures
+from shaiwei.research.m1_star50_recovery import M1Star50TerminalRecovery
 
 
 PROTOCOL_PATH = PROJECT_ROOT / "config/m1_star50_factor_research_v1.yaml"
 RELEASE_PATH = PROJECT_ROOT / "config/m1_star50_factor_execution_v1.yaml"
+RECOVERY_PATH = PROJECT_ROOT / "config/m1_star50_factor_terminal_recovery_v1.yaml"
 
 
 def _proposal(**updates: object) -> CandidateProposal:
@@ -155,6 +157,18 @@ def test_m1_execution_release_binds_authority_budget_scope_and_inputs():
         "f6ad4566a522281102dd84a993bf9e774228bc0271ee9adb1ea3e1d3103cf4c5"
     )
     assert release.document["scope"]["sealed_validation_access"] is False
+
+
+def test_m1_terminal_recovery_is_zero_provider_call_and_hash_frozen(tmp_path: Path):
+    recovery = M1Star50TerminalRecovery.load(RECOVERY_PATH)
+    assert recovery.document["api_calls_authorized"] is False
+    assert recovery.document["additional_completed_responses_authorized"] == 0
+    tampered = tmp_path / "recovery.yaml"
+    document = yaml.safe_load(RECOVERY_PATH.read_text(encoding="utf-8"))
+    document["api_calls_authorized"] = True
+    tampered.write_text(yaml.safe_dump(document, sort_keys=False), encoding="utf-8")
+    with pytest.raises(D1ControlError, match="differs from its freeze"):
+        M1Star50TerminalRecovery.load(tampered)
 
 
 @pytest.mark.parametrize(
