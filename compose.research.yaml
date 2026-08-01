@@ -179,6 +179,51 @@ services:
       - --output-root
       - /workspace/data/research/d1/d1-llm-dsl-v1
 
+  m3-multi-pool-preflight:
+    image: shaiwei:m3-multi-pool-preexecution-v1
+    pull_policy: never
+    profiles: [m3-multi-pool-preflight]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_M3_RELEASE_GIT_HEAD:-}
+    init: true
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=512m,mode=1777
+    pids_limit: 128
+    mem_limit: 2g
+    cpus: 2.0
+    environment:
+      HOME: /tmp
+      MPLCONFIGDIR: /tmp/matplotlib
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+    volumes:
+      - type: bind
+        source: ./vendor/alphagen
+        target: /workspace/vendor/alphagen
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data
+        target: /workspace/data
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.m3_multi_pool_preexecution
+      - --protocol
+      - /workspace/config/m3_multi_pool_factor_research_v1.yaml
+
   m1-star50-preflight:
     image: shaiwei:m1-star50-factor-v1
     pull_policy: never
