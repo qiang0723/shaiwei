@@ -176,6 +176,19 @@ def test_review_compose_profiles_keep_secret_and_write_boundaries_narrow():
     )
     assert vendor_mount["source"] == "./vendor/alphagen"
     assert vendor_mount["read_only"] is True
+    release_mount = next(
+        volume
+        for volume in live["volumes"]
+        if volume["source"] == "./config/m1_star50_factor_review_execution_v1.yaml"
+    )
+    assert release_mount["target"] == (
+        "/opt/shaiwei/m1_star50_factor_review_execution_v1.yaml"
+    )
+    assert release_mount["read_only"] is True
+    assert "/workspace/config/m1_star50_factor_review_execution_v1.yaml" not in serialized
+    assert live["command"][live["command"].index("--execution-release") + 1] == (
+        "/opt/shaiwei/m1_star50_factor_review_execution_v1.yaml"
+    )
     writable = {
         volume["target"] for volume in live["volumes"] if volume["read_only"] is False
     }

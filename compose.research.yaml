@@ -428,7 +428,7 @@ services:
           create_host_path: false
       - type: bind
         source: ./config/m1_star50_factor_review_execution_v1.yaml
-        target: /workspace/config/m1_star50_factor_review_execution_v1.yaml
+        target: /opt/shaiwei/m1_star50_factor_review_execution_v1.yaml
         read_only: true
         bind:
           create_host_path: false
@@ -439,7 +439,7 @@ services:
       - --protocol
       - /workspace/config/m1_star50_factor_review_v1.yaml
       - --execution-release
-      - /workspace/config/m1_star50_factor_review_execution_v1.yaml
+      - /opt/shaiwei/m1_star50_factor_review_execution_v1.yaml
       - --output-root
       - /workspace/data/research/m1/m1-star50-price-volume-v1/m1_2_reviews
 
