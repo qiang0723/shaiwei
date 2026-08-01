@@ -1,0 +1,117 @@
+{
+  "schema_version": "m1-star50-factor-review-manifest-v1",
+  "release_id": "m1-star50-review-v1-batch-001",
+  "completed_at": "2026-08-01T23:21:13+08:00",
+  "verdict": "STOP_M1_2_REVIEW_CONTRACT",
+  "strategy_effective": "NOT_EVALUATED",
+  "production_authorization": "none",
+  "m1_3_validation_protocol_authorized": false,
+  "g1_authorized": false,
+  "response_gate": {
+    "completed_response_count": 1,
+    "completed_responses_required": 8,
+    "completed_response_exact_gate": false,
+    "external_api_calls": 1,
+    "transport_events": 2,
+    "transport_completions": 1,
+    "no_replacement_or_retry_after_semantic_failure": true
+  },
+  "terminal_review": {
+    "candidate_id": "5c3c30d8b3a01f76",
+    "review_ordinal": 1,
+    "role": "construct_and_units",
+    "schema_status": "PASS",
+    "semantic_status": "FAIL_SEMANTIC_CONTRACT",
+    "semantic_reason_codes": [
+      "AMBIGUOUS_CHANGE_LANGUAGE",
+      "DIFFERENT_DSL_EXPRESSION"
+    ],
+    "reported_role_verdict": "BLOCKER_FOUND",
+    "critical_findings": 1,
+    "major_findings": 1,
+    "minor_findings": 0,
+    "candidate_decision_authority": "NONE_DUE_TO_INVALID_REVIEW_CONTRACT",
+    "failure_class": "semantic_contract_violation"
+  },
+  "candidate_decisions": {},
+  "decision_rule": {
+    "invalid_response_counts": true,
+    "invalid_response_replacement": false,
+    "batch_stops_immediately": true,
+    "formula_changed": false,
+    "third_place_substituted": false,
+    "validation_or_g1_may_proceed": false
+  },
+  "cost": {
+    "actual_estimated_usd": 0.00207321,
+    "review_hard_ceiling_usd": 0.25,
+    "d1_total_authorization_usd": 10.0,
+    "cost_gate_pass": true
+  },
+  "scope_gates": {
+    "discovery_metrics_in_requests": false,
+    "sealed_validation_read": false,
+    "stress_periods_read": false,
+    "g1_run": false,
+    "model_or_portfolio_run": false,
+    "new_candidates_generated": false,
+    "forward_or_production_access": false,
+    "scheduler_changed": false,
+    "web_changed": false,
+    "guanxiang_access": false
+  },
+  "zero_call_recoveries": [
+    {
+      "recovery_id": "m1-star50-review-v1-zero-call-mount-recovery-001",
+      "recovery_sha256": "01a7deec117c2b03766800a33082d4c80ce0f89065cc0c7c21b11b99d805a2ec",
+      "reason": "missing_read_only_expression_parser_mount",
+      "provider_calls": 0
+    },
+    {
+      "recovery_id": "m1-star50-review-v1-zero-call-release-mount-recovery-002",
+      "recovery_sha256": "9616e41b1774b6735b214cc1e328e56d55f85017d907c1344026647c22461199",
+      "reason": "runtime_release_overlaid_controlled_image_tree",
+      "provider_calls": 0
+    }
+  ],
+  "static_evidence": {
+    "evidence_files": 5,
+    "evidence_tree_sha256": "bb54891addceea302d27ed7f9bd79ef11091f86554031c2cc7ba15d8340982d2",
+    "review_report_sha256": "5f2887a788144fda650232b259d1985e841f1224b51b124723c981020d318d26",
+    "review_ledger_sha256": "ff5371be34f3c2222654d80bdadc0d23fc285c97e85134672eec6ea1288e4baf",
+    "transport_ledger_sha256": "e5b79eebf888a8fc6236668736ab13bfcd5416a11d7e13bf25119dbfd8c1dd1b",
+    "m1_1_manifest_sha256": "835d6cf6d5630423f12154ab367ddf46f6712c8f67f105a67802c48bcf29fa59",
+    "m1_1_report_sha256": "5cdf09ca316eeb58a9613cf2c4596c0a1fdc2e0c6fd5af49d8974a10f68c45cb",
+    "m1_1_attempt_ledger_sha256": "262fcbb8a5141829c27658e551c23f3ee8ef61281e1e618b50f2ff6e66794092"
+  },
+  "identity": {
+    "protocol_sha256": "e37ace1d3b8a6c50724f89ebe426ff20ca2a4993f9c8e61eafe3196dc930a29f",
+    "execution_release_sha256": "4b603cbbe614a75f77697e08182ee1e14bc9a9fc3dd6a0ac59ec308e389ec43d",
+    "prompt_sha256": "5d49c40c9e61e5fc83015fdd965ee4897d5dc2e931cf31bc74d53a52050f1a5e",
+    "semantic_protocol_sha256": "8faf36d33744aec06ec4331266dccf4d96dee904bac0a3d0fb603940e6aef15a",
+    "implementation_git_head": "79e2096463e43674c88fcd46242f68ed9ffcea3f",
+    "execution_code_snapshot_sha256": "5d38f231b01462c438916c9e86b17a9a98ffdb320dfc0a743fea6df83ee40da5",
+    "execution_image_id": "sha256:15704c6a52ff8c62216498409bec2f9d4cabf6379cd2e89dfab80a8dd9604553"
+  },
+  "idempotency": {
+    "deepseek_secret_present": false,
+    "idempotent_reuse": true,
+    "external_api_calls_this_run": 0,
+    "evidence_tree_and_ledger_hashes_unchanged": true
+  },
+  "production_scheduler": {
+    "container_id_before_and_after": "fd8e96152b53",
+    "image_id_before_and_after": "sha256:de87ec740981166b032b394fb256a978acdc8d35e999a369f1debc3466aa0261",
+    "created_at_before_and_after": "2026-07-24T12:25:27.362813588Z",
+    "final_state": "running",
+    "final_health": "healthy"
+  },
+  "secret_handling": {
+    "storage": "project_gitignored_dotenv_only",
+    "tracked": false,
+    "embedded_in_image": false,
+    "written_to_request_response_ledger_report_or_log": false,
+    "passed_only_to_authorized_ephemeral_live_container": true,
+    "idempotency_run_received_secret": false
+  }
+}

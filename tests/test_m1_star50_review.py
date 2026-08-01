@@ -6,6 +6,7 @@ import pytest
 import yaml
 
 from shaiwei.config import PROJECT_ROOT
+from shaiwei.research.deepseek_client import TRANSPORT_LEDGER_HEADER_V2
 from shaiwei.research.llm_review_semantics import FAIL, PASS
 from shaiwei.research.m1_star50_review_contract import (
     CANDIDATE_IDS,
@@ -139,14 +140,54 @@ def test_negative_screen_decision_is_fail_closed_and_does_not_repair():
     assert decide_reviews(invalid) == ({}, "STOP_M1_2_REVIEW_CONTRACT")
 
 
-def test_new_ledgers_have_exact_empty_headers():
+def test_review_ledgers_have_exact_headers_and_contiguous_rows():
     review_path = PROJECT_ROOT / "ledger/m1_star50_factor_reviews.csv"
     with review_path.open(newline="", encoding="utf-8") as handle:
-        reader = csv.reader(handle)
-        assert tuple(next(reader)) == REVIEW_LEDGER_HEADER
-        assert list(reader) == []
+        reader = csv.DictReader(handle)
+        assert tuple(reader.fieldnames or ()) == REVIEW_LEDGER_HEADER
+        rows = list(reader)
+    assert [int(row["review_ordinal"]) for row in rows] == list(range(1, len(rows) + 1))
+    assert len({row["review_id"] for row in rows}) == len(rows)
+
     transport = PROJECT_ROOT / "ledger/m1_star50_factor_review_transports.csv"
-    assert transport.read_text(encoding="utf-8").count("\n") == 1
+    with transport.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        assert tuple(reader.fieldnames or ()) == TRANSPORT_LEDGER_HEADER_V2
+        transport_rows = list(reader)
+    assert len({row["event_id"] for row in transport_rows}) == len(transport_rows)
+    assert sum(row["event_type"] == "COMPLETED" for row in transport_rows) <= len(rows)
+
+
+def test_terminal_manifest_matches_local_immutable_evidence_when_present():
+    report_path = (
+        PROJECT_ROOT
+        / "data/research/m1/m1-star50-price-volume-v1/m1_2_reviews/m1_2_review_report.json"
+    )
+    if not report_path.is_file():
+        pytest.skip("ignored M1-2 terminal evidence is unavailable")
+    manifest = json.loads(
+        (PROJECT_ROOT / "config/m1_star50_factor_review_manifest_v1.json").read_text()
+    )
+    report = json.loads(report_path.read_text())
+    review_path = PROJECT_ROOT / "ledger/m1_star50_factor_reviews.csv"
+    transport_path = PROJECT_ROOT / "ledger/m1_star50_factor_review_transports.csv"
+
+    assert manifest["verdict"] == report["review_gate"] == "STOP_M1_2_REVIEW_CONTRACT"
+    assert manifest["candidate_decisions"] == report["candidate_decisions"] == {}
+    assert manifest["response_gate"]["completed_response_count"] == 1
+    assert manifest["response_gate"]["completed_response_exact_gate"] is False
+    assert manifest["m1_3_validation_protocol_authorized"] is False
+    assert manifest["g1_authorized"] is False
+    assert manifest["static_evidence"]["review_report_sha256"] == hashlib.sha256(
+        report_path.read_bytes()
+    ).hexdigest()
+    assert manifest["static_evidence"]["review_ledger_sha256"] == hashlib.sha256(
+        review_path.read_bytes()
+    ).hexdigest()
+    assert manifest["static_evidence"]["transport_ledger_sha256"] == hashlib.sha256(
+        transport_path.read_bytes()
+    ).hexdigest()
+    assert all(value is False for value in manifest["scope_gates"].values())
 
 
 def test_review_compose_profiles_keep_secret_and_write_boundaries_narrow():
