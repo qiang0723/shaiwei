@@ -31,9 +31,38 @@ def test_web_modularization_ratchet():
         "web-ui/src/styles/70-redesign-base.css",
         "web-ui/src/styles/80-redesign-components.css",
         "web-ui/src/styles/90-responsive-current.css",
+        "web-ui/src/pages/FactorsPage.tsx",
+        "web-ui/src/pages/factors/presentation.tsx",
+        "web-ui/src/pages/factors/CatalogPage.tsx",
+        "web-ui/src/pages/factors/DetailPage.tsx",
+        "web-ui/src/pages/factors/AdmissionsPage.tsx",
+        "web-ui/src/pages/factors/ComparePage.tsx",
+        "web-ui/src/pages/ExperimentsPage.tsx",
+        "web-ui/src/pages/experiments/presentation.tsx",
+        "web-ui/src/pages/experiments/CatalogPage.tsx",
+        "web-ui/src/pages/experiments/DetailPage.tsx",
     )
     oversized = {path: _lines(path) for path in bounded_modules if _lines(path) > 600}
     assert oversized == {}
+
+
+def test_web_page_entries_are_thin_and_domain_isolated():
+    entries = (
+        "web-ui/src/pages/FactorsPage.tsx",
+        "web-ui/src/pages/ExperimentsPage.tsx",
+    )
+    for relative in entries:
+        source = (ROOT / relative).read_text(encoding="utf-8")
+        assert _lines(relative) <= 100
+        assert "@tanstack/react-query" not in source
+        assert "@ant-design/charts" not in source
+        assert "fetchFactor" not in source
+        assert "fetchExperiment" not in source
+
+    for relative in (ROOT / "web-ui/src/pages/factors").glob("*.tsx"):
+        assert "../experiments/" not in relative.read_text(encoding="utf-8")
+    for relative in (ROOT / "web-ui/src/pages/experiments").glob("*.tsx"):
+        assert "../factors/" not in relative.read_text(encoding="utf-8")
 
 
 def test_web_query_layers_do_not_pull_runtime_configuration():
