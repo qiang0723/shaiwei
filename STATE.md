@@ -11,8 +11,11 @@
 - 生成预算冻结为五主题各8次、共40个DeepSeek完成响应，串行且本批硬上限`$1`；空/截断、重复、
   语法、沙箱及语义失败均计家族N，不补位。正文与唯一DSL不一致、建议变体、声称业绩或触及封存期
   均在候选有效前fail closed。
-- 当前只有协议、prompt、输入哈希、选择规则和隔离边界冻结；尚未写M1执行器、调用API、读取候选结果
-  或写新账本。后续必须先完成零调用工程门，再另立并推送执行release才可运行40次。
+- 协议远端留痕后已完成零调用工程实现：候选语义门、发布/输入合同、科创50发现评价和批次编排拆为
+  四个独立模块，最大300行；旧控制面只增加可选语义钩子。专用attempt/transport空账本、断网预检和
+  一次性live Docker profile已加入，宿主专项64 PASS、全仓416 PASS，Ruff/compileall/pip/Compose
+  均PASS。尚未构建最终镜像、创建执行release、调用API、读取候选结果或写入任何M1账本行；必须先将
+  本工程提交推送并完成断网Docker门，才可另立执行release。
 - 策略有效性仍为`NOT_EVALUATED`、生产授权为`none`。详见
   `docs/M1_STAR50_FACTOR_DISCOVERY_PROTOCOL_20260801.md`与
   `config/m1_star50_factor_research_v1.yaml`。

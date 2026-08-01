@@ -70,7 +70,7 @@ def _write_once(path: Path, payload: str) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def _rows(path: Path) -> list[dict[str, str]]:
+def read_attempt_rows(path: Path) -> list[dict[str, str]]:
     if not path.is_file():
         return []
     with path.open(newline="", encoding="utf-8") as handle:
@@ -398,7 +398,7 @@ def tls_hostname_probe(release: D1ExecutionRelease) -> str:
     return hashlib.sha256(certificate).hexdigest()
 
 
-def _selection(rows: list[dict[str, str]], count: int) -> list[dict[str, Any]]:
+def select_discovery_candidates(rows: list[dict[str, str]], count: int) -> list[dict[str, Any]]:
     eligible = [row for row in rows if row["candidate_status"] == "DISCOVERY_EVALUATED"]
     eligible.sort(
         key=lambda row: (
@@ -426,11 +426,14 @@ def verify_static_evidence(
     attempt_rows: list[dict[str, str]],
     transport_ledger_path: Path,
     artifact_root: Path,
+    expected_count: int = 40,
 ) -> dict[str, int]:
     """Re-hash immutable D1-2B artifacts without data, network, or secret access."""
     batch = [row for row in attempt_rows if row["execution_release_id"] == release.release_id]
-    if len(batch) != 40 or [int(row["global_ordinal"]) for row in batch] != list(range(1, 41)):
-        raise D1ControlError("D1 static evidence does not contain the exact completed batch")
+    if expected_count < 0 or len(batch) != expected_count or [
+        int(row["global_ordinal"]) for row in batch
+    ] != list(range(1, expected_count + 1)):
+        raise D1ControlError("LLM static evidence does not contain the expected contiguous batch")
     artifact_root_resolved = artifact_root.resolve()
 
     def verified(relative: str, expected_sha256: str, *, root: Path = artifact_root) -> None:
@@ -474,7 +477,7 @@ def verify_static_evidence(
     if any(row["event_type"] == "BILLING_UNCERTAIN" for row in events):
         raise D1ControlError("D1 transport contains unresolved billing uncertainty")
     completed = [row for row in events if row["event_type"] == "COMPLETED"]
-    if len(completed) != 40 or {row["attempt_id"] for row in completed} != {
+    if len(completed) != expected_count or {row["attempt_id"] for row in completed} != {
         row["attempt_id"] for row in batch
     }:
         raise D1ControlError("D1 transport completions do not match the attempt ledger")
@@ -505,7 +508,9 @@ def _report(
     tls_certificate_sha256: str,
 ) -> dict[str, Any]:
     batch = [row for row in rows if row["execution_release_id"] == release.release_id]
-    selected = _selection(batch, int(release.document["selection_contract"]["promoted_count"]))
+    selected = select_discovery_candidates(
+        batch, int(release.document["selection_contract"]["promoted_count"])
+    )
     cost = sum(float(row["estimated_cost_usd"]) for row in batch)
     return {
         "schema_version": "d1-llm-factor-live-run-report-v1",
@@ -567,7 +572,7 @@ def run_live(
     transport_ledger_path = PROJECT_ROOT / release.document["ledgers"]["transport"]
     artifact_root = output_root / "artifacts"
     report_path = output_root / "d1_2b_run_report.json"
-    existing = _rows(ledger_path)
+    existing = read_attempt_rows(ledger_path)
     batch_existing = [row for row in existing if row["execution_release_id"] == release.release_id]
     recovery = (
         D1RecoveryAddendum.load(
@@ -610,7 +615,7 @@ def run_live(
     external_calls = 0
     for ordinal in range(len(batch_existing) + 1, 41):
         plan = plan_attempt(protocol, ordinal)
-        current_rows = _rows(ledger_path)
+        current_rows = read_attempt_rows(ledger_path)
         feedback = feedback_for_attempt(current_rows, plan)
         with create_live_deepseek_provider(
             protocol,
@@ -646,7 +651,11 @@ def run_live(
                     "candidate_status": result.row["candidate_status"],
                     "failure_class": result.row["failure_class"] or "NONE",
                     "cumulative_cost_usd": round(
-                        sum(float(row["estimated_cost_usd"]) for row in _rows(ledger_path)), 8
+                        sum(
+                            float(row["estimated_cost_usd"])
+                            for row in read_attempt_rows(ledger_path)
+                        ),
+                        8,
                     ),
                 }
             ),
@@ -661,7 +670,7 @@ def run_live(
         }:
             raise D1ControlError("D1 live batch stopped at a fatal completed-response gate")
 
-    final_rows = _rows(ledger_path)
+    final_rows = read_attempt_rows(ledger_path)
     report = _report(
         protocol=protocol,
         release=release,

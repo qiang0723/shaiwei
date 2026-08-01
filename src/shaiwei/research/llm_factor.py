@@ -168,6 +168,10 @@ class D1ControlError(RuntimeError):
     pass
 
 
+class CandidateSemanticContractError(RuntimeError):
+    """Stop one completed response after a deterministic narrative/DSL mismatch."""
+
+
 class CandidateLineage(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
@@ -729,6 +733,7 @@ def execute_completed_attempt(
     data_sha256: str | None = None,
     discovery_evaluator: Callable[[AttemptPlan, str], DiscoveryEvidence] | None = None,
     returned_model_identity: str | None = None,
+    candidate_semantic_validator: Callable[[CandidateProposal], str | None] | None = None,
 ) -> AttemptResult:
     attempt_header = (
         ATTEMPT_LEDGER_HEADER_V2 if execution_release_id else ATTEMPT_LEDGER_HEADER_V1
@@ -834,6 +839,7 @@ def execute_completed_attempt(
     discovery_error = ""
     discovery_artifact_path = ""
     discovery_artifact_sha256 = ""
+    candidate_semantic_error = ""
     failure_class = ""
     candidate_status = "REJECT"
     audit: ExpressionAudit | None = None
@@ -872,6 +878,12 @@ def execute_completed_attempt(
                     str(record["attempt_id"]) for record in serialized_feedback
                 },
             )
+            if candidate_semantic_validator is not None:
+                candidate_semantic_error = candidate_semantic_validator(proposal) or ""
+                if candidate_semantic_error:
+                    failure_class = "semantic_contract_violation"
+            if failure_class:
+                raise CandidateSemanticContractError
             audit = audit_expression(proposal.expression)
             limits = protocol.document["candidate_contract"]
             if audit.expression_tokens > int(limits["maximum_expression_tokens"]):
@@ -942,6 +954,8 @@ def execute_completed_attempt(
         except ValidationError:
             parse_status = "FAIL"
             failure_class = "schema_invalid"
+        except CandidateSemanticContractError:
+            pass
         except ExpressionSafetyError:
             sandbox_status = "FAIL"
             failure_class = "sandbox_rejected"
@@ -969,6 +983,7 @@ def execute_completed_attempt(
         "ast_nodes": audit.ast_nodes if audit is not None else None,
         "max_lookback_days": audit.max_lookback_days if audit is not None else None,
         "failure_class": failure_class,
+        "candidate_semantic_error": candidate_semantic_error,
         "candidate_status": candidate_status,
         "discovery_status": discovery_status,
         "discovery_coverage": discovery_coverage or None,
