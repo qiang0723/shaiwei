@@ -1,0 +1,107 @@
+{
+  "schema_version": "m1-star50-factor-discovery-manifest-v1",
+  "release_id": "m1-star50-price-volume-v1-batch-001",
+  "completed_at": "2026-08-01T16:22:58+08:00",
+  "verdict": "GO_DISCOVERY_TOP2_LOCKED",
+  "strategy_effective": "NOT_EVALUATED",
+  "production_authorization": "none",
+  "completed_response_count": 40,
+  "completed_response_exact_gate": true,
+  "global_ordinals_complete": true,
+  "candidate_status_counts": {
+    "DISCOVERY_EVALUATED": 14,
+    "REJECT": 26
+  },
+  "failure_class_counts": {
+    "NONE": 14,
+    "schema_invalid": 6,
+    "semantic_contract_violation": 20
+  },
+  "selected_count": 2,
+  "mechanical_top2": [
+    {
+      "attempt_id": "5c3c30d8b3a01f76",
+      "global_ordinal": 28,
+      "topic": "liquidity_volume",
+      "expression_sha256": "382b98faf17cb72bb12c80ef0d9938cf4c4a0d418e6d0d429395d4121e0542e0",
+      "discovery_artifact_sha256": "7f7ebff203672d5ec95c588192400d3fa8c1d6e1d9c158e4417307c431eb7cf0"
+    },
+    {
+      "attempt_id": "47f690ef14487a25",
+      "global_ordinal": 11,
+      "topic": "reversal_mean_reversion",
+      "expression_sha256": "6aa7cf64c86be0562db0d94d6490a3030e51a18af42274ffb81276c80c56e6d3",
+      "discovery_artifact_sha256": "173c3bb230d252bfe0432eeb2ea645bcd6e2b9a62b575c400dc4ead93e518705"
+    }
+  ],
+  "cost": {
+    "actual_estimated_usd": 0.071831434,
+    "batch_hard_ceiling_usd": 1.0,
+    "d1_total_authorization_usd": 10.0,
+    "cost_gate_pass": true
+  },
+  "scope_gates": {
+    "discovery_signal_period": ["2020-08-03", "2022-12-15"],
+    "sealed_validation_read": false,
+    "stress_periods_read": false,
+    "g1_run": false,
+    "model_or_portfolio_run": false,
+    "production_changed": false
+  },
+  "terminal_recovery": {
+    "recovery_id": "m1-star50-price-volume-v1-terminal-recovery-001",
+    "recovery_sha256": "5f61141d2aed7f0404ce01f728d9d5838d3298e1a6244fc7a2c72cf34ddbd428",
+    "assembler_fix_commit": "eff0bea78d81a4c9272b01d45a4501f4ba5d7626",
+    "additional_provider_calls": 0,
+    "candidate_or_discovery_artifact_changed": false
+  },
+  "static_evidence": {
+    "attempt_rows": 40,
+    "transport_events": 80,
+    "transport_completions": 40,
+    "raw_response_artifacts": 40,
+    "discovery_artifacts": 14,
+    "evidence_files": 134,
+    "evidence_bytes": 1258619,
+    "evidence_bundle_sha256": "f931a9b219172a2d5236d8c96a557bc5c9317f150b0738a0391f2712bda4305a",
+    "run_report_sha256": "5cdf09ca316eeb58a9613cf2c4596c0a1fdc2e0c6fd5af49d8974a10f68c45cb",
+    "attempt_ledger_sha256": "262fcbb8a5141829c27658e551c23f3ee8ef61281e1e618b50f2ff6e66794092",
+    "transport_ledger_sha256": "713c40bdfef4ff8939490dd61cbdbd52f0838214828217fd5b2a7523760245df",
+    "experiment_ledger_sha256": "96c5e8dd5a8518151922f9efe7869e7dd999893597e576b0a523fceff5c8eea9"
+  },
+  "identity": {
+    "protocol_sha256": "a6bcf102480505e53b4bcb087a8f82ceee55fd4494004f6805f559e5d3dbf534",
+    "execution_release_sha256": "9b1fdf96b267a44e0cf19f4d482ed65fddee48fddd6a253db0a3b19784e89e09",
+    "prompt_sha256": "6e0df7fd61b5c309cdcbbc72c02417de92a110f7799b816044971e8dc52fcd06",
+    "knowledge_manifest_sha256": "0f1e8ab2461352ce020dcf1873a5d79bfc010b08eea205b6b308e27bc3c23fad",
+    "data_snapshot_sha256": "f6ad4566a522281102dd84a993bf9e774228bc0271ee9adb1ea3e1d3103cf4c5",
+    "qlib_artifact_sha256": "b8f736ef9bc9e31cc236a81ca281a23e904789fb5ec87caa9195b572c6b78729",
+    "member_day_sha256": "a6fb10532bba9de9504fc4be0bfe6e45e50621a761ae29fbaa1cf9ba39356061",
+    "release_git_head": "f811961b1532c0474d0a23eb8fb674b497f0d164",
+    "execution_code_snapshot_sha256": "180ad8fc02d2dba9f2f8eca30d5684c2b3a1e366a221f071279effb83dfc4473",
+    "execution_image_id": "sha256:7729c89e56865db4b2369f2f076db9bf9068017d34b830bb4dffab9ca3bb411c",
+    "recovery_code_snapshot_sha256": "9136b6b0561749837b6cf9edad40b32c7cffb814a5cef0679ff30d9f57fbbe91",
+    "recovery_image_id": "sha256:32eea94ca56bfcde5c859b15b6e4eac025020facf3cc6cf642e813ea9f9450fa"
+  },
+  "idempotency": {
+    "deepseek_secret_present": false,
+    "idempotent_reuse": true,
+    "external_api_calls_this_run": 0,
+    "attempt_transport_experiment_and_report_hashes_unchanged": true
+  },
+  "production_scheduler": {
+    "container_id_before_and_after": "fd8e96152b53",
+    "image_id_before_and_after": "sha256:de87ec740981166b032b394fb256a978acdc8d35e999a369f1debc3466aa0261",
+    "created_at_before_and_after": "2026-07-24 20:25:27 +0800",
+    "final_state": "running",
+    "final_health": "healthy"
+  },
+  "secret_handling": {
+    "storage": "project_gitignored_dotenv_only",
+    "tracked": false,
+    "embedded_in_image": false,
+    "written_to_ledger_report_or_log": false,
+    "passed_only_to_first_ephemeral_live_container": true,
+    "terminal_recovery_and_idempotency_runs_received_secret": false
+  }
+}
