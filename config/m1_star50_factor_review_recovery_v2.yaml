@@ -1,0 +1,47 @@
+schema_version: m1-star50-factor-review-recovery-v2
+recovery_id: m1-star50-review-v1-zero-call-release-mount-recovery-002
+prepared_at: "2026-08-01T18:05:00+08:00"
+status: M1_2_ZERO_CALL_CONTROLLED_OVERLAY_RECOVERY_FROZEN
+production_authorization: none
+
+source_binding:
+  protocol_sha256: e37ace1d3b8a6c50724f89ebe426ff20ca2a4993f9c8e61eafe3196dc930a29f
+  execution_release_sha256: 0399ac0d45bf6d571efa6a58e1c7d37c3fa32d443605480075daae335d4c397e
+  execution_release_commit: 3838355d4d712c3c90a3d670e1ee274f7642c6e7
+  completed_review_rows: 0
+  transport_rows: 0
+  output_files: 0
+  provider_calls: 0
+  billed_cost_usd: 0.0
+
+root_cause:
+  class: runtime_release_overlays_controlled_image_tree
+  source: ./config/m1_star50_factor_review_execution_v1.yaml
+  invalid_target: /workspace/config/m1_star50_factor_review_execution_v1.yaml
+  failing_gate: embedded_release_manifest_content_verification
+  failure_stage: after_tls_before_request_artifact_secret_provider_or_billing
+
+authorized_changes:
+  move_release_mount_target_outside_controlled_tree: /opt/shaiwei/m1_star50_factor_review_execution_v1.yaml
+  update_live_command_release_path: true
+  strengthen_mount_regression_test: true
+  rebuild_image_with_new_committed_identity: true
+  refresh_execution_release_image_and_git_identity_before_first_request: true
+
+forbidden_changes:
+  protocol_or_prompt: false
+  candidate_or_formula_or_direction: false
+  review_schedule_or_decision_rule: false
+  provider_or_budget: false
+  source_or_metric_access: false
+  semantic_gate: false
+  data_or_ledger_contents: false
+  scheduler_or_production: false
+
+resume_rule:
+  release_update_must_precede_first_request: true
+  head_must_equal_origin_main: true
+  worktree_must_be_clean: true
+  zero_call_preflight_must_pass_again: true
+  live_container_code_snapshot_must_match_embedded_manifest: true
+  no_response_replacement_or_extra_request: true
