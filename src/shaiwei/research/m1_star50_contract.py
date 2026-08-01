@@ -202,7 +202,11 @@ class M1Star50ExecutionRelease:
         total = float(authorization.get("d1_total_authorization_usd", -1))
         batch = float(authorization.get("batch_hard_ceiling_usd", -1))
         if (
-            int(authorization.get("completed_responses_exact", 0)) != 40
+            authorization.get("source")
+            != "user_explicit_instruction_in_primary_codex_thread"
+            or authorization.get("authorized_on") != "2026-08-01"
+            or authorization.get("model") != protocol.document["provider"]["model"]
+            or int(authorization.get("completed_responses_exact", 0)) != 40
             or total != 10.0
             or batch != 1.0
             or authorization.get("future_batches_require_new_protocol_and_instruction") is not True

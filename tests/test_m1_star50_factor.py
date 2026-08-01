@@ -17,11 +17,12 @@ from shaiwei.research.llm_factor import (
     execute_completed_attempt,
     plan_attempt,
 )
-from shaiwei.research.m1_star50_contract import verify_star50_inputs
+from shaiwei.research.m1_star50_contract import M1Star50ExecutionRelease, verify_star50_inputs
 from shaiwei.research.m1_star50_discovery import discovery_input_summary, load_star50_exposures
 
 
 PROTOCOL_PATH = PROJECT_ROOT / "config/m1_star50_factor_research_v1.yaml"
+RELEASE_PATH = PROJECT_ROOT / "config/m1_star50_factor_execution_v1.yaml"
 
 
 def _proposal(**updates: object) -> CandidateProposal:
@@ -144,12 +145,52 @@ def test_star50_input_tampering_fails_closed():
         verify_star50_inputs(tampered, PROJECT_ROOT)
 
 
+def test_m1_execution_release_binds_authority_budget_scope_and_inputs():
+    protocol = D1Protocol.load(PROTOCOL_PATH)
+    release = M1Star50ExecutionRelease.load(RELEASE_PATH, protocol)
+    assert release.release_id == "m1-star50-price-volume-v1-batch-001"
+    assert release.batch_hard_ceiling_usd == 1.0
+    assert release.total_authorization_usd == 10.0
+    assert release.document["input_contract"]["data_snapshot_sha256"] == (
+        "f6ad4566a522281102dd84a993bf9e774228bc0271ee9adb1ea3e1d3103cf4c5"
+    )
+    assert release.document["scope"]["sealed_validation_access"] is False
+
+
+@pytest.mark.parametrize(
+    ("section", "key", "value"),
+    [
+        ("authorization", "batch_hard_ceiling_usd", 2.0),
+        ("authorization", "model", "another-model"),
+        ("scope", "sealed_validation_access", True),
+        ("egress", "trust_environment_proxy", True),
+        ("selection_contract", "promoted_count", 3),
+    ],
+)
+def test_m1_execution_release_tampering_fails_closed(
+    tmp_path: Path, section: str, key: str, value: object
+):
+    protocol = D1Protocol.load(PROTOCOL_PATH)
+    document = yaml.safe_load(RELEASE_PATH.read_text(encoding="utf-8"))
+    document[section][key] = value
+    path = tmp_path / "release.yaml"
+    path.write_text(yaml.safe_dump(document, sort_keys=False), encoding="utf-8")
+    with pytest.raises(D1ControlError):
+        M1Star50ExecutionRelease.load(path, protocol)
+
+
 def test_m1_compose_preflight_and_live_have_narrow_boundaries():
     compose = yaml.safe_load((PROJECT_ROOT / "compose.research.yaml").read_text(encoding="utf-8"))
     preflight = compose["services"]["m1-star50-preflight"]
     assert preflight["network_mode"] == "none"
     assert preflight["read_only"] is True
     assert "DEEPSEEK_API_KEY" not in json.dumps(preflight, sort_keys=True)
+    assert any(
+        volume["source"] == "./docs"
+        and volume["target"] == "/workspace/docs"
+        and volume["read_only"] is True
+        for volume in preflight["volumes"]
+    )
 
     live = compose["services"]["m1-star50-live"]
     assert live["image"] == "shaiwei:m1-star50-factor-v1"
@@ -166,6 +207,12 @@ def test_m1_compose_preflight_and_live_have_narrow_boundaries():
     assert "FEISHU" not in serialized
     assert ".env" not in serialized
     assert "docker.sock" not in serialized
+    assert any(
+        volume["source"] == "./docs"
+        and volume["target"] == "/workspace/docs"
+        and volume["read_only"] is True
+        for volume in live["volumes"]
+    )
     writable = {
         volume["target"]
         for volume in live["volumes"]

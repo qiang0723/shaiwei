@@ -206,6 +206,12 @@ services:
       PYTHONPYCACHEPREFIX: /tmp/pycache
     volumes:
       - type: bind
+        source: ./docs
+        target: /workspace/docs
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
         source: ./vendor/alphagen
         target: /workspace/vendor/alphagen
         read_only: true
@@ -245,6 +251,12 @@ services:
       - MPLCONFIGDIR=/workspace/logs/matplotlib
       - PYTHONPYCACHEPREFIX=/tmp/pycache
     volumes:
+      - type: bind
+        source: ./docs
+        target: /workspace/docs
+        read_only: true
+        bind:
+          create_host_path: false
       - type: bind
         source: ./vendor/alphagen
         target: /workspace/vendor/alphagen

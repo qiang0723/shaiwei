@@ -1,0 +1,78 @@
+schema_version: m1-star50-factor-execution-release-v1
+release_id: m1-star50-price-volume-v1-batch-001
+prepared_at: "2026-08-01T15:33:19+08:00"
+status: M1_1_RESULT_BEFORE_EXECUTION_FROZEN
+execution_authorized: true
+production_authorization: none
+
+authorization:
+  source: user_explicit_instruction_in_primary_codex_thread
+  authorized_on: "2026-08-01"
+  model: deepseek-v4-pro
+  completed_responses_exact: 40
+  d1_total_authorization_usd: 10.0
+  batch_hard_ceiling_usd: 1.0
+  future_batches_require_new_protocol_and_instruction: true
+
+frozen_contract:
+  protocol_path: config/m1_star50_factor_research_v1.yaml
+  protocol_sha256: a6bcf102480505e53b4bcb087a8f82ceee55fd4494004f6805f559e5d3dbf534
+  prompt_sha256: 6e0df7fd61b5c309cdcbbc72c02417de92a110f7799b816044971e8dc52fcd06
+  knowledge_manifest_sha256: 0f1e8ab2461352ce020dcf1873a5d79bfc010b08eea205b6b308e27bc3c23fad
+  protocol_freeze_commit: 2ad7fd1304527343532c31951f7bbc596f186981
+
+ledgers:
+  attempt: ledger/m1_star50_factor_attempts.csv
+  transport: ledger/m1_star50_factor_transports.csv
+  experiment: ledger/experiments.csv
+  old_d1_ledgers_remain_byte_immutable: true
+
+scope:
+  discovery_signal_period_only: ["2020-08-03", "2022-12-15"]
+  sealed_validation_access: false
+  stress_period_access: false
+  g1_run: false
+  model_or_portfolio_run: false
+  forward_access: false
+  scheduler_changes: false
+  web_changes: false
+  guanxiang_access: false
+  new_market_collection: false
+
+input_contract:
+  data_snapshot_sha256: f6ad4566a522281102dd84a993bf9e774228bc0271ee9adb1ea3e1d3103cf4c5
+  qlib_artifact_sha256: b8f736ef9bc9e31cc236a81ca281a23e904789fb5ec87caa9195b572c6b78729
+  qlib_manifest_sha256: bbe01661460e975a1e8e2228bb21de6ed1e134537158bd1a25869ccf8b4a7b3b
+  member_day_dataset_sha256: a6fb10532bba9de9504fc4be0bfe6e45e50621a761ae29fbaa1cf9ba39356061
+
+selection_contract:
+  run_only_after_all_40_completed_responses: true
+  eligible_status: DISCOVERY_EVALUATED
+  promoted_count: 2
+  ordering:
+    - absolute_discovery_rank_ic_desc
+    - discovery_coverage_desc
+    - expression_tokens_asc
+    - global_ordinal_asc
+  fewer_than_two_eligible: PAUSE
+  sealed_validation_and_g1: forbidden
+
+egress:
+  scheme: https
+  host: api.deepseek.com
+  port: 443
+  path: /chat/completions
+  trust_environment_proxy: false
+
+official_contract_recheck:
+  rechecked_on: "2026-08-01"
+  pricing_url: https://api-docs.deepseek.com/quick_start/pricing/
+  chat_completion_url: https://api-docs.deepseek.com/api/create-chat-completion/
+  model: deepseek-v4-pro
+  model_version: DeepSeek-V4-Pro
+  response_model_field: deepseek-v4-pro
+  thinking: enabled
+  reasoning_effort: high
+  input_cache_hit_per_million_usd: 0.003625
+  input_cache_miss_per_million_usd: 0.435
+  output_per_million_usd: 0.87
