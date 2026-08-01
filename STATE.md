@@ -699,6 +699,7 @@
 - [x] D1-3A Top2 盲态对抗复核及语义纠错（2026-07-25，STOP_SEMANTIC_CONTRACT_VIOLATION）：8/8 响应结构 schema PASS，但自由文本审计为 5 PASS/3 FAIL；三份以正文建议公式/构造变体却声明未提变体。按 8/8 有效且不补位规则停止，不进独立人工闸，不读 W1—W6，不运行 G1。
 - [x] D1 语义合同恢复工程门（2026-07-26，GO_SEMANTIC_GATE_ENGINEERING_ONLY）：确定性正文/结构一致性、完整 DSL、回看期、修改/业绩/准入和模糊文本 fail-closed 门已通过 339 项全仓、13 项断网 Docker 与旧批 5/3 精确复核；零 API/费用，不改变旧 STOP，未来新批仍须新指令与新协议。
 - [x] M1-1 科创50价量因子发现批执行前门（2026-08-01，GO_LIVE_DISCOVERY_ONLY）：独立协议与执行 release 均已在结果/API 调用前冻结并推送；发现期固定 2020-08-03 至 2022-12-15，封存验证窗从 2023-01-03 开始。最终镜像 `sha256:7729c89e...411c`、内嵌代码快照 `180ad8fc...4473`，断网输入门为 577 日/28,850 成员日且 `.BJ=0`；宿主全仓 422 PASS、镜像专项 18 PASS、依赖与发布清单 PASS。当前 provider 调用和费用仍为 0，只允许后续恰好 40 个 DeepSeek 完成响应、1 USD 硬熔断和发现期机械 Top2；验证/G1/模型/组合/生产均未授权。证据见 `docs/M1_STAR50_FACTOR_PREEXECUTION_ACCEPTANCE_20260801.md`。
+- [ ] M1-1 终态组装恢复（2026-08-01）：40/40 响应与 80 个传输事件已完整追加，累计约 `$0.07183143`；静态证据 PASS，但通用一一对应 verifier 未按当前 protocol 过滤全局旧 D1 实验行，故报告组装 fail closed。恢复附录已绑定三账本和旧 D1 五账本哈希，只授权精确 protocol 过滤、回归测试、既有证据组装及零调用复跑；禁止任何新增 API、改账、改候选、查看修复前指标或读取验证/G1。诊断中意外看到部分公式文本但未看 RankIC/覆盖/排序，已留痕于 `docs/M1_STAR50_FACTOR_TERMINAL_RECOVERY_FREEZE_20260801.md`。
 
 ## 后台任务
 运行态以 `logs/pipeline/stage0_20260715.jsonl` 和 `ledger/ingest_batches.csv` 为准；自动流按 as-of+代码+数据快照及逐批文件哈希安全续跑。

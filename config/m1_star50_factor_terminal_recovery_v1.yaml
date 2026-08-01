@@ -1,0 +1,58 @@
+schema_version: m1-star50-factor-terminal-recovery-v1
+recovery_id: m1-star50-price-volume-v1-terminal-recovery-001
+prepared_at: "2026-08-01T16:12:19+08:00"
+status: M1_1_POST_RESPONSE_TERMINAL_ASSEMBLER_RECOVERY_FROZEN
+api_calls_authorized: false
+additional_completed_responses_authorized: 0
+production_authorization: none
+
+frozen_parent:
+  protocol_sha256: a6bcf102480505e53b4bcb087a8f82ceee55fd4494004f6805f559e5d3dbf534
+  execution_release_id: m1-star50-price-volume-v1-batch-001
+  execution_release_commit: f811961b1532c0474d0a23eb8fb674b497f0d164
+  release_git_head: f811961b1532c0474d0a23eb8fb674b497f0d164
+  code_snapshot_sha256: 180ad8fc02d2dba9f2f8eca30d5684c2b3a1e366a221f071279effb83dfc4473
+  image_id: sha256:7729c89e56865db4b2369f2f076db9bf9068017d34b830bb4dffab9ca3bb411c
+
+immutable_completed_evidence:
+  completed_response_count: 40
+  transport_event_count: 80
+  transport_completion_count: 40
+  discovery_artifact_count: 14
+  attempt_ledger_sha256: 262fcbb8a5141829c27658e551c23f3ee8ef61281e1e618b50f2ff6e66794092
+  transport_ledger_sha256: 713c40bdfef4ff8939490dd61cbdbd52f0838214828217fd5b2a7523760245df
+  experiment_ledger_sha256: 96c5e8dd5a8518151922f9efe7869e7dd999893597e576b0a523fceff5c8eea9
+  terminal_report_exists: false
+  additional_api_calls: 0
+
+old_d1_immutable_evidence:
+  llm_factor_attempts_sha256: e981f60ffec92ae536cd3e9864a6b34a7cc02eccec282b54e55599f48dc90801
+  llm_factor_attempts_v2_sha256: 80bf00a8f415b818877a3d91993eecd474cb1bb5d39ccddd8e29db5f2b47c1b3
+  llm_factor_transports_sha256: 212d06350c46b7f3359ce9a90d53224977c231d11501e1e1f4467140d9fe3ad6
+  llm_factor_transports_v2_sha256: 5bd65fead89313eaa8d2c985eba9514eebe93916df2d99f2adb47e7645dcadb1
+  factor_admissions_sha256: 566dd5bdd14d2bd447e69197b8c116b59db492e6771772cbf204b609cf8c4cde
+
+diagnosis:
+  failure_class: D1ControlError
+  gate: attempt_experiment_bijection
+  cause: global_LLM_DSL_rows_were_not_filtered_to_the_exact_protocol_id
+  static_evidence_pass: true
+  discovery_metric_or_rank_inspected: false
+  candidate_formula_text_incidentally_visible_during_ledger_diagnosis: true
+
+authorized_change:
+  - add_optional_exact_protocol_id_filter_to_bijection_verifier
+  - pass_frozen_M1_protocol_id_from_terminal_report_assembler
+  - add_regression_tests_for_multiple_LLM_protocols_and_orphan_rows
+  - assemble_terminal_report_from_existing_40_response_evidence
+  - perform_zero_call_idempotency_replay
+
+forbidden_change:
+  - modify_or_append_attempt_transport_or_experiment_rows
+  - modify_raw_responses_or_discovery_artifacts
+  - change_candidate_formula_or_semantic_decision
+  - inspect_or_change_discovery_metric_before_repair_is_pushed
+  - change_mechanical_selection_order_or_count
+  - issue_any_provider_request
+  - read_sealed_validation_stress_G1_model_portfolio_or_forward_data
+  - modify_production_scheduler
