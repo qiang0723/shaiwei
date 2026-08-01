@@ -1,0 +1,189 @@
+schema_version: m1-star50-factor-review-protocol-v1
+protocol_id: m1-star50-price-volume-review-v1
+prepared_at: "2026-08-01T16:40:31+08:00"
+status: M1_2_RESULT_BLIND_REVIEW_PROTOCOL_FROZEN_EXECUTION_NOT_RELEASED
+research_family: m1-star50-price-volume-v1
+execution_authorized: false
+strategy_effective: NOT_EVALUATED
+production_authorization: none
+
+scope:
+  purpose: independently_screen_frozen_top2_before_sealed_validation
+  new_candidate_generation: false
+  formula_or_direction_change: false
+  third_place_replacement: false
+  discovery_metrics_in_review_payload: false
+  sealed_validation_access: false
+  stress_period_access: false
+  g1_run: false
+  model_or_portfolio_run: false
+  forward_or_production_access: false
+  scheduler_changes: false
+  web_changes: false
+  guanxiang_access: false
+
+source_binding:
+  discovery_manifest_path: config/m1_star50_factor_research_manifest_v1.json
+  discovery_manifest_sha256: 835d6cf6d5630423f12154ab367ddf46f6712c8f67f105a67802c48bcf29fa59
+  discovery_report_path: data/research/m1/m1-star50-price-volume-v1/m1_1_discovery_report.json
+  discovery_report_sha256: 5cdf09ca316eeb58a9613cf2c4596c0a1fdc2e0c6fd5af49d8974a10f68c45cb
+  attempt_ledger_path: ledger/m1_star50_factor_attempts.csv
+  attempt_ledger_sha256: 262fcbb8a5141829c27658e551c23f3ee8ef61281e1e618b50f2ff6e66794092
+  completed_responses_exact: 40
+  selected_count_exact: 2
+  selection_rule_reopened: false
+  rejected_candidate_replacement_allowed: false
+
+prompt:
+  path: config/m1_star50_factor_review_prompt_v1.yaml
+  sha256: 5d49c40c9e61e5fc83015fdd965ee4897d5dc2e931cf31bc74d53a52050f1a5e
+  schema_version: m1-star50-review-prompt-v1
+  prompt_id: m1-star50-top2-result-blind-review-v1
+
+semantic_gate:
+  implementation: shaiwei.research.llm_review_semantics.evaluate_semantic_contract
+  protocol_path: config/d1_llm_factor_semantic_gate_v1.yaml
+  protocol_sha256: 8faf36d33744aec06ec4331266dccf4d96dee904bac0a3d0fb603940e6aef15a
+  applied_before_review_validity: true
+  pass_required: PASS_SEMANTIC_CONTRACT
+  fail_or_ambiguous_counts_and_stops_batch: true
+  invalid_response_replacement: false
+
+knowledge_binding:
+  path: config/d1_llm_factor_knowledge_v1.json
+  sha256: 0f1e8ab2461352ce020dcf1873a5d79bfc010b08eea205b6b308e27bc3c23fad
+  allowed_source_ids:
+    - amihud-2002-illiquidity
+    - lee-swaminathan-2000-price-volume
+    - lehmann-1990-short-reversal
+  discovery_or_validation_results_in_context: false
+
+candidates:
+  - candidate_id: 5c3c30d8b3a01f76
+    global_ordinal: 28
+    topic: liquidity_volume
+    formula: Corr(Delta($close,1d),$volume,20d)
+    expression_sha256: 382b98faf17cb72bb12c80ef0d9938cf4c4a0d418e6d0d429395d4121e0542e0
+    expression_tokens: 6
+    ast_nodes: 6
+    max_lookback_days: 20
+    expected_direction: positive
+    original_hypothesis: Positive rolling association between one-day close changes and volume is claimed to indicate stronger volume confirmation and subsequent continuation.
+    original_rationale: The draft treats the association as a liquidity and information-efficiency proxy while acknowledging that no turnover, traded-value, or order-flow field is present.
+    research_context:
+      - Historical price-volume research treats volume as a conditioning state, not as signed order flow.
+      - The cited illiquidity concept uses price response to traded value; traded value is unavailable in this expression.
+    raw_artifact_path: data/research/m1/m1-star50-price-volume-v1/artifacts/raw/5c3c30d8b3a01f76-0229a0c0e767.json
+    raw_artifact_sha256: 0229a0c0e7676bb517351d2ceea4c303d6f1bd40faee0e457ffca570211563b1
+    artifact_manifest_path: data/research/m1/m1-star50-price-volume-v1/artifacts/manifests/5c3c30d8b3a01f76.json
+    artifact_manifest_sha256: b1f419d6ee5e9fb73d734fec18a1dd860a4e5e90b17df89f9138732ae8aaf69b
+  - candidate_id: 47f690ef14487a25
+    global_ordinal: 11
+    topic: reversal_mean_reversion
+    formula: Div(Sub($close,Mean($close,20d)),Std($close,20d))
+    expression_sha256: 6aa7cf64c86be0562db0d94d6490a3030e51a18af42274ffb81276c80c56e6d3
+    expression_tokens: 9
+    ast_nodes: 9
+    max_lookback_days: 20
+    expected_direction: negative
+    original_hypothesis: A high standardized deviation of close from its 20-day mean is claimed to predict subsequent mean reversion.
+    original_rationale: The draft invokes behavioral overreaction and arbitrage-driven correction, while acknowledging trend, regime, liquidity, and transaction-cost failure modes.
+    research_context:
+      - Historical short-reversal evidence is conditional and can be confounded by thin trading, bid-ask effects, and transaction costs.
+    raw_artifact_path: data/research/m1/m1-star50-price-volume-v1/artifacts/raw/47f690ef14487a25-f87d3999def7.json
+    raw_artifact_sha256: f87d3999def79334350a213401ac7871bfbc0dfd7bd015273e390709eb01a519
+    artifact_manifest_path: data/research/m1/m1-star50-price-volume-v1/artifacts/manifests/47f690ef14487a25.json
+    artifact_manifest_sha256: bf31257d11a100b341aa61aaba3d18b35c04e0436f8191d4ccc49a936fadbc0a
+
+blindness:
+  formula_and_non_authoritative_draft_visible: true
+  deepseek_payloads_are_result_blind: true
+  discovery_rank_ic_visible_to_reviewers: false
+  discovery_coverage_visible_to_reviewers: false
+  discovery_ordering_score_visible_to_reviewers: false
+  sealed_validation_visible: false
+  stress_results_visible: false
+  g1_results_visible: false
+  forward_results_visible: false
+  production_results_visible: false
+  primary_window_contamination:
+    occurred_before_protocol_freeze: true
+    candidate_ids: [5c3c30d8b3a01f76, 47f690ef14487a25]
+    exposed_fields: [discovery_rank_ic, discovery_coverage]
+    exposed_values_must_not_be_repeated_or_exported: true
+    sealed_validation_or_stress_or_g1_exposed: false
+  primary_window_may_adjudicate_review: false
+  result_blind_committee_is_the_only_review_authority: true
+
+review_schedule:
+  candidate_order: [5c3c30d8b3a01f76, 47f690ef14487a25]
+  role_order:
+    - construct_and_units
+    - economic_direction
+    - pit_and_numerical_stability
+    - redundancy_and_falsifiability
+  completed_responses_exact: 8
+  concurrency: 1
+  early_stop: false
+  invalid_or_truncated_response_counts: true
+  invalid_response_replacement: false
+
+provider:
+  provider: deepseek
+  model: deepseek-v4-pro
+  response_model_field: deepseek-v4-pro
+  base_url: https://api.deepseek.com
+  endpoint: /chat/completions
+  thinking: enabled
+  reasoning_effort: high
+  response_format: json_object
+  maximum_prompt_tokens_per_attempt: 16000
+  maximum_output_tokens: 3000
+  request_timeout_seconds: 180
+  api_key_environment_variable: DEEPSEEK_API_KEY
+  only_project_gitignored_env_allowed: true
+
+attempt_budget:
+  maximum_transport_retries_per_attempt: 2
+
+cost_budget:
+  currency: USD
+  pricing_observed_at: "2026-08-01"
+  d1_total_authorization_usd: 10.0
+  prior_d1_and_m1_estimated_usage_usd: 0.163179781
+  review_hard_ceiling_usd: 0.25
+  planned_worst_case_all_cache_miss_usd: 0.07656
+  unused_budget_is_not_automatic_authority: true
+  pro_input_cache_hit_per_million: 0.003625
+  pro_input_cache_miss_per_million: 0.435
+  pro_output_per_million: 0.87
+  reserve_worst_case_before_each_request: true
+  price_change_policy: fail_closed_before_first_request
+
+decision_rule:
+  deterministic_formula_identity_and_PIT_gate_required: true
+  all_8_schema_and_semantic_valid_required: true
+  candidate_pass_requires_all_4_role_verdicts: NO_BLOCKER_FOUND
+  critical_or_major_finding_rejects_candidate_as_is: true
+  rejected_candidate_is_not_repaired_or_replaced: true
+  at_least_one_candidate_passes: GO_FREEZE_M1_3_VALIDATION_PROTOCOL_ONLY
+  no_candidate_passes: STOP_M1_FAMILY_BEFORE_VALIDATION
+  invalid_review_response: STOP_M1_2_REVIEW_CONTRACT
+  review_pass_is_not_factor_admission: true
+  strategy_effective_after_review: NOT_EVALUATED
+  production_authorization: none
+
+deferred:
+  - sealed_2023_2025_validation
+  - stress_period_evaluation
+  - G1_admission
+  - factor_combination_or_model_training
+  - portfolio_backtest
+  - forward_or_production_signal
+
+artifacts:
+  output_root: data/research/m1/m1-star50-price-volume-v1/m1_2_reviews
+  review_ledger: ledger/m1_star50_factor_reviews.csv
+  transport_ledger: ledger/m1_star50_factor_review_transports.csv
+  raw_prompts_responses_and_narrative_gitignored: true
+  tracked_summary_contains_only_hashes_reason_codes_counts_and_decisions: true
