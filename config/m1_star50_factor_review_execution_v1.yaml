@@ -1,0 +1,78 @@
+schema_version: m1-star50-factor-review-execution-release-v1
+release_id: m1-star50-review-v1-batch-001
+prepared_at: "2026-08-01T17:07:17+08:00"
+status: M1_2_RESULT_BLIND_EXECUTION_FROZEN
+execution_authorized: true
+production_authorization: none
+
+authorization:
+  source: user_explicit_continue_next_goal
+  completed_responses_exact: 8
+  d1_total_authorization_usd: 10.0
+  review_hard_ceiling_usd: 0.25
+  unused_budget_is_not_automatic_authority: true
+
+frozen_contract:
+  protocol_path: config/m1_star50_factor_review_v1.yaml
+  protocol_sha256: e37ace1d3b8a6c50724f89ebe426ff20ca2a4993f9c8e61eafe3196dc930a29f
+  prompt_sha256: 5d49c40c9e61e5fc83015fdd965ee4897d5dc2e931cf31bc74d53a52050f1a5e
+  semantic_protocol_sha256: 8faf36d33744aec06ec4331266dccf4d96dee904bac0a3d0fb603940e6aef15a
+  discovery_manifest_sha256: 835d6cf6d5630423f12154ab367ddf46f6712c8f67f105a67802c48bcf29fa59
+  discovery_report_sha256: 5cdf09ca316eeb58a9613cf2c4596c0a1fdc2e0c6fd5af49d8974a10f68c45cb
+  candidate_ids:
+    - 5c3c30d8b3a01f76
+    - 47f690ef14487a25
+  selection_and_formula_identity_immutable: true
+  implementation_git_head: 3eefbd188cc4cb71933d7bcf1d36cd56ff2f3d0a
+  image_tag: shaiwei:m1-star50-review-v1
+  image_id: sha256:31331a8390a78f27f5238d5d290eafc8ec76a1031917470a73e642547cda9289
+  code_snapshot_sha256: 55eba65f7fb160f6dc9f21e4c474085341b6dc89ba055cd3d4003597bac6a3ab
+
+scope:
+  new_candidate_generation: false
+  formula_or_direction_change: false
+  candidate_replacement: false
+  discovery_metrics_access: false
+  sealed_validation_access: false
+  stress_period_access: false
+  g1_run: false
+  model_or_portfolio_run: false
+  forward_or_production_access: false
+  scheduler_changes: false
+  web_changes: false
+  guanxiang_access: false
+
+egress:
+  scheme: https
+  host: api.deepseek.com
+  port: 443
+  path: /chat/completions
+  trust_environment_proxy: false
+
+provider_contract:
+  rechecked_on: "2026-08-01"
+  model: deepseek-v4-pro
+  model_version: DeepSeek-V4-Pro
+  response_model_field: deepseek-v4-pro
+  thinking: enabled
+  reasoning_effort: high
+  input_cache_hit_per_million_usd: 0.003625
+  input_cache_miss_per_million_usd: 0.435
+  output_per_million_usd: 0.87
+  price_change_policy: fail_closed_before_first_request
+
+ledgers:
+  review: ledger/m1_star50_factor_reviews.csv
+  transport: ledger/m1_star50_factor_review_transports.csv
+  m1_1_and_d1_ledgers_are_read_only: true
+
+pre_execution_gates:
+  release_commit_pushed_and_HEAD_equals_origin_main: true
+  clean_worktree: true
+  implementation_image_identity_matches: true
+  only_DEEPSEEK_API_KEY_passed_to_container: true
+  TLS_hostname_probe_before_secret_read: true
+  outbound_payload_result_blind_scan: true
+  semantic_gate_runs_before_review_validity: true
+  scheduler_identity_unchanged_and_healthy: true
+  primary_window_not_used_as_adjudicator: true
