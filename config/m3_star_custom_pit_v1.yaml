@@ -1,0 +1,137 @@
+schema_version: m3-star-custom-pit-protocol-v1
+protocol_id: m3-star-custom-pit-data-rule-gate-v1
+frozen_date: "2026-08-02"
+scope: data_and_rule_feasibility_only
+factor_results_inspected: false
+llm_execution_authorized: false
+model_training_authorized: false
+backtest_authorized: false
+signal_authorized: false
+production_authorization: none
+scheduler_changes_authorized: false
+
+upstream:
+  registry: config/m1_multi_universe_v1.yaml
+  registry_sha256: 964631891a69b4ed2a6c697066a89300910b620d3c71acdf65803248900c4274
+  foundation_protocol: docs/M1_MULTI_UNIVERSE_FOUNDATION_PROTOCOL_20260801.md
+  foundation_protocol_sha256: 03b69841a7c813dec2b90dfa33ea282fb9e7a35a7ed8234181aedd11fefdbed9
+
+identity:
+  identity_kind: CUSTOM_RULE_BASED
+  universe_ids:
+    all: star-board-all-pit-v1
+    midcap: star-board-midcap-pit-v1
+    smallcap: star-board-smallcap-pit-v1
+  official_index_code: null
+  official_index_alias_forbidden: true
+  source_cutoff_date: "2026-07-31"
+  board_launch_date: "2019-07-22"
+  output_root: data/research/m3/star-custom-pit-v1
+  quality_report: data/research/m3/star-custom-pit-v1/quality_report.json
+  formation_members: data/research/m3/star-custom-pit-v1/formation_members.parquet
+  daily_members: data/research/m3/star-custom-pit-v1/daily_members.parquet
+  tracked_manifest: config/m3_star_custom_pit_manifest_v1.json
+
+sources:
+  required_apis:
+    - tushare.trade_cal
+    - tushare.stock_basic
+    - tushare.namechange
+    - tushare.daily
+    - tushare.daily_basic
+  immutable_ledger_only: true
+  verify_file_hashes: true
+  future_dated_rows_forbidden: true
+  bse_suffix_forbidden: ".BJ"
+  star_market_value: 科创板
+  star_exchange_value: SSE
+  star_code_pattern: "^(688|689)[0-9]{3}\\.SH$"
+  market_code_selector_mismatch_maximum: 0
+  duplicate_trade_calendar_date_maximum: 0
+  duplicate_stock_code_maximum: 0
+  duplicate_daily_key_maximum: 0
+  duplicate_daily_basic_key_maximum: 0
+  positive_bar_daily_basic_coverage_minimum: 1.0
+  daily_amount_tushare_unit_rmb: 1000
+  total_mv_tushare_unit_rmb: 10000
+
+formation:
+  calendar_exchange: SSE
+  frequency: monthly
+  formation_clock: last_open_trade_day_close
+  effective_clock: next_open_trade_day
+  lookahead_forbidden: true
+  current_constituent_backfill_forbidden: true
+  active_interval: "list_date <= trade_date < delist_date"
+  listing_age: 12_calendar_months
+  listing_age_anchor: list_date
+  st_source: tushare.namechange
+  st_effective_start: max_start_date_and_nonempty_ann_date
+  st_interval_end_inclusive: true
+  missing_namechange_history_means_st: false
+  same_effective_date_any_st_name_means_st: true
+  st_policy: exclude_at_formation_and_daily_hard_exit
+  delist_policy: daily_hard_exit_on_effective_delist_date
+  removed_name_reentry_policy: base_formation_member_may_reenter_after_st_ends
+
+liquidity:
+  field: tushare.daily.amount
+  lookback_open_trade_days: 60
+  include_formation_day: true
+  minimum_valid_days: 45
+  minimum_median_daily_amount_rmb: 20000000
+  nonpositive_or_nonfinite_values_invalid: true
+
+size:
+  field: tushare.daily_basic.total_mv
+  lookback_open_trade_days: 20
+  include_formation_day: true
+  minimum_valid_days: 15
+  aggregation: median
+  nonpositive_or_nonfinite_values_invalid: true
+  ranking: descending_median_total_mv_then_ts_code_ascending
+  partition: deterministic_three_way_array_split
+  partition_order:
+    - large_unregistered
+    - midcap
+    - smallcap
+  remainder_assignment: earlier_partition_first
+
+readiness:
+  all_minimum_names: 60
+  midcap_minimum_names: 20
+  smallcap_minimum_names: 20
+  minimum_consecutive_ready_formations: 36
+  usable_start: next_open_trade_day_after_first_ready_formation
+  before_usable_start_status: NOT_READY
+  after_usable_start_any_failed_formation_is_gate_failure: true
+
+output_contract:
+  formation_primary_key:
+    - formation_date
+    - universe_id
+    - ts_code
+  daily_primary_key:
+    - trade_date
+    - universe_id
+    - ts_code
+  midcap_and_smallcap_must_be_disjoint: true
+  midcap_and_smallcap_must_be_subsets_of_all: true
+  all_contains_large_midcap_and_smallcap: true
+  deterministic_sort_required: true
+  parquet_content_hash_required: true
+  identical_input_rerun_must_reuse: true
+  raw_or_derived_business_rows_in_git_forbidden: true
+
+verdict:
+  go_label: GO_CUSTOM_PIT_DATA_RULE_GATE_ONLY
+  no_go_label: NO_GO_CUSTOM_PIT_DATA_RULE_GATE
+  go_requires:
+    - source_gate_pass
+    - pit_gate_pass
+    - readiness_gate_pass
+    - output_gate_pass
+    - idempotency_pass
+  strategy_effective_on_go: NOT_EVALUATED
+  factor_protocol_authorized_on_go: FREEZE_NEW_FACTOR_PROTOCOL_ONLY
+  production_authorization: none
