@@ -1,0 +1,379 @@
+schema_version: m3-multi-pool-factor-research-protocol-v1
+protocol_id: m3-star-three-pool-price-volume-v1
+prepared_at: "2026-08-02T16:20:00+08:00"
+status: M3_1_RESULT_BEFORE_PROTOCOL_FROZEN_FIXTURE_ONLY
+execution_authorized: false
+llm_api_called: false
+factor_results_inspected: false
+sealed_results_inspected: false
+model_training_authorized: false
+backtest_authorized: false
+signal_authorized: false
+production_authorization: none
+scheduler_changes_authorized: false
+
+scope:
+  purpose: freeze_cross_pool_factor_discovery_and_validation_before_any_candidate_result
+  allowed_now:
+    - read_only_upstream_identity_contract
+    - prompt_and_factor_dsl_contract
+    - synthetic_fixture_orchestration
+    - zero_network_preexecution_validation
+  forbidden_now:
+    - deepseek_api_call
+    - real_candidate_generation
+    - real_factor_evaluation
+    - sealed_validation_read
+    - stress_result_read
+    - model_or_portfolio_backtest
+    - g1_or_factor_admission
+    - forward_or_production_signal
+    - scheduler_or_web_change
+
+upstream_contract:
+  m3_data_protocol_path: config/m3_star_custom_pit_v1.yaml
+  m3_data_protocol_sha256: e400f6f1f0792fb7c9a46e83028c4c472e2beeb19137fd5e245729c052ddd058
+  m3_data_manifest_path: config/m3_star_custom_pit_manifest_v1.json
+  m3_data_manifest_sha256: cf8cb88eb13e4f6619812ff0f4f854586de1b036c5b6e89a171e2d20c69c2638
+  m3_data_verdict_required: GO_CUSTOM_PIT_DATA_RULE_GATE_ONLY
+  m3_strategy_effective_required: NOT_EVALUATED
+  selected_input_sha256: 8437b83939e09ad5a9b97093a56505cf73a2b3ad8ffd5b6c0f4d7699649dc2f1
+  membership_path: data/research/m3/star-custom-pit-v1/daily_members.parquet
+  membership_sha256: 1983169ef42489e544ce9c71e55e64ba853d27491a723024102b5699ae475101
+  membership_rows: 779271
+  quality_report_path: data/research/m3/star-custom-pit-v1/quality_report.json
+  quality_report_sha256: f25d8e604b6fb758bca48afd4e12b0e7827a6a5ef3b496fae54a955ddfbace02
+  independent_verification_sha256: af8dca4e50f12887914839cf26d50a09d8990354637b5d0f4abffc7732ca2e4e
+  bse_suffix_forbidden: .BJ
+
+identity:
+  research_family: m3-star-three-pool-price-volume-v1
+  factor_identity_scope: GLOBAL_EXACT_DEFINITION
+  factor_id_rule: sha256_of_canonical_ast
+  same_formula_in_all_pools_required: true
+  admission_scope: UNIVERSE_SPECIFIC_AND_CROSS_POOL_JOINT
+  new_universe_after_results_requires_new_protocol: true
+  result_root: data/research/m3/m3-star-three-pool-price-volume-v1
+  experiment_ledger: ledger/experiments.csv
+  attempt_ledger: ledger/m3_multi_pool_factor_attempts.csv
+  transport_ledger: ledger/m3_multi_pool_factor_transports.csv
+  tracked_manifest: config/m3_multi_pool_factor_manifest_v1.json
+  identity_fields:
+    - factor_id
+    - factor_version
+    - universe_id
+    - benchmark_id
+    - label_id
+    - horizon_id
+    - neutralization_id
+    - window_set_id
+    - stress_set_id
+    - portfolio_policy_id
+    - cost_policy_id
+    - capacity_policy_id
+    - decision_rule_version
+
+universes:
+  all:
+    universe_id: star-board-all-pit-v1
+    benchmark_id: star-board-all-equal-weight-pit-v1
+    role: direction_anchor_and_evaluation
+    identity_kind: CUSTOM_RULE_BASED
+    minimum_cross_section: 50
+  midcap:
+    universe_id: star-board-midcap-pit-v1
+    benchmark_id: star-board-midcap-equal-weight-pit-v1
+    role: cross_segment_evaluation
+    identity_kind: CUSTOM_RULE_BASED
+    minimum_cross_section: 20
+  smallcap:
+    universe_id: star-board-smallcap-pit-v1
+    benchmark_id: star-board-smallcap-equal-weight-pit-v1
+    role: cross_segment_evaluation
+    identity_kind: CUSTOM_RULE_BASED
+    minimum_cross_section: 20
+  official_index_alias_forbidden: true
+  overlap_policy:
+    midcap_and_smallcap_disjoint_required: true
+    children_must_be_subsets_of_all: true
+    overlapping_all_and_child_rows_are_evaluation_cells_not_independent_attempts: true
+
+data_contract:
+  source_cutoff_date: "2026-07-31"
+  discovery_signal_period: ["2021-01-04", "2022-12-15"]
+  final_discovery_label_maturity_date: "2022-12-30"
+  sealed_validation_period: ["2023-01-03", "2025-12-31"]
+  sealed_recency_period: ["2026-01-01", "2026-07-31"]
+  discovery_trade_days_expected: 474
+  discovery_member_days_expected:
+    star-board-all-pit-v1: 73839
+    star-board-midcap-pit-v1: 24676
+    star-board-smallcap-pit-v1: 24387
+  discovery_distinct_names_expected:
+    star-board-all-pit-v1: 321
+    star-board-midcap-pit-v1: 159
+    star-board-smallcap-pit-v1: 169
+  discovery_daily_member_range:
+    star-board-all-pit-v1: [64, 272]
+    star-board-midcap-pit-v1: [21, 91]
+    star-board-smallcap-pit-v1: [21, 90]
+  sealed_validation_trade_days_expected: 727
+  feature_fields: [$open, $close, $high, $low, $volume, $vwap]
+  source_fields_required: [open, close, high, low, vol, amount, total_mv]
+  tushare_volume_unit: board_lot_100_shares
+  tushare_amount_unit: thousand_rmb
+  vwap_rmb_per_share_formula: amount_times_10_divided_by_positive_vol
+  pit_neutralization: [pit_sw_l1_industry, log_total_market_cap]
+  coverage_denominator: finite_label_and_PIT_industry_and_positive_total_market_cap_member_rows
+  label_id: next_open_to_t_plus_11_open
+  label: Ref(open,-11)/Ref(open,-1)-1
+  signal_clock: trade_date_close
+  entry_clock: next_open_trade_day_open
+  exit_clock: entry_plus_10_open_trade_days_open
+  horizon_trade_days: 10
+  maximum_lookback_trade_days: 50
+  current_or_future_signal_day_values_for_execution_forbidden: true
+  moneyflow_features: false
+  financial_features: false
+  guanxiang_features: false
+
+prompt_contract:
+  path: config/m3_multi_pool_factor_prompt_v1.yaml
+  sha256: 079fb64eadee1ee0eeec5b97432830b8740bcc902aca83a85951b203b1f831f2
+  schema_version: m3-multi-pool-factor-prompt-v1
+  prompt_id: m3-star-three-pool-price-volume-prompt-v1
+  knowledge_manifest_path: config/d1_llm_factor_knowledge_v1.json
+  knowledge_manifest_sha256: 0f1e8ab2461352ce020dcf1873a5d79bfc010b08eea205b6b308e27bc3c23fad
+  knowledge_cutoff: "2026-07-25T23:59:59+08:00"
+  live_web_search_during_batch: false
+  full_text_prompting: false
+  prompt_injection_quarantine: true
+
+candidate_contract:
+  schema_version: d1-candidate-v1
+  representation: allowlisted_expression_dsl_only
+  one_completed_response_one_candidate: true
+  expected_direction_is_non_authoritative: true
+  arbitrary_python: false
+  file_access: false
+  network_access: false
+  environment_access: false
+  dynamic_execution: false
+  shell_access: false
+  maximum_expression_tokens: 20
+  maximum_ast_nodes: 80
+  maximum_lookback_trade_days: 50
+  allowed_operators:
+    - Abs
+    - Log
+    - Add
+    - Sub
+    - Mul
+    - Div
+    - Greater
+    - Less
+    - Ref
+    - Mean
+    - Sum
+    - Std
+    - Var
+    - Max
+    - Min
+    - Med
+    - Mad
+    - Delta
+    - WMA
+    - EMA
+    - Cov
+    - Corr
+  semantic_gate:
+    required_before_dsl_and_data_evaluation: true
+    second_expression_forbidden: true
+    alternate_operator_or_lookback_forbidden: true
+    pool_specific_formula_or_direction_forbidden: true
+    performance_or_admission_claim_forbidden: true
+    sealed_or_stress_reference_forbidden: true
+    ambiguous_text_policy: reject_and_count_attempt
+  duplicate_identity_sources:
+    - {family: stage1-gp-v1, ledger: ledger/experiments.csv}
+    - {family: d1-llm-dsl-v1, ledger: ledger/llm_factor_attempts_v2.csv}
+    - {family: m1-star50-price-volume-v1, ledger: ledger/m1_star50_factor_attempts.csv}
+    - {family: m3-star-three-pool-price-volume-v1, ledger: ledger/m3_multi_pool_factor_attempts.csv}
+  duplicate_comparison_field: expression_sha256
+  duplicate_policy: count_attempt_and_reject_candidate
+  syntax_sandbox_semantic_or_duplicate_failure_policy: count_attempt_and_do_not_replace
+
+attempt_budget:
+  completed_llm_responses_exact: 24
+  early_stop_for_performance: false
+  topic_order:
+    - trend_momentum
+    - reversal_mean_reversion
+    - volatility_range
+    - liquidity_volume
+  attempts_per_topic: 6
+  topic_schedule:
+    independent_proposals: 3
+    bounded_mutations: 3
+  cross_pool_evaluation_cells_exact: 72
+  one_response_evaluated_in_three_pools_counts_as_attempts: 1
+  repair_duplicate_empty_truncated_or_rejected_response_consumes_attempt: true
+  provider_transport_retry_without_completed_response_consumes_attempt: false
+  maximum_transport_retries_per_attempt: 2
+  separate_execution_release_required: true
+
+multiple_testing_contract:
+  trial_count_scope: RELATED_PRICE_VOLUME_DISCOVERY_DOMAIN
+  prior_completed_or_registered_attempts:
+    stage1-gp-v1: 166
+    d1-llm-dsl-v1: 40
+    m1-star50-price-volume-v1: 40
+  prior_related_trial_count: 246
+  new_batch_trial_count: 24
+  effective_trial_count_after_complete_batch: 270
+  failed_invalid_duplicate_and_semantic_attempts_count: true
+  cross_pool_cells_do_not_increase_trial_count: true
+  reset_or_effective_N_discount_forbidden: true
+  future_dsr_probability_threshold: 0.95
+  future_hac_t_threshold: 3.0
+  future_hac_lags: 10
+
+provider:
+  name: deepseek
+  base_url: https://api.deepseek.com
+  endpoint: /chat/completions
+  api_key_environment_variable: DEEPSEEK_API_KEY
+  api_key_must_not_be_logged_or_tracked: true
+  model: deepseek-v4-pro
+  model_version_expected: DeepSeek-V4-Pro
+  thinking: enabled
+  reasoning_effort: high
+  temperature: null
+  response_format: json_object
+  tool_calls: false
+  concurrency: 1
+  maximum_prompt_tokens_per_attempt: 16000
+  maximum_output_tokens_per_attempt: 8000
+  request_timeout_seconds: 900
+  response_model_or_price_change_policy: fail_closed_before_first_request
+
+cost_budget:
+  currency: USD
+  pricing_rechecked_on: "2026-08-02"
+  pricing_url: https://api-docs.deepseek.com/quick_start/pricing/
+  chat_contract_url: https://api-docs.deepseek.com/api/create-chat-completion
+  pro_input_cache_hit_per_million: 0.003625
+  pro_input_cache_miss_per_million: 0.435
+  pro_output_per_million: 0.87
+  planned_worst_case_all_cache_miss_usd: 0.33408
+  hard_ceiling_usd: 0.5
+  unknown_or_missing_usage_policy: fail_closed
+  billing_reconciliation_required: true
+  unused_budget_does_not_authorize_more_attempts: true
+
+discovery_evaluation:
+  evaluate_only_after_semantic_dsl_pit_and_shift_gates_pass: true
+  minimum_candidate_coverage_each_pool: 0.90
+  minimum_daily_ic_observations_each_pool: 400
+  direction_anchor_universe: star-board-all-pit-v1
+  direction_rule: sign_of_all_pool_discovery_mean_rank_ic
+  zero_or_nonfinite_anchor_rank_ic_policy: reject_candidate
+  per_pool_direction_flip_forbidden: true
+  eligible_requires_positive_directed_rank_ic_in_all_three_pools: true
+  cross_pool_score: minimum_directed_discovery_rank_ic_across_three_pools
+  secondary_score: median_directed_discovery_rank_ic_across_three_pools
+  run_selection_only_after_all_24_completed_responses: true
+  promoted_count: 2
+  ordering:
+    - cross_pool_score_desc
+    - secondary_score_desc
+    - minimum_cross_pool_coverage_desc
+    - expression_tokens_asc
+    - global_ordinal_asc
+  fewer_than_two_eligible: PAUSE_INSUFFICIENT_CROSS_POOL_CANDIDATES
+  discovery_result_is_factor_admission: false
+
+sealed_evaluation_contract:
+  access_authorized_now: false
+  window_set_id: m3-six-half-years-2023-2025-v1
+  validation_windows:
+    - {name: M3-W1, start: "2023-01-03", end: "2023-06-30"}
+    - {name: M3-W2, start: "2023-07-03", end: "2023-12-29"}
+    - {name: M3-W3, start: "2024-01-02", end: "2024-06-28"}
+    - {name: M3-W4, start: "2024-07-01", end: "2024-12-31"}
+    - {name: M3-W5, start: "2025-01-02", end: "2025-06-30"}
+    - {name: M3-W6, start: "2025-07-01", end: "2025-12-31"}
+  minimum_positive_directed_rank_ic_windows_each_pool: 4
+  minimum_mean_rank_ic_retention_each_pool: 0.5
+  pooled_daily_rank_ic_minimum_observations_each_pool: 252
+  direction_must_reuse_discovery_anchor: true
+  formula_parameter_or_universe_change_forbidden: true
+  stress_set_id: m3-known-stress-v1
+  known_stress_not_unseen_oos: true
+  stress_periods:
+    - {name: microcap_crash_2024, start: "2024-01-01", end: "2024-02-29"}
+    - {name: policy_repricing_2024, start: "2024-09-24", end: "2024-10-18"}
+    - {name: volume_price_drawdown_2026h1, start: "2026-01-01", end: "2026-06-30"}
+  maximum_strategy_drawdown_each_stress: 0.20
+  max_abs_spearman_to_reference_library_each_pool: 0.5
+  equal_to_correlation_limit_rejected: true
+
+portfolio_cost_capacity_contract:
+  access_authorized_now: false
+  portfolio_policy_id: m3-oriented-top-quintile-equal-weight-v1
+  benchmark_policy: own_PIT_universe_equal_weight
+  long_only: true
+  selection: highest_oriented_factor
+  target_count_rule: ceil_20_percent_bounded_5_to_20
+  rebalance_frequency_open_trade_days: 10
+  signal_at_close_execute_next_open: true
+  nontradable_order_policy: carry_with_same_target_until_next_rebalance
+  primary_notional_rmb: 500000
+  diagnostic_notionals_rmb: [10000000, 50000000]
+  diagnostic_notionals_not_for_verdict: true
+  maximum_mean_one_way_turnover_per_rebalance: 0.50
+  cost_policy_id: m3-a-share-open-cost-v1
+  commission_rate: 0.0003
+  minimum_commission_rmb: 5
+  stamp_tax_sell_rate_before_2023_08_28: 0.001
+  stamp_tax_sell_rate_on_or_after_2023_08_28: 0.0005
+  transfer_fee_rate: 0.00001
+  cost_multipliers: [1.0, 1.5, 2.0]
+  extra_slippage_each_side: 0.001
+  pooled_double_cost_net_excess_minimum: 0.0
+  pooled_extra_slippage_net_excess_minimum: 0.0
+  capacity_policy_id: m3-signal-day-adv-cap-v1
+  signal_day_median_amount_lookback_trade_days: 20
+  minimum_valid_amount_days: 15
+  maximum_order_to_median_daily_amount: 0.05
+  primary_notional_capacity_violation_maximum: 0
+  zero_or_missing_amount_means_not_tradable: true
+
+preexecution_gates:
+  protocol_and_prompt_committed_and_pushed_before_implementation: true
+  implementation_commit_must_be_after_protocol_commit: true
+  fixture_only_and_network_disabled: true
+  upstream_manifest_and_artifact_hashes_match: true
+  all_three_pool_identity_and_overlap_checks_pass: true
+  dsl_pit_shift_complexity_and_semantic_fixtures_pass: true
+  direction_anchor_and_no_pool_flip_fixtures_pass: true
+  attempt_count_and_cross_pool_cell_accounting_fixtures_pass: true
+  sealed_access_and_provider_call_counts_are_zero: true
+  git_hygiene_and_secret_scan_pass: true
+  scheduler_identity_unchanged_and_healthy: true
+
+terminal_verdicts:
+  go: GO_M3_1_PREEXECUTION_ONLY
+  stop: STOP_M3_1_CONTROL_GATE
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+
+deferred:
+  - separate_live_execution_release
+  - twenty_four_deepseek_completed_responses
+  - real_three_pool_discovery_evaluation
+  - mechanical_top2_lock
+  - independent_human_economic_review
+  - sealed_six_window_and_stress_evaluation
+  - cost_capacity_and_multiple_testing_admission
+  - model_portfolio_forward_or_production
