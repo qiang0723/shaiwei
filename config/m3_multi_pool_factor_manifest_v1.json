@@ -1,0 +1,90 @@
+{
+  "schema_version": "m3-multi-pool-factor-preexecution-manifest-v1",
+  "protocol_id": "m3-star-three-pool-price-volume-v1",
+  "accepted_on": "2026-08-02",
+  "verdict": "GO_M3_1_PREEXECUTION_ONLY",
+  "strategy_effective": "NOT_EVALUATED",
+  "production_authorization": "none",
+  "scope": {
+    "deepseek_api_calls": 0,
+    "api_key_read": false,
+    "real_candidate_count": 0,
+    "real_factor_results_inspected": false,
+    "sealed_factor_results_inspected": false,
+    "model_or_portfolio_run": false,
+    "scheduler_changed": false
+  },
+  "research_contract": {
+    "universe_count": 3,
+    "discovery_trade_days": 474,
+    "sealed_validation_trade_days_verified_without_factor_access": 727,
+    "future_completed_response_budget": 24,
+    "future_cross_pool_evaluation_cells": 72,
+    "effective_related_trial_count_after_future_batch": 270
+  },
+  "identity": {
+    "protocol_freeze_commit": "f37ed4aa5b03e87488178ba6c5c56d0293e80885",
+    "implementation_commit": "f271376a558d029145594ef9c54f8a3c5e0d2941",
+    "protocol_sha256": "a8542b36b24515a2ecd63297d0fe98ee0458495dc26cee365b2fcba407a3b71c",
+    "protocol_document_sha256": "9200bac34700293b3dd5d823e114a6bca0ca7b4614abd793e0e73ea714910c03",
+    "prompt_sha256": "079fb64eadee1ee0eeec5b97432830b8740bcc902aca83a85951b203b1f831f2",
+    "upstream_manifest_sha256": "cf8cb88eb13e4f6619812ff0f4f854586de1b036c5b6e89a171e2d20c69c2638",
+    "upstream_selected_input_sha256": "8437b83939e09ad5a9b97093a56505cf73a2b3ad8ffd5b6c0f4d7699649dc2f1",
+    "membership_sha256": "1983169ef42489e544ce9c71e55e64ba853d27491a723024102b5699ae475101",
+    "quality_report_sha256": "f25d8e604b6fb758bca48afd4e12b0e7827a6a5ef3b496fae54a955ddfbace02",
+    "independent_verification_sha256": "af8dca4e50f12887914839cf26d50a09d8990354637b5d0f4abffc7732ca2e4e",
+    "preexecution_input_snapshot_sha256": "cfeb1c3cefafcb471406a2194d99eaaeb46cd5c533868ad5aff034116d0b6ea9",
+    "release_git_head": "f271376a558d029145594ef9c54f8a3c5e0d2941",
+    "code_snapshot_sha256": "5b9b99ad60621d9cf0eccaea9b501bb7fa2d12c9146364ad3547e7749ba12118",
+    "image_id": "sha256:83e5da58602c45b319ae1606fb42327fa9128b2bdfbfb2f87cf4e2c186362c30",
+    "preexecution_report_sha256": "490552c3e922c065ac6c60eebe44b5c042302fb64553fe02b42dc66a96fabb4b"
+  },
+  "data_gates": {
+    "membership_rows": 779271,
+    "discovery_rows": {
+      "star-board-all-pit-v1": 73839,
+      "star-board-midcap-pit-v1": 24676,
+      "star-board-smallcap-pit-v1": 24387
+    },
+    "bse_suffix_rows": 0,
+    "upstream_identity_pass": true,
+    "child_subset_and_disjointness_pass": true
+  },
+  "fixture_gates": {
+    "semantic_pass_fixture": true,
+    "pool_specific_semantic_rejection_fixture": true,
+    "dsl_pit_shift_pass": true,
+    "direction_anchor_and_cross_pool_positive_pass": true,
+    "candidate_count": 2,
+    "eligible_count": 2,
+    "promoted_count": 2
+  },
+  "idempotency": {
+    "offline_preexecution_runs": 2,
+    "report_hashes_equal": true,
+    "second_run_provider_calls": 0,
+    "second_run_api_key_read": false
+  },
+  "verification": {
+    "m3_specialized_tests_passed": 15,
+    "full_repository_tests_passed": 458,
+    "ruff_pass": true,
+    "compileall_pass": true,
+    "pip_check_pass": true,
+    "compose_validation_pass": true,
+    "diff_check_pass": true,
+    "credential_pattern_scan_pass": true
+  },
+  "production_scheduler": {
+    "container_id_before_and_after": "fd8e96152b53f3f0d0efdcd6462c2b039aa68c7fb56461b95826709652a5adbb",
+    "image_id_before_and_after": "sha256:de87ec740981166b032b394fb256a978acdc8d35e999a369f1debc3466aa0261",
+    "created_at_before_and_after": "2026-07-24T12:25:27.362813588Z",
+    "final_health": "healthy"
+  },
+  "desensitization": {
+    "absolute_paths_included": false,
+    "credentials_included": false,
+    "security_codes_included": false,
+    "raw_or_derived_business_rows_included": false
+  }
+}
