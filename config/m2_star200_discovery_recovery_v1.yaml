@@ -1,0 +1,15 @@
+schema_version: m2-star200-discovery-recovery-v1
+frozen_at: "2026-08-02T00:10:00+08:00"
+recovery_document: docs/M2_STAR200_DISCOVERY_RECOVERY_20260802.md
+recovery_document_sha256: 301c2e77b75fde1d5d7f8e0f46ac3e298bd0ab7097d4e9c287ec05cb012c5055
+original_protocol: config/m2_star200_v1.yaml
+original_protocol_config_sha256: 584d0eab2405b65cd27ea9994e68c6419e81679f654d6fd1ef169bc9d4266250
+original_discovery_report: data/research/star200/m2-star200-v1/official-discovery-73e2f085b35d.json
+original_quality_report: data/research/star200/m2-star200-v1/quality_report.json
+original_verdict_status: PROVISIONAL_INVALID_DISCOVERY_COVERAGE
+authorized_change: INCLUDE_TEMPORARY_ADJUSTMENT_TITLES
+factor_results_inspected: false
+llm_execution_authorized: false
+production_authorization: none
+final_quality_report: data/research/star200/m2-star200-v1/quality_report_recovery_v1.json
+final_tracked_manifest: config/m2_star200_manifest_recovery_v1.json

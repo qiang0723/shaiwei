@@ -12,6 +12,15 @@
   `NO_GO_M2_STAR200_DATA_GATE`，不得用当前成分、ETF PCF或月末集合补造。见
   `docs/M2_STAR200_DATA_FEASIBILITY_PROTOCOL_20260801.md`与`config/m2_star200_v1.yaml`。
 
+## 2026-08-02 · M2-0首轮归档发现覆盖缺陷，终局裁决暂缓
+
+- 首轮官方/Tushare采集后，独立集合对账发现2026-04至05有1对变化，但实现的公告候选谓词遗漏仅含
+  “临时调整”的标题，与原协议“定期与临时全部扫描”冲突；这是工程漏扫，不是新研究口径。
+- 首轮发现、质量报告和manifest永久保留，但首轮NO-GO降级为
+  `PROVISIONAL_INVALID_DISCOVERY_COVERAGE`，不得作为终局结论。27个原始批次和账本不重采不改写。
+- 恢复只允许补入临时调整标题，使用新发现哈希、新质量报告和新manifest；协议、来源、成员数、日期、
+  24个月门和禁止项不变。见`docs/M2_STAR200_DISCOVERY_RECOVERY_20260802.md`。
+
 ## 2026-08-01 · M1-2审查合同失败并权威停止，不进入验证/G1
 
 - 用户明确批准本批DeepSeek外发后，固定批次在第1/8份响应按预注册规则终止：schema PASS，但
