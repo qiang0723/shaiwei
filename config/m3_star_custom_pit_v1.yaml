@@ -41,6 +41,10 @@ sources:
     - tushare.daily_basic
   immutable_ledger_only: true
   verify_file_hashes: true
+  stock_basic_latest_ingest_date_minimum: "2026-07-31"
+  namechange_latest_ingest_date_minimum: "2026-07-31"
+  namechange_refresh_scope: frozen_star_security_codes_only
+  namechange_rows_after_source_cutoff_ignored: true
   future_dated_rows_forbidden: true
   bse_suffix_forbidden: ".BJ"
   star_market_value: 科创板
