@@ -1,0 +1,45 @@
+schema_version: m1-star50-factor-review-recovery-v1
+recovery_id: m1-star50-review-v1-zero-call-mount-recovery-001
+prepared_at: "2026-08-01T17:18:00+08:00"
+status: M1_2_ZERO_CALL_INFRASTRUCTURE_RECOVERY_FROZEN
+production_authorization: none
+
+source_binding:
+  protocol_sha256: e37ace1d3b8a6c50724f89ebe426ff20ca2a4993f9c8e61eafe3196dc930a29f
+  original_execution_release_sha256: 16571577ed10217998ce814d5da164f7a3a6b406e810a8c6b056931f2ae1efea
+  original_execution_release_commit: 575d61b800b428bcd8d76dfddd674a4b25e0aa6c
+  failed_container_created: true
+  completed_review_rows: 0
+  transport_rows: 0
+  output_files: 0
+  provider_calls: 0
+
+root_cause:
+  class: required_read_only_fixture_mount_missing
+  service: m1-star50-review-live
+  missing_source: ./vendor/alphagen
+  missing_target: /workspace/vendor/alphagen
+  failure_stage: protocol_expression_safety_audit_before_tls_secret_or_provider
+
+authorized_changes:
+  add_vendor_alphagen_read_only_mount_to_live_service: true
+  add_mount_regression_test: true
+  rebuild_image_with_new_committed_identity: true
+  refresh_execution_release_image_and_git_identity_before_first_request: true
+
+forbidden_changes:
+  protocol_or_prompt: false
+  candidate_or_formula_or_direction: false
+  review_schedule_or_decision_rule: false
+  provider_or_budget: false
+  source_or_metric_access: false
+  semantic_gate: false
+  data_or_ledger_contents: false
+  scheduler_or_production: false
+
+resume_rule:
+  release_update_must_precede_first_request: true
+  head_must_equal_origin_main: true
+  worktree_must_be_clean: true
+  zero_call_preflight_must_pass_again: true
+  no_response_replacement_or_extra_request: true
