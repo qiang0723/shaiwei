@@ -28,9 +28,9 @@
 | M1-1 发现 manifest | `835d6cf6d5630423f12154ab367ddf46f6712c8f67f105a67802c48bcf29fa59` |
 | M1-1 发现报告 | `5cdf09ca316eeb58a9613cf2c4596c0a1fdc2e0c6fd5af49d8974a10f68c45cb` |
 | 请求束 | `4fda6297e9acb97b0040a9f2c77ff155087895b9645f99e07f9627f2a69f0557` |
-| 实现 Git HEAD | `c3ae9bb6d419e36488a8405df2e33bb0d55a1edb` |
-| 最终镜像 | `sha256:ef8cc1d43d6466b3cb2bb98adea1282255537297bfd638ce252e63a3939230be` |
-| 镜像代码快照 | `8112fa0a8de73e984b4c32ab7b05a5e05ce228288cb06615ef811b9421ba059b` |
+| 实现 Git HEAD | `79e2096463e43674c88fcd46242f68ed9ffcea3f` |
+| 最终镜像 | `sha256:15704c6a52ff8c62216498409bec2f9d4cabf6379cd2e89dfab80a8dd9604553` |
+| 镜像代码快照 | `5d38f231b01462c438916c9e86b17a9a98ffdb320dfc0a743fea6df83ee40da5` |
 
 ## 盲态、隔离与工程门
 
@@ -48,6 +48,9 @@
   镜像按真实完整 HEAD 重建并通过内嵌身份核验。
 - 首次 live 还暴露表达式解析器只读挂载遗漏；账本和输出均为零。恢复附录先行推送后只增加该挂载
   与回归测试，并按恢复提交重建上表终版镜像；协议、请求、候选、预算及数据边界未改变。
+- 恢复后首次执行又在首请求前发现 execution release 覆盖了镜像受控 `config/`；第二份零调用附录
+  先行推送后，只把同一只读 release 移到 `/opt/shaiwei/` 并锁定不得覆盖受控树。上表身份为此次
+  恢复后的终版；账本、输出、provider 调用和费用仍均为 0。
 - 生产 scheduler 始终为容器 `fd8e96152b53`、镜像 `sha256:de87ec740981166b032b394fb256a978acdc8d35e999a369f1debc3466aa0261`、
   创建于 `2026-07-24T12:25:27.362813588Z`，状态 running/healthy，未重启。
 
