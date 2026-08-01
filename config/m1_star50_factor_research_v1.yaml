@@ -1,0 +1,274 @@
+schema_version: m1-star50-factor-research-protocol-v1
+protocol_id: m1-star50-price-volume-v1
+prepared_at: "2026-08-01T15:05:00+08:00"
+status: M1_1_RESULT_BEFORE_RESEARCH_PROTOCOL_FROZEN_EXECUTION_NOT_RELEASED
+d1_1_engineering_authorized: true
+d1_1_engineering_complete: true
+d1_2a_preexecution_frozen: true
+execution_authorized: false
+production_authorization: none
+strategy_results_inspected: false
+llm_api_called: false
+
+scope:
+  purpose: discover_new_star50_price_volume_factor_hypotheses
+  first_arm_only: true
+  persistent_research_service: false
+  production_model_changes: false
+  scheduler_changes: false
+  web_changes: false
+  guanxiang_access: false
+  old_p2_parameter_tuning: false
+
+identity:
+  research_family: m1-star50-price-volume-v1
+  universe_id: star50-official-pit-v2
+  candidate_source: DeepSeek-bounded-DSL
+  result_root: data/research/m1/m1-star50-price-volume-v1
+  raw_response_root: data/research/m1/m1-star50-price-volume-v1/raw
+  sanitized_manifest: config/m1_star50_factor_research_manifest_v1.json
+  experiment_ledger: ledger/experiments.csv
+  llm_attempt_ledger: ledger/m1_star50_factor_attempts.csv
+  llm_transport_ledger: ledger/m1_star50_factor_transports.csv
+  factor_admission_ledger: ledger/factor_admissions.csv
+
+prompt_contract:
+  path: config/m1_star50_factor_prompt_v1.yaml
+  sha256: 6e0df7fd61b5c309cdcbbc72c02417de92a110f7799b816044971e8dc52fcd06
+  schema_version: d1-prompt-bundle-v1
+  prompt_id: m1-star50-price-volume-prompt-v1
+
+knowledge_manifest:
+  path: config/d1_llm_factor_knowledge_v1.json
+  sha256: 0f1e8ab2461352ce020dcf1873a5d79bfc010b08eea205b6b308e27bc3c23fad
+  schema_version: d1-knowledge-manifest-v1
+  manifest_id: d1-llm-dsl-knowledge-v1
+  reuse_role: generic_price_volume_hypothesis_context_only
+
+upstream_contract:
+  registry_path: config/m1_multi_universe_v1.yaml
+  registry_file_sha256: 964631891a69b4ed2a6c697066a89300910b620d3c71acdf65803248900c4274
+  registry_canonical_sha256: acece635101ca08303d303a2229b49f2405f5919aa65745b5590aa03f7da927f
+  required_universe_permission: FREEZE_NEW_FACTOR_PROTOCOL
+  p2_engineering_manifest_path: config/p2_star50_engineering_manifest_v1.json
+  p2_engineering_manifest_sha256: 4e946aa7d3e3c3da31ca8ad700bee2587a189dddfcf62b83054bc6804c163986
+  old_p2_authoritative_effect: REJECT
+  old_p2_effect_is_not_a_universe_verdict: true
+  old_p2_formula_model_or_portfolio_feedback_forbidden: true
+
+data_contract:
+  universe: star50_official_pit_v1
+  universe_id: star50-official-pit-v2
+  index_code: 000688.SH
+  benchmark_id: star50-000688
+  requested_discovery_signal_period: ["2020-08-03", "2022-12-15"]
+  final_discovery_label_maturity_date: "2022-12-30"
+  sealed_validation_period: ["2023-01-03", "2025-12-31"]
+  discovery_trade_days_expected: 577
+  official_members_per_day_exact: 50
+  qlib_provider: data/research/star50/p2-star50-engineering-v1/qlib_bin
+  qlib_manifest_sha256: bbe01661460e975a1e8e2228bb21de6ed1e134537158bd1a25869ccf8b4a7b3b
+  qlib_artifact_sha256: b8f736ef9bc9e31cc236a81ca281a23e904789fb5ec87caa9195b572c6b78729
+  qlib_artifact_file_count: 1293
+  qlib_artifact_byte_count: 6908091
+  member_day_dataset: data/research/star50/p2-star50-engineering-v1/dataset/member_days.parquet
+  member_day_dataset_sha256: a6fb10532bba9de9504fc4be0bfe6e45e50621a761ae29fbaa1cf9ba39356061
+  discovery_member_day_rows_expected: 28850
+  discovery_market_bar_rows_expected: 28838
+  features: [$open, $close, $high, $low, $volume, $vwap]
+  pit_neutralization: [pit_sw_l1_industry, log_total_market_cap]
+  label_id: next_open_to_t_plus_11_open
+  label: Ref(open,-11)/Ref(open,-1)-1
+  horizon_trade_days: 10
+  maximum_lookback_trade_days: 50
+  minimum_cross_section: 30
+  minimum_daily_ic_observations: 400
+  minimum_candidate_coverage: 0.90
+  coverage_denominator: finite_label_and_PIT_industry_and_positive_total_market_cap_rows
+  coverage_numerator: denominator_rows_with_finite_candidate_factor
+  factor_direction_is_not_flipped_during_discovery: true
+  moneyflow_features: false
+  financial_features: false
+  guanxiang_features: false
+  knowledge_cutoff: "2026-07-25T23:59:59+08:00"
+  retrospective_discovery: true
+  bse_suffix_forbidden: .BJ
+
+candidate_contract:
+  representation: allowlisted_expression_dsl_only
+  one_completed_response_one_candidate: true
+  arbitrary_python: false
+  file_access: false
+  network_access: false
+  environment_access: false
+  dynamic_execution: false
+  shell_access: false
+  maximum_expression_tokens: 20
+  maximum_ast_nodes: 80
+  allowed_operators:
+    - Abs
+    - Log
+    - Add
+    - Sub
+    - Mul
+    - Div
+    - Greater
+    - Less
+    - Ref
+    - Mean
+    - Sum
+    - Std
+    - Var
+    - Max
+    - Min
+    - Med
+    - Mad
+    - Delta
+    - WMA
+    - EMA
+    - Cov
+    - Corr
+  candidate_semantic_gate:
+    required_before_candidate_validity: true
+    second_dsl_expression_forbidden: true
+    alternate_operator_or_lookback_forbidden: true
+    performance_or_admission_claim_forbidden: true
+    sealed_period_reference_forbidden: true
+    ambiguous_text_policy: reject_and_count_attempt
+  duplicate_policy: count_attempt_and_reject_candidate
+  syntax_sandbox_or_semantic_failure_policy: count_attempt_and_reject_candidate
+  multiple_candidates_in_one_response_policy: count_attempt_and_reject_response
+  llm_rationale_is_human_rationale: false
+
+attempt_budget:
+  completed_llm_responses_exact: 40
+  early_stop_for_performance: false
+  topic_order:
+    - trend_momentum
+    - reversal_mean_reversion
+    - volatility_range
+    - liquidity_volume
+    - price_volume_state
+  attempts_per_topic: 8
+  topic_schedule:
+    independent_proposals: 4
+    bounded_mutations: 4
+  feedback_scope: same_topic_current_family_discovery_only
+  feedback_inputs:
+    - parser_and_sandbox_status
+    - semantic_gate_status
+    - canonical_ast_identity
+    - discovery_rank_ic
+    - coverage
+    - complexity
+  forbidden_feedback_inputs:
+    - old_D1_results
+    - old_P2_effect
+    - sealed_validation
+    - stress_periods
+    - G1_admission
+    - forward_results
+  repair_response_consumes_attempt: true
+  duplicate_response_consumes_attempt: true
+  empty_or_truncated_response_consumes_attempt: true
+  provider_transport_retry_without_completed_response_consumes_attempt: false
+  maximum_transport_retries_per_attempt: 2
+
+provider:
+  name: deepseek
+  base_url: https://api.deepseek.com
+  api_key_environment_variable: DEEPSEEK_API_KEY
+  api_key_must_not_be_logged_or_tracked: true
+  model: deepseek-v4-pro
+  model_version_observed_on_2026_07_25: DeepSeek-V4-Pro
+  official_contract_rechecked_on: "2026-08-01"
+  thinking: enabled
+  reasoning_effort: high
+  temperature: null
+  response_format: json_object
+  strict_beta_tool_calling: false
+  tool_calls: false
+  concurrency: 1
+  maximum_prompt_tokens_per_attempt: 16000
+  maximum_output_tokens_per_attempt: 8000
+  response_model_change_policy: fail_closed
+  request_timeout_seconds: 900
+  context_cache:
+    provider_managed: true
+    reproducibility_dependency: false
+    record_hit_and_miss_tokens: true
+
+cost_budget:
+  currency: USD
+  pricing_observed_at: "2026-08-01"
+  pro_input_cache_hit_per_million: 0.003625
+  pro_input_cache_miss_per_million: 0.435
+  pro_output_per_million: 0.87
+  planned_worst_case_all_cache_miss_usd: 0.5568
+  hard_ceiling_usd: 1.0
+  price_change_policy: fail_closed_before_first_request
+  unknown_or_missing_usage_policy: fail_closed
+  billing_reconciliation_required: true
+
+knowledge_contract:
+  live_web_search_during_batch: false
+  frozen_manifest_reused: true
+  full_text_prompting: false
+  prompt_injection_quarantine: true
+  numeric_factor_values_from_knowledge_sources: false
+  later_publication_labeled_retrospective: true
+
+selection_contract:
+  run_only_after_all_40_completed_responses: true
+  eligible_status: DISCOVERY_EVALUATED
+  promoted_count: 2
+  ordering:
+    - absolute_discovery_rank_ic_desc
+    - discovery_coverage_desc
+    - expression_tokens_asc
+    - global_ordinal_asc
+  fewer_than_two_eligible: PAUSE
+  human_interpretation: deferred
+  sealed_validation_and_G1: forbidden
+
+evaluation_contract:
+  evaluation_identity:
+    factor_version: m1-star50-price-volume-v1
+    universe_id: star50-official-pit-v2
+    benchmark_id: star50-000688
+    label_id: next_open_to_t_plus_11_open
+    horizon_id: trade-days-10
+    neutralization_id: pit-sw-l1-plus-log-total-mv
+    window_set_id: m1-star50-sealed-2023-2025-v1
+    cost_policy_id: not_applicable_discovery_only
+    decision_rule_version: m1-star50-discovery-v1
+  research_family_N_after_completed_batch: 40
+  invalid_duplicate_and_semantic_failures_count_in_N: true
+  cross_universe_evaluation_cells_count_as_new_generation_attempts: false
+  discovery_result_is_factor_admission: false
+  strategy_effectiveness_after_discovery: NOT_EVALUATED
+  production_authorization: none
+
+pre_execution_gates:
+  protocol_frozen_committed_and_pushed_before_code_or_api_execution: true
+  separate_execution_release_frozen_and_pushed_before_api_call: true
+  git_head_equals_origin_main: true
+  clean_worktree: true
+  qlib_and_member_day_hashes_match: true
+  prompt_schema_and_knowledge_hashes_match: true
+  provider_price_and_model_rechecked: true
+  candidate_semantic_gate_tests_pass: true
+  secret_present_but_never_printed: true
+  isolated_nonroot_read_only_container: true
+  scheduler_healthy_and_immutable: true
+  high_load_tasks_serial: true
+
+deferred:
+  - sealed_2023_2025_validation
+  - stress_period_evaluation
+  - G1_admission
+  - human_economic_rationale_gate
+  - factor_combination_or_model_training
+  - portfolio_backtest
+  - forward_or_production_signal
+  - moneyflow_financial_or_guanxiang_features
