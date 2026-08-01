@@ -1,0 +1,157 @@
+schema_version: m1-multi-universe-registry-v1
+protocol_id: m1-multi-universe-foundation-v1
+protocol_document: docs/M1_MULTI_UNIVERSE_FOUNDATION_PROTOCOL_20260801.md
+protocol_sha256: 03b69841a7c813dec2b90dfa33ea282fb9e7a35a7ed8234181aedd11fefdbed9
+protocol_git_commit: 57302597ad712ce02a70cae26f1961ab7a148ac0
+factor_results_inspected: false
+llm_execution_authorized: false
+new_production_authorized: false
+production_authorization: none
+scheduler_changes_authorized: false
+existing_production_universe_id: csi800-pit-v1
+
+evaluation_contract:
+  factor_identity_scope: GLOBAL_EXACT_DEFINITION
+  admission_scope: UNIVERSE_SPECIFIC
+  target_universes_frozen_before_results: true
+  generated_attempt_count_scope: GLOBAL_PER_COMPLETED_RESPONSE
+  evaluation_cells_are_independent_generation_attempts: false
+  new_universe_after_results_requires_new_protocol: true
+  identity_fields:
+    - factor_id
+    - factor_version
+    - universe_id
+    - benchmark_id
+    - label_id
+    - horizon_id
+    - neutralization_id
+    - window_set_id
+    - cost_policy_id
+    - decision_rule_version
+  required_gate_families:
+    - PIT
+    - COVERAGE
+    - RANK_IC
+    - STABILITY
+    - TURNOVER
+    - COST
+    - CAPACITY
+    - STRESS
+    - MULTIPLE_TESTING
+
+next_protocol_candidate:
+  universe_id: star50-official-pit-v2
+  stage: FREEZE_NEW_FACTOR_PROTOCOL_ONLY
+  factor_results_authorized: false
+  llm_execution_authorized: false
+  model_training_authorized: false
+  production_authorization: none
+
+universes:
+  - universe_id: csi800-pit-v1
+    display_name: 中证800
+    identity_kind: OFFICIAL_INDEX
+    official_index_code: 000906.SH
+    segment: broad_large_mid
+    pit_status: READY
+    evidence_status: EXISTING_PRODUCTION_AND_RESEARCH_TRUTH
+    evidence_documents:
+      - docs/DATA_SPEC.md
+      - docs/P0_FORWARD_ACCEPTANCE_20260722.md
+    permissions:
+      - CONTINUE_EXISTING_PRODUCTION
+      - FREEZE_NEW_FACTOR_PROTOCOL
+    bse_included: false
+
+  - universe_id: star50-official-pit-v2
+    display_name: 科创50
+    identity_kind: OFFICIAL_INDEX
+    official_index_code: 000688.SH
+    segment: star_large
+    pit_status: READY
+    evidence_status: OFFICIAL_LINEAGE_AND_ENGINEERING_GO_BASELINE_REJECTED
+    evidence_documents:
+      - docs/P2_STAR50_OFFICIAL_LINEAGE_ACCEPTANCE_20260724.md
+      - docs/P2_STAR50_ENGINEERING_ACCEPTANCE_20260724.md
+      - docs/P2_STAR50_EFFECT_CORRECTION_ACCEPTANCE_20260725.md
+    permissions:
+      - FREEZE_NEW_FACTOR_PROTOCOL
+    bse_included: false
+
+  - universe_id: star100-official-pit-v1
+    display_name: 科创100
+    identity_kind: OFFICIAL_INDEX
+    official_index_code: 000698.SH
+    segment: star_mid
+    pit_status: BLOCKED_OFFICIAL_LINEAGE
+    evidence_status: SOURCE_PASS_OFFICIAL_LINEAGE_NO_GO
+    evidence_documents:
+      - docs/P4_STAR100_DATA_FEASIBILITY_ACCEPTANCE_20260726.md
+    permissions:
+      - FREEZE_DATA_RECOVERY_PROTOCOL
+    bse_included: false
+
+  - universe_id: star200-official-pit-v1
+    display_name: 科创200
+    identity_kind: OFFICIAL_INDEX
+    official_index_code: 000699.SH
+    segment: star_small
+    pit_status: DATA_GATE_REQUIRED
+    evidence_status: NOT_EVALUATED
+    evidence_documents:
+      - docs/M1_MULTI_UNIVERSE_FOUNDATION_PROTOCOL_20260801.md
+    permissions:
+      - FREEZE_DATA_FEASIBILITY_PROTOCOL
+    bse_included: false
+
+  - universe_id: star-composite-official-v1
+    display_name: 科创综指
+    identity_kind: OFFICIAL_INDEX
+    official_index_code: 000680.SH
+    segment: star_all
+    pit_status: DATA_GATE_REQUIRED
+    evidence_status: NOT_EVALUATED
+    evidence_documents:
+      - docs/M1_MULTI_UNIVERSE_FOUNDATION_PROTOCOL_20260801.md
+    permissions:
+      - FREEZE_DATA_FEASIBILITY_PROTOCOL
+    bse_included: false
+
+  - universe_id: star-board-all-pit-v1
+    display_name: 科创板全市场PIT研究池
+    identity_kind: CUSTOM_RULE_BASED
+    official_index_code: null
+    segment: star_all
+    pit_status: RULES_NOT_FROZEN
+    evidence_status: NOT_CONSTRUCTED
+    evidence_documents:
+      - docs/M1_MULTI_UNIVERSE_FOUNDATION_PROTOCOL_20260801.md
+    permissions:
+      - FREEZE_RULE_DESIGN_PROTOCOL
+    bse_included: false
+
+  - universe_id: star-board-midcap-pit-v1
+    display_name: 科创板中盘PIT研究池
+    identity_kind: CUSTOM_RULE_BASED
+    official_index_code: null
+    segment: star_mid
+    pit_status: RULES_NOT_FROZEN
+    evidence_status: NOT_CONSTRUCTED
+    evidence_documents:
+      - docs/M1_MULTI_UNIVERSE_FOUNDATION_PROTOCOL_20260801.md
+    permissions:
+      - FREEZE_RULE_DESIGN_PROTOCOL
+    bse_included: false
+
+  - universe_id: star-board-smallcap-pit-v1
+    display_name: 科创板小盘PIT研究池
+    identity_kind: CUSTOM_RULE_BASED
+    official_index_code: null
+    segment: star_small
+    pit_status: RULES_NOT_FROZEN
+    evidence_status: NOT_CONSTRUCTED
+    evidence_documents:
+      - docs/M1_MULTI_UNIVERSE_FOUNDATION_PROTOCOL_20260801.md
+    permissions:
+      - FREEZE_RULE_DESIGN_PROTOCOL
+    bse_included: false
