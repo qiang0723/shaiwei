@@ -391,6 +391,12 @@ services:
       - PYTHONPYCACHEPREFIX=/tmp/pycache
     volumes:
       - type: bind
+        source: ./vendor/alphagen
+        target: /workspace/vendor/alphagen
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
         source: ./data
         target: /workspace/data
         read_only: true

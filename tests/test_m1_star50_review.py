@@ -169,6 +169,13 @@ def test_review_compose_profiles_keep_secret_and_write_boundaries_narrow():
     serialized = json.dumps(live, sort_keys=True)
     assert ".env" not in serialized
     assert "docker.sock" not in serialized
+    vendor_mount = next(
+        volume
+        for volume in live["volumes"]
+        if volume["target"] == "/workspace/vendor/alphagen"
+    )
+    assert vendor_mount["source"] == "./vendor/alphagen"
+    assert vendor_mount["read_only"] is True
     writable = {
         volume["target"] for volume in live["volumes"] if volume["read_only"] is False
     }
