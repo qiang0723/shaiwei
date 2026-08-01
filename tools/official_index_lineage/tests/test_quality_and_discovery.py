@@ -16,6 +16,10 @@ def test_archive_parser_and_candidate_policy() -> None:
         {"source_url": "https://www.sse.com.cn/x", "title": "关于某指数样本调整的公告"},
         set(),
     ) is True
+    assert is_candidate(
+        {"source_url": "https://www.sse.com.cn/y", "title": "关于临时调整某指数的公告"},
+        set(),
+    ) is True
 
 
 def test_calendar_and_daily_quality() -> None:

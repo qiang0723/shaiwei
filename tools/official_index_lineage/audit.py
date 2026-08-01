@@ -171,7 +171,14 @@ def _source_public(source: dict[str, object]) -> dict[str, object]:
     return {key: source.get(key) for key in keys}
 
 
-def audit(protocol_path: Path, collection_path: Path, discovery_path: Path) -> dict[str, object]:
+def audit(
+    protocol_path: Path,
+    collection_path: Path,
+    discovery_path: Path,
+    *,
+    report_override: Path | None = None,
+    manifest_override: Path | None = None,
+) -> dict[str, object]:
     protocol = load_protocol(protocol_path)
     collection = json.loads(collection_path.read_text(encoding="utf-8"))
     discovery = json.loads(discovery_path.read_text(encoding="utf-8"))
@@ -323,7 +330,9 @@ def audit(protocol_path: Path, collection_path: Path, discovery_path: Path) -> d
         "monthly_crosschecks": comparisons,
         "derived_artifacts": derived,
     }
-    report_path = _project(str(protocol["identity"]["quality_report"]))
+    report_path = _project(
+        report_override or str(protocol["identity"]["quality_report"])
+    )
     write_immutable_json(report_path, report)
     manifest = {
         "schema_version": "m2-star200-tracked-manifest-v1",
@@ -342,7 +351,9 @@ def audit(protocol_path: Path, collection_path: Path, discovery_path: Path) -> d
         "official_sources": [_source_public(source) for source in sources],
         "desensitization": {"absolute_paths_included": False, "credentials_included": False, "cookies_or_headers_included": False, "provider_token_included": False, "raw_business_rows_included": False},
     }
-    manifest_path = _project(str(protocol["identity"]["tracked_manifest"]))
+    manifest_path = _project(
+        manifest_override or str(protocol["identity"]["tracked_manifest"])
+    )
     write_immutable_json(manifest_path, manifest)
     return {"report": report, "report_path": report_path, "manifest_path": manifest_path}
 
@@ -352,12 +363,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--protocol", type=Path, default=DEFAULT_PROTOCOL)
     parser.add_argument("--collection-report", type=Path, required=True)
     parser.add_argument("--discovery-report", type=Path, required=True)
+    parser.add_argument("--report", type=Path)
+    parser.add_argument("--manifest", type=Path)
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    result = audit(_project(args.protocol), _project(args.collection_report), _project(args.discovery_report))
+    result = audit(
+        _project(args.protocol),
+        _project(args.collection_report),
+        _project(args.discovery_report),
+        report_override=args.report,
+        manifest_override=args.manifest,
+    )
     report = result["report"]
     print(json.dumps({key: report[key] for key in ("official_launch_set_complete", "official_adjustment_lineage_complete", "methodology_lineage_complete", "tushare_source_collection_pass", "tushare_crosscheck_pass", "pit_constructible", "strategy_effective", "production_authorization", "verdict")}, ensure_ascii=False, sort_keys=True))
     return 0

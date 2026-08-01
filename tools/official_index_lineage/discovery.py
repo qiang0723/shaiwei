@@ -53,7 +53,8 @@ def is_candidate(row: dict[str, str], explicit_urls: set[str]) -> bool:
         return True
     title = row["title"]
     adjustment = "调整" in title and ("样本" in title or "定期调整结果" in title)
-    return title.startswith("关于") and adjustment
+    temporary_adjustment = "临时调整" in title
+    return title.startswith("关于") and (adjustment or temporary_adjustment)
 
 
 def attachment_urls(content: bytes, parent_url: str) -> list[str]:
