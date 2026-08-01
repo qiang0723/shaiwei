@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-d1-fixture docker-d1-live docker-d1-review-live docker-d1-semantic-verify docker-m1-star50-build docker-m1-star50-preflight docker-m1-star50-live docker-g8-primary-build docker-g8-primary-capture docker-g8-primary-verify docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-guard docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-research-project docker-web-security-names-project docker-web-up docker-web-status docker-web-logs docker-web-down
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-d1-fixture docker-d1-live docker-d1-review-live docker-d1-semantic-verify docker-m1-star50-build docker-m1-star50-preflight docker-m1-star50-live docker-m1-star50-review-build docker-m1-star50-review-preflight docker-m1-star50-review-live docker-g8-primary-build docker-g8-primary-capture docker-g8-primary-verify docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-guard docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-research-project docker-web-security-names-project docker-web-up docker-web-status docker-web-logs docker-web-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -118,6 +118,13 @@ docker-m1-star50-preflight: ## 断网只读核对科创50发现输入；零候�
 	docker compose -f compose.research.yaml --profile m1-star50-preflight run --rm --no-deps m1-star50-preflight
 docker-m1-star50-live: ## M1-1受控40次生成；须先推送执行release并显式导出唯一DeepSeek secret
 	docker compose -f compose.research.yaml --profile m1-star50-live run --rm --no-deps m1-star50-live
+docker-m1-star50-review-build: ## 以已提交身份构建M1-2一次性盲审镜像
+	@test -n "$(M1_REVIEW_RELEASE_GIT_HEAD)" || (echo "M1_REVIEW_RELEASE_GIT_HEAD is required"; exit 2)
+	SHAIWEI_M1_REVIEW_RELEASE_GIT_HEAD="$(M1_REVIEW_RELEASE_GIT_HEAD)" docker compose -f compose.research.yaml --profile m1-star50-review-preflight build m1-star50-review-preflight
+docker-m1-star50-review-preflight: ## 断网核对Top2/提示/语义门；零provider调用、零封存结果
+	docker compose -f compose.research.yaml --profile m1-star50-review-preflight run --rm --no-deps m1-star50-review-preflight
+docker-m1-star50-review-live: ## M1-2最多8次结果盲对抗复核；须先冻结并推送执行release
+	docker compose -f compose.research.yaml --profile m1-star50-review-live run --rm --no-deps m1-star50-review-live
 docker-g8-primary-build: ## 以已提交代码身份构建 G8-1 无凭据一次性采集镜像
 	@test -n "$(G8_RELEASE_GIT_HEAD)" || (echo "G8_RELEASE_GIT_HEAD is required"; exit 2)
 	SHAIWEI_G8_RELEASE_GIT_HEAD="$(G8_RELEASE_GIT_HEAD)" docker compose -f compose.research.yaml --profile g8-primary-capture-live build g8-primary-capture
