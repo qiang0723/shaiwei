@@ -1,6 +1,6 @@
 schema_version: m1-star50-factor-review-execution-release-v1
 release_id: m1-star50-review-v1-batch-001
-prepared_at: "2026-08-01T17:07:17+08:00"
+prepared_at: "2026-08-01T17:32:00+08:00"
 status: M1_2_RESULT_BLIND_EXECUTION_FROZEN
 execution_authorized: true
 production_authorization: none
@@ -23,10 +23,10 @@ frozen_contract:
     - 5c3c30d8b3a01f76
     - 47f690ef14487a25
   selection_and_formula_identity_immutable: true
-  implementation_git_head: 3eefbd188cc4cb71933d7bcf1d36cd56ff2f3d0a
+  implementation_git_head: c3ae9bb6d419e36488a8405df2e33bb0d55a1edb
   image_tag: shaiwei:m1-star50-review-v1
-  image_id: sha256:31331a8390a78f27f5238d5d290eafc8ec76a1031917470a73e642547cda9289
-  code_snapshot_sha256: 55eba65f7fb160f6dc9f21e4c474085341b6dc89ba055cd3d4003597bac6a3ab
+  image_id: sha256:ef8cc1d43d6466b3cb2bb98adea1282255537297bfd638ce252e63a3939230be
+  code_snapshot_sha256: 8112fa0a8de73e984b4c32ab7b05a5e05ce228288cb06615ef811b9421ba059b
 
 scope:
   new_candidate_generation: false
