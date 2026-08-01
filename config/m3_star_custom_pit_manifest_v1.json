@@ -1,0 +1,32 @@
+{
+  "artifacts": {
+    "daily_members": {
+      "path": "data/research/m3/star-custom-pit-v1/daily_members.parquet",
+      "rows": 779271,
+      "sha256": "1983169ef42489e544ce9c71e55e64ba853d27491a723024102b5699ae475101"
+    },
+    "formation_members": {
+      "path": "data/research/m3/star-custom-pit-v1/formation_members.parquet",
+      "rows": 38930,
+      "sha256": "d08c0a798df7ffc20de3191f3d94644dd3b115c36cd4d5d26891b3486041cb71"
+    },
+    "quality_report": {
+      "path": "data/research/m3/star-custom-pit-v1/quality_report.json",
+      "sha256": "f25d8e604b6fb758bca48afd4e12b0e7827a6a5ef3b496fae54a955ddfbace02"
+    }
+  },
+  "code_bundle_sha256": "1634c6e901d92d94980979e8d1f95fa10d06ce83ee4d238de169e0f57177dc80",
+  "desensitization": {
+    "absolute_paths_included": false,
+    "credentials_included": false,
+    "raw_or_derived_business_rows_included": false,
+    "security_codes_included": false
+  },
+  "production_authorization": "none",
+  "protocol_id": "m3-star-custom-pit-data-rule-gate-v1",
+  "protocol_sha256": "e400f6f1f0792fb7c9a46e83028c4c472e2beeb19137fd5e245729c052ddd058",
+  "schema_version": "m3-star-custom-pit-manifest-v1",
+  "selected_input_sha256": "8437b83939e09ad5a9b97093a56505cf73a2b3ad8ffd5b6c0f4d7699649dc2f1",
+  "strategy_effective": "NOT_EVALUATED",
+  "verdict": "GO_CUSTOM_PIT_DATA_RULE_GATE_ONLY"
+}
