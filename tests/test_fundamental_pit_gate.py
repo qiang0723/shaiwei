@@ -126,6 +126,16 @@ def test_cross_statement_period_mixing_is_never_constructed():
     assert panel["fundamental_accruals_to_assets_v1"].isna().all()
 
 
+def test_missing_statement_component_remains_null_without_mixed_type_comparison():
+    frames = _frames()
+    frames["tushare.cashflow"] = frames["tushare.cashflow"].iloc[[0]].copy()
+    panel, diagnostics = build_feature_panel(_protocol(), frames)
+    missing = panel.loc[panel["ts_code"].eq("600001.SH")]
+    assert missing["available_date"].isna().all()
+    assert missing["fundamental_net_income_to_assets_v1"].isna().all()
+    assert diagnostics["future_availability_rows"] == 0
+
+
 def test_make_target_maps_public_release_identity_into_compose():
     makefile = (PROJECT_ROOT / "Makefile").read_text(encoding="utf-8")
     assert 'SHAIWEI_F1_RELEASE_GIT_HEAD="$(F1_RELEASE_GIT_HEAD)" docker compose' in makefile

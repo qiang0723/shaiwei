@@ -188,7 +188,9 @@ def build_feature_panel(
     mixed = complete_periods & panel[period_columns].nunique(axis=1, dropna=False).gt(1)
     same_period = complete_periods & ~mixed
     panel["end_date"] = panel["income_end_date"].where(same_period)
-    panel["available_date"] = panel[available_columns].max(axis=1).where(same_period)
+    normalized_availability = panel[available_columns].astype("string").fillna("")
+    latest_availability = normalized_availability.max(axis=1).replace("", pd.NA)
+    panel["available_date"] = latest_availability.where(same_period)
     assets = pd.to_numeric(panel["balancesheet_total_assets"], errors="coerce")
     revenue = pd.to_numeric(panel["income_total_revenue"], errors="coerce")
     valid_assets = same_period & np.isfinite(assets) & assets.gt(0)
@@ -216,7 +218,8 @@ def build_feature_panel(
         }
     future = pd.Series(False, index=panel.index)
     for column in available_columns:
-        future |= panel[column].notna() & panel[column].gt(panel["formation_date"])
+        available = panel[column].astype("string").fillna("")
+        future |= available.gt(panel["formation_date"].astype("string"))
     diagnostics = {
         "open_day_count": len(open_days),
         "open_day_first": open_days[0],
