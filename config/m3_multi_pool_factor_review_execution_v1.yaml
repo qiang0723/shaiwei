@@ -1,0 +1,70 @@
+schema_version: m3-multi-pool-factor-review-execution-release-v1
+release_id: m3-star-three-pool-review-v1-preexecution-001
+prepared_at: "2026-08-02T20:15:00+08:00"
+status: M3_3_PREEXECUTION_FROZEN_LIVE_NOT_AUTHORIZED
+execution_authorized: false
+strategy_effective: NOT_EVALUATED
+production_authorization: none
+
+authorization:
+  source: primary_thread_goal_authorizes_preexecution_only
+  authorized_on: "2026-08-02"
+  provider_calls_authorized_now: 0
+  completed_responses_if_later_authorized_exact: 8
+  future_live_hard_ceiling_usd: 0.25
+  future_live_requires_new_explicit_user_authority: true
+  future_live_requires_separate_immutable_release: true
+
+frozen_contract:
+  protocol_path: config/m3_multi_pool_factor_review_v1.yaml
+  protocol_sha256: 2828623c47d20756f9ca3f59f71c0c55e7b259e734e7b51938fb70f32d34b7c6
+  prompt_sha256: 00f9a063307a98e1b754382ac1f78818ea2615c0d812575f318dd9692248c35f
+  semantic_protocol_sha256: 8faf36d33744aec06ec4331266dccf4d96dee904bac0a3d0fb603940e6aef15a
+  knowledge_sha256: 0f1e8ab2461352ce020dcf1873a5d79bfc010b08eea205b6b308e27bc3c23fad
+  discovery_manifest_sha256: 1a22bef610457a7d9313ab762832762f6f0087322693f1cdcc70146ada9af198
+  discovery_report_sha256: 428772649728a1ff6db7d537cb1a531e3a133f5f0d1c8c30e17c1e1fac9ca7ce
+  discovery_live_context_sha256: a5d00c0620e2a35f5475ae23b6c254f79e370a0fc15031d476d7b42cafcb68ac
+  discovery_attempt_ledger_sha256: 84d655665177698ba64ce1395043ffc28744d872f408cfc51fe60fa7ebfee344
+  discovery_evidence_tree_sha256: d9b843261d01af635f3546b15dc8400cb1e2f5c765ff99cb83af63fa7624dfbc
+  candidate_ids: [f6fd83e97bad3114, ca552f379c62504d]
+  selection_formula_and_order_immutable: true
+  request_bundle_sha256: f35daa7f9f1830e0dc6e680eafdfaccc3dc7c58238369fd5dc155defaf1372fe
+  code_paths:
+    - src/shaiwei/research/m3_multi_pool_review_schema.py
+    - src/shaiwei/research/m3_multi_pool_review_contract.py
+    - src/shaiwei/research/m3_multi_pool_review_request.py
+    - src/shaiwei/research/m3_multi_pool_review_evidence.py
+    - src/shaiwei/research/m3_multi_pool_review_release.py
+    - src/shaiwei/research/m3_multi_pool_review_preexecution.py
+  code_bundle_sha256: b478ad8206ebb6e96461b8e65794e34dae644932769ca9f35d5b28744f9f7d8c
+
+scope:
+  result_blind_contract_preexecution: true
+  deepseek_api_call: false
+  api_key_read: false
+  provider_response: false
+  discovery_metric_interpretation: false
+  sealed_validation_access: false
+  stress_period_access: false
+  g1_run: false
+  model_or_portfolio_run: false
+  backtest_or_signal_run: false
+  forward_or_production_access: false
+  scheduler_changes: false
+  web_changes: false
+  guanxiang_access: false
+
+ledgers:
+  review: ledger/m3_multi_pool_factor_reviews.csv
+  transport: ledger/m3_multi_pool_factor_review_transports.csv
+  must_be_header_only_before_live_authorization: true
+  prior_ledgers_remain_byte_immutable: true
+
+container_contract:
+  image_tag: shaiwei:m3-multi-pool-review-preexecution-v1
+  network_mode: none
+  read_only_root: true
+  non_root: true
+  docker_socket: false
+  host_ports: false
+  secret_environment: false

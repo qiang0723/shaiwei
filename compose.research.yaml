@@ -277,6 +277,59 @@ services:
       - --execution-release
       - /workspace/config/m3_multi_pool_factor_execution_v1.yaml
 
+  m3-multi-pool-review-preflight:
+    image: shaiwei:m3-multi-pool-review-preexecution-v1
+    pull_policy: never
+    profiles: [m3-multi-pool-review-preflight]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_M3_REVIEW_RELEASE_GIT_HEAD:-}
+    init: true
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=256m,mode=1777
+    pids_limit: 64
+    mem_limit: 1g
+    cpus: 1.0
+    environment:
+      HOME: /tmp
+      MPLCONFIGDIR: /tmp/matplotlib
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+    volumes:
+      - type: bind
+        source: ./vendor/alphagen
+        target: /workspace/vendor/alphagen
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data
+        target: /workspace/data
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger
+        target: /workspace/ledger
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.m3_multi_pool_review_preexecution
+      - --protocol
+      - /workspace/config/m3_multi_pool_factor_review_v1.yaml
+      - --execution-release
+      - /workspace/config/m3_multi_pool_factor_review_execution_v1.yaml
+
   m3-multi-pool-live:
     image: shaiwei:m3-multi-pool-factor-v1
     pull_policy: never
