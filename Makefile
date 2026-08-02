@@ -154,6 +154,7 @@ docker-m3-multi-pool-review-verify: ## 断网只读复核M3-3终态证据和幂�
 docker-llm-review-contract-v2: ## 断网验证紧凑审查合同v2；零secret、零真实候选、零provider调用
 	docker compose -f compose.research.yaml --profile llm-review-contract-v2 run --rm --no-deps llm-review-contract-v2
 docker-f1-fundamental-pit-build: ## 构建F1-0断网基本面PIT数据门镜像
+	@test -n "$(F1_RELEASE_GIT_HEAD)" || (echo "F1_RELEASE_GIT_HEAD is required"; exit 2)
 	docker compose -f compose.research.yaml --profile f1-fundamental-pit build f1-fundamental-pit
 docker-f1-fundamental-pit: ## 断网读取本地不可变三表并构建F1-0数据/特征门
 	docker compose -f compose.research.yaml --profile f1-fundamental-pit run --rm --no-deps f1-fundamental-pit

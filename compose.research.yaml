@@ -1040,6 +1040,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_F1_RELEASE_GIT_HEAD:-}
     init: true
     user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
     read_only: true
