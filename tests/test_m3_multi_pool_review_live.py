@@ -16,6 +16,7 @@ from shaiwei.research.m3_multi_pool_review_request import plan_review, preflight
 
 
 PROTOCOL_PATH = PROJECT_ROOT / "config/m3_multi_pool_factor_review_v1.yaml"
+TERMINAL_MANIFEST_PATH = PROJECT_ROOT / "config/m3_multi_pool_factor_review_manifest_v1.json"
 
 
 def _release_document(implementation_head: str) -> dict:
@@ -234,8 +235,16 @@ def test_live_response_classification_runs_structure_and_semantics(tmp_path):
     assert wrong_model["failure_class"] == "provider_model_identity_mismatch"
 
 
-def test_live_preflight_is_pristine_zero_api_and_reads_no_secret(tmp_path):
+def test_live_preflight_is_pristine_zero_api_and_reads_no_secret(tmp_path, monkeypatch):
     path = _write_release(tmp_path, _release_document(git_head()))
+    monkeypatch.setattr(
+        "shaiwei.research.m3_multi_pool_review_live.review_rows",
+        lambda review_path, release: [],
+    )
+    monkeypatch.setattr(
+        "shaiwei.research.m3_multi_pool_review_live._transport_rows",
+        lambda transport_path, release: [],
+    )
     report = run_live_preflight(protocol_path=PROTOCOL_PATH, release_path=path)
     assert report["live_preflight_gate"] == "PASS"
     assert report["execution_authorized"] is True
@@ -259,3 +268,22 @@ def test_live_compose_exposes_secret_only_to_live_service():
     assert "DEEPSEEK_API_KEY" in services["m3-multi-pool-review-live"]["environment"]
     assert services["m3-multi-pool-review-live-preflight"]["network_mode"] == "none"
     assert services["m3-multi-pool-review-verify"]["network_mode"] == "none"
+
+
+def test_terminal_manifest_binds_append_only_ledgers_and_stops_before_m3_4():
+    manifest = json.loads(TERMINAL_MANIFEST_PATH.read_text(encoding="utf-8"))
+    assert manifest["verdict"] == "STOP_M3_3_REVIEW_CONTRACT"
+    assert manifest["candidate_decisions"] == {}
+    assert manifest["m3_4_validation_protocol_authorized"] is False
+    assert manifest["response_gate"]["completed_response_count"] == 1
+    assert manifest["response_gate"]["completed_responses_required"] == 8
+    for key, relative_path in (
+        ("review_ledger_sha256", "ledger/m3_multi_pool_factor_reviews.csv"),
+        (
+            "transport_ledger_sha256",
+            "ledger/m3_multi_pool_factor_review_transports.csv",
+        ),
+        ("m3_2_attempt_ledger_sha256", "ledger/m3_multi_pool_factor_attempts.csv"),
+    ):
+        actual = hashlib.sha256((PROJECT_ROOT / relative_path).read_bytes()).hexdigest()
+        assert actual == manifest["static_evidence"][key]

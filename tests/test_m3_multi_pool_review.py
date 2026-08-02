@@ -18,6 +18,7 @@ from shaiwei.research.m3_multi_pool_review_evidence import (
     REVIEW_LEDGER_HEADER,
     decide_reviews,
     expected_schedule,
+    verify_empty_ledgers,
 )
 from shaiwei.research.m3_multi_pool_review_preexecution import run_preexecution
 from shaiwei.research.m3_multi_pool_review_release import M3ReviewRelease
@@ -177,7 +178,8 @@ def test_release_fails_closed_when_source_binding_changes(tmp_path):
         M3ReviewRelease.load(path, M3ReviewProtocol.load(PROTOCOL_PATH))
 
 
-def test_empty_review_ledgers_have_dedicated_exact_schemas():
+def test_terminal_review_ledgers_have_dedicated_exact_schemas():
+    rows_by_path = {}
     for path, header in (
         (PROJECT_ROOT / "ledger/m3_multi_pool_factor_reviews.csv", REVIEW_LEDGER_HEADER),
         (
@@ -188,10 +190,39 @@ def test_empty_review_ledgers_have_dedicated_exact_schemas():
         with path.open(newline="", encoding="utf-8") as handle:
             reader = csv.DictReader(handle)
             assert tuple(reader.fieldnames or ()) == header
-            assert list(reader) == []
+            rows_by_path[path.name] = list(reader)
+    reviews = rows_by_path["m3_multi_pool_factor_reviews.csv"]
+    transports = rows_by_path["m3_multi_pool_factor_review_transports.csv"]
+    assert len(reviews) == 1
+    assert reviews[0]["failure_class"] == "provider_finish_reason_invalid"
+    assert [row["event_type"] for row in transports] == ["STARTED", "COMPLETED"]
+    assert [row["completed_response"] for row in transports] == ["false", "true"]
 
 
-def test_disconnected_preexecution_is_zero_api_and_not_strategy_evaluation():
+def test_empty_ledger_gate_uses_isolated_preexecution_fixtures(tmp_path):
+    review_path = tmp_path / "reviews.csv"
+    transport_path = tmp_path / "transports.csv"
+    for path, header in (
+        (review_path, REVIEW_LEDGER_HEADER),
+        (transport_path, TRANSPORT_LEDGER_HEADER_V2),
+    ):
+        with path.open("w", newline="", encoding="utf-8") as handle:
+            csv.writer(handle).writerow(header)
+    assert verify_empty_ledgers(review_path, transport_path) == {
+        "review_rows": 0,
+        "transport_rows": 0,
+    }
+    with review_path.open("a", newline="", encoding="utf-8") as handle:
+        csv.writer(handle).writerow(["terminal-row"] + [""] * (len(REVIEW_LEDGER_HEADER) - 1))
+    with pytest.raises(D1ControlError, match="must be empty"):
+        verify_empty_ledgers(review_path, transport_path)
+
+
+def test_disconnected_preexecution_is_zero_api_and_not_strategy_evaluation(monkeypatch):
+    monkeypatch.setattr(
+        "shaiwei.research.m3_multi_pool_review_preexecution.verify_empty_ledgers",
+        lambda review_path, transport_path: {"review_rows": 0, "transport_rows": 0},
+    )
     report = run_preexecution(PROTOCOL_PATH, RELEASE_PATH)
     assert report["preexecution_gate"] == "GO_M3_3_PREEXECUTION_ONLY"
     assert report["provider_calls"] == 0
