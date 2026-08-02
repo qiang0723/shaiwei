@@ -1,0 +1,217 @@
+schema_version: m3-multi-pool-factor-review-protocol-v1
+protocol_id: m3-star-three-pool-price-volume-review-v1
+prepared_at: "2026-08-02T19:20:00+08:00"
+status: M3_3_RESULT_BLIND_REVIEW_PROTOCOL_FROZEN_EXECUTION_NOT_RELEASED
+research_family: m3-star-three-pool-price-volume-v1
+execution_authorized: false
+strategy_effective: NOT_EVALUATED
+production_authorization: none
+
+scope:
+  purpose: independently_screen_frozen_cross_pool_top2_before_sealed_validation
+  new_candidate_generation: false
+  formula_or_direction_change: false
+  third_place_replacement: false
+  discovery_metrics_in_review_payload: false
+  sealed_validation_access: false
+  stress_period_access: false
+  g1_run: false
+  model_or_portfolio_run: false
+  backtest_or_signal_run: false
+  forward_or_production_access: false
+  scheduler_changes: false
+  web_changes: false
+  guanxiang_access: false
+
+source_binding:
+  discovery_release_id: m3-star-three-pool-price-volume-v1-batch-001
+  discovery_manifest_path: config/m3_multi_pool_factor_discovery_manifest_v1.json
+  discovery_manifest_sha256: 1a22bef610457a7d9313ab762832762f6f0087322693f1cdcc70146ada9af198
+  discovery_report_path: data/research/m3/m3-star-three-pool-price-volume-v1/m3_2_discovery_report.json
+  discovery_report_sha256: 428772649728a1ff6db7d537cb1a531e3a133f5f0d1c8c30e17c1e1fac9ca7ce
+  discovery_live_context_path: data/research/m3/m3-star-three-pool-price-volume-v1/m3_2_live_context.json
+  discovery_live_context_sha256: a5d00c0620e2a35f5475ae23b6c254f79e370a0fc15031d476d7b42cafcb68ac
+  discovery_attempt_ledger_path: ledger/m3_multi_pool_factor_attempts.csv
+  discovery_attempt_ledger_sha256: 84d655665177698ba64ce1395043ffc28744d872f408cfc51fe60fa7ebfee344
+  discovery_evidence_tree_sha256: d9b843261d01af635f3546b15dc8400cb1e2f5c765ff99cb83af63fa7624dfbc
+  completed_responses_exact: 24
+  selected_count_exact: 2
+  selection_rule_reopened: false
+  rejected_candidate_replacement_allowed: false
+
+prompt:
+  path: config/m3_multi_pool_factor_review_prompt_v1.yaml
+  sha256: 00f9a063307a98e1b754382ac1f78818ea2615c0d812575f318dd9692248c35f
+  schema_version: m3-multi-pool-review-prompt-v1
+  prompt_id: m3-star-three-pool-top2-result-blind-review-v1
+
+semantic_gate:
+  implementation: shaiwei.research.llm_review_semantics.evaluate_semantic_contract
+  protocol_path: config/d1_llm_factor_semantic_gate_v1.yaml
+  protocol_sha256: 8faf36d33744aec06ec4331266dccf4d96dee904bac0a3d0fb603940e6aef15a
+  applied_before_review_validity: true
+  pass_required: PASS_SEMANTIC_CONTRACT
+  fail_or_ambiguous_counts_and_stops_batch: true
+  invalid_response_replacement: false
+
+knowledge_binding:
+  path: config/d1_llm_factor_knowledge_v1.json
+  sha256: 0f1e8ab2461352ce020dcf1873a5d79bfc010b08eea205b6b308e27bc3c23fad
+  allowed_source_ids:
+    - jegadeesh-titman-1993-momentum
+  discovery_or_validation_results_in_context: false
+
+pool_context:
+  identity_kind: CUSTOM_RULE_BASED
+  official_index_alias_forbidden: true
+  all_pool: all eligible STAR-board names under the frozen PIT rules
+  midcap_pool: middle deterministic third by formation-date median total market value
+  smallcap_pool: bottom deterministic third by formation-date median total market value
+  midcap_and_smallcap_disjoint: true
+  child_pools_are_subsets_of_all: true
+  same_expression_and_positive_direction_required_across_pools: true
+
+complexity_contract:
+  expression_tokens_source: raw_provider_expression_before_canonical_render
+  canonical_render_adds_feature_prefix_and_day_suffix: true
+  frozen_attempt_ledger_values_must_be_reused: true
+  canonical_retokenization_may_not_reorder_or_replace_top2: true
+
+candidates:
+  - candidate_id: f6fd83e97bad3114
+    global_ordinal: 3
+    topic: trend_momentum
+    formula: Div(EMA($close,5d),EMA($close,20d))
+    expression_sha256: 4541e1dcbebe3aad6c72ebb61b9e7107a5419a7d7548916369870141f8a17572
+    expression_tokens: 7
+    ast_nodes: 7
+    max_lookback_days: 20
+    expected_direction: positive
+    original_hypothesis: 短期与中期指数移动平均线的比值可能反映价格趋势的持续性，高比值通常意味着近期价格高于长期均价，暗示上升动能较强。
+    original_rationale: 该表达式以不同时间尺度的EMA价格水平之比作为趋势相对强度，声称短期EMA持续高于中期EMA时可能对应趋势延续。
+    research_context:
+      - Historical momentum research studies continuation in past relative performance; it does not validate this exact moving-average level ratio.
+      - The same exact formula and positive direction must be coherent across all-board, mid-cap, and small-cap rule-based pools.
+      - The peer is a WMA weighting mutation of this expression and is visible only for redundancy review.
+    raw_artifact_path: data/research/m3/m3-star-three-pool-price-volume-v1/artifacts/raw/f6fd83e97bad3114-ca15510c1874.json
+    raw_artifact_sha256: ca15510c1874a7b4e7e7cfa080babc523da98c30717831b0d2f1df47b45f4052
+    artifact_manifest_path: data/research/m3/m3-star-three-pool-price-volume-v1/artifacts/manifests/f6fd83e97bad3114.json
+    artifact_manifest_sha256: 158fff6938bbb73d8ee5c0dcc7018c66f65a3030ea588d68d4734b1463738e87
+  - candidate_id: ca552f379c62504d
+    global_ordinal: 4
+    topic: trend_momentum
+    formula: Div(WMA($close,5d),WMA($close,20d))
+    expression_sha256: 1d065dd5b99ec9bade78e27508a4324882d3752204fca62301cb3ec4d8e09480
+    expression_tokens: 7
+    ast_nodes: 7
+    max_lookback_days: 20
+    expected_direction: positive
+    original_hypothesis: 短期加权移动平均与长期加权移动平均的比值综合了近期价格动能与中期趋势位置，更高的比值意味着更强劲且可能更具持续性的上升趋势。
+    original_rationale: 该表达式以近期权重更高的WMA价格水平之比作为趋势状态，声称短期WMA高于中期WMA时可能对应趋势延续。
+    research_context:
+      - Historical momentum research studies continuation in past relative performance; it does not validate this exact moving-average level ratio.
+      - The same exact formula and positive direction must be coherent across all-board, mid-cap, and small-cap rule-based pools.
+      - This expression is a WMA weighting mutation of the EMA peer and must justify a distinct falsifiable construct without changing either formula.
+    raw_artifact_path: data/research/m3/m3-star-three-pool-price-volume-v1/artifacts/raw/ca552f379c62504d-afb8350245a7.json
+    raw_artifact_sha256: afb8350245a78f8e06743e82db44df71ca700c2abc5cf69cd6b50cb87a32ba3d
+    artifact_manifest_path: data/research/m3/m3-star-three-pool-price-volume-v1/artifacts/manifests/ca552f379c62504d.json
+    artifact_manifest_sha256: 3f89946b049f733d4a9ad853f53e3a17ffeb43ffad30f91bb4a3435f6162857d
+
+blindness:
+  formula_and_non_authoritative_draft_visible: true
+  deepseek_payloads_are_result_blind: true
+  discovery_rank_ic_visible_to_reviewers: false
+  discovery_coverage_visible_to_reviewers: false
+  discovery_ordering_score_visible_to_reviewers: false
+  sealed_validation_visible: false
+  stress_results_visible: false
+  g1_results_visible: false
+  forward_results_visible: false
+  production_results_visible: false
+  primary_window_contamination:
+    occurred_before_protocol_freeze: true
+    candidate_ids: [f6fd83e97bad3114, ca552f379c62504d]
+    exposed_fields:
+      - batch_status_counts
+      - eligible_candidate_count
+      - mechanical_order
+      - one_selected_candidate_cross_pool_score
+      - one_selected_candidate_minimum_coverage
+    exposed_values_must_not_be_repeated_or_exported: true
+    sealed_validation_or_stress_or_g1_exposed: false
+  primary_window_may_adjudicate_review: false
+  result_blind_committee_is_the_only_review_authority: true
+
+review_schedule:
+  candidate_order: [f6fd83e97bad3114, ca552f379c62504d]
+  role_order:
+    - construct_and_units
+    - economic_direction_and_cross_pool_coherence
+    - pit_and_numerical_stability
+    - redundancy_and_falsifiability
+  completed_responses_exact: 8
+  concurrency: 1
+  blocker_finding_early_stop: false
+  invalid_contract_early_stop: true
+  invalid_or_truncated_response_counts: true
+  invalid_response_replacement: false
+
+provider:
+  provider: deepseek
+  model: deepseek-v4-pro
+  response_model_field: deepseek-v4-pro
+  base_url: https://api.deepseek.com
+  endpoint: /chat/completions
+  thinking: enabled
+  reasoning_effort: high
+  response_format: json_object
+  maximum_prompt_tokens_per_attempt: 16000
+  maximum_output_tokens: 3000
+  request_timeout_seconds: 180
+  api_key_environment_variable: DEEPSEEK_API_KEY
+  only_project_gitignored_env_allowed: true
+
+attempt_budget:
+  maximum_transport_retries_per_attempt: 2
+
+cost_budget:
+  currency: USD
+  pricing_observed_at: "2026-08-02"
+  d1_total_authorization_usd: 10.0
+  prior_estimated_usage_usd: 0.218858853
+  review_hard_ceiling_usd: 0.25
+  planned_worst_case_all_cache_miss_usd: 0.07656
+  unused_budget_is_not_automatic_authority: true
+  pro_input_cache_hit_per_million: 0.003625
+  pro_input_cache_miss_per_million: 0.435
+  pro_output_per_million: 0.87
+  reserve_worst_case_before_each_request: true
+  price_change_policy: fail_closed_before_first_request
+
+decision_rule:
+  deterministic_formula_identity_and_PIT_gate_required: true
+  all_8_schema_and_semantic_valid_required: true
+  candidate_pass_requires_all_4_role_verdicts: NO_BLOCKER_FOUND
+  critical_or_major_finding_rejects_candidate_as_is: true
+  rejected_candidate_is_not_repaired_or_replaced: true
+  at_least_one_candidate_passes: GO_FREEZE_M3_4_VALIDATION_PROTOCOL_ONLY
+  no_candidate_passes: STOP_M3_FAMILY_BEFORE_VALIDATION
+  invalid_review_response: STOP_M3_3_REVIEW_CONTRACT
+  review_pass_is_not_factor_admission: true
+  strategy_effective_after_review: NOT_EVALUATED
+  production_authorization: none
+
+deferred:
+  - sealed_2023_2025_validation
+  - stress_period_evaluation
+  - G1_admission
+  - factor_combination_or_model_training
+  - portfolio_backtest
+  - forward_or_production_signal
+
+artifacts:
+  output_root: data/research/m3/m3-star-three-pool-price-volume-v1/m3_3_reviews
+  review_ledger: ledger/m3_multi_pool_factor_reviews.csv
+  transport_ledger: ledger/m3_multi_pool_factor_review_transports.csv
+  raw_prompts_responses_and_narrative_gitignored: true
+  tracked_summary_contains_only_hashes_reason_codes_counts_and_decisions: true
