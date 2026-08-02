@@ -738,6 +738,8 @@ def execute_completed_attempt(
     discovery_evaluator: Callable[[AttemptPlan, str], DiscoveryEvidence] | None = None,
     returned_model_identity: str | None = None,
     candidate_semantic_validator: Callable[[CandidateProposal], str | None] | None = None,
+    feedback_row_projector: Callable[[dict[str, str]], dict[str, Any]] | None = None,
+    duplicate_expression_lookup: Callable[[str], str | None] | None = None,
 ) -> AttemptResult:
     attempt_header = (
         ATTEMPT_LEDGER_HEADER_V2 if execution_release_id else ATTEMPT_LEDGER_HEADER_V1
@@ -763,33 +765,41 @@ def execute_completed_attempt(
         prior = indexed_rows.get(str(feedback["attempt_id"]))
         if prior is None:
             raise D1ControlError("feedback attempt is absent from the immutable attempt ledger")
-        expected = {
-            "attempt_id": prior["attempt_id"],
-            "global_ordinal": int(prior["global_ordinal"]),
-            "topic": prior["topic"],
-            "parse_status": prior["parse_status"],
-            "sandbox_status": prior["sandbox_status"],
-            "canonical_expression": prior["canonical_expression"],
-            "duplicate_of_attempt_id": prior["duplicate_of_attempt_id"],
-            "failure_class": prior["failure_class"],
-            "discovery_coverage": (
-                float(prior["discovery_coverage"])
-                if prior["discovery_coverage"]
-                else None
-            ),
-            "discovery_rank_ic": (
-                float(prior["discovery_rank_ic"])
-                if prior["discovery_rank_ic"]
-                else None
-            ),
-            "expression_tokens": (
-                int(prior["expression_tokens"]) if prior["expression_tokens"] else None
-            ),
-            "ast_nodes": int(prior["ast_nodes"]) if prior["ast_nodes"] else None,
-            "max_lookback_days": (
-                int(prior["max_lookback_days"]) if prior["max_lookback_days"] else None
-            ),
-        }
+        expected = (
+            feedback_row_projector(prior)
+            if feedback_row_projector is not None
+            else {
+                "attempt_id": prior["attempt_id"],
+                "global_ordinal": int(prior["global_ordinal"]),
+                "topic": prior["topic"],
+                "parse_status": prior["parse_status"],
+                "sandbox_status": prior["sandbox_status"],
+                "canonical_expression": prior["canonical_expression"],
+                "duplicate_of_attempt_id": prior["duplicate_of_attempt_id"],
+                "failure_class": prior["failure_class"],
+                "discovery_coverage": (
+                    float(prior["discovery_coverage"])
+                    if prior["discovery_coverage"]
+                    else None
+                ),
+                "discovery_rank_ic": (
+                    float(prior["discovery_rank_ic"])
+                    if prior["discovery_rank_ic"]
+                    else None
+                ),
+                "expression_tokens": (
+                    int(prior["expression_tokens"])
+                    if prior["expression_tokens"]
+                    else None
+                ),
+                "ast_nodes": int(prior["ast_nodes"]) if prior["ast_nodes"] else None,
+                "max_lookback_days": (
+                    int(prior["max_lookback_days"])
+                    if prior["max_lookback_days"]
+                    else None
+                ),
+            }
+        )
         if feedback != expected:
             raise D1ControlError("feedback differs from the immutable attempt ledger")
     fatal_failures = {
@@ -903,6 +913,11 @@ def execute_completed_attempt(
             sandbox_status = "PASS"
             canonical_expression = audit.normalized_expression
             expression_sha256 = _sha256_text(canonical_expression)
+            external_duplicate = (
+                duplicate_expression_lookup(canonical_expression)
+                if duplicate_expression_lookup is not None
+                else None
+            )
             duplicate = next(
                 (
                     row
@@ -912,7 +927,10 @@ def execute_completed_attempt(
                 ),
                 None,
             )
-            if duplicate is not None:
+            if external_duplicate:
+                duplicate_of = external_duplicate
+                failure_class = "duplicate_ast"
+            elif duplicate is not None:
                 duplicate_of = duplicate["attempt_id"]
                 failure_class = "duplicate_ast"
             elif discovery_evaluator is not None:

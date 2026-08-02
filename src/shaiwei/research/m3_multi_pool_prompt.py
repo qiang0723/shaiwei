@@ -111,6 +111,10 @@ class M3PromptBundle:
             raise D1ControlError(f"unknown M3-1 topic: {topic}")
         return dict(self.document["topic_templates"][topic])
 
+    @property
+    def system_prompt(self) -> str:
+        return str(self.document["system_prompt"])
+
     def serialize_feedback(
         self,
         *,

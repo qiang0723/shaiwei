@@ -1,0 +1,109 @@
+schema_version: m3-multi-pool-factor-execution-release-v1
+release_id: m3-star-three-pool-price-volume-v1-batch-001
+prepared_at: "2026-08-02T10:30:00+08:00"
+status: M3_2_RESULT_BEFORE_EXECUTION_FROZEN
+execution_authorized: true
+production_authorization: none
+
+authorization:
+  source: user_continue_instruction_in_primary_codex_thread
+  authorized_on: "2026-08-02"
+  model: deepseek-v4-pro
+  completed_responses_exact: 24
+  d1_total_authorization_usd: 10.0
+  batch_hard_ceiling_usd: 0.5
+  future_batches_require_new_protocol_and_instruction: true
+
+frozen_contract:
+  protocol_path: config/m3_multi_pool_factor_research_v1.yaml
+  protocol_sha256: a8542b36b24515a2ecd63297d0fe98ee0458495dc26cee365b2fcba407a3b71c
+  prompt_sha256: 079fb64eadee1ee0eeec5b97432830b8740bcc902aca83a85951b203b1f831f2
+  knowledge_manifest_sha256: 0f1e8ab2461352ce020dcf1873a5d79bfc010b08eea205b6b308e27bc3c23fad
+  preexecution_manifest_path: config/m3_multi_pool_factor_manifest_v1.json
+  preexecution_manifest_sha256: 9717d66fb8b85f4b991e1ccd1370cd32dec5701cef64bc31dfda1145145e399c
+  preexecution_verdict: GO_M3_1_PREEXECUTION_ONLY
+  preexecution_implementation_commit: f271376a558d029145594ef9c54f8a3c5e0d2941
+
+input_contract:
+  discovery_input_snapshot_sha256: 90a8d377b40bfc580eed9808399d22af6f724cd9d4e6e7c64c1d02fdb5cf1193
+  membership_sha256: 1983169ef42489e544ce9c71e55e64ba853d27491a723024102b5699ae475101
+  source_snapshot_sha256:
+    tushare.adj_factor: 58b09fd206b0c291adae0aef781bfae2577011d0d078cdd97aae9a47999eeddf
+    tushare.daily: 35b6a23a7f2273f0a1979b9e37233446f0bbd0524c23b6ec2ea314775e1f978a
+    tushare.daily_basic: d9d1b08fee4d0296738c7faa3dd1d9f23051d96bea2bc8363e246c38faa261bb
+    tushare.dividend: 3dfcb8b389a8605935369ecf5d3199d527b3edf9d4a902dc9a657bbb48614a0e
+    tushare.index_member_all: 2c0c94cb3b61fa804057deb56c7f676c5af0fefaf54cc6e4d2cfc2d394b244e7
+    tushare.trade_cal: 79e6d8e7fc589b8664475b123a2b7bd9674dfd57ba38f795fb3e61bc29ad7cb7
+  source_loaded_rows:
+    tushare.adj_factor: 154148
+    tushare.daily: 154078
+    tushare.daily_basic: 154078
+    tushare.dividend: 7922
+    tushare.index_member_all: 393
+    tushare.trade_cal: 821
+  calendar_start: "20201023"
+  calendar_end: "20221230"
+  panel_security_count: 321
+  discovery_trade_days: 474
+  exposure_rows: 73839
+
+adjustment_contract:
+  price_basis: sanitized_backward_adjusted_from_first_window_observation
+  sanitizer: shaiwei.transform.market.sanitize_adj_factors
+  transform: shaiwei.transform.market.transform_market_data
+  market_transform_sha256: 967daffa4c06458e3aa20fde81ada975c308e4ac458764a135a13e5c45cd2e74
+  raw_unadjusted_factor_or_label_forbidden: true
+
+selection_contract:
+  run_only_after_all_24_completed_responses: true
+  eligible_requires_all_three_pool_positive_directed_rank_ic: true
+  direction_anchor_universe: star-board-all-pit-v1
+  per_pool_direction_flip_forbidden: true
+  promoted_count: 2
+  fewer_than_two_eligible: PAUSE_INSUFFICIENT_CROSS_POOL_CANDIDATES
+
+scope:
+  discovery_signal_period_only: ["2021-01-04", "2022-12-15"]
+  sealed_validation_access: false
+  stress_period_access: false
+  g1_run: false
+  model_or_portfolio_run: false
+  forward_access: false
+  scheduler_changes: false
+  web_changes: false
+  guanxiang_access: false
+  new_market_collection: false
+
+ledgers:
+  attempt: ledger/m3_multi_pool_factor_attempts.csv
+  transport: ledger/m3_multi_pool_factor_transports.csv
+  experiment: ledger/experiments.csv
+  prior_family_ledgers_remain_byte_immutable: true
+
+egress:
+  scheme: https
+  host: api.deepseek.com
+  port: 443
+  path: /chat/completions
+  trust_environment_proxy: false
+
+recovery_contract:
+  same_release_resume_allowed: true
+  immutable_context_required_before_first_request: true
+  completed_prefix_static_rehash_required: true
+  billing_uncertainty_fail_closed: true
+  same_code_snapshot_and_release_git_head_required: true
+  changed_code_or_release_requires_result_before_addendum: true
+  terminal_report_may_assemble_from_existing_24_responses_without_provider_call: true
+  response_replacement_or_retry_after_completion_forbidden: true
+
+official_contract_recheck:
+  rechecked_on: "2026-08-02"
+  model: deepseek-v4-pro
+  model_version: DeepSeek-V4-Pro
+  response_model_field: deepseek-v4-pro
+  thinking: enabled
+  reasoning_effort: high
+  input_cache_hit_per_million_usd: 0.003625
+  input_cache_miss_per_million_usd: 0.435
+  output_per_million_usd: 0.87

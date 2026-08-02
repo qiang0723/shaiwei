@@ -16,6 +16,7 @@ from shaiwei.config import PROJECT_ROOT
 from shaiwei.ledger import sha256_file
 from shaiwei.research.alphagen_expression import ALLOWED_FEATURES, ALLOWED_OPERATOR_NAMES
 from shaiwei.research.llm_factor import D1ControlError
+from shaiwei.research.llm_factor_prompt import KnowledgeManifest, PromptContractError
 from shaiwei.research.m3_multi_pool_prompt import M3PromptBundle, TOPICS
 
 
@@ -61,6 +62,16 @@ class M3Protocol:
     document: dict[str, Any]
     sha256: str
     prompt_bundle: M3PromptBundle
+    knowledge_manifest: KnowledgeManifest
+    protocol_id: str
+    research_family: str
+    provider_name: str
+    requested_model: str
+    returned_model_identity: str
+    attempts_per_topic: int
+    independent_attempts: int
+    maximum_output_tokens: int
+    cost_hard_ceiling_usd: float
 
     @classmethod
     def load(cls, path: Path, *, project_root: Path = PROJECT_ROOT) -> "M3Protocol":
@@ -78,9 +89,33 @@ class M3Protocol:
             expected_sha256=str(prompt_contract["sha256"]),
         )
         knowledge = _project_path(project_root, prompt_contract["knowledge_manifest_path"])
-        if sha256_file(knowledge) != prompt_contract["knowledge_manifest_sha256"]:
-            raise D1ControlError("M3-1 knowledge manifest differs from its freeze")
-        return cls(path=path, document=document, sha256=sha256_file(path), prompt_bundle=prompt)
+        try:
+            knowledge_manifest = KnowledgeManifest.load(
+                knowledge,
+                expected_sha256=str(prompt_contract["knowledge_manifest_sha256"]),
+                expected_cutoff=str(prompt_contract["knowledge_cutoff"]),
+            )
+        except PromptContractError as error:
+            raise D1ControlError("M3-1 knowledge manifest differs from its freeze") from error
+        provider = document["provider"]
+        budget = document["attempt_budget"]
+        schedule = budget["topic_schedule"]
+        return cls(
+            path=path,
+            document=document,
+            sha256=sha256_file(path),
+            prompt_bundle=prompt,
+            knowledge_manifest=knowledge_manifest,
+            protocol_id=PROTOCOL_ID,
+            research_family=str(document["identity"]["research_family"]),
+            provider_name=str(provider["name"]),
+            requested_model=str(provider["model"]),
+            returned_model_identity=str(provider["model"]),
+            attempts_per_topic=int(budget["attempts_per_topic"]),
+            independent_attempts=int(schedule["independent_proposals"]),
+            maximum_output_tokens=int(provider["maximum_output_tokens_per_attempt"]),
+            cost_hard_ceiling_usd=float(document["cost_budget"]["hard_ceiling_usd"]),
+        )
 
     @staticmethod
     def _validate_authority(document: dict[str, Any]) -> None:
