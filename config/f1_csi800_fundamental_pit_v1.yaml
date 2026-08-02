@@ -1,0 +1,101 @@
+schema_version: f1-csi800-fundamental-pit-v1
+protocol_id: f1-csi800-fundamental-pit-data-feature-gate-v1
+frozen_as_of: "2026-07-31"
+
+scope:
+  universe_id: csi800-pit-v1
+  official_index_code: 000906.SH
+  start_date: "2016-01-01"
+  quality_start_date: "2018-05-02"
+  end_date: "2026-07-31"
+  formation_frequency: month_end
+  bse_included: false
+  data_gate_only: true
+  factor_results_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  deepseek_authorized: false
+  production_authorization: none
+
+sources:
+  ledger: ledger/ingest_batches.csv
+  required_apis:
+    - tushare.trade_cal
+    - tushare.index_weight
+    - tushare.income
+    - tushare.income_vip
+    - tushare.balancesheet
+    - tushare.balancesheet_vip
+    - tushare.cashflow
+    - tushare.cashflow_vip
+  ledger_latest_request_wins: true
+  verify_latest_batch_row_count_and_sha256: true
+  network_requests_authorized: false
+  raw_data_mutation_authorized: false
+
+point_in_time:
+  annual_period_suffix: "1231"
+  allowed_report_types: ["1", "5"]
+  availability: first_open_day_strictly_after_f_ann_date
+  same_period_revision: latest_available_f_ann_date
+  same_announcement_report_priority: ["1", "5"]
+  same_announcement_update_priority: descending
+  statement_join: exact_ts_code_and_end_date
+  combined_feature_available_date: latest_component_available_date
+  current_components_cannot_mix_periods: true
+  fina_indicator_forbidden: true
+
+features:
+  - feature_id: fundamental_net_income_to_assets_v1
+    formula: n_income_attr_p / total_assets
+    inputs: [income.n_income_attr_p, balancesheet.total_assets]
+  - feature_id: fundamental_operating_margin_v1
+    formula: operate_profit / total_revenue
+    inputs: [income.operate_profit, income.total_revenue]
+  - feature_id: fundamental_cash_return_on_assets_v1
+    formula: n_cashflow_act / total_assets
+    inputs: [cashflow.n_cashflow_act, balancesheet.total_assets]
+  - feature_id: fundamental_leverage_v1
+    formula: total_liab / total_assets
+    inputs: [balancesheet.total_liab, balancesheet.total_assets]
+  - feature_id: fundamental_cash_to_assets_v1
+    formula: money_cap / total_assets
+    inputs: [balancesheet.money_cap, balancesheet.total_assets]
+  - feature_id: fundamental_accruals_to_assets_v1
+    formula: (n_income_attr_p - n_cashflow_act) / total_assets
+    inputs: [income.n_income_attr_p, cashflow.n_cashflow_act, balancesheet.total_assets]
+denominator_policy:
+  total_assets: finite_and_strictly_positive
+  total_revenue: finite_and_strictly_positive
+non_finite_output: null
+winsorization_authorized: false
+neutralization_authorized: false
+direction_authorized: false
+
+gates:
+  required_sources_present: true
+  required_source_columns_present: true
+  latest_batches_integrity_pass: true
+  source_identity_conflicts: 0
+  open_calendar_complete_for_scope: true
+  formation_dates_after_quality_start: at_least_90
+  membership_count_each_formation:
+    minimum: 700
+    maximum: 900
+  bse_rows: 0
+  mixed_component_period_rows: 0
+  future_availability_rows: 0
+  feature_aggregate_coverage_minimum: 0.90
+  feature_worst_formation_coverage_minimum: 0.80
+
+outputs:
+  ignored_report: data/research/f1_csi800_fundamental_pit_v1/quality_report.json
+  ignored_feature_panel: data/research/f1_csi800_fundamental_pit_v1/features.parquet
+  tracked_manifest: config/f1_csi800_fundamental_pit_manifest_v1.json
+  acceptance: docs/F1_CSI800_FUNDAMENTAL_PIT_ACCEPTANCE_20260802.md
+  feature_values_must_not_be_committed: true
+
+terminal_verdicts:
+  go: GO_F1_FUNDAMENTAL_PIT_DATA_FEATURE_GATE_ONLY
+  no_go: NO_GO_F1_FUNDAMENTAL_PIT_DATA_FEATURE_GATE
+  strategy_effective: NOT_EVALUATED
