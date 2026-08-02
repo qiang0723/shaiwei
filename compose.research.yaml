@@ -1032,3 +1032,53 @@ services:
       - shaiwei.research.compact_review_preexecution
       - --protocol
       - /workspace/config/llm_review_contract_v2.yaml
+
+  f1-fundamental-pit:
+    image: shaiwei:f1-fundamental-pit-v1
+    pull_policy: never
+    profiles: [f1-fundamental-pit]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    init: true
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=512m,mode=1777
+    pids_limit: 128
+    mem_limit: 6g
+    cpus: 4.0
+    environment:
+      HOME: /tmp
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+    volumes:
+      - type: bind
+        source: ./data
+        target: /workspace/data
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/f1_csi800_fundamental_pit_v1
+        target: /workspace/data/research/f1_csi800_fundamental_pit_v1
+        read_only: false
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger
+        target: /workspace/ledger
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.fundamental_pit_gate
+      - --protocol
+      - /workspace/config/f1_csi800_fundamental_pit_v1.yaml
+      - --manifest-output
+      - /workspace/data/research/f1_csi800_fundamental_pit_v1/manifest.json
