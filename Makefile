@@ -151,6 +151,8 @@ docker-m3-multi-pool-review-live: ## 串行执行恰好8份结果盲审查；只
 	docker compose --env-file .env -f compose.research.yaml --profile m3-multi-pool-review-live run --rm --no-deps m3-multi-pool-review-live
 docker-m3-multi-pool-review-verify: ## 断网只读复核M3-3终态证据和幂等；零secret、零provider调用
 	docker compose -f compose.research.yaml --profile m3-multi-pool-review-verify run --rm --no-deps m3-multi-pool-review-verify
+docker-llm-review-contract-v2: ## 断网验证紧凑审查合同v2；零secret、零真实候选、零provider调用
+	docker compose -f compose.research.yaml --profile llm-review-contract-v2 run --rm --no-deps llm-review-contract-v2
 docker-g8-primary-build: ## 以已提交代码身份构建 G8-1 无凭据一次性采集镜像
 	@test -n "$(G8_RELEASE_GIT_HEAD)" || (echo "G8_RELEASE_GIT_HEAD is required"; exit 2)
 	SHAIWEI_G8_RELEASE_GIT_HEAD="$(G8_RELEASE_GIT_HEAD)" docker compose -f compose.research.yaml --profile g8-primary-capture-live build g8-primary-capture

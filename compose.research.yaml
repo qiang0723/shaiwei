@@ -986,3 +986,49 @@ services:
       - -p
       - no:cacheprovider
       - tests/test_llm_review_semantics.py
+
+  llm-review-contract-v2:
+    image: shaiwei:m3-multi-pool-review-v1
+    pull_policy: never
+    profiles: [llm-review-contract-v2]
+    init: true
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,mode=1777
+    pids_limit: 32
+    mem_limit: 256m
+    cpus: 1.0
+    environment:
+      HOME: /tmp
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+      PYTHONPATH: /workspace/src
+    volumes:
+      - type: bind
+        source: ./src
+        target: /workspace/src
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./config/llm_review_contract_v2.yaml
+        target: /workspace/config/llm_review_contract_v2.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./config/d1_llm_factor_semantic_gate_v1.yaml
+        target: /workspace/config/d1_llm_factor_semantic_gate_v1.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.compact_review_preexecution
+      - --protocol
+      - /workspace/config/llm_review_contract_v2.yaml
