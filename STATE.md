@@ -2,18 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-08-02 · M3-2真实发现批已结果前冻结，尚未调用API
+## 2026-08-02 · M3-2三自建池真实价量发现批GO，机械Top2已锁定
 
 - 在任何真实候选产生前补足M3-1未逐项绑定的复权链与PIT行业物理输入：断网只读Docker复算321只
   历史证券、474个发现交易日、73,839条PIT暴露，六类源批次集合和市场变换代码均已哈希冻结；输入
   快照为`90a8d377…f1193`，`.BJ=0`、provider调用0、密钥读取false。
-- M3-2 release固定恰好24个`deepseek-v4-pro`完成响应、四主题各6次、0.50 USD批次熔断和用户10 USD
-  总授权；旧GP/D1/M1 246次继续计N，批后N=270。重复、语义/DSL/覆盖失败计N且不补位。
-- 同一规范AST须在全市场/中盘/小盘三池同定义；方向只由全市场发现期冻结，三池定向RankIC均正才
-  可参与机械Top2。2023—2025、压力期、G1、模型、组合、信号和生产继续封存。
-- 已实现非root只读Docker、专用追加账本、跨历史重复门、不可变live context和同release安全续跑；
-  真实API尚未调用。结果前真身见`config/m3_multi_pool_factor_execution_v1.yaml`与
-  `docs/M3_MULTI_POOL_FACTOR_LIVE_PROTOCOL_20260802.md`。
+- 结果前release先行推送后，唯一一次live批完成24/24个`deepseek-v4-pro`响应：15条完成发现评价，
+  3条重复AST、1条沙箱拒绝、5条语义合同拒绝；失败全部计N且不补位，相关域终态`N=270`。
+- 三池共有8条发现期合格候选；同一规范AST在全市场/中盘/小盘保持同定义，方向只由全市场冻结。
+  24次全部完成后按预注册顺序机械锁定序号3和4为Top2，没有人工挑选或看结果调门槛。
+- 实际估算费用`0.053605862 USD`，通过`0.50 USD`批次硬熔断。断网、无密钥、证据只读复跑返回
+  `idempotent_reuse=true / external_api_calls_this_run=0`，五项核心证据哈希前后不变。
+- 2023—2025、压力期、G1、模型、组合、信号和生产均未读取或运行；策略仍`NOT_EVALUATED`、生产
+  授权none，scheduler原容器/原镜像保持healthy。终版见
+  `docs/M3_MULTI_POOL_FACTOR_DISCOVERY_ACCEPTANCE_20260802.md`与
+  `config/m3_multi_pool_factor_discovery_manifest_v1.json`。
 
 ## 2026-08-02 · M3-1三自建池价量因子研究预执行门GO
 

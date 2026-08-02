@@ -1,0 +1,107 @@
+{
+  "schema_version": "m3-multi-pool-factor-discovery-manifest-v1",
+  "release_id": "m3-star-three-pool-price-volume-v1-batch-001",
+  "completed_at": "2026-08-02T12:11:10+08:00",
+  "verdict": "GO_M3_2_DISCOVERY_TOP2_LOCKED",
+  "strategy_effective": "NOT_EVALUATED",
+  "production_authorization": "none",
+  "completed_response_count": 24,
+  "completed_response_exact_gate": true,
+  "global_ordinals_complete": true,
+  "candidate_status_counts": {
+    "DISCOVERY_EVALUATED": 15,
+    "REJECT": 9
+  },
+  "failure_class_counts": {
+    "NONE": 15,
+    "duplicate_ast": 3,
+    "sandbox_rejected": 1,
+    "semantic_contract_violation": 5
+  },
+  "effective_trial_count": 270,
+  "cross_pool_evaluation_cells": 72,
+  "eligible_cross_pool_candidate_count": 8,
+  "selected_count": 2,
+  "mechanical_top2": [
+    {
+      "attempt_id": "f6fd83e97bad3114",
+      "global_ordinal": 3,
+      "topic": "trend_momentum",
+      "expression_sha256": "4541e1dcbebe3aad6c72ebb61b9e7107a5419a7d7548916369870141f8a17572",
+      "discovery_artifact_sha256": "cecc260d34840316b8d6a31c41a96a8fc2d632038dc5e8f258c37adb4120134b"
+    },
+    {
+      "attempt_id": "ca552f379c62504d",
+      "global_ordinal": 4,
+      "topic": "trend_momentum",
+      "expression_sha256": "1d065dd5b99ec9bade78e27508a4324882d3752204fca62301cb3ec4d8e09480",
+      "discovery_artifact_sha256": "e115cad93a71809f4686a5ae5067427e04babbe03b90d938dacb1bb6665176a9"
+    }
+  ],
+  "cost": {
+    "actual_estimated_usd": 0.053605862000000004,
+    "batch_hard_ceiling_usd": 0.5,
+    "d1_total_authorization_usd": 10.0,
+    "cost_gate_pass": true
+  },
+  "scope_gates": {
+    "discovery_signal_period": ["2021-01-04", "2022-12-15"],
+    "sealed_validation_read": false,
+    "stress_periods_read": false,
+    "g1_run": false,
+    "model_or_portfolio_run": false,
+    "production_changed": false
+  },
+  "static_evidence": {
+    "attempt_rows": 24,
+    "transport_events": 48,
+    "transport_completions": 24,
+    "raw_response_artifacts": 24,
+    "provider_response_artifacts": 24,
+    "discovery_artifacts": 15,
+    "evidence_files": 89,
+    "evidence_bytes": 527791,
+    "evidence_tree_sha256": "d9b843261d01af635f3546b15dc8400cb1e2f5c765ff99cb83af63fa7624dfbc",
+    "run_report_sha256": "428772649728a1ff6db7d537cb1a531e3a133f5f0d1c8c30e17c1e1fac9ca7ce",
+    "live_context_sha256": "a5d00c0620e2a35f5475ae23b6c254f79e370a0fc15031d476d7b42cafcb68ac",
+    "attempt_ledger_sha256": "84d655665177698ba64ce1395043ffc28744d872f408cfc51fe60fa7ebfee344",
+    "transport_ledger_sha256": "c13b5353dc501906207ae22250b061e483d92447895b097d58c688d23bba0e20",
+    "experiment_ledger_sha256": "44c1582d7f74cae93b7f7418c7726f9d6e7cd450c639b2f7d572180c6569190b"
+  },
+  "identity": {
+    "protocol_sha256": "a8542b36b24515a2ecd63297d0fe98ee0458495dc26cee365b2fcba407a3b71c",
+    "execution_release_sha256": "717375f4fddf7e24717453707d4405b9b57bd9ac3135398e3893220b73ed47b7",
+    "prompt_sha256": "079fb64eadee1ee0eeec5b97432830b8740bcc902aca83a85951b203b1f831f2",
+    "knowledge_manifest_sha256": "0f1e8ab2461352ce020dcf1873a5d79bfc010b08eea205b6b308e27bc3c23fad",
+    "data_snapshot_sha256": "90a8d377b40bfc580eed9808399d22af6f724cd9d4e6e7c64c1d02fdb5cf1193",
+    "release_git_head": "2a23e38605f952140eb3404df750d57bec2b4f7e",
+    "execution_code_snapshot_sha256": "220a82f95869919d2ef452335f68060a964039a6d0d2b235eac4c80669cfa439",
+    "execution_image_id": "sha256:9e37e419fe1327c613ca2fb818d8ed4477d1a1db3118f836e7e81ec2811b8fef",
+    "tls_certificate_sha256": "0b11247609057dad781691852f01ae2ea52c9c47cd63290f32f85cba525b475d"
+  },
+  "idempotency": {
+    "deepseek_secret_present": false,
+    "network_mode": "none",
+    "evidence_mounts": "read_only",
+    "idempotent_reuse": true,
+    "external_api_calls_this_run": 0,
+    "attempt_transport_experiment_report_and_context_hashes_unchanged": true
+  },
+  "production_scheduler": {
+    "container_id_before_and_after": "fd8e96152b53",
+    "image_id_before_and_after": "sha256:de87ec740981166b032b394fb256a978acdc8d35e999a369f1debc3466aa0261",
+    "created_at_before_and_after": "2026-07-24 20:25:27 +0800",
+    "final_state": "running",
+    "final_health": "healthy"
+  },
+  "secret_handling": {
+    "storage": "project_gitignored_dotenv_only",
+    "dotenv_mode": "0600",
+    "tracked": false,
+    "embedded_in_image": false,
+    "written_to_ledger_report_or_log": false,
+    "passed_only_to_first_ephemeral_live_container": true,
+    "idempotency_run_received_secret": false,
+    "outbound_market_rows_or_security_lists": false
+  }
+}
