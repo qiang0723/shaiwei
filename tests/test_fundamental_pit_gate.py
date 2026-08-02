@@ -124,3 +124,8 @@ def test_cross_statement_period_mixing_is_never_constructed():
     assert diagnostics["mixed_component_period_rows"] > 0
     assert panel["fundamental_cash_return_on_assets_v1"].isna().all()
     assert panel["fundamental_accruals_to_assets_v1"].isna().all()
+
+
+def test_make_target_maps_public_release_identity_into_compose():
+    makefile = (PROJECT_ROOT / "Makefile").read_text(encoding="utf-8")
+    assert 'SHAIWEI_F1_RELEASE_GIT_HEAD="$(F1_RELEASE_GIT_HEAD)" docker compose' in makefile
