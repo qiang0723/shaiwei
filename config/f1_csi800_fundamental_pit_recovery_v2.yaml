@@ -1,0 +1,116 @@
+schema_version: f1-csi800-fundamental-pit-recovery-v2
+protocol_id: f1-csi800-fundamental-pit-recovery-data-feature-gate-v2
+frozen_as_of: "2026-07-31"
+
+predecessor:
+  protocol_id: f1-csi800-fundamental-pit-data-feature-gate-v1
+  verdict: NO_GO_F1_FUNDAMENTAL_PIT_DATA_FEATURE_GATE
+  tracked_manifest: config/f1_csi800_fundamental_pit_manifest_v1.json
+  tracked_manifest_sha256: 6f99c434b5447a019b400cff534c0ce55cd40010ab53b34b29c18f002e9297d3
+  feature_panel_sha256: 7475aab079d980c76f0e2bb5eb7fa6139b83a43f53dd6c8aafbbf74a3a30d89e
+  quality_report_sha256: 57d2c40bc6ea231c6d5ec26502853ea9ce8e8a63abe616c14269d57f027affb8
+  preserve_without_rewrite: true
+
+scope:
+  universe_id: csi800-pit-v1
+  official_index_code: 000906.SH
+  start_date: "2016-01-01"
+  quality_start_date: "2018-05-02"
+  end_date: "2026-07-31"
+  formation_frequency: month_end
+  bse_included: false
+  data_gate_only: true
+  factor_results_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  deepseek_authorized: false
+  production_authorization: none
+
+sources:
+  ledger: ledger/ingest_batches.csv
+  required_apis:
+    - tushare.trade_cal
+    - tushare.index_weight
+    - tushare.income
+    - tushare.income_vip
+    - tushare.balancesheet
+    - tushare.balancesheet_vip
+    - tushare.cashflow
+    - tushare.cashflow_vip
+  ledger_latest_request_wins: true
+  verify_latest_batch_row_count_and_sha256: true
+  network_requests_authorized: false
+  raw_data_mutation_authorized: false
+
+point_in_time:
+  annual_period_suffix: "1231"
+  allowed_report_types: ["1", "5"]
+  availability: first_open_day_strictly_after_f_ann_date
+  same_period_revision: latest_available_f_ann_date
+  same_announcement_report_priority: ["1", "5"]
+  same_announcement_update_priority: descending
+  statement_join: exact_ts_code_and_end_date_before_period_selection
+  formation_period_selection: latest_jointly_available_common_end_date
+  combined_feature_available_date: latest_component_available_date
+  newer_unmatched_statement_policy: diagnose_without_invalidating_prior_common_period
+  current_components_cannot_mix_periods: true
+  fina_indicator_forbidden: true
+
+features:
+  - feature_id: fundamental_net_income_to_assets_v2
+    formula: n_income_attr_p / total_assets
+    inputs: [income.n_income_attr_p, balancesheet.total_assets]
+  - feature_id: fundamental_operating_margin_v2
+    formula: operate_profit / total_revenue
+    inputs: [income.operate_profit, income.total_revenue]
+  - feature_id: fundamental_cash_return_on_assets_v2
+    formula: n_cashflow_act / total_assets
+    inputs: [cashflow.n_cashflow_act, balancesheet.total_assets]
+  - feature_id: fundamental_leverage_v2
+    formula: total_liab / total_assets
+    inputs: [balancesheet.total_liab, balancesheet.total_assets]
+  - feature_id: fundamental_cash_to_assets_v2
+    formula: money_cap / total_assets
+    inputs: [balancesheet.money_cap, balancesheet.total_assets]
+  - feature_id: fundamental_accruals_to_assets_v2
+    formula: (n_income_attr_p - n_cashflow_act) / total_assets
+    inputs: [income.n_income_attr_p, cashflow.n_cashflow_act, balancesheet.total_assets]
+denominator_policy:
+  total_assets: finite_and_strictly_positive
+  total_revenue: finite_and_strictly_positive
+non_finite_output: null
+winsorization_authorized: false
+neutralization_authorized: false
+direction_authorized: false
+
+gates:
+  predecessor_identity_preserved: true
+  required_sources_present: true
+  required_source_columns_present: true
+  latest_batches_integrity_pass: true
+  source_identity_conflicts: 0
+  open_calendar_complete_for_scope: true
+  formation_dates_after_quality_start: at_least_90
+  membership_count_each_formation:
+    minimum: 700
+    maximum: 900
+  bse_rows: 0
+  constructed_mixed_component_period_rows: 0
+  quality_no_common_period_rows: 0
+  future_availability_rows: 0
+  feature_aggregate_coverage_minimum: 0.90
+  feature_worst_formation_coverage_minimum: 0.80
+
+outputs:
+  ignored_report: data/research/f1_csi800_fundamental_pit_recovery_v2/quality_report.json
+  ignored_feature_panel: data/research/f1_csi800_fundamental_pit_recovery_v2/features.parquet
+  ignored_manifest: data/research/f1_csi800_fundamental_pit_recovery_v2/manifest.json
+  tracked_manifest: config/f1_csi800_fundamental_pit_recovery_manifest_v2.json
+  acceptance: docs/F1_CSI800_FUNDAMENTAL_PIT_RECOVERY_ACCEPTANCE_20260802.md
+  predecessor_outputs_must_not_be_rewritten: true
+  feature_values_must_not_be_committed: true
+
+terminal_verdicts:
+  go: GO_F1_FUNDAMENTAL_PIT_RECOVERY_DATA_FEATURE_GATE_ONLY
+  no_go: NO_GO_F1_FUNDAMENTAL_PIT_RECOVERY_DATA_FEATURE_GATE
+  strategy_effective: NOT_EVALUATED
