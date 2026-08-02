@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-02 · L2-0紧凑因子审查合同v2工程门GO
+
+- M1-2语义合同失败与M3-3服务端结束状态失败共同暴露审查合同可靠性瓶颈；结果前协议先以
+  `50d0db7`推送，只授权通用断网工程，不回救、续跑或改写任一旧批。
+- 新合同显式non-thinking JSON，不传reasoning_effort；summary最多320字符、finding 1—3条、完整
+  规范JSON硬限4096 bytes。最大合法fixture为2655 bytes，低于6000 token保守字节上界。
+- 公式重复、超长/超数、非ASCII、结论/disposition矛盾在结构层失败；公式修改、业绩/准入声称和
+  模糊变体继续复用冻结语义门失败关闭。实现拆为253/213行两个单职责模块，未修改M1/M3冻结代码。
+- 宿主专项16 PASS、全仓504 PASS，断网Docker与宿主报告逐字段一致；provider调用0、密钥读取
+  false、真实候选/发现/封存结果未读。scheduler原容器/原镜像保持healthy。
+- 权威裁决仅为`GO_COMPACT_REVIEW_CONTRACT_V2_ENGINEERING_ONLY`；未来任何真实批仍须新候选协议、
+  live release和用户费用授权，M1-3/M3-4仍不获授权。见
+  `docs/LLM_REVIEW_CONTRACT_V2_ACCEPTANCE_20260802.md`。
+
 ## 2026-08-02 · M3-3审查合同失败并权威停止，不进入验证/G1
 
 - 用户明确批准固定两条公式、非权威摘要、三池定义和四角色问题外发后，live release先行推送；
@@ -892,6 +906,8 @@
 - LLM 持续研究线的公开参考已扩展为 Alpha-GPT、AlphaAgent、RD-Agent-Quant、Chain-of-Alpha、CogAlpha、QuantaAlpha、FactorEngine 与 AlphaQT-Bench。当前判断为“研究范式与开源组件已较完整、公开长期实盘证据仍不足”；只借鉴可验证组件，成熟度和作者收益不得替代筛微 G1 与真实影子结果。详见 `docs/LLM_RESEARCH.md`。
 
 ## 待答点
+- L2-0只完成未来新批可复用的紧凑审查合同工程门；它不改变M1-2/M3-3的STOP，不允许补发剩余响应
+  或进入M1-3/M3-4。未来启动真实审查仍须先有独立新因子批、结果前候选绑定和用户明确API/费用授权。
 - M1-0多股票池底座已GO；M1-1科创50价量因子批已锁定机械Top2。M1-2第1/8份响应因自由文本语义
   合同失败而权威`STOP_M1_2_REVIEW_CONTRACT`，没有候选裁决权，策略仍`NOT_EVALUATED`；M1-3验证/
   G1不获授权，不续跑、不补发、不递补。科创100/200、科创综指和规则型池仍先过各自数据门。

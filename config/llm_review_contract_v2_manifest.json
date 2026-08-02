@@ -1,0 +1,91 @@
+{
+  "schema_version": "shaiwei-llm-review-contract-v2-manifest",
+  "protocol_id": "llm-review-contract-v2-engineering",
+  "completed_at": "2026-08-02T22:28:00+08:00",
+  "verdict": "GO_COMPACT_REVIEW_CONTRACT_V2_ENGINEERING_ONLY",
+  "strategy_effective": "NOT_EVALUATED",
+  "production_authorization": "none",
+  "future_provider_call_authorized": false,
+  "prior_batches_reopened": false,
+  "m1_2_continuation_or_replacement": false,
+  "m3_3_continuation_or_replacement": false,
+  "contract": {
+    "thinking": "disabled",
+    "reasoning_effort_field_present": false,
+    "response_format": "json_object",
+    "maximum_prompt_tokens_per_attempt": 12000,
+    "maximum_output_tokens": 6000,
+    "maximum_response_json_bytes": 4096,
+    "maximum_payload_bytes": 2655,
+    "maximum_findings": 3,
+    "formula_text_in_response_forbidden": true,
+    "free_form_repair_or_resolution_field_forbidden": true,
+    "existing_semantic_gate_reused": true
+  },
+  "budget": {
+    "provider_calls": 0,
+    "actual_cost_usd": 0.0,
+    "maximum_single_attempt_all_cache_miss_usd": 0.01044,
+    "illustrative_eight_response_ceiling_usd": 0.08352,
+    "illustrative_cost_is_not_live_authorization": true
+  },
+  "fixture_checks": {
+    "valid_schema_and_semantic_pass": true,
+    "maximum_payload_schema_pass": true,
+    "maximum_payload_within_4096_bytes": true,
+    "maximum_payload_below_6000_token_byte_bound": true,
+    "too_many_findings_fail": true,
+    "non_ascii_fails": true,
+    "verdict_mismatch_fails": true,
+    "disposition_mismatch_fails": true,
+    "formula_text_repetition_fails": true,
+    "formula_change_semantic_fails": true,
+    "performance_claim_semantic_fails": true,
+    "ambiguous_variant_fail_closed": true
+  },
+  "scope_gates": {
+    "api_key_read": false,
+    "real_candidate_or_result_read": false,
+    "discovery_metrics_read": false,
+    "sealed_validation_read": false,
+    "stress_or_g1_run": false,
+    "model_backtest_portfolio_or_signal_run": false,
+    "scheduler_changed": false,
+    "other_project_or_directory_access": false
+  },
+  "identity": {
+    "protocol_commit": "50d0db788ab4323b8201627082ee0b73cfc7da67",
+    "implementation_commit": "ba913567a3e29fc004fee4a3efd6302305685afd",
+    "protocol_sha256": "0827a44dc94fa2052f9a3d914bc64c1439a02c669270aedaf06e2590a201f46c",
+    "semantic_protocol_sha256": "8faf36d33744aec06ec4331266dccf4d96dee904bac0a3d0fb603940e6aef15a",
+    "response_schema_sha256": "dbadd395d5e2aa0d3550a01546b96774e10e4ab869759153790a6cb7c00c5469",
+    "maximum_payload_sha256": "b153f7f6fbb572b38dd01e6e2155b2c3ae88bdf84e3b25e891ecf096fc3cc22c",
+    "contract_module_sha256": "1ff98ed0ff45ae9d4869ed343b2baa98132f0ae66054a52393d3e9c4196deee1",
+    "preexecution_module_sha256": "f19f990013d448bffb6cd0ebf5e4b0e2ef71de68e44fff34239666f561e8960a",
+    "test_module_sha256": "99af71ad8dc464eb5af78cc57c3bb8fd0dea4e7a97198ac81e2ca2a9b3eb9db7"
+  },
+  "maintainability": {
+    "contract_module_lines": 253,
+    "preexecution_module_lines": 213,
+    "new_production_module_over_400_lines": false,
+    "frozen_m1_m3_modules_changed": false
+  },
+  "validation": {
+    "host_specialized_tests_passed": 16,
+    "full_test_suite_passed": 504,
+    "docker_disconnected_gate": "GO_COMPACT_REVIEW_CONTRACT_V2_ENGINEERING_ONLY",
+    "host_and_docker_reports_equal": true,
+    "ruff": "PASS",
+    "compileall": "PASS",
+    "pip_check": "PASS",
+    "compose_config": "PASS",
+    "diff_check": "PASS"
+  },
+  "production_scheduler": {
+    "container_id_before_and_after": "fd8e96152b53f3f0d0efdcd6462c2b039aa68c7fb56461b95826709652a5adbb",
+    "image_id_before_and_after": "sha256:de87ec740981166b032b394fb256a978acdc8d35e999a369f1debc3466aa0261",
+    "created_at_before_and_after": "2026-07-24T12:25:27.362813588Z",
+    "final_state": "running",
+    "final_health": "healthy"
+  }
+}
