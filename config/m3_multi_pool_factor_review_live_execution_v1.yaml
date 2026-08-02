@@ -1,0 +1,105 @@
+schema_version: m3-multi-pool-factor-review-live-release-v1
+release_id: m3-star-three-pool-review-v1-batch-001
+prepared_at: "2026-08-02T21:21:57+08:00"
+status: M3_3_RESULT_BEFORE_LIVE_EXECUTION_FROZEN
+execution_authorized: true
+strategy_effective: NOT_EVALUATED
+production_authorization: none
+
+authorization:
+  source: user_explicit_approval_primary_codex_thread
+  authorized_on: "2026-08-02"
+  model: deepseek-v4-pro
+  completed_responses_exact: 8
+  concurrency: 1
+  review_hard_ceiling_usd: 0.25
+  d1_total_authorization_usd: 10.0
+  unused_budget_is_not_automatic_authority: true
+  future_batches_require_new_protocol_and_instruction: true
+
+user_payload_contract:
+  candidate_ids: [f6fd83e97bad3114, ca552f379c62504d]
+  fixed_formulas: true
+  non_authoritative_hypotheses_and_summaries: true
+  public_knowledge_summary: true
+  three_pool_definitions: true
+  four_narrow_role_questions: true
+  discovery_metrics: false
+  raw_market_data: false
+  security_list: false
+  sealed_results: false
+  returns_or_holdings: false
+  local_paths_or_logs: false
+  other_credentials: false
+
+frozen_contract:
+  protocol_path: config/m3_multi_pool_factor_review_v1.yaml
+  protocol_sha256: 2828623c47d20756f9ca3f59f71c0c55e7b259e734e7b51938fb70f32d34b7c6
+  prompt_sha256: 00f9a063307a98e1b754382ac1f78818ea2615c0d812575f318dd9692248c35f
+  semantic_protocol_sha256: 8faf36d33744aec06ec4331266dccf4d96dee904bac0a3d0fb603940e6aef15a
+  knowledge_sha256: 0f1e8ab2461352ce020dcf1873a5d79bfc010b08eea205b6b308e27bc3c23fad
+  discovery_manifest_sha256: 1a22bef610457a7d9313ab762832762f6f0087322693f1cdcc70146ada9af198
+  discovery_report_sha256: 428772649728a1ff6db7d537cb1a531e3a133f5f0d1c8c30e17c1e1fac9ca7ce
+  preexecution_release_path: config/m3_multi_pool_factor_review_execution_v1.yaml
+  preexecution_release_sha256: bd21cd34f74d3c1529acd418bcf1d36e252ef828d2e9f64978ed523b57bdcfb2
+  preexecution_gate: GO_M3_3_PREEXECUTION_ONLY
+  request_bundle_sha256: f35daa7f9f1830e0dc6e680eafdfaccc3dc7c58238369fd5dc155defaf1372fe
+  candidate_ids: [f6fd83e97bad3114, ca552f379c62504d]
+  selection_formula_direction_and_order_immutable: true
+  implementation_git_head: 0573d7710f4856bbec657160ae9f7a08e3ed71d4
+  image_tag: shaiwei:m3-multi-pool-review-v1
+  output_root: data/research/m3/m3-star-three-pool-price-volume-v1/m3_3_reviews
+
+provider_contract:
+  rechecked_on: "2026-08-02"
+  official_pricing_url: https://api-docs.deepseek.com/quick_start/pricing
+  model: deepseek-v4-pro
+  model_version: DeepSeek-V4-Pro
+  response_model_field: deepseek-v4-pro
+  thinking: enabled
+  reasoning_effort: high
+  json_output: true
+  input_cache_hit_per_million_usd: 0.003625
+  input_cache_miss_per_million_usd: 0.435
+  output_per_million_usd: 0.87
+  price_or_model_change_policy: fail_closed_before_first_request
+
+scope:
+  result_blind_review: true
+  new_candidate_generation: false
+  formula_direction_or_window_change: false
+  third_place_replacement: false
+  discovery_metric_access: false
+  sealed_validation_access: false
+  stress_period_access: false
+  g1_run: false
+  model_or_portfolio_run: false
+  backtest_or_signal_run: false
+  forward_or_production_access: false
+  scheduler_changes: false
+  web_changes: false
+  guanxiang_access: false
+
+egress:
+  scheme: https
+  host: api.deepseek.com
+  port: 443
+  path: /chat/completions
+  trust_environment_proxy: false
+
+ledgers:
+  review: ledger/m3_multi_pool_factor_reviews.csv
+  transport: ledger/m3_multi_pool_factor_review_transports.csv
+  prior_ledgers_remain_byte_immutable: true
+
+pre_execution_gates:
+  release_commit_pushed_and_HEAD_equals_origin_main: true
+  clean_worktree: true
+  implementation_image_identity_matches: true
+  only_DEEPSEEK_API_KEY_passed_to_container: true
+  TLS_hostname_probe_before_secret_read: true
+  outbound_payload_result_blind_scan: true
+  schema_and_semantic_gate_before_review_validity: true
+  invalid_response_counts_stops_and_is_not_replaced: true
+  scheduler_identity_unchanged_and_healthy: true
+  primary_window_not_used_as_adjudicator: true
