@@ -2,15 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-08-03 · P0-E跨快照静默等待补正协议已冻结
+## 2026-08-03 · P0-E跨快照静默等待补正工程门GO
 
 - Top20首个自然FORWARD验收暴露：早探测日增量自身可在`WAITING_SOURCE`时零写入、零通知，但
-  scheduler仍无条件继续旧影子/模拟仓验收，导致数据到达前7次跨快照失败告警。
-- 恢复协议明确披露结果已知，只允许在`WAITING_SOURCE`状态短路本轮shadow/paper并记录脱敏health；
-  数据就绪后的完整下游链、19:30硬兜底、NOOP、历史补采和所有真正异常失败关闭均不得改变。
-- 当前仅冻结协议，生产容器/镜像不变；下一步先完成代码、顶层编排fixture、全仓与隔离验证，工程GO
-  后仍须等待另一新交易日单独提升。见
-  `docs/DAILY_EARLY_READINESS_NOTIFICATION_RECOVERY_PROTOCOL_20260803.md`。
+  scheduler仍无条件继续旧影子/模拟仓验收，导致数据到达前7次跨快照失败告警。结果已知恢复协议
+  `f21701b`先行推送，旧WARN永久保留。
+- 实现`fa6c67a`只在`WAITING_SOURCE`短路本轮shadow/paper并记录脱敏health；PASS仍完整运行下游，
+  19:30硬兜底、NOOP、历史补采和所有真正异常失败关闭均未改变。全仓539 PASS，宿主及断网只读
+  Docker专项各16 PASS。
+- 新候选`shaiwei:scheduler-0640574ba7353c3e` / `sha256:85711ae0...a5e79f`已BUILD_PASS，审计链24行；
+  未promote、未改current、未启动。生产仍为容器`183b8c6c5edd...23dd3b`/镜像`722f63de...13b76`且
+  healthy。
+- 下一步须另立日期绑定的P0-E发布守护，不能直接复用已绑定Top20/20260803的旧guard；只在后续另一
+  新交易日单独提升并实测。见`docs/DAILY_EARLY_READINESS_NOTIFICATION_RECOVERY_PROTOCOL_20260803.md`
+  与`docs/DAILY_EARLY_READINESS_NOTIFICATION_RECOVERY_ACCEPTANCE_20260803.md`。
 
 ## 2026-08-03 · Top20首个自然FORWARD核心PASS、发布切换通知WARN
 
