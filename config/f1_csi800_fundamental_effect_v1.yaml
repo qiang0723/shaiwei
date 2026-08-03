@@ -1,0 +1,151 @@
+schema_version: f1-csi800-fundamental-effect-v1
+protocol_id: f1-csi800-fundamental-effect-gate-v1
+frozen_at: "2026-08-03T08:48:03+08:00"
+
+scope:
+  universe_id: csi800-pit-v1
+  official_index_code: 000906.SH
+  benchmark_qlib_code: SH000906
+  research_family: f1-csi800-fundamental-v1
+  candidate_attempt_count: 6
+  model_training_authorized: false
+  historical_effect_authorized_after_protocol_push: true
+  forward_signal_authorized: false
+  paper_portfolio_authorized: false
+  production_authorization: none
+
+input_bindings:
+  fundamental_feature_panel:
+    path: data/research/f1_csi800_fundamental_pit_recovery_v2/features.parquet
+    sha256: d726f9b520bf8819ebc014bd75ec669f9dfd113b76349dc9b373a8f2dbc1c25d
+    row_count: 101600
+  fundamental_quality_report:
+    path: data/research/f1_csi800_fundamental_pit_recovery_v2/quality_report.json
+    sha256: 2693fa376c1c521757a110b8924217f7b130a8c828c1e28c246a426d2c4c9d1a
+  fundamental_manifest:
+    path: data/research/f1_csi800_fundamental_pit_recovery_v2/manifest.json
+    sha256: 5df345936f9e615b5ee8bab2123f8c80b703cf0d747965c1b70783347f56e6f7
+  alpha158_predictions:
+    path: data/research/moneyflow/residuals/p1-moneyflow-alpha158-predictions-v1-46a24aad0c21e2df.parquet
+    sha256: 46a24aad0c21e2df054b2f4ba9d58ffebbadaf8bf9a811318fedd836663cc38a
+    row_count: 1164697
+    windows: [W1, W2, W3, W4, W5, W6]
+  qlib_provider:
+    path: data/qlib_bin
+    manifest_path: data/qlib_bin/_shaiwei_manifest.json
+    manifest_sha256: 62cae2f46b57020db202bee1748f072e7859e209663046747f76aaa008f605a9
+    tree_sha256: 0532f6cd7c2c78f0936f92a986aef83a848175fe6f332274e06c7ed6e8c11778
+    file_count: 54464
+    byte_count: 430835211
+  exposure_source_snapshot:
+    ledger: ledger/ingest_batches.csv
+    ingest_snapshot_sha256: 688a478cbe39708229a1476f9a513f58a321cbce559eb67ced2ad9485825845f
+    required_apis: [tushare.daily_basic, tushare.index_member_all, tushare.trade_cal]
+
+candidate_policy:
+  - candidate: fundamental_net_income_to_assets_v2
+    formula: n_income_attr_p / total_assets
+    pre_registered_direction: 1
+    rationale: 盈利相对资产越高，单位资产创造股东利润的能力越强。
+  - candidate: fundamental_operating_margin_v2
+    formula: operate_profit / total_revenue
+    pre_registered_direction: 1
+    rationale: 营业利润率越高，主营业务定价能力和经营效率通常越强。
+  - candidate: fundamental_cash_return_on_assets_v2
+    formula: n_cashflow_act / total_assets
+    pre_registered_direction: 1
+    rationale: 经营现金流相对资产越高，盈利兑现质量和内部造血能力越强。
+  - candidate: fundamental_leverage_v2
+    formula: total_liab / total_assets
+    pre_registered_direction: -1
+    rationale: 在其他条件相同时，较低杠杆通常意味着更低偿债压力和尾部风险。
+  - candidate: fundamental_cash_to_assets_v2
+    formula: money_cap / total_assets
+    pre_registered_direction: 1
+    rationale: 现金资产占比更高通常提供更强流动性缓冲和逆周期选择权。
+  - candidate: fundamental_accruals_to_assets_v2
+    formula: (n_income_attr_p - n_cashflow_act) / total_assets
+    pre_registered_direction: -1
+    rationale: 较低应计利润意味着利润更受现金流支撑，盈余质量通常更高。
+
+feature_timing:
+  source_frequency: month_end
+  effective_on_formation_close_for_next_open: true
+  daily_mapping: latest_formation_not_after_signal_date
+  forward_hold_until_next_formation: true
+  future_backfill_forbidden: true
+  interpolation_forbidden: true
+  label: open_t_plus_11_div_open_t_plus_1_minus_1
+  portfolio_execution: next_open
+
+residualization:
+  daily_cross_sectional_raw_winsorization: [0.01, 0.99]
+  core_exposures: [pit_sw_l1_industry, log_total_market_value]
+  continuous_exposure_standardization: daily_winsorized_zscore
+  minimum_cross_section: 30
+  serialization_decimal_places: 12
+  oos_incremental_exposure: frozen_alpha158_score
+  oos_incremental_method: joint_ols_equivalent_to_fwl
+  formal_panel:
+    discovery_and_non_oos: core
+    W1_to_W6: incremental
+
+evaluation:
+  direction_gate:
+    rule: pre_registered_direction_times_discovery_mean_rank_ic_strictly_positive
+    failed_candidate_policy: counted_attempt_and_terminal_reject_before_g1
+    direction_flip_authorized: false
+  discovery:
+    start: "2016-07-01"
+    end: "2018-12-31"
+    minimum_daily_rank_ic_observations: 252
+  oos_windows: [W1, W2, W3, W4, W5, W6]
+  stress_panel:
+    style_shift_2017: core
+    microcap_crash_2024: W6_incremental
+    volume_price_drawdown_2026h1: core
+  signal_blend:
+    alpha158_rank_weight: 0.90
+    oriented_fundamental_residual_rank_weight: 0.10
+  portfolio:
+    topk: 30
+    n_drop: 3
+    rebalance_days: 10
+    deal_price: open
+  scenarios:
+    normal: {cost_multiplier: 1.0, extra_each_side: 0.0}
+    cost_2x: {cost_multiplier: 2.0, extra_each_side: 0.0}
+    extra_10bp_each_side: {cost_multiplier: 1.0, extra_each_side: 0.001}
+  g1_spec: g1-v1
+  formal_library_insertions: 0
+
+multiple_testing:
+  six_candidates_are_six_attempts: true
+  windows_scenarios_and_diagnostics_are_not_independent_attempts: true
+  implementation_attempt_that_reads_any_effect_counts: true
+  failed_direction_gate_still_counts: true
+  no_unregistered_variants: true
+
+terminal_policy:
+  any_candidate_passes_direction_and_g1: GO_REVIEW_ONLY
+  otherwise: REJECT
+  no_automatic_factor_library_insert: true
+  no_automatic_production_promotion: true
+  stop_after_six_candidates: true
+
+permissions:
+  network: false
+  env_read: false
+  tushare_calls: 0
+  deepseek_calls: 0
+  raw_data_mutation: false
+  scheduler_change_or_restart: false
+  csi800_production_change: false
+  web_change: false
+
+outputs:
+  ignored_root: data/research/f1_csi800_fundamental_effect_v1
+  tracked_manifest: config/f1_csi800_fundamental_effect_manifest_v1.json
+  experiment_ledger: ledger/experiments.csv
+  admission_ledger: ledger/factor_admissions.csv
+  acceptance: docs/F1_CSI800_FUNDAMENTAL_EFFECT_ACCEPTANCE_20260803.md
