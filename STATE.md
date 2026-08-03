@@ -2,16 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-08-03 · P0-E 20260804发布守护协议已冻结
+## 2026-08-03 · P0-E 20260804发布守护预执行GO
 
 - 本地冻结交易日历确认20260804为20260803后的首个开市日；窗口固定16:05（含）—19:00（不含）。
-- 守护精确绑定静默补正候选`0640574b...c40`、当前生产`4e5244b6...82708`，以及Top30/Top20各自
-  最新20260803自然FORWARD产物哈希；readiness必须只出现唯一新日20260804。
-- fresh路径只允许原子promote+start一次；启动失败不仅恢复release状态，还必须重新拉起旧current；
-  唯一中断态可续接start，失败则rollback+start。不得完整inspect环境、手工补跑或重复追成功。
-- 当前只冻结协议与精确配置，未实现、未promote、未改current或生产。下一步完成守护代码、对抗
-  fixture和断网预执行；真实切换仍只能在目标日窗口。见
-  `docs/DAILY_EARLY_READINESS_RELEASE_GUARD_PROTOCOL_20260803.md`。
+  协议/配置`cd89247`先行推送，精确绑定候选`0640574b...c40`、当前生产`4e5244b6...82708`与
+  Top30/Top20最新20260803自然FORWARD产物。
+- 实现`069604d`支持fresh原子promote+start、唯一半切换续接、already-active幂等；启动失败会依据
+  release state重新启动旧current或rollback+start，恢复后再验真实旧容器，双重失败同时上报。
+- 守护/release专项55 PASS、全仓562 PASS、断网只读预执行55 PASS；实际今晚CLI在任何状态读取/变更
+  前以日期不符BLOCKED。独立测试镜像不进发布审计。
+- 生产仍为容器`183b8c6c5edd...23dd3b`/镜像`722f63de...13b76`且healthy；release审计仍24行、current
+  未改。真实执行只允许20260804窗口恰好一次，随后另验自然全链。见
+  `docs/DAILY_EARLY_READINESS_RELEASE_GUARD_PROTOCOL_20260803.md`与
+  `docs/DAILY_EARLY_READINESS_RELEASE_GUARD_ACCEPTANCE_20260803.md`。
 
 ## 2026-08-03 · P0-E跨快照静默等待补正工程门GO
 
