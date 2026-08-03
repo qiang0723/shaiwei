@@ -1,0 +1,174 @@
+{
+  "artifacts": {
+    "core_residuals": {
+      "row_count": 1902109,
+      "sha256": "701bbeff8f753a445554897f88070006df88d096d9d4ea4b51aff18a2743d376"
+    },
+    "daily_ic": {
+      "row_count": 23292,
+      "sha256": "bde1233ce82951f5a8a6f2cfdf80410428d12dccf2e9a374e25370210becb148"
+    },
+    "daily_returns": {
+      "row_count": 26208,
+      "sha256": "daf289e735e53e46c74a23e7f6b68130a86c2cc474e9b8f0351085459f787bf6"
+    },
+    "formal_residuals": {
+      "row_count": 1902109,
+      "sha256": "b25edb4612507d145f42fa9cd899b64004b17fb6b8dda18a25c2c752e10bf27a"
+    },
+    "residual_build_report": {
+      "sha256": "2737f5c4c6b44952fa2148616d9ca386dab82259ce41edeec1bae0c4193d2114"
+    },
+    "summary": {
+      "sha256": "bbbbc2d046b3490d4fc584f2bfddbfeb0bafc42e95dcf3961d7d1989dc036eec"
+    }
+  },
+  "candidate_attempt_count": 6,
+  "candidates": [
+    {
+      "candidate": "fundamental_net_income_to_assets_v2",
+      "candidate_net_excess": 0.322300923,
+      "candidate_net_icir": 0.372016504,
+      "direction_gate": "PASS",
+      "discovery_mean_rank_ic": 0.01284207223152236,
+      "failed_gates": [
+        "rolling_window_sign",
+        "rank_ic_retention",
+        "incremental_net_icir",
+        "incremental_net_excess",
+        "deflated_sharpe",
+        "hac_t"
+      ],
+      "g1_decision": "REJECT",
+      "same_direction_oos_windows": 2
+    },
+    {
+      "candidate": "fundamental_operating_margin_v2",
+      "candidate_net_excess": 0.3423143449,
+      "candidate_net_icir": 0.3814750085,
+      "direction_gate": "PASS",
+      "discovery_mean_rank_ic": 0.003389563080011634,
+      "failed_gates": [
+        "rolling_window_sign",
+        "incremental_net_icir",
+        "incremental_net_excess",
+        "deflated_sharpe",
+        "hac_t"
+      ],
+      "g1_decision": "REJECT",
+      "same_direction_oos_windows": 3
+    },
+    {
+      "candidate": "fundamental_cash_return_on_assets_v2",
+      "candidate_net_excess": 0.3072983092,
+      "candidate_net_icir": 0.382532703,
+      "direction_gate": "PASS",
+      "discovery_mean_rank_ic": 0.026625516641345413,
+      "failed_gates": [
+        "rank_ic_retention",
+        "incremental_net_icir",
+        "incremental_net_excess",
+        "deflated_sharpe",
+        "hac_t"
+      ],
+      "g1_decision": "REJECT",
+      "same_direction_oos_windows": 5
+    },
+    {
+      "candidate": "fundamental_leverage_v2",
+      "candidate_net_excess": 0.3429469746,
+      "candidate_net_icir": 0.3763117819,
+      "direction_gate": "PASS",
+      "discovery_mean_rank_ic": -0.007463585513636089,
+      "failed_gates": [
+        "rolling_window_sign",
+        "rank_ic_retention",
+        "incremental_net_icir",
+        "incremental_net_excess",
+        "deflated_sharpe",
+        "hac_t"
+      ],
+      "g1_decision": "REJECT",
+      "same_direction_oos_windows": 2
+    },
+    {
+      "candidate": "fundamental_cash_to_assets_v2",
+      "candidate_net_excess": 0.2213988742,
+      "candidate_net_icir": 0.3740353088,
+      "direction_gate": "PASS",
+      "discovery_mean_rank_ic": 0.000980142260785162,
+      "failed_gates": [
+        "rolling_window_sign",
+        "rank_ic_retention",
+        "incremental_net_icir",
+        "incremental_net_excess",
+        "deflated_sharpe",
+        "hac_t"
+      ],
+      "g1_decision": "REJECT",
+      "same_direction_oos_windows": 2
+    },
+    {
+      "candidate": "fundamental_accruals_to_assets_v2",
+      "candidate_net_excess": 0.3128929824,
+      "candidate_net_icir": 0.3915349358,
+      "direction_gate": "PASS",
+      "discovery_mean_rank_ic": -0.015274582193676792,
+      "failed_gates": [
+        "incremental_net_excess",
+        "deflated_sharpe"
+      ],
+      "g1_decision": "REJECT",
+      "same_direction_oos_windows": 4
+    }
+  ],
+  "comparison": {
+    "baseline_net_excess": 0.5182370688,
+    "baseline_net_icir": 0.3889491367,
+    "blend": "alpha158_rank_90pct_plus_oriented_fundamental_residual_rank_10pct",
+    "cost_scenarios": [
+      "normal",
+      "double_cost",
+      "extra_10bp_each_side"
+    ],
+    "oos_windows": [
+      "W1_2019",
+      "W2_2020",
+      "W3_2021",
+      "W4_2022",
+      "W5_2023",
+      "W6_2024"
+    ]
+  },
+  "data_quality": {
+    "duplicate_residual_keys": 0,
+    "forbidden_bj_rows": 0,
+    "future_formation_rows": 0
+  },
+  "direction_pass_count": 6,
+  "experiment_trial_count": 6,
+  "formal_library_insertions": 0,
+  "g1_pass_count": 0,
+  "identity": {
+    "code_git_head": "137a6acd3cccd4a09f4c02ba2fef38278098f98b",
+    "code_snapshot_sha256": "9de6916f61974736aa8bc28da60748798396d809f256cec77a4f46d830f1eb28",
+    "input_snapshot_sha256": "515043fb339acda4e0c33f3e0fbfdcc12bfb3191a6d3396e28113bf42a1622d7",
+    "policy_sha256": "6ead1710972aeab9b512de486facb7c49e2e1e99d0c4f66a3e12b7a54b04de6e",
+    "protocol_sha256": "3062bcc629283a49a76cf4103a676c7f94c273e83aead1e89847a3d616544c3f",
+    "release_image_sha256": "8c7f60e13743996d97e4f65c10cdb5b1a8ab04b77b9e6c044b05cd41f0750c29",
+    "residual_data_snapshot_sha256": "d5488dc62436460b7693f76e1a1c6479ef4ea8bd46f95da8c0cd2880485db93b"
+  },
+  "idempotency": {
+    "admission_ledger_sha256": "9aebb04cbcbdb15d839a8dc30616c5bdc7f512955cce0d1f4262f1786aa75974",
+    "experiment_ledger_sha256": "6884b7aa92a2fd9ae98a52a48dd0e541fb34671b2f1fe4069f8f762673fec64d",
+    "manifest_sha256": "1dc8c1b2bd86cd180924bec3062cc35ce1b0f62dd1d5ef1244d40ae78b125fa9",
+    "second_full_run_all_reused": true
+  },
+  "model_training_run": false,
+  "network_requests": 0,
+  "production_authorization": "none",
+  "protocol_id": "f1-csi800-fundamental-effect-gate-v1",
+  "schema_version": "f1-csi800-fundamental-effect-tracked-manifest-v1",
+  "strategy_effective": "REJECT",
+  "verdict": "REJECT"
+}
