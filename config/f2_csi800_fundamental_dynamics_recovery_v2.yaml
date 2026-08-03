@@ -1,0 +1,173 @@
+schema_version: f2-csi800-fundamental-dynamics-recovery-v2
+protocol_id: f2-csi800-fundamental-dynamics-recovery-data-feature-gate-v2
+frozen_at: "2026-08-03T13:36:28+08:00"
+result_blind_claim: false
+
+predecessor:
+  protocol_id: f2-csi800-fundamental-dynamics-data-feature-gate-v1
+  verdict: NO_GO_F2_FUNDAMENTAL_DYNAMICS_DATA_FEATURE_GATE
+  protocol_sha256: 9c0b4e2522f9e6b24da92e9c1d04d1c3402add455efa7c73ecdfaf524bd2e81b
+  tracked_manifest: config/f2_csi800_fundamental_dynamics_manifest_v1.json
+  tracked_manifest_sha256: ea97a4fedf82b1115c4bda51c10730d88a1171fe7609baca6684a7b44448c64b
+  ignored_manifest_sha256: ea97a4fedf82b1115c4bda51c10730d88a1171fe7609baca6684a7b44448c64b
+  feature_panel_sha256: d451663ce7f664df1b5408ef794ef38244fe3f814313544ec9625534ea164fd3
+  quality_report_sha256: 229d78766c96b355f691a0cd2ffec6a142dfc973a3dc35ca3ff28568bda17beb
+  known_quality_no_consecutive_pair_rows: 1
+  known_missing_pair_key: "20180531/000939.SZ"
+  preserve_without_rewrite: true
+
+scope:
+  universe_id: csi800-pit-v1
+  official_index_code: 000906.SH
+  research_family: f2-csi800-fundamental-dynamics-v1
+  start_date: "2016-01-01"
+  quality_start_date: "2018-05-02"
+  end_date: "2026-07-31"
+  formation_frequency: month_end
+  bse_included: false
+  data_gate_only: true
+  factor_results_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  deepseek_authorized: false
+  production_authorization: none
+
+recovery_change:
+  changed_dimension: missing_pair_verdict_semantics_only
+  old_rule: quality_no_consecutive_pair_rows_must_equal_zero
+  new_rule: legal_unestimable_rows_remain_null_and_frozen_coverage_gates_decide_usability
+  exact_missing_row_allowlist_forbidden: true
+  count_specific_threshold_forbidden: true
+  missing_pair_imputation_forbidden: true
+  current_or_future_statement_backfill_forbidden: true
+  formula_change_forbidden: true
+  pit_change_forbidden: true
+  sample_change_forbidden: true
+  coverage_threshold_change_forbidden: true
+  f2_effects_still_forbidden: true
+
+family_boundary:
+  predecessor_effect_protocol_id: f1-csi800-fundamental-effect-gate-v1
+  predecessor_effect_manifest: config/f1_csi800_fundamental_effect_manifest_v1.json
+  predecessor_effect_manifest_sha256: 46981c52db3c1b9321978d79c7d847e319dcf84620fe62c9f910787a4f0b8ef0
+  predecessor_effect_verdict: REJECT
+  predecessor_attempt_count: 6
+  preserve_predecessor_without_rewrite: true
+  mechanism: consecutive_annual_fundamental_change
+  static_level_feature_retries_forbidden: true
+  forbidden_f1_feature_ids:
+    - fundamental_net_income_to_assets_v2
+    - fundamental_operating_margin_v2
+    - fundamental_cash_return_on_assets_v2
+    - fundamental_leverage_v2
+    - fundamental_cash_to_assets_v2
+    - fundamental_accruals_to_assets_v2
+  f2_candidate_attempt_count_if_effects_are_ever_inspected: 6
+  cumulative_attempt_count_if_effects_are_ever_inspected: 12
+
+sources:
+  ledger: ledger/ingest_batches.csv
+  required_apis:
+    - tushare.trade_cal
+    - tushare.index_weight
+    - tushare.income
+    - tushare.income_vip
+    - tushare.balancesheet
+    - tushare.balancesheet_vip
+    - tushare.cashflow
+    - tushare.cashflow_vip
+  ledger_latest_request_wins: true
+  verify_latest_batch_row_count_and_sha256: true
+  network_requests_authorized: false
+  raw_data_mutation_authorized: false
+
+point_in_time:
+  annual_period_suffix: "1231"
+  allowed_report_types: ["1", "5"]
+  availability: first_open_day_strictly_after_f_ann_date
+  same_period_revision: latest_available_f_ann_date
+  same_announcement_report_priority: ["1", "5"]
+  same_announcement_update_priority: descending
+  statement_join: exact_ts_code_and_end_date_before_period_selection
+  pair_selection: latest_jointly_available_consecutive_common_annual_pair
+  predecessor_period: exact_same_month_day_one_calendar_year_earlier
+  combined_feature_available_date: latest_of_all_current_and_predecessor_components
+  newer_unpaired_period_policy: diagnose_without_invalidating_prior_consecutive_pair
+  current_components_cannot_mix_periods: true
+  predecessor_components_cannot_mix_periods: true
+  current_and_predecessor_must_be_exactly_one_year_apart: true
+  fina_indicator_forbidden: true
+
+features:
+  - feature_id: fundamental_asset_growth_v1
+    formula: total_assets_t / total_assets_t_minus_1 - 1
+    inputs: [balancesheet.total_assets_t, balancesheet.total_assets_t_minus_1]
+    expected_direction: -1
+  - feature_id: fundamental_revenue_growth_v1
+    formula: total_revenue_t / total_revenue_t_minus_1 - 1
+    inputs: [income.total_revenue_t, income.total_revenue_t_minus_1]
+    expected_direction: 1
+  - feature_id: fundamental_operating_profit_change_v1
+    formula: (operate_profit_t - operate_profit_t_minus_1) / average_total_assets
+    inputs: [income.operate_profit_t, income.operate_profit_t_minus_1, balancesheet.total_assets_t, balancesheet.total_assets_t_minus_1]
+    expected_direction: 1
+  - feature_id: fundamental_net_income_change_v1
+    formula: (n_income_attr_p_t - n_income_attr_p_t_minus_1) / average_total_assets
+    inputs: [income.n_income_attr_p_t, income.n_income_attr_p_t_minus_1, balancesheet.total_assets_t, balancesheet.total_assets_t_minus_1]
+    expected_direction: 1
+  - feature_id: fundamental_operating_cashflow_change_v1
+    formula: (n_cashflow_act_t - n_cashflow_act_t_minus_1) / average_total_assets
+    inputs: [cashflow.n_cashflow_act_t, cashflow.n_cashflow_act_t_minus_1, balancesheet.total_assets_t, balancesheet.total_assets_t_minus_1]
+    expected_direction: 1
+  - feature_id: fundamental_cash_balance_change_v1
+    formula: (money_cap_t - money_cap_t_minus_1) / average_total_assets
+    inputs: [balancesheet.money_cap_t, balancesheet.money_cap_t_minus_1, balancesheet.total_assets_t, balancesheet.total_assets_t_minus_1]
+    expected_direction: 1
+
+denominator_policy:
+  current_total_assets: finite_and_strictly_positive
+  predecessor_total_assets: finite_and_strictly_positive
+  predecessor_total_revenue: finite_and_strictly_positive
+  average_total_assets: arithmetic_mean_finite_and_strictly_positive
+non_finite_output: null
+winsorization_authorized: false
+neutralization_authorized: false
+orientation_authorized: false
+
+gates:
+  predecessor_identity_preserved: true
+  required_sources_present: true
+  required_source_columns_present: true
+  latest_batches_integrity_pass: true
+  source_identity_conflicts: 0
+  open_calendar_complete_for_scope: true
+  formation_dates_after_quality_start: at_least_90
+  membership_count_each_formation:
+    minimum: 700
+    maximum: 900
+  bse_rows: 0
+  duplicate_feature_keys: 0
+  current_mixed_component_period_rows: 0
+  predecessor_mixed_component_period_rows: 0
+  nonconsecutive_pair_rows: 0
+  future_availability_rows: 0
+  pair_absent_rows_with_nonnull_available_date: 0
+  pair_absent_rows_with_any_nonnull_feature: 0
+  pair_present_rows_missing_end_date: 0
+  feature_aggregate_coverage_minimum: 0.85
+  feature_worst_formation_coverage_minimum: 0.75
+  quality_no_consecutive_pair_rows: diagnostic_without_fixed_count_gate
+
+outputs:
+  ignored_report: data/research/f2_csi800_fundamental_dynamics_recovery_v2/quality_report.json
+  ignored_feature_panel: data/research/f2_csi800_fundamental_dynamics_recovery_v2/features.parquet
+  ignored_manifest: data/research/f2_csi800_fundamental_dynamics_recovery_v2/manifest.json
+  tracked_manifest: config/f2_csi800_fundamental_dynamics_recovery_manifest_v2.json
+  acceptance: docs/F2_CSI800_FUNDAMENTAL_DYNAMICS_RECOVERY_ACCEPTANCE_20260803.md
+  predecessor_outputs_must_not_be_rewritten: true
+  feature_values_must_not_be_committed: true
+
+terminal_verdicts:
+  go: GO_F2_FUNDAMENTAL_DYNAMICS_RECOVERY_DATA_FEATURE_GATE_ONLY
+  no_go: NO_GO_F2_FUNDAMENTAL_DYNAMICS_RECOVERY_DATA_FEATURE_GATE
+  strategy_effective: NOT_EVALUATED
