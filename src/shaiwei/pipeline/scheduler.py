@@ -132,11 +132,14 @@ def run_scheduler(*, once: bool = False, settings: Settings | None = None) -> in
         write_health("running")
         try:
             result = run_once(settings=settings)
-            write_health("shadow", detail=result.eligible_target)
-            run_shadow_cycle(settings)
-            write_health("paper", detail=result.eligible_target)
-            run_paper_cycle(settings)
-            write_health(result.status.lower(), detail=result.eligible_target)
+            if result.status == "WAITING_SOURCE":
+                write_health("waiting_source", detail=result.eligible_target)
+            else:
+                write_health("shadow", detail=result.eligible_target)
+                run_shadow_cycle(settings)
+                write_health("paper", detail=result.eligible_target)
+                run_paper_cycle(settings)
+                write_health(result.status.lower(), detail=result.eligible_target)
         except AlreadyRunning:
             write_health("waiting", detail="daily lock is held")
         except Exception as error:
