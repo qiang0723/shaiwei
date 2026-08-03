@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-03 · Top20生产候选已受控启动，等待首个自然FORWARD
+
+- 16:05计划任务没有留下守护输出或新增发布审计；17:38复核时审计仍22行、scheduler仍为旧镜像，
+  只能继续分类`AUTOMATION_DISPATCH_NOT_OBSERVED`，不猜测Codex应用侧具体原因。
+- 用户要求继续可执行下一步后，主控在冻结的16:05—19:00窗口内只执行一次
+  `make docker-release-guard`。Git/审计链/候选/旧容器/最新Top30/readiness全门PASS，唯一新交易日
+  `20260803`，机器返回`STARTED`。
+- 实际scheduler已切换到容器`183b8c6c5edd...23dd3b`、镜像`722f63de...13b76`、代码快照
+  `4e5244b6...82708`，只读根且仅挂载data/ledger/logs，定向复核healthy；新增唯一`START_PASS`
+  审计哈希`6d227e7f...ea0f2`。
+- 本结论仅为发布切换PASS，不是今日跑批或Top20前瞻PASS。不得手工补跑；等待19:30自然串行Top30、
+  Top20后再验`.BJ`、S1—S10、信号、两账户、飞书、幂等与首个Top20 `FORWARD`。16:00早探测仍须
+  等Top20自然前瞻通过后的另一交易日。见`docs/PAPER_TOP20_RELEASE_START_ACCEPTANCE_20260803.md`。
+
 ## 2026-08-03 · F2-1中证800基本面动态六候选效果门权威REJECT
 
 - 结果前协议`cb17b3e`与实现`e3c8aa6`均先行推送；固定六公式/方向、2016H2—2018发现、
