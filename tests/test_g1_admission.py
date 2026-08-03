@@ -243,6 +243,28 @@ def test_family_trial_n_counts_failed_attempt_but_not_other_family(tmp_path: Pat
     assert len(trials.valid_trial_sharpes) == 2
 
 
+def test_family_trials_can_aggregate_explicit_related_families(tmp_path: Path):
+    experiments = tmp_path / "experiments.csv"
+    _write_experiments(experiments, periodic_sharpe(_returns(), minimum=252))
+    trials = family_trials(
+        "stage1-gp-v1",
+        "candidate-2",
+        related_research_families=("stage1-cog-v1",),
+        experiments_path=experiments,
+    )
+    assert trials.research_families == ("stage1-gp-v1", "stage1-cog-v1")
+    assert trials.trial_count == 3
+    assert len(trials.valid_trial_sharpes) == 3
+
+    with pytest.raises(G1Error, match="unique"):
+        family_trials(
+            "stage1-gp-v1",
+            "candidate-2",
+            related_research_families=("stage1-gp-v1",),
+            experiments_path=experiments,
+        )
+
+
 def test_g1_pass_is_immutable_and_idempotent(tmp_path: Path):
     candidate_sharpe = periodic_sharpe(_returns(), minimum=252)
     experiments = tmp_path / "experiments.csv"

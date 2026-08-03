@@ -23,6 +23,7 @@ from shaiwei.research.fundamental_effect.io import (
     write_content_addressed_parquet,
     write_json_once,
 )
+from shaiwei.research.fundamental_effect.runtime import EffectRuntime
 from shaiwei.research.fundamental_pit_gate import _open_days
 
 
@@ -249,6 +250,7 @@ def _coverage(frame: pd.DataFrame, candidates: tuple[str, ...]) -> dict[str, flo
 def build_residual_panels(
     protocol: FundamentalEffectProtocol,
     input_identity: dict[str, object],
+    runtime: EffectRuntime,
     *,
     project_root: Path = PROJECT_ROOT,
 ) -> dict[str, object]:
@@ -310,12 +312,12 @@ def build_residual_panels(
     core_path, core_sha, core_reused = write_content_addressed_parquet(
         core,
         output_root,
-        stem="f1-fundamental-core-residuals-v1",
+        stem=f"{runtime.artifact_prefix}-core-residuals-v1",
     )
     formal_path, formal_sha, formal_reused = write_content_addressed_parquet(
         formal,
         output_root,
-        stem="f1-fundamental-formal-residuals-v1",
+        stem=f"{runtime.artifact_prefix}-formal-residuals-v1",
     )
     data_snapshot = sha256_json(
         {
@@ -357,7 +359,7 @@ def build_residual_panels(
     if not all(gates.values()):
         raise FundamentalEffectError(f"F1-1 label-free panel gates failed: {gates}")
     report: dict[str, object] = {
-        "schema_version": "f1-csi800-fundamental-residual-build-v1",
+        "schema_version": runtime.residual_schema,
         "protocol_id": protocol.document["protocol_id"],
         "protocol_sha256": protocol.sha256,
         "policy_sha256": protocol.policy_sha256,

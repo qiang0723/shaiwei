@@ -12,16 +12,13 @@ import pandas as pd
 
 from shaiwei.ledger import EXPERIMENTS, append_experiment, portable_artifact_path, sha256_file
 from shaiwei.research.fundamental_effect.contract import (
-    RESEARCH_FAMILY,
     CandidateSpec,
     FundamentalEffectError,
     FundamentalEffectProtocol,
 )
 from shaiwei.research.fundamental_effect.io import write_json_once
 from shaiwei.research.fundamental_effect.metrics import CandidateResult, DiscoveryResult
-
-
-ENGINE_VERSION = "f1-csi800-fundamental-effect-v1"
+from shaiwei.research.fundamental_effect.runtime import EffectRuntime
 
 
 def candidate_experiment_id(
@@ -29,8 +26,9 @@ def candidate_experiment_id(
     code_hash: str,
     data_hash: str,
     policy_hash: str,
+    runtime: EffectRuntime,
 ) -> str:
-    payload = f"{RESEARCH_FAMILY}|{candidate}|{code_hash}|{data_hash}|{policy_hash}"
+    payload = f"{runtime.research_family}|{candidate}|{code_hash}|{data_hash}|{policy_hash}"
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:12]
 
 
@@ -58,9 +56,10 @@ def ensure_experiment(
     policy_hash: str,
     result: dict[str, object],
     reject_reason: str,
+    runtime: EffectRuntime,
 ) -> bool:
     params = {
-        "g1_research_family": RESEARCH_FAMILY,
+        "g1_research_family": runtime.research_family,
         "expression_tokens": spec.expression_tokens,
         "ast_nodes": spec.ast_nodes,
         "attempt_stage": "formal_fundamental_effect",
@@ -68,20 +67,20 @@ def ensure_experiment(
         "pre_registered_direction": spec.direction,
         "factor_blend_weight": 0.1,
         "comparison_policy_sha256": policy_hash,
-        "candidate_attempt_count": 6,
+        "candidate_attempt_count": runtime.candidate_attempt_count,
     }
     expected = {
-        "candidate_source": "Tushare-financial-statements-F1",
-        "model_or_engine": "Alpha158 + frozen fundamental rank blend",
-        "engine_version": ENGINE_VERSION,
+        "candidate_source": runtime.candidate_source,
+        "model_or_engine": runtime.model_or_engine,
+        "engine_version": runtime.engine_version,
         "seed": "42",
         "prompt_hash": "",
         "code_sha256": code_hash,
         "data_snapshot_sha256": data_hash,
         "feature_or_formula": spec.formula,
         "params_json": params,
-        "train_period": "2016-07-01~2018-12-31",
-        "valid_period": "W1-W6 + frozen stress periods",
+        "train_period": runtime.train_period,
+        "valid_period": runtime.valid_period,
         "result_json": result,
         "admitted": "false",
         "reject_reason": reject_reason,
@@ -133,10 +132,11 @@ def build_candidate_artifacts(
     daily_ic_path: Path,
     daily_ic_sha256: str,
     output_root: Path,
+    runtime: EffectRuntime,
 ) -> tuple[Path, Path, bool]:
     directory = output_root / result.experiment_id
     test_report: dict[str, object] = {
-        "schema_version": "f1-factor-test-v1",
+        "schema_version": runtime.factor_test_schema,
         "candidate_experiment_id": result.experiment_id,
         "code_snapshot_sha256": code_hash,
         "data_snapshot_sha256": data_hash,
@@ -167,7 +167,8 @@ def build_candidate_artifacts(
     evidence: dict[str, object] = {
         "schema_version": 1,
         "candidate_experiment_id": result.experiment_id,
-        "research_family": RESEARCH_FAMILY,
+        "research_family": runtime.research_family,
+        "multiple_testing_families": list(runtime.multiple_testing_families),
         "code_snapshot_sha256": code_hash,
         "data_snapshot_sha256": data_hash,
         "economic_rationale": result.discovery.spec.rationale,
@@ -244,7 +245,7 @@ def direction_reject_result(discovery: DiscoveryResult) -> dict[str, object]:
     }
 
 
-def family_trial_count() -> int:
+def family_trial_count(runtime: EffectRuntime) -> int:
     with EXPERIMENTS.open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
     count = 0
@@ -253,7 +254,7 @@ def family_trial_count() -> int:
             params = json.loads(row["params_json"])
         except json.JSONDecodeError as error:
             raise FundamentalEffectError("experiment ledger contains invalid params JSON") from error
-        count += params.get("g1_research_family") == RESEARCH_FAMILY
+        count += params.get("g1_research_family") in runtime.multiple_testing_families
     return count
 
 
@@ -263,9 +264,13 @@ def record_execution_failure(
     code_hash: str,
     data_hash: str,
     error_type: str,
+    runtime: EffectRuntime,
 ) -> None:
     experiment_id = hashlib.sha256(
-        f"{RESEARCH_FAMILY}|implementation|{code_hash}|{data_hash}|{protocol.policy_sha256}".encode()
+        (
+            f"{runtime.research_family}|implementation|{code_hash}|{data_hash}|"
+            f"{protocol.policy_sha256}"
+        ).encode()
     ).hexdigest()[:12]
     if _existing_experiment(experiment_id):
         return
@@ -273,24 +278,24 @@ def record_execution_failure(
         experiment_id=experiment_id,
         parent_experiment_id="",
         ts=datetime.now(timezone.utc).isoformat(),
-        candidate_source="F1-implementation-attempt",
-        model_or_engine="F1 fixed effect runner",
-        engine_version=ENGINE_VERSION,
+        candidate_source=runtime.implementation_source,
+        model_or_engine=runtime.implementation_engine,
+        engine_version=runtime.engine_version,
         seed=42,
         prompt_hash="",
         code_sha256=code_hash,
         data_snapshot_sha256=data_hash,
         feature_or_formula="IMPLEMENTATION_ATTEMPT",
         params_json={
-            "g1_research_family": RESEARCH_FAMILY,
+            "g1_research_family": runtime.research_family,
             "attempt_stage": "effect_execution_after_label_read",
             "comparison_policy_sha256": protocol.policy_sha256,
         },
-        train_period="2016-07-01~2018-12-31",
-        valid_period="W1-W6 + frozen stress periods",
+        train_period=runtime.train_period,
+        valid_period=runtime.valid_period,
         result_json={"status": "FAILED", "error_type": error_type},
         admitted=False,
-        reject_reason=f"F1-1 implementation failure: {error_type}",
+        reject_reason=f"{runtime.research_family} implementation failure: {error_type}",
     )
 
 

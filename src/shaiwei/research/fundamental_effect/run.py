@@ -13,7 +13,6 @@ from shaiwei.config import PROJECT_ROOT, load
 from shaiwei.ledger import portable_artifact_path, sha256_file
 from shaiwei.provenance import code_snapshot_sha256, git_head
 from shaiwei.research.fundamental_effect.contract import (
-    RESEARCH_FAMILY,
     FundamentalEffectError,
     FundamentalEffectProtocol,
 )
@@ -38,6 +37,7 @@ from shaiwei.research.fundamental_effect.metrics import (
     evaluate_discovery,
     load_labels,
 )
+from shaiwei.research.fundamental_effect.runtime import EffectRuntime
 from shaiwei.research.g1 import AdmissionDecision, evaluate_g1
 
 
@@ -71,12 +71,13 @@ def _artifact(
 def validate_residual_report(
     protocol: FundamentalEffectProtocol,
     input_identity: dict[str, object],
+    runtime: EffectRuntime,
     *,
     project_root: Path = PROJECT_ROOT,
 ) -> tuple[dict[str, Any], Path]:
     report_path = protocol.output_root / "residual_build_report.json"
     report = _read_json(report_path)
-    if report.get("schema_version") != "f1-csi800-fundamental-residual-build-v1":
+    if report.get("schema_version") != runtime.residual_schema:
         raise FundamentalEffectError("F1-1 residual report schema differs")
     expected = {
         "protocol_sha256": protocol.sha256,
@@ -110,6 +111,7 @@ def validate_residual_report(
 def _result_artifacts(
     results: list[CandidateResult],
     output_root: Path,
+    runtime: EffectRuntime,
 ) -> dict[str, object]:
     if not results:
         return {}
@@ -120,10 +122,14 @@ def _result_artifacts(
         ["candidate", "series_type", "window", "trade_date"], kind="stable"
     )
     returns_path, returns_sha, returns_reused = write_content_addressed_parquet(
-        returns.reset_index(drop=True), output_root, stem="f1-fundamental-daily-returns-v1"
+        returns.reset_index(drop=True),
+        output_root,
+        stem=f"{runtime.artifact_prefix}-daily-returns-v1",
     )
     ic_path, ic_sha, ic_reused = write_content_addressed_parquet(
-        daily_ic.reset_index(drop=True), output_root, stem="f1-fundamental-daily-ic-v1"
+        daily_ic.reset_index(drop=True),
+        output_root,
+        stem=f"{runtime.artifact_prefix}-daily-ic-v1",
     )
     return {
         "daily_returns": {
@@ -152,11 +158,12 @@ def _stable_artifact_bindings(runtime: dict[str, object]) -> dict[str, object]:
 def run_effect(
     protocol: FundamentalEffectProtocol,
     input_identity: dict[str, object],
+    runtime: EffectRuntime,
     *,
     project_root: Path = PROJECT_ROOT,
 ) -> dict[str, object]:
     residual, residual_path = validate_residual_report(
-        protocol, input_identity, project_root=project_root
+        protocol, input_identity, runtime, project_root=project_root
     )
     artifacts = residual["artifacts"]
     core = pd.read_parquet(_artifact(artifacts["core"], project_root=project_root))
@@ -193,6 +200,7 @@ def run_effect(
                 code_hash,
                 data_hash,
                 protocol.policy_sha256,
+                runtime,
             )
             for discovery in discoveries
         }
@@ -209,7 +217,7 @@ def run_effect(
             for discovery in discoveries
             if discovery.direction_pass
         ]
-        runtime_artifacts = _result_artifacts(results, protocol.output_root)
+        runtime_artifacts = _result_artifacts(results, protocol.output_root, runtime)
         stable_artifacts = _stable_artifact_bindings(runtime_artifacts)
         result_by_name = {result.discovery.spec.name: result for result in results}
         built: dict[str, tuple[Path, Path, bool]] = {}
@@ -229,6 +237,7 @@ def run_effect(
                     daily_ic_path=project_root / str(daily_ic["path"]),
                     daily_ic_sha256=str(daily_ic["sha256"]),
                     output_root=protocol.output_root,
+                    runtime=runtime,
                 )
         experiment_reuse: dict[str, bool] = {}
         for discovery in discoveries:
@@ -250,6 +259,7 @@ def run_effect(
                 policy_hash=protocol.policy_sha256,
                 result=ledger_result,
                 reject_reason=reject_reason,
+                runtime=runtime,
             )
         decisions: dict[str, AdmissionDecision] = {}
         for result in results:
@@ -295,18 +305,19 @@ def run_effect(
         admitted = [decision for decision in decisions.values() if decision.admitted]
         verdict = "GO_REVIEW_ONLY" if admitted else "REJECT"
         stable_summary: dict[str, object] = {
-            "schema_version": "f1-csi800-fundamental-effect-summary-v1",
+            "schema_version": runtime.summary_schema,
             "protocol_id": protocol.document["protocol_id"],
             "protocol_sha256": protocol.sha256,
             "policy_sha256": protocol.policy_sha256,
-            "research_family": RESEARCH_FAMILY,
+            "research_family": runtime.research_family,
+            "multiple_testing_families": list(runtime.multiple_testing_families),
             "code_snapshot_sha256": code_hash,
             "code_git_head": git_head(),
             "residual_data_snapshot_sha256": data_hash,
             "residual_report_path": portable_artifact_path(residual_path),
             "residual_report_sha256": sha256_file(residual_path),
-            "candidate_budget": 6,
-            "experiment_trial_count": family_trial_count(),
+            "candidate_budget": runtime.candidate_attempt_count,
+            "experiment_trial_count": family_trial_count(runtime),
             "direction_pass_count": int(sum(item.direction_pass for item in discoveries)),
             "g1_pass_count": len(admitted),
             "artifacts": stable_artifacts,
@@ -324,7 +335,7 @@ def run_effect(
             stable_summary,
         )
         manifest: dict[str, object] = {
-            "schema_version": "f1-csi800-fundamental-effect-manifest-v1",
+            "schema_version": runtime.manifest_schema,
             "protocol_id": protocol.document["protocol_id"],
             "protocol_sha256": protocol.sha256,
             "policy_sha256": protocol.policy_sha256,
@@ -338,7 +349,7 @@ def run_effect(
             },
             "summary": {"path": portable_artifact_path(summary_path), "sha256": summary_sha},
             "artifacts": stable_artifacts,
-            "candidate_attempt_count": 6,
+            "candidate_attempt_count": runtime.candidate_attempt_count,
             "experiment_trial_count": stable_summary["experiment_trial_count"],
             "direction_pass_count": stable_summary["direction_pass_count"],
             "g1_pass_count": stable_summary["g1_pass_count"],
@@ -375,5 +386,6 @@ def run_effect(
                 code_hash=code_hash,
                 data_hash=data_hash,
                 error_type=type(error).__name__,
+                runtime=runtime,
             )
         raise

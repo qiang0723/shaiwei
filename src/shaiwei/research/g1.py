@@ -81,6 +81,7 @@ class G1Evidence(StrictEvidenceModel):
     schema_version: int = Field(default=1, ge=1, le=1)
     candidate_experiment_id: str = Field(min_length=1)
     research_family: str = Field(min_length=1)
+    multiple_testing_families: tuple[str, ...] = ()
     code_snapshot_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     data_snapshot_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     economic_rationale: str = Field(min_length=1)
@@ -96,6 +97,7 @@ class FamilyTrials:
     candidate: dict[str, str]
     candidate_params: dict[str, object]
     candidate_result: dict[str, object]
+    research_families: tuple[str, ...]
     trial_count: int
     valid_trial_sharpes: tuple[float, ...]
     ledger_sha256: str
@@ -204,8 +206,14 @@ def family_trials(
     research_family: str,
     candidate_experiment_id: str,
     *,
+    related_research_families: tuple[str, ...] = (),
     experiments_path: Path = EXPERIMENTS,
 ) -> FamilyTrials:
+    research_families = (research_family, *related_research_families)
+    if any(not value for value in research_families) or len(research_families) != len(
+        set(research_families)
+    ):
+        raise G1Error("multiple-testing research families must be non-empty and unique")
     with experiments_path.open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
     experiment_ids = [row["experiment_id"] for row in rows]
@@ -219,7 +227,7 @@ def family_trials(
         experiment_id = row["experiment_id"]
         params = _load_json_object(row["params_json"], field="params_json", experiment_id=experiment_id)
         result = _load_json_object(row["result_json"], field="result_json", experiment_id=experiment_id)
-        if params.get("g1_research_family") == research_family:
+        if params.get("g1_research_family") in research_families:
             family_rows.append((row, params, result))
         if experiment_id == candidate_experiment_id:
             candidate, candidate_params, candidate_result = row, params, result
@@ -236,6 +244,7 @@ def family_trials(
         candidate=candidate,
         candidate_params=candidate_params,
         candidate_result=candidate_result,
+        research_families=research_families,
         trial_count=len(family_rows),
         valid_trial_sharpes=tuple(sharpes),
         ledger_sha256=sha256_file(experiments_path),
@@ -457,6 +466,7 @@ def _evaluate_gates(
     }
     statistics = {
         "direction": int(direction),
+        "multiple_testing_families": list(trials.research_families),
         "positive_oos_windows": positive_windows,
         "mean_oriented_oos_rank_ic": mean_oriented_oos,
         "rank_ic_retention": retention,
@@ -530,9 +540,22 @@ def evaluate_g1(
     output_dir = output_dir or PROJECT_ROOT / "logs" / "g1"
     evidence_sha256 = sha256_file(evidence_path)
     evidence = G1Evidence.model_validate_json(evidence_path.read_text(encoding="utf-8"))
+    multiple_testing_families = evidence.multiple_testing_families or (
+        evidence.research_family,
+    )
+    if (
+        evidence.research_family not in multiple_testing_families
+        or any(not value for value in multiple_testing_families)
+        or len(multiple_testing_families) != len(set(multiple_testing_families))
+    ):
+        raise G1Error("multiple-testing families must be unique and include the candidate family")
+    related_families = tuple(
+        value for value in multiple_testing_families if value != evidence.research_family
+    )
     trials = family_trials(
         evidence.research_family,
         evidence.candidate_experiment_id,
+        related_research_families=related_families,
         experiments_path=experiments_path,
     )
     _verify_integrity_binding(evidence, trials)
@@ -570,6 +593,7 @@ def evaluate_g1(
             "candidate": {
                 "experiment_id": evidence.candidate_experiment_id,
                 "research_family": evidence.research_family,
+                "multiple_testing_families": list(trials.research_families),
                 "candidate_source": trials.candidate["candidate_source"],
                 "feature_or_formula": trials.candidate["feature_or_formula"],
                 "economic_rationale": evidence.economic_rationale,
