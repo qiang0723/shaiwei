@@ -2,15 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-08-04 · P0-E 20260805恢复发布协议已先行冻结
+## 2026-08-04 · P0-E 20260805恢复发布守护预执行GO
 
 - 20260804漏派发和自然结果已经可见，本恢复不主张盲预注册；旧v1/原协议/预执行与未派发验收永久
-  保留。v2只把目标日改为20260805，并把双账户最新FORWARD边界更新为当日真实产物。
-- 候选`0640574b...c40`、旧生产`4e5244b6...82708`、16:05—19:00窗口、唯一新日门、原子
-  promote+start和失败恢复语义全部不变；禁止重建候选、手工日跑批或改模型/信号/门禁。
-- 本提交只冻结`config/daily_early_readiness_release_guard_v2.yaml`与协议文本，不切换守护默认配置，
-  不读取/修改release或Docker。冻结推送后方可最小施工和断网预执行。见
-  `docs/DAILY_EARLY_READINESS_RELEASE_RECOVERY_PROTOCOL_20260804.md`。
+  保留。协议/配置`1fece49`先行推送，v2只把目标日改为20260805并更新双账户最新FORWARD边界。
+- 最小实现`ff51020`随后推送；候选`0640574b...c40`、旧生产`4e5244b6...82708`、16:05—19:00
+  窗口、唯一新日门、原子promote+start和失败恢复语义全部不变，测试同时锁定v1不可改写。
+- 宿主专项47/全仓563 PASS；断网只读无挂载/无凭据Docker专项47 PASS。今晚入口在任何Git/Docker/
+  release读取前以日期不符BLOCKED；生产审计仍24行、旧scheduler未重启且healthy。
+- 真实执行只允许20260805窗口恰好一次，BLOCKED不得改日期/锚点追成功；STARTED后另验自然全链。
+  见`docs/DAILY_EARLY_READINESS_RELEASE_RECOVERY_PROTOCOL_20260804.md`与
+  `docs/DAILY_EARLY_READINESS_RELEASE_RECOVERY_ACCEPTANCE_20260804.md`。
 
 ## 2026-08-04 · 自然整链PASS_WITH_NOTIFICATION_WARN、P0-E发布未派发
 
