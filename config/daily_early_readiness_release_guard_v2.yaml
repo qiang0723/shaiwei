@@ -1,0 +1,40 @@
+schema_version: daily-early-readiness-release-guard-v1
+guard_id: daily-early-readiness-release-guard-20260805
+timezone: Asia/Shanghai
+target_trade_date: "20260805"
+window:
+  not_before: "16:05:00"
+  expires_at: "19:00:00"
+candidate:
+  image: shaiwei:scheduler-0640574ba7353c3e
+  image_id: sha256:85711ae0b4c3b19de1554f778cb0ff2ee10f5b1e962e2ef79e1d0953a6a5e79f
+  code_snapshot_sha256: 0640574ba7353c3eef888eac2f706a29606db728319d3717b7ecdfc25de40c40
+  git_head: fa6c67ab541c19b056221303756d81ad98ee122e
+expected_running_release:
+  image: shaiwei:scheduler-4e5244b6b02739dd
+  image_id: sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76
+  code_snapshot_sha256: 4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708
+  git_head: 210af4dab33c85b38c05b28f56c176b7970c41db
+expected_latest_forward:
+  - account_id: model_baseline
+    execution_trade_date: "20260804"
+    code_snapshot_sha256: 4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708
+    artifact_sha256: 691987e0fdc3cae0fed405d6d6e7eb9c50c1e49d0404a46f31de408be472e89f
+  - account_id: model_top20
+    execution_trade_date: "20260804"
+    code_snapshot_sha256: 4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708
+    artifact_sha256: 26de5b7fcaa0682e3e8d47a4c4120f685dbe8766b30189303f37d75a81abafec
+requirements:
+  clean_worktree: true
+  head_equals_origin_main: true
+  release_audit_chain_pass: true
+  candidate_runtime_identity_exact_match: true
+  running_release_exact_match: true
+  both_accounts_latest_forward_exact_match: true
+  target_is_only_new_trade_date: true
+  scheduler_healthy_before_promotion: true
+  promote_and_start_exactly_once: true
+  failed_start_restores_previous_release: true
+  run_daily_manually: false
+  build_candidate: false
+  mutate_model_signal_or_gate: false
