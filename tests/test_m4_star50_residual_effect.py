@@ -17,7 +17,7 @@ from shaiwei.research.star50_residual_effect.contract import (
 from shaiwei.research.star50_residual_effect.data import EffectInputs, build_labels, neutralize
 from shaiwei.research.star50_residual_effect.evidence import append_once
 from shaiwei.research.star50_residual_effect.judge import safe_judge_candidates
-from shaiwei.research.star50_residual_effect.metrics import blend_signal
+from shaiwei.research.star50_residual_effect.metrics import _between, blend_signal
 
 
 def test_effect_protocol_is_fixed_and_does_not_impersonate_g1() -> None:
@@ -122,6 +122,26 @@ def test_blend_uses_cross_sectional_percentile_ranks() -> None:
     factor = pd.Series([3.0, 2.0, 1.0], index=index)
     blended = blend_signal(baseline, factor, factor_weight=0.1)
     assert np.allclose(blended.to_numpy(), [0.4, 2 / 3, 14 / 15])
+
+
+def test_between_accepts_signal_multi_index_and_daily_ic_index() -> None:
+    dates = pd.to_datetime(["2024-01-02", "2024-01-03", "2024-01-04"])
+    signal_index = pd.MultiIndex.from_product(
+        [dates, ["SH688001"]], names=["datetime", "instrument"]
+    )
+    signal = pd.Series([1.0, 2.0, 3.0], index=signal_index)
+    daily_ic = pd.Series([0.1, 0.2, 0.3], index=pd.DatetimeIndex(dates, name=None))
+
+    assert _between(signal, "2024-01-03", "2024-01-04").tolist() == [2.0, 3.0]
+    assert _between(daily_ic, "2024-01-03", "2024-01-04").tolist() == [0.2, 0.3]
+
+
+def test_between_rejects_multi_index_without_datetime_contract() -> None:
+    index = pd.MultiIndex.from_product(
+        [["2024-01-02"], ["SH688001"]], names=["date", "instrument"]
+    )
+    with pytest.raises(ResidualEffectError, match="lacks datetime level"):
+        _between(pd.Series([1.0], index=index), "2024-01-01", "2024-01-31")
 
 
 def test_direction_reject_does_not_claim_oos_read() -> None:

@@ -63,7 +63,19 @@ def blend_signal(baseline: pd.Series, factor: pd.Series, *, factor_weight: float
 
 
 def _between(series: pd.Series, start: str, end: str) -> pd.Series:
-    dates = series.index.get_level_values("datetime")
+    index = series.index
+    if isinstance(index, pd.MultiIndex):
+        if "datetime" not in index.names:
+            raise ResidualEffectError("M4-1 multi-index series lacks datetime level")
+        raw_dates = index.get_level_values("datetime")
+    elif index.nlevels == 1:
+        raw_dates = index
+    else:  # pragma: no cover - pandas currently represents nlevels > 1 as MultiIndex
+        raise ResidualEffectError("M4-1 series index shape is unsupported")
+    try:
+        dates = pd.DatetimeIndex(pd.to_datetime(raw_dates, errors="raise"))
+    except (TypeError, ValueError) as error:
+        raise ResidualEffectError("M4-1 series index is not a valid date index") from error
     return series.loc[(dates >= pd.Timestamp(start)) & (dates <= pd.Timestamp(end))]
 
 
@@ -306,4 +318,3 @@ def evaluate_candidate(
         "return_rows": pd.concat(return_rows, ignore_index=True),
         "ic_rows": pd.concat(ic_rows, ignore_index=True),
     }
-
