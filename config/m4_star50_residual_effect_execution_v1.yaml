@@ -1,0 +1,51 @@
+schema_version: m4-star50-residual-effect-execution-release-v1
+release_id: m4-star50-residual-effect-first-and-replay-v1
+prepared_at: "2026-08-04T23:59:05+08:00"
+status: FROZEN_FIRST_REAL_EFFECT_EXECUTION_RELEASE
+protocol_path: config/m4_star50_residual_effect_v1.yaml
+protocol_sha256: a006f62d263249cbbfb33e18de8c18fc2757a80ed145ec273c21c65b46f5a8aa
+implementation_git_head: e45c83e73675714dec807d83ccef7a273450e7fd
+code_bundle_sha256: 2f483b5b772c9438db2882f79a6056e7d5b16265b4363305278683cbebcb494a
+execution_authorized: true
+label_and_sealed_oos_read_authorized: true
+model_training_authorized: false
+provider_calls_authorized: false
+api_key_read_authorized: false
+production_authorization: none
+
+runtime:
+  engine: docker_one_off
+  image: shaiwei:m4-star50-residual-effect-v1
+  image_build_git_head: e45c83e73675714dec807d83ccef7a273450e7fd
+  execution_count: one_first_pass_plus_one_internal_determinism_replay
+  network_mode: none
+  env_file_mounted: false
+  nonroot: true
+  read_only_root: true
+  tools_mount_read_only_and_hash_bound: true
+  full_data_mount_read_only: true
+  writable_result_root_only: data/research/m4/m4-star50-benchmark-residual-effect-v1
+  writable_ledgers:
+    - ledger/m4_star50_residual_effect_runs.csv
+    - ledger/m4_star50_residual_effect_decisions.csv
+  memory_limit: 8g
+  cpu_limit: 4.0
+  blas_threads: 1
+  execute_high_load_tasks_serially: true
+  scheduler_restart_or_rebuild: false
+
+required_after_run:
+  independent_artifact_and_decision_audit: true
+  tracked_manifest_must_replace_exact_pending_placeholder: true
+  final_entrypoint_reuse_must_write_zero_new_rows_or_artifacts: true
+  full_test_ruff_compile_dependency_compose_diff_checks: true
+  desensitization_scan: true
+  acceptance_document_and_state_update_required: true
+
+forbidden:
+  - formula_direction_window_weight_cost_or_threshold_change
+  - alpha158_retraining_or_retuning
+  - network_or_secret_access
+  - scheduler_web_production_or_paper_change
+  - formal_g1_v1_admission_claim
+  - formal_factor_library_insertion

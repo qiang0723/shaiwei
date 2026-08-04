@@ -13,6 +13,9 @@
   `n_drop=2`、10日调仓，执行复用P2-2C纠错后的开盘/容量逻辑，并冻结成本、压力、NW与DSR全门。
 - 本节点仍未读取标签、RankIC、收益或封存效果。见
   `docs/M4_STAR50_RESIDUAL_EFFECT_PROTOCOL_20260804.md`。
+- 实现已以`e45c83e`独立提交推送，全仓586项测试、Ruff、compileall、pip check与研究Compose配置
+  PASS；8个执行模块最大387行。执行release绑定协议`a006f62d...a8aa`、代码束
+  `2f483b5b...494a`和实现提交，只授权断网Docker首遍加一次内部完整复跑。release推送前仍未读效果。
 
 ## 2026-08-04 · M4-0科创50基准残差因子数据/预执行门GO
 
