@@ -1,0 +1,54 @@
+schema_version: m2-star200-data-recovery-v2
+recovery_id: m2-star200-data-recovery-v2
+frozen_at: "2026-08-04T21:45:00+08:00"
+recovery_document: docs/M2_STAR200_DATA_RECOVERY_V2_PROTOCOL_20260804.md
+recovery_document_sha256: d715266c8567a201379d2332a4f66dbcdf5eb98258f125fb85275016986da84b
+original_protocol:
+  path: config/m2_star200_v1.yaml
+  sha256: 584d0eab2405b65cd27ea9994e68c6419e81679f654d6fd1ef169bc9d4266250
+original_evidence:
+  collection_report:
+    path: data/research/star200/m2-star200-v1/collection_report.json
+    sha256: 40c4c71a843b770d76217c52a88fbaa33ce8e89366dd9cde19a41243565f9bd5
+  discovery_report:
+    path: data/research/star200/m2-star200-v1/official-discovery-85daceb5fba7.json
+    sha256: 85daceb5fba7fdc41899cf6c6880216f0695463831587b34d1055afcdef77cf4
+  quality_report:
+    path: data/research/star200/m2-star200-v1/quality_report_recovery_v1.json
+    sha256: affe9bc2b41ed5e4b3c1891dbc455feae52088c50ade9b21cd284854068e58a1
+  tracked_manifest:
+    path: config/m2_star200_manifest_recovery_v1.json
+    sha256: aa6c6ba40296a8a1a074c3437085abf80bf7a6698cc04ac2aa9a40f3307b399f
+original_target_batch:
+  batch_id: 33aa80a00744
+  row_count: 0
+  content_sha256: 4d83ccdf175fc9ed59d5e06d441fa58da65728622c80e3456bcf9caa9d7c899c
+target_request:
+  api_name: index_weight
+  index_code: 000699.SH
+  start_date: "20260701"
+  end_date: "20260731"
+  fields: index_code,con_code,trade_date,weight
+  partition_name: 2026-07
+  immediate_double_query_required: true
+  maximum_query_count: 2
+  bse_row_count_maximum: 0
+evidence_reuse:
+  total_request_count: 27
+  reused_request_count: 26
+  refreshed_request_count: 1
+  old_request_files_must_rehash: true
+official_refresh:
+  discovery_end_date: "2026-08-04"
+  raw_source_root: data/research/star200/m2-star200-data-recovery-v2/official_sources
+  full_archive_rescan_from_launch: true
+  old_official_cache_reuse: false
+outputs:
+  root: data/research/star200/m2-star200-data-recovery-v2
+  effective_protocol: data/research/star200/m2-star200-data-recovery-v2/effective_protocol.yaml
+  collection_report: data/research/star200/m2-star200-data-recovery-v2/collection_report.json
+  quality_report: data/research/star200/m2-star200-data-recovery-v2/quality_report.json
+  tracked_manifest: config/m2_star200_manifest_recovery_v2.json
+factor_results_inspected: false
+llm_execution_authorized: false
+production_authorization: none
