@@ -17,7 +17,7 @@ from shaiwei.config import PROJECT_ROOT
 from shaiwei.release_guard import GuardEnvironment, SchedulerIdentity
 
 
-PROTOCOL_PATH = PROJECT_ROOT / "config" / "daily_early_readiness_release_guard_v1.yaml"
+PROTOCOL_PATH = PROJECT_ROOT / "config" / "daily_early_readiness_release_guard_v2.yaml"
 
 
 class GuardError(RuntimeError):

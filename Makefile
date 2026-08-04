@@ -205,7 +205,7 @@ docker-release-start: ## 启动已提升的 current 镜像并验收挂载/快照
 	$(PYTHON) -m shaiwei.release start
 docker-release-guard: ## 只在冻结日期/时窗和精确身份门通过时单次启动 Top20 候选
 	$(PYTHON) -m shaiwei.release_guard --execute
-docker-early-release-guard: ## 只在冻结20260804窗口原子提升并启动早探测候选
+docker-early-release-guard: ## 只在冻结20260805窗口原子提升并启动早探测候选
 	$(PYTHON) -m shaiwei.daily_early_release_guard --execute
 docker-release-status: ## 校验本地发布状态与哈希链审计
 	$(PYTHON) -m shaiwei.release status

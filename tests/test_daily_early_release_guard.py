@@ -10,7 +10,8 @@ from shaiwei import release
 from shaiwei.release_guard import SchedulerIdentity
 
 
-PROTOCOL = Path(__file__).parents[1] / "config" / "daily_early_readiness_release_guard_v1.yaml"
+LEGACY_PROTOCOL = Path(__file__).parents[1] / "config" / "daily_early_readiness_release_guard_v1.yaml"
+PROTOCOL = Path(__file__).parents[1] / "config" / "daily_early_readiness_release_guard_v2.yaml"
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 
 
@@ -113,10 +114,10 @@ def local(day, hour, minute=0):
 @pytest.mark.parametrize(
     ("now", "message"),
     [
-        (local(3, 17), "target date"),
-        (local(4, 16, 4), "not opened"),
-        (local(4, 19), "expired"),
-        (local(5, 16, 5), "target date"),
+        (local(4, 17), "target date"),
+        (local(5, 16, 4), "not opened"),
+        (local(5, 19), "expired"),
+        (local(6, 16, 5), "target date"),
     ],
 )
 def test_time_boundary_blocks_before_any_mutation(now, message):
@@ -147,7 +148,7 @@ def test_time_boundary_blocks_before_any_mutation(now, message):
         ),
         (lambda env: env.ready.update(mode="SAME_RELEASE_RESTART"), "readiness mode"),
         (
-            lambda env: env.ready.update(available_new_trade_dates=["20260804", "20260805"]),
+            lambda env: env.ready.update(available_new_trade_dates=["20260805", "20260806"]),
             "single frozen target",
         ),
     ],
@@ -156,7 +157,7 @@ def test_preconditions_fail_closed_without_mutation(mutate, message):
     env = FakeEnvironment()
     mutate(env)
     with pytest.raises(guard.GuardError, match=message):
-        guard.run_guard(env.protocol, now=local(4, 16, 5), execute=True, environment=env)
+        guard.run_guard(env.protocol, now=local(5, 16, 5), execute=True, environment=env)
     assert (env.promote_calls, env.start_calls, env.rollback_calls) == (0, 0, 0)
 
 
@@ -164,7 +165,7 @@ def test_unrecognized_release_transition_state_is_blocked():
     env = FakeEnvironment()
     env.current["image_id"] = "sha256:" + "1" * 64
     with pytest.raises(guard.GuardError, match="authorized transition state"):
-        guard.run_guard(env.protocol, now=local(4, 16, 5), execute=True, environment=env)
+        guard.run_guard(env.protocol, now=local(5, 16, 5), execute=True, environment=env)
     assert env.promote_calls == 0
 
 
@@ -172,7 +173,7 @@ def test_dry_run_is_ready_without_mutation():
     env = FakeEnvironment()
     result = guard.run_guard(
         env.protocol,
-        now=local(4, 16, 5),
+        now=local(5, 16, 5),
         execute=False,
         environment=env,
     )
@@ -186,7 +187,7 @@ def test_fresh_execute_promotes_and_starts_exactly_once():
     env = FakeEnvironment()
     result = guard.run_guard(
         env.protocol,
-        now=local(4, 16, 5),
+        now=local(5, 16, 5),
         execute=True,
         environment=env,
     )
@@ -204,7 +205,7 @@ def test_exact_candidate_already_active_is_idempotent():
     env.running = env._running(env.candidate, "candidate-container")
     result = guard.run_guard(
         env.protocol,
-        now=local(4, 16, 5),
+        now=local(5, 16, 5),
         execute=True,
         environment=env,
     )
@@ -219,7 +220,7 @@ def test_promoted_but_old_running_resumes_start_once():
     env.previous = deepcopy(env.old)
     result = guard.run_guard(
         env.protocol,
-        now=local(4, 16, 5),
+        now=local(5, 16, 5),
         execute=True,
         environment=env,
     )
@@ -232,7 +233,7 @@ def test_failed_fresh_promotion_restarts_restored_old_release():
     env = FakeEnvironment()
     env.promote_error = True
     with pytest.raises(guard.GuardError, match="previous release restored"):
-        guard.run_guard(env.protocol, now=local(4, 16, 5), execute=True, environment=env)
+        guard.run_guard(env.protocol, now=local(5, 16, 5), execute=True, environment=env)
     assert (env.promote_calls, env.start_calls, env.rollback_calls) == (1, 1, 0)
     assert env.current == env.old
     assert env.running.image_id == env.old["image_id"]
@@ -245,7 +246,7 @@ def test_failed_resumed_start_rolls_back_and_starts_old_release():
     env.previous = deepcopy(env.old)
     env.start_error = True
     with pytest.raises(guard.GuardError, match="previous release restored"):
-        guard.run_guard(env.protocol, now=local(4, 16, 5), execute=True, environment=env)
+        guard.run_guard(env.protocol, now=local(5, 16, 5), execute=True, environment=env)
     assert (env.promote_calls, env.start_calls, env.rollback_calls) == (0, 1, 1)
     assert env.current == env.old
     assert env.running.image_id == env.old["image_id"]
@@ -256,7 +257,7 @@ def test_failed_promotion_and_failed_restoration_report_both_failures():
     env.promote_error = True
     env.start_error = True
     with pytest.raises(guard.GuardError, match="restoration also failed"):
-        guard.run_guard(env.protocol, now=local(4, 16, 5), execute=True, environment=env)
+        guard.run_guard(env.protocol, now=local(5, 16, 5), execute=True, environment=env)
     assert (env.promote_calls, env.start_calls, env.rollback_calls) == (1, 1, 0)
 
 
@@ -272,13 +273,35 @@ def test_protocol_rejects_unknown_fields_and_incomplete_accounts():
         guard.GuardProtocol.model_validate(document)
 
 
-def test_protocol_is_bound_to_august_4_and_the_built_candidate():
+def test_protocol_is_bound_to_august_5_and_the_built_candidate():
     protocol = guard.load_protocol()
-    assert protocol.target_trade_date == "20260804"
+    assert guard.PROTOCOL_PATH == PROTOCOL
+    assert protocol.target_trade_date == "20260805"
     assert protocol.window.not_before.isoformat() == "16:05:00"
     assert protocol.window.expires_at.isoformat() == "19:00:00"
     assert protocol.candidate.image == "shaiwei:scheduler-0640574ba7353c3e"
-    assert {item.account_id for item in protocol.expected_latest_forward} == {
-        "model_baseline",
-        "model_top20",
+    assert {
+        item.account_id: (item.execution_trade_date, item.artifact_sha256)
+        for item in protocol.expected_latest_forward
+    } == {
+        "model_baseline": (
+            "20260804",
+            "691987e0fdc3cae0fed405d6d6e7eb9c50c1e49d0404a46f31de408be472e89f",
+        ),
+        "model_top20": (
+            "20260804",
+            "26de5b7fcaa0682e3e8d47a4c4120f685dbe8766b30189303f37d75a81abafec",
+        ),
+    }
+
+
+def test_august_4_protocol_remains_loadable_and_unchanged():
+    legacy = guard.load_protocol(LEGACY_PROTOCOL)
+    assert legacy.guard_id == "daily-early-readiness-release-guard-20260804"
+    assert legacy.target_trade_date == "20260804"
+    assert {
+        item.account_id: item.artifact_sha256 for item in legacy.expected_latest_forward
+    } == {
+        "model_baseline": "ff8ddb0beb9e468611bdc527e3c0ee8c4dda08da3bef4ebd043328e91f671235",
+        "model_top20": "f0c4eae56bd4f90bd3ea5578c014f8a024d2df9aa796b38e60b56e5de2c326fc",
     }
