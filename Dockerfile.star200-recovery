@@ -1,0 +1,21 @@
+# One-off M2-0R2 research runner. It is never promoted to the production scheduler.
+FROM shaiwei:scheduler-current
+
+ARG SHAIWEI_RELEASE_GIT_HEAD=""
+
+USER root
+RUN apt-get -o Acquire::Retries=5 update \
+    && apt-get -o Acquire::Retries=5 install --yes --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+COPY src ./src
+COPY config ./config
+COPY tools ./tools
+COPY tests ./tests
+
+ENV SHAIWEI_RELEASE_GIT_HEAD=${SHAIWEI_RELEASE_GIT_HEAD}
+
+RUN python -m compileall -q src tools
+
+CMD ["python", "-m", "tools.official_index_lineage.recovery"]

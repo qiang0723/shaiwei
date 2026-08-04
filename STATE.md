@@ -20,6 +20,9 @@
   采集、官方解析、PIT门槛与生产路径未改。全仓572 PASS，Ruff、compileall、pip check通过。
 - 本节点仍未执行真实Tushare查询或官方联网重扫、未读取因子/策略结果。须先提交推送本实现，再以
   该固定代码身份执行唯一联网恢复；执行前原27项最新证据仍与M2-0原collection逐项一致。
+- 断网容器预检发现当前生产scheduler镜像不含官方抓取所需`curl`；未改生产Dockerfile/镜像，改用
+  专属一次性`Dockerfile.star200-recovery`在旧只读运行时上只增加`curl`并复制当前研究代码。该镜像
+  不进入release审计、不promote、不启动常驻服务，真实运行仍为非root/只读根/最小挂载。
 
 ## 2026-08-04 · P0-E 20260805恢复发布守护预执行GO
 
