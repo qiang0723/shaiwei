@@ -1,0 +1,35 @@
+schema_version: m4-star50-residual-execution-release-v1
+release_id: m4-star50-residual-first-data-gate-v1
+prepared_at: "2026-08-04T22:47:40+08:00"
+status: FROZEN_FIRST_REAL_FEATURE_CONSTRUCTION_RELEASE
+protocol_path: config/m4_star50_residual_factor_v1.yaml
+protocol_sha256: a404e32a581cb80534cd8859b4909d275d5fefb8977bcd920051c8ab2da527ab
+implementation_git_head: e9f195cc1da6047952d6d1d8c6cd5fb773370ec7
+code_bundle_sha256: a4a5bd4ab5bf2fa3b9a22b181bf9ee524e19c1e554aefe782536f4e9703d2b3a
+execution_authorized: true
+provider_calls_authorized: false
+api_key_read_authorized: false
+label_read_authorized: false
+sealed_validation_read_authorized: false
+factor_effect_or_rank_ic_authorized: false
+model_backtest_portfolio_signal_authorized: false
+production_authorization: none
+
+runtime:
+  execution_count: one_then_idempotency_replay
+  network_mode: none
+  env_file_mounted: false
+  nonroot: true
+  read_only_root: true
+  input_mount_read_only: true
+  output_mount_only_result_root_read_write: true
+  scheduler_restart_or_rebuild: false
+  high_load_tasks_serial: true
+
+required_after_run:
+  independent_output_audit: true
+  second_run_zero_change: true
+  full_test_ruff_compile_dependency_diff_checks: true
+  desensitization_scan: true
+  tracked_manifest_and_acceptance_required: true
+
