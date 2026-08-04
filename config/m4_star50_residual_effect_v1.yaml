@@ -1,0 +1,204 @@
+schema_version: m4-star50-residual-effect-protocol-v1
+protocol_id: m4-star50-benchmark-residual-effect-v1
+prepared_at: "2026-08-04T23:30:50+08:00"
+status: RESULT_BEFORE_EFFECT_PROTOCOL_FROZEN
+production_authorization: none
+strategy_results_inspected: false
+
+scope:
+  purpose: star50_fixed_residual_candidate_historical_effect_gate
+  candidate_formula_or_direction_change_authorized: false
+  label_and_rank_ic_read_authorized_after_release: true
+  sealed_validation_read_authorized_after_release: true
+  alpha158_prediction_reuse_authorized_after_release: true
+  model_training_authorized: false
+  deepseek_or_external_api_authorized: false
+  production_signal_or_paper_portfolio_authorized: false
+  scheduler_web_or_production_changes: false
+
+identity:
+  research_family: m4-star50-benchmark-residual-effect-v1
+  universe_id: star50-official-pit-v2
+  benchmark_id: star50-000688
+  benchmark_source_code: 000688.SH
+  result_root: data/research/m4/m4-star50-benchmark-residual-effect-v1
+  effect_report: data/research/m4/m4-star50-benchmark-residual-effect-v1/effect_report.json
+  run_ledger: ledger/m4_star50_residual_effect_runs.csv
+  decision_ledger: ledger/m4_star50_residual_effect_decisions.csv
+  tracked_manifest: config/m4_star50_residual_effect_manifest_v1.json
+
+upstream_contract:
+  m4_data_protocol_path: config/m4_star50_residual_factor_v1.yaml
+  m4_data_protocol_sha256: a404e32a581cb80534cd8859b4909d275d5fefb8977bcd920051c8ab2da527ab
+  m4_data_manifest_path: config/m4_star50_residual_factor_manifest_v1.json
+  m4_data_manifest_sha256: 0d972c6daa68dbf4beb101c460cb235bd6d62c5df33bfa9e65ceedb2f7e0c8dc
+  m4_discovery_feature_path: data/research/m4/m4-star50-benchmark-residual-v1/residual_features.parquet
+  m4_discovery_feature_sha256: de108fc22ca747a50376cd789f23e34d49b8fcaa00bfbe37bf549f09fe44a377
+  m4_quality_report_path: data/research/m4/m4-star50-benchmark-residual-v1/quality_report.json
+  m4_quality_report_sha256: 0b3111686c21d9e5535cd66458816086d775731db79f640179c45b807a0dda58
+  p2_engineering_manifest_path: config/p2_star50_engineering_manifest_v1.json
+  p2_engineering_manifest_sha256: 4e946aa7d3e3c3da31ca8ad700bee2587a189dddfcf62b83054bc6804c163986
+  official_member_days_path: data/research/star50/p2-star50-engineering-v1/dataset/member_days.parquet
+  official_member_days_sha256: a6fb10532bba9de9504fc4be0bfe6e45e50621a761ae29fbaa1cf9ba39356061
+  market_path: data/research/star50/p2-star50-engineering-v1/dataset/market.parquet
+  market_sha256: a1e1d99a9de8cce0dada33389f3588d96ec6e1ecd5f5a1738e7105353901c289
+  benchmark_path: data/research/star50/p2-star50-engineering-v1/dataset/benchmark.parquet
+  benchmark_sha256: e659bcbc042fb56bd50482428daa8eb88dfc8bb674d91d7b4551a07e8a945c42
+  p2_correction_protocol_path: config/p2_star50_effect_correction_v1.yaml
+  p2_correction_protocol_sha256: 232e1a4c2effd9f1925e7fb326a88aeb689ee07829a275aa72cea544e0bf2eb5
+  p2_correction_manifest_path: config/p2_star50_effect_correction_manifest_v1.json
+  p2_correction_manifest_sha256: 155ca8b4cdda2166118e6f4f0b6247f3b326d86e4b0e24a7d8d930343fb356a8
+  corrected_executor_path: tools/p2_star50_effect_correction/executor.py
+  corrected_executor_sha256: d8dbdb8bf0706af86757a853602c70dc4e7b5f73a901de1ea8f4045165bc9679
+  corrected_prediction_inputs:
+    - {window: STAR-W1, purpose: test_2023, path: data/research/star50/p2-star50-effect-correction-v1/first_pass/models/STAR-W1/test_predictions.parquet, sha256: 66025a49f973f881a197e6c599b7c7e1aaf2cf9ef8d7ba6241ad44e696b55037, rows: 12100}
+    - {window: STAR-W2, purpose: test_2024, path: data/research/star50/p2-star50-effect-correction-v1/first_pass/models/STAR-W2/test_predictions.parquet, sha256: 6345ce9c5c0d43c68865ff0e6c08f52269efdbfa734aee0a1c0d0435ac4a6469, rows: 12100}
+    - {window: STAR-W3, purpose: test_2025, path: data/research/star50/p2-star50-effect-correction-v1/first_pass/models/STAR-W3/test_predictions.parquet, sha256: cbb5ef568e7d13a6f561bdaf97bcc18172280a0b5cf2b6b2b2700b54fd2658c5, rows: 12150}
+    - {window: STAR-W1, purpose: pressure_2023, path: data/research/star50/p2-star50-effect-correction-v1/first_pass/models/STAR-W1/pressure_predictions.parquet, sha256: fbdbc517fb20c80c7b18340ca7291223e03dc36a0b4c8b7672f49e8a9d7da5e3, rows: 1750}
+    - {window: STAR-W2, purpose: pressure_2024, path: data/research/star50/p2-star50-effect-correction-v1/first_pass/models/STAR-W2/pressure_predictions.parquet, sha256: a9548de964da312695e41308bde74d81e5d32290c1f70dba6d4140ecc05318a2, rows: 1400}
+    - {window: STAR-W3, purpose: pressure_2026h1, path: data/research/star50/p2-star50-effect-correction-v1/first_pass/models/STAR-W3/pressure_predictions.parquet, sha256: 7d60c5b406145797fcc6023f958483ac42c028209c00cf4f72eac1f5b91fca0a, rows: 5800}
+
+candidates:
+  - candidate_id: residual_momentum_35_skip5
+    orientation: 1
+    expression_tokens: 8
+    ast_nodes: 7
+    economic_rationale: firm-specific intermediate-horizon returns may persist after removing common STAR50 movement
+  - candidate_id: residual_reversal_5
+    orientation: 1
+    expression_tokens: 7
+    ast_nodes: 6
+    economic_rationale: recent firm-specific price pressure may partially reverse over the next holding horizon
+  - candidate_id: negative_idiosyncratic_volatility_40
+    orientation: 1
+    expression_tokens: 3
+    ast_nodes: 2
+    economic_rationale: lower firm-specific volatility may be rewarded after controlling for common STAR50 risk
+
+feature_and_label_clock:
+  discovery: ["2020-08-03", "2022-12-15"]
+  extension_end: "2026-06-30"
+  input_warmup_start: "2020-05-07"
+  feature_clock: signal_date_close
+  label: next_open_to_t_plus_11_open
+  label_formula: open_on_next_official_trade_day_to_open_ten_trading_days_later
+  label_horizon_trade_days: 10
+  label_requires_both_adjusted_open_values: true
+  member_at_signal_date_required: true
+  future_membership_or_feature_rows_forbidden: true
+  bse_suffix_forbidden: .BJ
+  m4_formula_window_and_missing_policy_unchanged: true
+
+neutralization:
+  daily_cross_section_winsorize_quantiles: [0.01, 0.99]
+  daily_zscore_ddof: 0
+  intercept: true
+  minimum_cross_section: 30
+  discovery_and_pressure_core_controls: [pit_sw_l1_industry, log_total_market_cap]
+  sealed_oos_incremental_controls: [pit_sw_l1_industry, log_total_market_cap, frozen_alpha158_score]
+  industry_clock: signal_date_pit
+  total_market_cap_clock: signal_date_close
+  alpha158_prediction_clock: signal_date_close
+  missing_control_policy: exclude_row
+  candidate_direction_flip_forbidden: true
+
+evaluation:
+  adapted_universe_gate_id: m4-star50-six-halfyear-effect-v1
+  formal_g1_v1_status: NOT_RUN_UNIVERSE_WINDOW_DOMAIN_MISMATCH
+  formal_g1_v1_reason: star50_official_pit_history_cannot_cover_frozen_2019_to_2024_g1_windows
+  oos_windows:
+    - {name: STAR-H1-2023, start: "2023-01-03", end: "2023-06-30", alpha158_window: STAR-W1}
+    - {name: STAR-H2-2023, start: "2023-07-03", end: "2023-12-29", alpha158_window: STAR-W1}
+    - {name: STAR-H1-2024, start: "2024-01-02", end: "2024-06-28", alpha158_window: STAR-W2}
+    - {name: STAR-H2-2024, start: "2024-07-01", end: "2024-12-31", alpha158_window: STAR-W2}
+    - {name: STAR-H1-2025, start: "2025-01-02", end: "2025-06-30", alpha158_window: STAR-W3}
+    - {name: STAR-H2-2025, start: "2025-07-01", end: "2025-12-31", alpha158_window: STAR-W3}
+  pressure_periods:
+    - {name: star_2023_drawdown, start: "2023-08-28", end: "2023-10-23", alpha158_input_purpose: pressure_2023}
+    - {name: microcap_2024, start: "2024-01-02", end: "2024-02-08", alpha158_input_purpose: pressure_2024}
+    - {name: volume_price_2026h1, start: "2026-01-01", end: "2026-06-30", alpha158_input_purpose: pressure_2026h1}
+  minimum_daily_rank_ic_observations_discovery: 252
+  minimum_daily_rank_ic_observations_oos_total: 252
+  minimum_daily_rank_ic_observations_each_halfyear: 60
+  minimum_positive_oriented_rank_ic_windows: 4
+  minimum_mean_oos_to_discovery_rank_ic_retention: 0.50
+  newey_west_lags: 10
+  minimum_newey_west_t: 3.0
+  maximum_stress_drawdown: 0.20
+
+portfolio:
+  inherited_execution_contract: p2-star50-effect-correction-v1
+  account_rmb: 100000000
+  topk: 10
+  n_drop: 2
+  rebalance_trade_days: 10
+  deal_price: open
+  weighting: equal_weight
+  baseline_weight: 0.90
+  candidate_weight: 0.10
+  blend_method: daily_cross_section_percentile_rank
+  each_oos_halfyear_and_pressure_starts_with_cash: true
+  scenarios:
+    base: {cost_multiplier: 1.0, extra_slippage_each_side: 0.0}
+    cost_2x: {cost_multiplier: 2.0, extra_slippage_each_side: 0.0}
+    extra_10bp_each_side: {cost_multiplier: 1.0, extra_slippage_each_side: 0.001}
+  stress_signal: oriented_incremental_residual_candidate_standalone
+
+adapted_effect_gates:
+  pit_and_shift_sentinels_required: true
+  maximum_expression_tokens: 20
+  maximum_ast_nodes: 80
+  minimum_economic_rationale_chars: 20
+  maximum_existing_library_abs_spearman: 0.50
+  empty_formal_library_policy: pass_with_zero_and_explicit_empty_state
+  maximum_turnover_ratio_to_alpha158: 1.10
+  candidate_net_icir_must_exceed_alpha158: true
+  candidate_base_net_excess_must_exceed_alpha158: true
+  candidate_cost_2x_net_excess_minimum: 0.0
+  candidate_extra_10bp_net_excess_minimum: 0.0
+  minimum_valid_same_family_selection_sharpes: 2
+  minimum_deflated_sharpe_probability: 0.95
+  same_family_trial_count: 3
+  global_related_attempt_count_sensitivity: 273
+  global_273_sensitivity_is_diagnostic_not_verdict: true
+  all_gates_required_per_candidate: true
+  overall_go_requires_at_least_one_candidate_pass: true
+
+decision_contract:
+  direction_failure_stops_candidate_before_oos_read: true
+  no_candidate_replacement_or_direction_flip: true
+  verdict_on_any_candidate_pass: GO_REVIEW_ONLY
+  verdict_on_no_candidate_pass: REJECT
+  formal_g1_library_insertions: 0
+  adapted_gate_pass_does_not_equal_g1_v1_admission: true
+  historical_go_does_not_authorize_forward_or_production: true
+  strategy_effective_on_go: HISTORICAL_CANDIDATE_FOR_SEPARATE_FORWARD_REVIEW
+  strategy_effective_on_failure: REJECT
+  production_authorization: none
+
+research_multiplicity:
+  fixed_candidate_count: 3
+  related_price_volume_attempt_background: 273
+  no_reset_after_result: true
+  variants_seeds_weights_windows_or_threshold_changes_forbidden: true
+
+pre_execution:
+  implementation_and_tests_must_be_committed_and_pushed_before_effect_read: true
+  separate_execution_release_must_bind_protocol_and_code_bundle: true
+  git_head_must_equal_origin_main: true
+  git_worktree_must_be_clean: true
+  verify_all_input_hashes_before_and_after_run: true
+  deterministic_full_replay_count: 1
+  network_requests: 0
+  api_key_read: false
+  execute_high_load_tasks_serially: true
+
+prohibited_actions:
+  - modify_m4_candidate_formula_direction_or_40_of_60_missing_policy
+  - retrain_or_retune_alpha158
+  - change_oos_windows_costs_weights_or_gates_after_result
+  - use_formal_g1_v1_name_for_the_adapted_star50_gate
+  - insert_into_formal_factor_library
+  - create_production_or_paper_signals
+  - modify_scheduler_web_settings_models_or_production_ledgers
+  - call_deepseek_or_any_external_api
