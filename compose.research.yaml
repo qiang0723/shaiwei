@@ -1378,3 +1378,84 @@ services:
       - /workspace/config/f2_csi800_fundamental_effect_v1.yaml
       - --stage
       - residual
+
+  m4-star50-residual-effect:
+    image: shaiwei:m4-star50-residual-effect-v1
+    pull_policy: never
+    profiles: [m4-star50-residual-effect]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_M4_EFFECT_RELEASE_GIT_HEAD:-}
+    init: true
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=1g,mode=1777
+    pids_limit: 192
+    mem_limit: 8g
+    cpus: 4.0
+    environment:
+      HOME: /tmp
+      MPLCONFIGDIR: /tmp/matplotlib
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+    volumes:
+      - type: bind
+        source: ./tools
+        target: /workspace/tools
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data
+        target: /workspace/data
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/m4/m4-star50-benchmark-residual-effect-v1
+        target: /workspace/data/research/m4/m4-star50-benchmark-residual-effect-v1
+        read_only: false
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger
+        target: /workspace/ledger
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/m4_star50_residual_effect_runs.csv
+        target: /workspace/ledger/m4_star50_residual_effect_runs.csv
+        read_only: false
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/m4_star50_residual_effect_decisions.csv
+        target: /workspace/ledger/m4_star50_residual_effect_decisions.csv
+        read_only: false
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./config/m4_star50_residual_effect_execution_v1.yaml
+        target: /workspace/config/m4_star50_residual_effect_execution_v1.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.star50_residual_effect.run
+      - --protocol
+      - /workspace/config/m4_star50_residual_effect_v1.yaml
+      - --execution-release
+      - /workspace/config/m4_star50_residual_effect_execution_v1.yaml
