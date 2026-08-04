@@ -1,0 +1,67 @@
+{
+  "artifacts": {
+    "quality_report": {
+      "path": "data/research/m4/m4-star50-benchmark-residual-v1/quality_report.json",
+      "sha256": "0b3111686c21d9e5535cd66458816086d775731db79f640179c45b807a0dda58"
+    },
+    "residual_features": {
+      "path": "data/research/m4/m4-star50-benchmark-residual-v1/residual_features.parquet",
+      "row_count": 28838,
+      "sha256": "de108fc22ca747a50376cd789f23e34d49b8fcaa00bfbe37bf549f09fe44a377"
+    }
+  },
+  "candidate_count": 3,
+  "candidate_coverage": {
+    "negative_idiosyncratic_volatility_40": 1.0,
+    "residual_momentum_35_skip5": 1.0,
+    "residual_reversal_5": 1.0
+  },
+  "code_bundle_sha256": "a4a5bd4ab5bf2fa3b9a22b181bf9ee524e19c1e554aefe782536f4e9703d2b3a",
+  "execution": {
+    "execution_release_path": "config/m4_star50_residual_execution_v1.yaml",
+    "execution_release_sha256": "4e6bc62d9103aed383f66d69731e1a1e708945bb8d9b5a0c47a29a1faceda634",
+    "implementation_git_head": "e9f195cc1da6047952d6d1d8c6cd5fb773370ec7",
+    "research_image_id": "sha256:6cfc8b9363679dc30f0dacf8dbde57aac9987403905d257e295f319d66f48df5",
+    "runtime_git_head": "3177e4b7f9e4b5047083b684f66bffc185399ea3"
+  },
+  "feature_gate": {
+    "bse_row_count": 0,
+    "coverage_denominator_count": 28838,
+    "duplicate_feature_key_count": 0,
+    "full_member_day_structural_coverage": 0.9995840554592721,
+    "member_day_count": 28850,
+    "minimum_daily_finite_count_each": 49,
+    "nonfinite_persisted_value_count": 0,
+    "signal_trade_day_count": 577
+  },
+  "idempotency": {
+    "artifact_reused_second_run": true,
+    "feature_sha256_unchanged": true,
+    "quality_report_reused_second_run": true,
+    "quality_report_sha256_unchanged": true
+  },
+  "independent_audit": {
+    "canonical_sha256": "37325de0000b2f52ffdfac044e89571c2ab6229ba6ae615ed5f25539bf2f1dbb",
+    "status": "PASS"
+  },
+  "input_boundary": {
+    "benchmark_input_row_count": 637,
+    "market_input_row_count": 54412,
+    "maximum_input_date": "20221215",
+    "member_days_excluded_from_denominator": 12,
+    "member_days_excluded_full_day_suspension": 12
+  },
+  "provider_calls": 0,
+  "api_key_read": false,
+  "label_read": false,
+  "sealed_validation_read": false,
+  "production_authorization": "none",
+  "protocol_path": "config/m4_star50_residual_factor_v1.yaml",
+  "protocol_sha256": "a404e32a581cb80534cd8859b4909d275d5fefb8977bcd920051c8ab2da527ab",
+  "research_family": "m4-star50-benchmark-residual-v1",
+  "schema_version": "m4-star50-residual-factor-manifest-v1",
+  "strategy_effective": "NOT_EVALUATED",
+  "strategy_results_inspected": false,
+  "verdict": "GO_M4_STAR50_RESIDUAL_DATA_PREEXECUTION_ONLY"
+}
+
