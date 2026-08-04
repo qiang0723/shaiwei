@@ -1,0 +1,128 @@
+schema_version: m4-star50-residual-factor-protocol-v1
+protocol_id: m4-star50-benchmark-residual-v1
+prepared_at: "2026-08-04T22:37:07+08:00"
+status: RESULT_BEFORE_DATA_PREEXECUTION_PROTOCOL_FROZEN
+production_authorization: none
+strategy_results_inspected: false
+
+scope:
+  purpose: star50_benchmark_residual_factor_data_and_preexecution_gate
+  data_and_feature_construction_only: true
+  factor_effect_or_rank_ic_authorized: false
+  label_read_authorized: false
+  sealed_validation_read_authorized: false
+  llm_or_external_api_authorized: false
+  model_backtest_portfolio_signal_authorized: false
+  scheduler_or_web_changes: false
+
+identity:
+  research_family: m4-star50-benchmark-residual-v1
+  universe_id: star50-official-pit-v2
+  benchmark_id: star50-000688
+  benchmark_source_code: 000688.SH
+  result_root: data/research/m4/m4-star50-benchmark-residual-v1
+  feature_artifact: data/research/m4/m4-star50-benchmark-residual-v1/residual_features.parquet
+  quality_report: data/research/m4/m4-star50-benchmark-residual-v1/quality_report.json
+  tracked_manifest: config/m4_star50_residual_factor_manifest_v1.json
+
+upstream_contract:
+  registry_path: config/m1_multi_universe_v1.yaml
+  registry_sha256: 964631891a69b4ed2a6c697066a89300910b620d3c71acdf65803248900c4274
+  required_universe_permission: FREEZE_NEW_FACTOR_PROTOCOL
+  p2_engineering_manifest_path: config/p2_star50_engineering_manifest_v1.json
+  p2_engineering_manifest_sha256: 4e946aa7d3e3c3da31ca8ad700bee2587a189dddfcf62b83054bc6804c163986
+  official_member_days_path: data/research/star50/p2-star50-engineering-v1/dataset/member_days.parquet
+  official_member_days_sha256: a6fb10532bba9de9504fc4be0bfe6e45e50621a761ae29fbaa1cf9ba39356061
+  market_path: data/research/star50/p2-star50-engineering-v1/dataset/market.parquet
+  market_sha256: a1e1d99a9de8cce0dada33389f3588d96ec6e1ecd5f5a1738e7105353901c289
+  benchmark_path: data/research/star50/p2-star50-engineering-v1/dataset/benchmark.parquet
+  benchmark_sha256: e659bcbc042fb56bd50482428daa8eb88dfc8bb674d91d7b4551a07e8a945c42
+
+data_clock:
+  discovery_signal_period: ["2020-08-03", "2022-12-15"]
+  expected_signal_trade_days: 577
+  expected_official_members_per_day: 50
+  expected_member_days: 28850
+  input_warmup_start: "2020-05-07"
+  endpoint_window_trade_days: 60
+  regression_observations_exact: 40
+  signal_clock: signal_day_close
+  stock_return: adjusted_close_log_return_between_consecutive_available_stock_bars
+  benchmark_return: benchmark_close_log_return_over_the_same_stock_bar_endpoints
+  suspension_policy: no_fill_trade_to_trade_interval
+  interval_start_and_end_must_be_within_endpoint_window: true
+  signal_day_market_bar_required_for_coverage_denominator: true
+  pit_industry_and_positive_total_market_cap_required_for_coverage_denominator: true
+  future_rows_and_labels_forbidden: true
+  bse_suffix_forbidden: .BJ
+
+regression_contract:
+  model: single_index_ols_with_intercept
+  dependent_variable: stock_interval_log_return
+  independent_variable: star50_benchmark_same_interval_log_return
+  observations: latest_40_valid_intervals_within_60_benchmark_trade_days
+  benchmark_variance_minimum: 1.0e-12
+  residual_scale_minimum: 1.0e-12
+  beta_adjusted_return: stock_return_minus_beta_times_benchmark_return
+  alpha_excluded_from_momentum_and_reversal_signal: true
+  ols_residual_includes_alpha_for_idiosyncratic_volatility: true
+  deterministic_float_precision: float64
+
+candidates:
+  - candidate_id: residual_momentum_35_skip5
+    formula: sum(beta_adjusted_return_oldest_35) / ols_residual_std_40
+    orientation: higher_is_hypothesized_better
+    mechanism: firm_specific_intermediate_return_persistence
+  - candidate_id: residual_reversal_5
+    formula: -sum(beta_adjusted_return_latest_5) / ols_residual_std_40
+    orientation: higher_is_hypothesized_better
+    mechanism: correction_of_recent_firm_specific_price_pressure
+  - candidate_id: negative_idiosyncratic_volatility_40
+    formula: -ols_residual_std_40
+    orientation: higher_is_hypothesized_better
+    mechanism: low_idiosyncratic_volatility
+
+data_gate:
+  candidate_count_exact: 3
+  candidate_coverage_minimum_each: 0.90
+  minimum_finite_candidates_per_signal_day_each: 30
+  duplicate_feature_key_count_maximum: 0
+  nonfinite_persisted_values_maximum: 0
+  bse_row_count_maximum: 0
+  source_hashes_must_match: true
+  repeat_run_artifact_hashes_must_match: true
+  verdict_on_pass: GO_M4_STAR50_RESIDUAL_DATA_PREEXECUTION_ONLY
+  verdict_on_failure: NO_GO_M4_STAR50_RESIDUAL_DATA_PREEXECUTION
+
+research_multiplicity:
+  new_fixed_candidates: 3
+  related_price_volume_attempt_background_before: 270
+  related_price_volume_attempt_background_after: 273
+  future_family_N_minimum: 3
+  future_global_273_sensitivity_required: true
+  candidate_variants_or_direction_flips_forbidden: true
+
+future_effect_boundary:
+  label_id_if_separately_authorized: next_open_to_t_plus_11_open
+  horizon_trade_days: 10
+  sealed_validation_period: ["2023-01-03", "2025-12-31"]
+  pit_neutralization_if_separately_authorized: [pit_sw_l1_industry, log_total_market_cap]
+  compare_against_frozen_alpha158_baseline: true
+  g1_required: true
+  separate_result_before_protocol_required: true
+  no_automatic_factor_admission_or_production: true
+
+references:
+  - title: Residual Momentum
+    doi: 10.1016/j.jempfin.2011.01.003
+    url: https://repub.eur.nl/pub/22252/ResidualMomentum-2011.pdf
+  - title: Short-term residual reversal
+    doi: 10.1016/j.finmar.2012.10.005
+    url: https://www.sciencedirect.com/science/article/pii/S1386418112000468
+  - title: Residual momentum and the cross-section of stock returns - Chinese evidence
+    doi: 10.1016/j.frl.2018.07.009
+    url: https://www.sciencedirect.com/science/article/pii/S1544612318303325
+  - title: High Idiosyncratic Volatility and Low Returns - International and Further U.S. Evidence
+    doi: 10.3386/w13739
+    url: https://www.nber.org/papers/w13739
+
