@@ -1,0 +1,68 @@
+schema_version: m4-star50-residual-effect-recovery-execution-release-v1
+release_id: m4-star50-residual-effect-recovery-first-and-replay-v1
+prepared_at: "2026-08-05T00:14:46+08:00"
+status: FROZEN_SINGLE_RECOVERY_REAL_EFFECT_EXECUTION_RELEASE
+protocol_path: config/m4_star50_residual_effect_v1.yaml
+protocol_sha256: a006f62d263249cbbfb33e18de8c18fc2757a80ed145ec273c21c65b46f5a8aa
+recovery_protocol_path: config/m4_star50_residual_effect_recovery_v1.yaml
+recovery_protocol_sha256: 631608276ab3ddf3ffe0ff15d27184b750c113e7295a02c80b2e66d5fc793e3f
+invalid_original_execution_release_path: config/m4_star50_residual_effect_execution_v1.yaml
+invalid_original_execution_release_sha256: 1c051b36eec18e63dcdb0f69128092061649c0f3809a3e0290af252183deb661
+implementation_git_head: f38ad4ef1cbca9bf06d609e46f7ded5bd813d84e
+code_bundle_sha256: 5109ec5b14c899b8696d02089e0e0a80f190241572f05f485cc6ea4692833c83
+execution_authorized: true
+label_and_sealed_oos_read_authorized: true
+model_training_authorized: false
+provider_calls_authorized: false
+api_key_read_authorized: false
+production_authorization: none
+
+runtime:
+  engine: docker_one_off_recovery
+  image: shaiwei:m4-star50-residual-effect-recovery-v1
+  image_build_git_head: f38ad4ef1cbca9bf06d609e46f7ded5bd813d84e
+  execution_count: one_recovery_first_pass_plus_one_internal_determinism_replay
+  original_invalid_attempt_must_not_be_reused: true
+  network_mode: none
+  env_file_mounted: false
+  nonroot: true
+  read_only_root: true
+  tools_mount_read_only_and_hash_bound: true
+  full_data_mount_read_only: true
+  writable_result_root_only: data/research/m4/m4-star50-benchmark-residual-effect-v1
+  writable_ledgers:
+    - ledger/m4_star50_residual_effect_runs.csv
+    - ledger/m4_star50_residual_effect_decisions.csv
+  memory_limit: 8g
+  cpu_limit: 4.0
+  blas_threads: 1
+  execute_high_load_tasks_serially: true
+  scheduler_restart_or_rebuild: false
+
+required_before_run:
+  result_root_file_count: 0
+  run_ledger_data_rows: 0
+  decision_ledger_data_rows: 0
+  run_ledger_sha256: c2989a612949cbdf131b8ab6a80b53d6954dea448cee990f5f3448d6b832f293
+  decision_ledger_sha256: dce031439ad677b76ba3bf5e4534988cc7433509c3539b8c69da950a9401dd52
+  corrected_host_full_test_count: 588
+  corrected_targeted_test_count: 12
+  corrected_checks_pass: true
+  corrected_commit_pushed: true
+
+required_after_run:
+  independent_artifact_and_decision_audit: true
+  tracked_manifest_must_replace_exact_pending_placeholder: true
+  final_entrypoint_reuse_must_write_zero_new_rows_or_artifacts: true
+  full_test_ruff_compile_dependency_compose_diff_checks: true
+  desensitization_scan: true
+  acceptance_document_and_state_update_required: true
+
+forbidden:
+  - formula_direction_window_weight_cost_or_threshold_change
+  - alpha158_retraining_or_retuning
+  - network_or_secret_access
+  - scheduler_web_production_or_paper_change
+  - formal_g1_v1_admission_claim
+  - formal_factor_library_insertion
+  - more_than_one_recovery_execution
