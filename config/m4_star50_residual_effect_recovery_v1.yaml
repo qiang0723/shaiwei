@@ -1,0 +1,77 @@
+schema_version: m4-star50-residual-effect-recovery-protocol-v1
+recovery_id: m4-star50-residual-effect-index-contract-recovery-v1
+frozen_at: "2026-08-05T00:10:38+08:00"
+status: FROZEN_CORRECTION_PROTOCOL_BEFORE_RETRY
+
+authority:
+  original_protocol_path: config/m4_star50_residual_effect_v1.yaml
+  original_protocol_sha256: a006f62d263249cbbfb33e18de8c18fc2757a80ed145ec273c21c65b46f5a8aa
+  original_execution_release_path: config/m4_star50_residual_effect_execution_v1.yaml
+  original_execution_release_sha256: 1c051b36eec18e63dcdb0f69128092061649c0f3809a3e0290af252183deb661
+  original_execution_release_git_head: 528942eb36bed1c69ecc0d92f36b81ff4a1c7cb0
+  original_implementation_git_head: e45c83e73675714dec807d83ccef7a273450e7fd
+  original_image_content_id: sha256:8d3b2d3788ef194918b02e8c11d8487f538eaaa4f5452c2ba68dc1b796530c03
+  original_metrics_sha256: f5ebf788426c292787070bfd4805a6526e48789dd3775a52e3f2a9fb676dec71
+
+failed_attempt:
+  attempted_on: "2026-08-05"
+  command: make docker-m4-star50-effect
+  failure_class: KeyError
+  failure_location: src/shaiwei/research/star50_residual_effect/metrics.py:_between
+  failure_message: Requested level (datetime) does not match index name (None)
+  cause: >-
+    daily_rank_ic intentionally returns a one-dimensional Series whose DatetimeIndex has no
+    name, while _between assumed every input retained the two-level signal index and requested
+    a named datetime level.
+  effect_report_written: false
+  immutable_artifacts_written: 0
+  run_ledger_rows_before_and_after: 0
+  decision_ledger_rows_before_and_after: 0
+  run_ledger_sha256_before_and_after: c2989a612949cbdf131b8ab6a80b53d6954dea448cee990f5f3448d6b832f293
+  decision_ledger_sha256_before_and_after: dce031439ad677b76ba3bf5e4534988cc7433509c3539b8c69da950a9401dd52
+  human_effect_values_inspected: false
+  verdict: INVALID_ENGINEERING_ATTEMPT_NO_RESEARCH_DECISION
+
+authorized_change:
+  files:
+    - src/shaiwei/research/star50_residual_effect/metrics.py
+    - tests/test_m4_star50_residual_effect.py
+  behavior: >-
+    Make _between accept both the frozen two-level signal index and the unnamed
+    one-dimensional DatetimeIndex emitted by daily_rank_ic; reject every other index shape.
+  numeric_formula_change: false
+  candidate_direction_change: false
+  window_change: false
+  label_change: false
+  neutralization_change: false
+  alpha158_blend_change: false
+  portfolio_or_execution_change: false
+  cost_or_gate_change: false
+  result_root_cleanup_authorized: false
+
+required_before_retry:
+  - add synthetic regression tests for both supported index shapes and an unsupported index
+  - run targeted and full tests plus Ruff, compileall, pip check, Compose and diff checks
+  - commit and push the narrow correction before any retry
+  - freeze and push a new execution release binding the corrected code bundle and commit
+  - build a new content-addressed Docker image and rerun container tests before the real retry
+  - verify the result root is empty and both ledgers remain header-only before retry
+  - verify scheduler identity and health are unchanged
+
+retry_contract:
+  retry_count: exactly_one_recovery_first_pass_plus_one_internal_determinism_replay
+  original_attempt_counts_as_research_attempt: false
+  original_attempt_counts_as_engineering_attempt: true
+  no_parameter_or_candidate_changes: true
+  network_mode: none
+  secret_access: false
+  production_authorization: none
+
+forbidden:
+  - inspect_or_summarize_partial_effect_values
+  - modify_or_delete_original_protocol_or_release
+  - silently_reuse_original_execution_release
+  - tune_after_failure
+  - add_candidates_or_windows
+  - change_formula_direction_weight_cost_or_threshold
+  - touch_scheduler_web_paper_or_production_state
