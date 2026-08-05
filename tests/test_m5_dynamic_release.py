@@ -33,7 +33,11 @@ def _protocol() -> M5DataProtocol:
 
 
 def _input() -> InputManifest:
-    return InputManifest(document={"fixture": True}, sha256="5" * 64)
+    return InputManifest(
+        document={"fixture": True},
+        sha256="5" * 64,
+        physical_sha256="6" * 64,
+    )
 
 
 def _release_document(protocol: M5DataProtocol, manifest: InputManifest) -> dict:

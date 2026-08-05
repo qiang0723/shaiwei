@@ -45,6 +45,7 @@ SCOPE_FIELDS = {
     "protocol_sha256",
     "build_protocol_id",
     "input_manifest_sha256",
+    "input_manifest_physical_sha256",
     "implementation",
     "image",
     "commands",
@@ -99,6 +100,12 @@ class DataReleaseScope:
             or scope.get("protocol_sha256") != protocol.sha256
             or scope.get("build_protocol_id") != BUILD_PROTOCOL_ID
             or scope.get("input_manifest_sha256") != input_manifest.sha256
+            or scope.get("input_manifest_physical_sha256")
+            != input_manifest.physical_sha256
+            or re.fullmatch(
+                r"[0-9a-f]{64}", str(scope.get("input_manifest_physical_sha256", ""))
+            )
+            is None
         ):
             raise M5GateError("M5 data release upstream identity differs")
         proposal = protocol.document["source_proposal"]

@@ -68,6 +68,7 @@ def build_release_document(
         "protocol_sha256": protocol.sha256,
         "build_protocol_id": BUILD_PROTOCOL_ID,
         "input_manifest_sha256": input_manifest.sha256,
+        "input_manifest_physical_sha256": input_manifest.physical_sha256,
         "implementation": {
             "git_commit": git_commit,
             "origin_main_commit": origin_main_commit,

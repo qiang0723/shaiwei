@@ -215,6 +215,7 @@ class M5DataProtocol:
 class InputManifest:
     document: dict[str, Any]
     sha256: str
+    physical_sha256: str = ""
 
     @classmethod
     def load(cls, path: Path, protocol: M5DataProtocol) -> InputManifest:
@@ -345,4 +346,8 @@ class InputManifest:
                 universe.filter_column,
             } <= set(item["schema_fields"]):
                 raise M5GateError("M5 custom membership schema differs")
-        return cls(document=document, sha256=sha256_json(document))
+        return cls(
+            document=document,
+            sha256=sha256_json(document),
+            physical_sha256=sha256_file(path),
+        )
