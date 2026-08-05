@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-05 · M5-2B release v3真实DATA_GATE因资产负债表源身份冲突失败关闭
+
+- 用户批准精确scope `49fdc6e79ee7591fb03732fc4fa08430f4049b720d0552cca49ff9e153e05830`
+  后，正式registry追加v3 APPROVED/STARTED，冻结输入束16,854文件通过控制身份校验；唯一真实断网
+  runner在语义读取后以exit 2停止：`balancesheet contains conflicting duplicate source identities`。
+- 输出/audit staging均为空；没有24单元矩阵、候选集合、独立audit或`DATA_GATE_RECORDED`，故这不是
+  DATA NO-GO，更不是因子/策略REJECT。权威结果仍`NOT_EVALUATED`、生产`none`。
+- event 10已追加`STOPPED`并绑定零重试授权，SHA `e0ca4594...b9b3bd`；registry verify PASS，10/10
+  outbox已发布，同命令重放不追加、outbox重放0。M5无遗留容器，生产scheduler仍为原容器/镜像且
+  healthy。
+- 双重阻断是“真实balancesheet来源身份冲突”与“v3对全局完整性错误未先封存可审计NO-GO报告”。旧
+  case/release不得重跑或改写；若继续须先冻结superseding protocol/build，建立新case，明确脱敏冲突
+  诊断和canonical failure report/auditor合同，再形成新scope供用户重新批准。见
+  `docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_REAL_RUN_ACCEPTANCE_20260805.md`。
+
 ## 2026-08-05 · M5-2B release v3已就绪，停在第三次精确授权前
 
 - v2协议加载失败已由正式event 6`DATA_GATE_PREEXECUTION_FAILED`留痕，event SHA
