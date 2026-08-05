@@ -1,0 +1,38 @@
+schema_version: m5-strategy-factory-authority-addendum-v1
+addendum_id: m5-strategy-factory-count-correction-v1
+published_at: "2026-08-05T17:08:00+08:00"
+timezone: Asia/Shanghai
+
+protocol:
+  path: docs/M5_STRATEGY_FACTORY_COUNT_CORRECTION_PROTOCOL_20260805.md
+  sha256: 04764b59585e49d4c1b689364e7f27c5b9290e1b8860a76ec977f49004d8d81b
+
+base_catalog:
+  path: config/m5_strategy_factory_v1.yaml
+  sha256: 9bcc8053d334bdb66895f688377eb5858393909da3379f7b33e488d4b4e5311b
+  catalog_id: m5-strategy-factory-v1
+  snapshot_id: b24142867cf6e68b30724dd8d38a4864c2898e995de3bbf89bd2ea02594af9b3
+  snapshot_sha256: 83bb3d46e4fc46d450f3e13496d8ecb10b49ca48f86f3536399ea9503e64bcc3
+
+corrections:
+  - correction_id: m3-cross-pool-evaluation-units-24x3
+    program_id: m3-custom-pools-price-volume-v1
+    field: evaluation_unit_count
+    prior_value: 24
+    corrected_value: 72
+    evidence:
+      - path: docs/M3_MULTI_POOL_FACTOR_PREEXECUTION_PROTOCOL_20260802.md
+        sha256: 9200bac34700293b3dd5d823e114a6bca0ca7b4614abd793e0e73ea714910c03
+      - path: docs/M3_MULTI_POOL_FACTOR_DISCOVERY_ACCEPTANCE_20260802.md
+        sha256: 6db71b9ba19cafeb6dabcd590ea30c284a92d753d74903f5bdd463ffe0fc3ec2
+
+invariants:
+  generation_attempt_count: 24
+  candidate_count: 24
+  effect_test_count: 0
+  related_price_volume_attempt_n: 270
+  strategy_effective: NOT_EVALUATED
+  authoritative_outcome: STOPPED_CONTRACT
+  production_authorization: none
+  external_calls_made: 0
+  real_research_runs: 0
