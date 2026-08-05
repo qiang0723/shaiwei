@@ -9,13 +9,14 @@ import pandas as pd
 import pytest
 
 from shaiwei.research.star50_residual.compute import CANDIDATES
+from shaiwei.research.star50_residual_effect.audit import _candidate_decision_matches
+import shaiwei.research.star50_residual_effect.closure as closure_module
 from shaiwei.research.star50_residual_effect.contract import (
     EffectProtocol,
     ResidualEffectError,
     _validate,
     verify_pushed_clean_state,
 )
-import shaiwei.research.star50_residual_effect.closure as closure_module
 from shaiwei.research.star50_residual_effect.closure import EvidenceClosureProtocol
 from shaiwei.research.star50_residual_effect.data import EffectInputs, build_labels, neutralize
 from shaiwei.research.star50_residual_effect.evidence import append_once
@@ -157,6 +158,24 @@ def test_direction_reject_does_not_claim_oos_read() -> None:
     assert len(decisions) == 3
     assert all(row["oos_effect_read"] is False for row in decisions)
     assert all(row["adapted_gate_decision"] == "REJECT_DIRECTION" for row in decisions)
+
+
+def test_independent_audit_treats_failed_gates_as_unique_unordered_membership() -> None:
+    row = {
+        "direction": {"direction_pass": True},
+        "gates": {"rank_ic": False, "cost": True, "turnover": False},
+        "adapted_gate_decision": "REJECT",
+        "failed_gates": ["turnover", "rank_ic"],
+    }
+    assert _candidate_decision_matches(row)
+
+    duplicate = deepcopy(row)
+    duplicate["failed_gates"] = ["turnover", "rank_ic", "rank_ic"]
+    assert not _candidate_decision_matches(duplicate)
+
+    wrong_decision = deepcopy(row)
+    wrong_decision["adapted_gate_decision"] = "PASS"
+    assert not _candidate_decision_matches(wrong_decision)
 
 
 def test_append_only_ledger_is_idempotent_and_conflict_closed(tmp_path: Path) -> None:

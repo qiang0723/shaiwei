@@ -37,6 +37,21 @@ def _read_rows(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def _candidate_decision_matches(row: dict[str, Any]) -> bool:
+    if not row["direction"]["direction_pass"]:
+        expected = "REJECT_DIRECTION"
+        failed = {"pre_registered_direction"}
+    else:
+        expected = "PASS" if all(row["gates"].values()) else "REJECT"
+        failed = {name for name, passed in row["gates"].items() if not passed}
+    recorded = row["failed_gates"]
+    return (
+        row["adapted_gate_decision"] == expected
+        and len(recorded) == len(set(recorded))
+        and set(recorded) == failed
+    )
+
+
 def audit(protocol_path: Path) -> dict[str, Any]:
     protocol = EffectProtocol.load(protocol_path)
     protocol.verify_upstream()
@@ -67,15 +82,7 @@ def audit(protocol_path: Path) -> dict[str, Any]:
             )
     decision_checks: dict[str, bool] = {}
     for row in report["candidates"]:
-        if not row["direction"]["direction_pass"]:
-            expected = "REJECT_DIRECTION"
-            failed = ["pre_registered_direction"]
-        else:
-            expected = "PASS" if all(row["gates"].values()) else "REJECT"
-            failed = [name for name, passed in row["gates"].items() if not passed]
-        decision_checks[row["candidate"]] = (
-            row["adapted_gate_decision"] == expected and row["failed_gates"] == failed
-        )
+        decision_checks[row["candidate"]] = _candidate_decision_matches(row)
     pass_count = sum(row["adapted_gate_decision"] == "PASS" for row in report["candidates"])
     verdict_expected = (
         protocol.document["decision_contract"]["verdict_on_any_candidate_pass"]
