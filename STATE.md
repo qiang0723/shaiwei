@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-05 · M5-2B release v3已就绪，停在第三次精确授权前
+
+- v2协议加载失败已由正式event 6`DATA_GATE_PREEXECUTION_FAILED`留痕，event SHA
+  `d258e076...4559c`；payload固定`INPUT_BUNDLE_CONTROL_MISSING / exit 2 /
+  semantic_rows_read=false`，registry已恢复`PROTOCOL_FROZEN`，没有DATA verdict。
+- 输入包v2修复提交`a7960666b884cc1d5d7add5c1ff2bc69482ab0da`已推送：新增build contract，
+  bundle manifest绑定input/build/release/approval逻辑与物理身份，路径强制`<input_sha>-<impl前7位>`；
+  v2旧包原样保留。
+- v3镜像`sha256:738b9d7f...80d0f`纯合成全链PASS；新release scope为
+  `49fdc6e79ee7591fb03732fc4fa08430f4049b720d0552cca49ff9e153e05830`，输入manifest和提案到期均
+  不变。M5专项74 PASS、全仓729 PASS、架构6 PASS，scheduler身份不变且healthy。
+- v3尚无approval/input bundle/STARTED，真实财务行、候选、数据判决、效果仍为0。v2批准不迁移；
+  必须等待用户针对v3完整SHA重新批准。见
+  `docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RELEASE_V3_ACCEPTANCE_20260805.md`。
+
 ## 2026-08-05 · M5-2B release v2在协议加载阶段失败，真实语义读取仍为0
 
 - 用户批准v2后正式registry已形成至`DATA_GATE_STARTED`的5事件链；runner随即因输入包缺
