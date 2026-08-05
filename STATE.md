@@ -2,6 +2,25 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-05 · M5-2A科创三池动态基本面协议结果前冻结
+
+- 首份`REVIEW_REQUIRED`提案已通过内容寻址export绑定proposal/request/canonical/event head与七日到期
+  身份；M5-1继续是非权威提案控制面、零schema/API迁移，不原地升级为研究任务。
+- `m5-dynamic-fundamental-cross-pool-data-preexecution-v1`固定科创50home池和科创板中盘/小盘两个
+  `CUSTOM_RULE_BASED`迁移池，登记毛利率、研发强度、应收质量、库存、杠杆、流动性、外部融资与
+  自由现金流八个新候选和24个评价单元；与F2六式零重复、不翻向、不补位。
+- 协议冻结使八个公式正式计入生成尝试：动态基本面主域`N=6→14`、联合基本面敏感性`N=12→20`；
+  当前效果测试仍为0。数据失败也不从N删除，跨池相关性不折减N。
+- 新ADR选择独立M5-2 gate registry与短命断网Docker，不扩展M5-1、不建常驻Worker/队列；protocol
+  scope与每门release scope分离，数据门和synthetic工程门必须分别批准。
+- 本节点只授权协议提交推送。`data_gate_approval_recorded=false`、
+  `engineering_gate_approval_recorded=false`，零真实数据读取、零标签/效果、零provider/费用、零模型/
+  回测/前瞻/生产/Web/scheduler变化。专项10 PASS、全仓665 PASS、架构6 PASS；研究与架构专项复核
+  均GO。
+- 下一合法动作是先施工并推送M5-2B数据门实现/release，生成精确`data_gate_release_scope_sha256`；
+  用户批准前不得运行真实数据门。见`docs/M5_DYNAMIC_FUNDAMENTAL_CROSS_POOL_PROTOCOL_20260805.md`
+  与`docs/ADR_0002_M5_2_GATE_REGISTRY.md`。
+
 ## 2026-08-05 · M5-1A首份跨池研究提案已提交人工复核
 
 - 通过本机Web控制面建立提案`1dc3afa027401c9fd8ad54382f0b024a8b78b73d2216f2c683a33d4c22497efb`：

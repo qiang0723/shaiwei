@@ -292,6 +292,23 @@ Web持续展示“哪些池可研究、做过什么、为什么失败、当前�
 `docs/ADR_0001_M5_PROPOSAL_CONTROL_PLANE.md`；验收见
 `docs/M5_RESEARCH_PROPOSAL_CONTROL_ACCEPTANCE_20260805.md`。
 
+### M5-2A当前边界
+
+- 首份动态基本面提案已另立ADR和结果前协议：科创50为home，科创板中盘/小盘为迁移池；八个固定
+  公式、方向、PIT/分母/548日陈旧度、十个半年数据段、未来六窗/压力期和24单元均已冻结。
+- 协议冻结后八个公式正式计入研究尝试：动态基本面`N=14`、基本面联合敏感性`N=20`；效果测试仍为0。
+  候选数据失败不退回N，不补候选，不因三池相关性折减N。
+- M5-2使用独立gate registry；M5-1零迁移。protocol scope与DATA/ENGINEERING两个release scope分离，
+  两个门分别批准；没有常驻Worker、队列、外部调用、标签/效果、模型、回测或生产权限。
+- 数据门可产生FULL/PARTIAL/NO-GO：候选必须三个池全过才可进入未来验证；PARTIAL只允许全部且仅
+  DATA_GO候选未来统一验证，不能按覆盖高低挑选。任何数据GO都不是因子有效。
+- 当前只完成M5-2A protocol-only冻结。下一步先施工并推送M5-2B数据门实现/release；只有用户对精确
+  data release scope另行批准后，才可在断网短命Docker中读取既有真实数据。工程门仍须DATA_GO后另批。
+
+协议与架构见`docs/M5_DYNAMIC_FUNDAMENTAL_CROSS_POOL_PROTOCOL_20260805.md`、
+`docs/ADR_0002_M5_2_GATE_REGISTRY.md`；机器真身为
+`config/m5_dynamic_fundamental_cross_pool_v1.yaml`。
+
 ## R3 · 专业只读 Web
 
 ### 目标
@@ -439,6 +456,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M5-0 | 多股票池策略工厂合同与只读工程门 | GO；8池/8工作包内容寻址投影、GET/HEAD查询、本机Web、五视口/axe/真实部署及scheduler隔离均PASS；真实研究、Worker、DeepSeek和生产仍未授权 | 已由M5-1继承只读真身；历史浏览器临时草案口径不改写 |
 | M5-1 | 多股票池非权威研究提案控制面 | GO；create/submit-review/cancel、SQLite证据链、全库双向完整性、本机Web与隔离Docker均PASS；交付验收时空库，研究尝试增量0 | 只允许人工建立/复核/取消提案；M5-2冻结、批准和执行必须另立ADR/协议并重新授权 |
 | M5-1A | 科创50/中盘/小盘动态基本面提案 | `REVIEW_REQUIRED`；8个确定性候选、最多24个跨池评价单元、零provider调用/费用；实际研究尝试增量0，2026-08-12 18:48:16到期 | 停在人工复核；若继续须另立M5-2冻结/批准协议并获得用户明确授权，不自动排队或运行 |
+| M5-2A | 科创三池动态基本面数据/预执行协议 | protocol-only冻结；8式/3池/24单元、PIT/覆盖/陈旧度/未来窗与N=14/20已锁定；效果测试0、门批准0 | 先施工并推送M5-2B数据release；用户批准精确scope前不得读取真实数据，工程门须DATA_GO后另批 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |
 | G8-1R | 监管主源不可覆盖采集 | 1 条原 Docker 失败永久保留；恢复 54 条主证据、二遍幂等与断网复核 PASS；G8 仍 NOT_READY | 只允许另立 G8-2 管理人 HTTPS 交叉核验与费率有效期谱系协议 |

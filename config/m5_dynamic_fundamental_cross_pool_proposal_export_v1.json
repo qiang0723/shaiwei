@@ -1,0 +1,146 @@
+{
+  "schema_version": "m5-proposal-export-v1",
+  "exported_at": "2026-08-05T19:15:00+08:00",
+  "export_mode": "SQLITE_IMMUTABLE_READ_ONLY",
+  "source_database_relative_path": "data/control/m5/runtime/research_control.sqlite3",
+  "proposal_id": "1dc3afa027401c9fd8ad54382f0b024a8b78b73d2216f2c683a33d4c22497efb",
+  "proposal_request_sha256": "3007af3e6c6f88a74430dfe3dc73e458a8326fc9a6b0717543e61697d038ef79",
+  "canonical_proposal_sha256": "c83c14b462f3f68f669a73c121fdc6aaaa5cdf66d4825c96027a6d3b63644117",
+  "proposal_state_at_export": "REVIEW_REQUIRED",
+  "proposal_event_seq_at_export": 2,
+  "proposal_head_event": {
+    "event_id": "e1318c131cdca91ef7a93541a8ad02130d8d06e6a1616f8bb6159dd38e1e5ec4",
+    "event_sha256": "2d6ff1aace167fa6299414773e031adab9ceac09eadd0b789fbb170c41570f5f",
+    "prev_event_sha256": "a46a3eb381b41f233716d3b2221fbb01ff6bc6a197665feb7c1f5fa48ea83809",
+    "payload_sha256": "757c8fea8a5182520043f6372fc287d53a13445915579419c5ded4a78d95454d",
+    "recorded_at": "2026-08-05T10:48:16+00:00"
+  },
+  "created_at": "2026-08-05T10:48:16+00:00",
+  "expires_at": "2026-08-12T10:48:16+00:00",
+  "source_identity": {
+    "config_sha256": "4113323415bcc512a6eeae6e3f00f823a114d63b604fdb16c85fe4aa94cd94c5",
+    "authority_bundle_sha256": "f501707488988e4f28ad768d60cd94c6f8d26cdd05cb79a7bb9a7e13268ba8ab",
+    "strategy_factory_snapshot_id": "fae1c53c410213e58bd10d938a5854afdd2cce1e3f4c9acd7affb73624c94a6b",
+    "strategy_factory_snapshot_sha256": "36f750639f5643a67ac0c2f9eb7505949542a9404edad9ff3d7fb970f7bd6f2b"
+  },
+  "canonical_proposal": {
+    "authority": {
+      "approval_authorized": false,
+      "authoritative_outcome": "NOT_EVALUATED",
+      "authority_status": "NON_AUTHORITATIVE_PROPOSAL",
+      "backtest_authorized": false,
+      "data_collection_authorized": false,
+      "deepseek_authorized": false,
+      "docker_write_authorized": false,
+      "evidence_tier": "PROPOSAL_ONLY",
+      "execution_release_authorized": false,
+      "external_call_authorized": false,
+      "forward_authorized": false,
+      "git_write_authorized": false,
+      "label_read_authorized": false,
+      "model_training_authorized": false,
+      "paper_authorized": false,
+      "production_authorization": "none",
+      "production_authorized": false,
+      "protocol_freeze_authorized": false,
+      "provider_spend_authorized": false,
+      "real_data_read_authorized": false,
+      "scheduler_mutation_authorized": false,
+      "sealed_effect_read_authorized": false,
+      "worker_dispatch_authorized": false
+    },
+    "created_at": "2026-08-05T10:48:16+00:00",
+    "created_by_actor_sha256": "94a70db193a4d68cd0c994a857e7bd18866d0950b4e21e5c0f34799b41bd8277",
+    "derived": {
+      "evaluation_level": "FACTOR_DISCOVERY_PROPOSAL",
+      "evaluation_unit_cap": 24,
+      "factor_definition_state": "TO_BE_GENERATED_WITHIN_BOUNDED_BATCH",
+      "home_universe_id": "star50-official-pit-v2",
+      "model_identity": "NONE_NOT_AUTHORIZED",
+      "multiplicity_context": {
+        "actual_research_attempt_increment": 0,
+        "planned_increment_policy": "GENERATION_ATTEMPT_CAP_COUNTS_ONCE",
+        "primary": {
+          "evidence_path": "docs/F2_CSI800_FUNDAMENTAL_EFFECT_ACCEPTANCE_20260803.md",
+          "evidence_sha256": "bd030519c87a62941003931f0f1481a87ef44fc8e147e1649018b910d1404934",
+          "primary_planned_after": 14,
+          "prior_attempt_count": 6,
+          "scope_id": "fundamental_dynamic_family"
+        },
+        "sensitivity": {
+          "evidence_path": "docs/F2_CSI800_FUNDAMENTAL_EFFECT_ACCEPTANCE_20260803.md",
+          "evidence_sha256": "bd030519c87a62941003931f0f1481a87ef44fc8e147e1649018b910d1404934",
+          "prior_attempt_count": 12,
+          "scope_id": "fundamental_joint_domain",
+          "sensitivity_planned_after": 20
+        }
+      },
+      "no_budget_carryover": true,
+      "planned_generation_attempt_count": 8,
+      "portfolio_identity": "NONE_NOT_AUTHORIZED",
+      "research_stage": "DISCOVERY_PROPOSAL",
+      "stop_on_terminal": true,
+      "transfer_universe_ids": [
+        "star-board-midcap-pit-v1",
+        "star-board-smallcap-pit-v1"
+      ],
+      "universe_count": 3
+    },
+    "expires_at": "2026-08-12T10:48:16+00:00",
+    "proposal_id": "1dc3afa027401c9fd8ad54382f0b024a8b78b73d2216f2c683a33d4c22497efb",
+    "proposal_request_sha256": "3007af3e6c6f88a74430dfe3dc73e458a8326fc9a6b0717543e61697d038ef79",
+    "request": {
+      "authority": {
+        "approval_authorized": false,
+        "authoritative_outcome": "NOT_EVALUATED",
+        "authority_status": "NON_AUTHORITATIVE_PROPOSAL",
+        "backtest_authorized": false,
+        "data_collection_authorized": false,
+        "deepseek_authorized": false,
+        "docker_write_authorized": false,
+        "evidence_tier": "PROPOSAL_ONLY",
+        "execution_release_authorized": false,
+        "external_call_authorized": false,
+        "forward_authorized": false,
+        "git_write_authorized": false,
+        "label_read_authorized": false,
+        "model_training_authorized": false,
+        "paper_authorized": false,
+        "production_authorization": "none",
+        "production_authorized": false,
+        "protocol_freeze_authorized": false,
+        "provider_spend_authorized": false,
+        "real_data_read_authorized": false,
+        "scheduler_mutation_authorized": false,
+        "sealed_effect_read_authorized": false,
+        "worker_dispatch_authorized": false
+      },
+      "candidate_cap": 8,
+      "completed_response_target": 0,
+      "falsification_rule_id": "frozen-gates-reject-v1",
+      "family_id": "fundamental_dynamic",
+      "generation_attempt_cap": 8,
+      "generation_mode": "DETERMINISTIC_CODE",
+      "home_universe_id": "star50-official-pit-v2",
+      "hypothesis_id": "pit-fundamental-change-v1",
+      "provider_budget_usd": "0.00",
+      "provider_call_intent_count": 0,
+      "provider_identity": "NONE_NOT_APPLICABLE",
+      "template_id": "bounded-research-proposal-v1",
+      "template_version": 2,
+      "universe_ids": [
+        "star50-official-pit-v2",
+        "star-board-midcap-pit-v1",
+        "star-board-smallcap-pit-v1"
+      ],
+      "valid_days": 7
+    },
+    "schema_version": "m5-research-proposal-v1",
+    "source_identity": {
+      "authority_bundle_sha256": "f501707488988e4f28ad768d60cd94c6f8d26cdd05cb79a7bb9a7e13268ba8ab",
+      "config_sha256": "4113323415bcc512a6eeae6e3f00f823a114d63b604fdb16c85fe4aa94cd94c5",
+      "strategy_factory_snapshot_id": "fae1c53c410213e58bd10d938a5854afdd2cce1e3f4c9acd7affb73624c94a6b",
+      "strategy_factory_snapshot_sha256": "36f750639f5643a67ac0c2f9eb7505949542a9404edad9ff3d7fb970f7bd6f2b"
+    }
+  }
+}

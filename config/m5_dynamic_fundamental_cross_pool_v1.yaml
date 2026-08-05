@@ -1,0 +1,355 @@
+schema_version: m5-dynamic-fundamental-cross-pool-v1
+protocol_id: m5-dynamic-fundamental-cross-pool-data-preexecution-v1
+frozen_at: "2026-08-05T19:15:00+08:00"
+timezone: Asia/Shanghai
+
+source_proposal:
+  proposal_export_path: config/m5_dynamic_fundamental_cross_pool_proposal_export_v1.json
+  proposal_export_sha256: 7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc
+  proposal_id: 1dc3afa027401c9fd8ad54382f0b024a8b78b73d2216f2c683a33d4c22497efb
+  proposal_request_sha256: 3007af3e6c6f88a74430dfe3dc73e458a8326fc9a6b0717543e61697d038ef79
+  canonical_proposal_sha256: c83c14b462f3f68f669a73c121fdc6aaaa5cdf66d4825c96027a6d3b63644117
+  required_state_at_data_gate_approval: REVIEW_REQUIRED
+  required_event_seq_at_data_gate_approval: 2
+  required_head_event_sha256: 2d6ff1aace167fa6299414773e031adab9ceac09eadd0b789fbb170c41570f5f
+  created_at: "2026-08-05T10:48:16+00:00"
+  expires_at: "2026-08-12T10:48:16+00:00"
+  expiry_policy: PROTOCOL_SCOPE_AND_DATA_GATE_APPROVAL_MUST_COMPLETE_BEFORE_EXPIRY
+
+architecture:
+  adr_path: docs/ADR_0002_M5_2_GATE_REGISTRY.md
+  base_adr_path: docs/ADR_0001_M5_PROPOSAL_CONTROL_PLANE.md
+  constitution_path: docs/ARCHITECTURE_CONSTITUTION.md
+  m5_1_database_migration_authorized: false
+  m5_1_api_change_authorized: false
+  independent_gate_registry_required: true
+  protocol_and_release_scopes_are_separate: true
+  data_and_engineering_gate_approvals_are_separate: true
+  persistent_worker_authorized: false
+  job_queue_authorized: false
+  web_change_authorized: false
+
+scope:
+  family_id: fundamental_dynamic
+  hypothesis_id: pit-fundamental-change-v1
+  generation_mode: DETERMINISTIC_CODE
+  evaluation_level: FACTOR_DATA_PREEXECUTION
+  home_universe_id: star50-official-pit-v2
+  transfer_universe_ids:
+    - star-board-midcap-pit-v1
+    - star-board-smallcap-pit-v1
+  candidate_count: 8
+  universe_count: 3
+  evaluation_unit_count: 24
+  custom_universes_must_not_be_presented_as_official_indices: true
+
+universe_inputs:
+  - universe_id: star50-official-pit-v2
+    role: HOME
+    universe_kind: OFFICIAL_INDEX_PIT
+    official_code: 000688.SH
+    membership_relative_path: data/research/star50/p2-star50-v2/daily_membership.parquet
+    membership_sha256: 91e9d48421d2a577176488d792c63f5d33bceee953a4532cdb8a8f6317d82644
+    lineage_evidence_path: docs/P2_STAR50_OFFICIAL_LINEAGE_ACCEPTANCE_20260724.md
+  - universe_id: star-board-midcap-pit-v1
+    role: TRANSFER
+    universe_kind: CUSTOM_RULE_BASED
+    membership_relative_path: data/research/m3/star-custom-pit-v1/daily_members.parquet
+    membership_sha256: 1983169ef42489e544ce9c71e55e64ba853d27491a723024102b5699ae475101
+    membership_filter:
+      column: universe_id
+      value: star-board-midcap-pit-v1
+    lineage_evidence_path: docs/M3_STAR_CUSTOM_PIT_ACCEPTANCE_20260802.md
+  - universe_id: star-board-smallcap-pit-v1
+    role: TRANSFER
+    universe_kind: CUSTOM_RULE_BASED
+    membership_relative_path: data/research/m3/star-custom-pit-v1/daily_members.parquet
+    membership_sha256: 1983169ef42489e544ce9c71e55e64ba853d27491a723024102b5699ae475101
+    membership_filter:
+      column: universe_id
+      value: star-board-smallcap-pit-v1
+    lineage_evidence_path: docs/M3_STAR_CUSTOM_PIT_ACCEPTANCE_20260802.md
+
+predecessor_boundary:
+  f2_effect_acceptance_path: docs/F2_CSI800_FUNDAMENTAL_EFFECT_ACCEPTANCE_20260803.md
+  f2_effect_acceptance_sha256: bd030519c87a62941003931f0f1481a87ef44fc8e147e1649018b910d1404934
+  f2_authoritative_outcome: REJECT
+  preserve_f2_without_rewrite: true
+  forbidden_exact_candidates:
+    - fundamental_asset_growth_v1
+    - fundamental_revenue_growth_v1
+    - fundamental_operating_profit_change_v1
+    - fundamental_net_income_change_v1
+    - fundamental_operating_cashflow_change_v1
+    - fundamental_cash_balance_change_v1
+  forbidden_retry_policy: NO_ALIAS_NO_DIRECTION_FLIP_NO_PARAMETER_VARIANT_IN_THIS_BATCH
+
+multiplicity:
+  generation_attempt_increment_at_protocol_freeze: 8
+  proposal_stage_actual_increment_before_freeze: 0
+  primary_scope_id: fundamental_dynamic_family
+  primary_prior_attempt_count: 6
+  primary_after_protocol_freeze: 14
+  sensitivity_scope_id: fundamental_joint_domain
+  sensitivity_prior_attempt_count: 12
+  sensitivity_after_protocol_freeze: 20
+  evaluation_unit_count: 24
+  effect_test_count: 0
+  engineering_attempt_count_initial: 0
+  cross_pool_correlation_does_not_reduce_n: true
+  data_rejected_candidates_still_count_as_generation_attempts: true
+  no_replacements: true
+
+point_in_time:
+  annual_period_suffix: "1231"
+  allowed_report_types: ["1", "5"]
+  availability: first_open_day_strictly_after_f_ann_date
+  same_period_revision: latest_available_f_ann_date
+  same_announcement_report_priority: ["1", "5"]
+  same_announcement_update_priority: descending
+  statement_versioning_is_independent_by_table: true
+  component_join: exact_ts_code_and_end_date
+  pair_selection: latest_jointly_available_consecutive_pair_for_candidate_required_components
+  predecessor_period: exact_same_month_day_one_calendar_year_earlier
+  candidate_available_date: latest_of_candidate_current_and_predecessor_components
+  formation_frequency: month_end_close
+  signal_effective_time: next_open_day_open
+  forward_fill_until_next_formation: true
+  future_revision_backfill_forbidden: true
+  unrelated_statement_table_requirement_forbidden: true
+  fina_indicator_forbidden: true
+
+denominator_and_missing_policy:
+  total_revenue_current_and_predecessor: finite_and_strictly_positive
+  total_assets_current_and_predecessor: finite_and_strictly_positive
+  average_total_assets: arithmetic_mean_finite_and_strictly_positive
+  total_current_liabilities_current_and_predecessor: finite_and_strictly_positive
+  missing_rd_exp_is_zero: false
+  missing_free_cashflow_is_zero: false
+  nonnegative_required_fields:
+    - income.total_cogs
+    - income.rd_exp
+    - balancesheet.accounts_receiv
+    - balancesheet.inventories
+    - balancesheet.total_liab
+    - balancesheet.total_cur_assets
+  signed_fields_explicitly_allowed:
+    - cashflow.n_cash_flows_fnc_act
+    - cashflow.free_cashflow
+  gross_margin_below_zero_is_valid: true
+  gross_margin_above_one_is_valid_but_diagnosed: true
+  invalid_or_non_finite_output: null
+  imputation_authorized: false
+  winsorization_authorized_in_data_gate: false
+  neutralization_authorized_in_data_gate: false
+  direction_flip_authorized: false
+  current_period_staleness:
+    measure: formation_date_minus_current_end_date_calendar_days
+    maximum_days_inclusive: 548
+    stale_pair_policy: null_and_count_stale
+    newer_unpaired_period_may_reuse_prior_pair_within_cap: true
+
+candidates:
+  - candidate_id: m5_gross_margin_improvement_v1
+    mechanism: pricing_power_and_operating_quality
+    formula: ((total_revenue_t - total_cogs_t) / total_revenue_t) - ((total_revenue_p - total_cogs_p) / total_revenue_p)
+    expected_direction: 1
+    inputs: [income.total_revenue_t, income.total_cogs_t, income.total_revenue_p, income.total_cogs_p]
+    reference: https://doi.org/10.2307/2672906
+  - candidate_id: m5_rd_intensity_improvement_v1
+    mechanism: innovation_investment_intensity
+    formula: rd_exp_t / total_revenue_t - rd_exp_p / total_revenue_p
+    expected_direction: 1
+    inputs: [income.rd_exp_t, income.total_revenue_t, income.rd_exp_p, income.total_revenue_p]
+    reference: https://doi.org/10.1016/0165-4101(95)00410-6
+  - candidate_id: m5_receivables_to_revenue_deterioration_v1
+    mechanism: revenue_quality_and_collection_risk
+    formula: accounts_receiv_t / total_revenue_t - accounts_receiv_p / total_revenue_p
+    expected_direction: -1
+    inputs: [balancesheet.accounts_receiv_t, income.total_revenue_t, balancesheet.accounts_receiv_p, income.total_revenue_p]
+    reference: https://rpc.cfainstitute.org/research/financial-analysts-journal/1999/the-detection-of-earnings-manipulation
+  - candidate_id: m5_inventory_accumulation_v1
+    mechanism: demand_mismatch_and_inventory_risk
+    formula: (inventories_t - inventories_p) / average_total_assets
+    expected_direction: -1
+    inputs: [balancesheet.inventories_t, balancesheet.inventories_p, balancesheet.total_assets_t, balancesheet.total_assets_p]
+    reference: https://papers.ssrn.com/abstract=295247
+  - candidate_id: m5_leverage_change_v1
+    mechanism: financial_fragility
+    formula: total_liab_t / total_assets_t - total_liab_p / total_assets_p
+    expected_direction: -1
+    inputs: [balancesheet.total_liab_t, balancesheet.total_assets_t, balancesheet.total_liab_p, balancesheet.total_assets_p]
+    reference: https://doi.org/10.2307/2672906
+  - candidate_id: m5_current_ratio_improvement_v1
+    mechanism: short_term_liquidity_buffer
+    formula: total_cur_assets_t / total_cur_liab_t - total_cur_assets_p / total_cur_liab_p
+    expected_direction: 1
+    inputs: [balancesheet.total_cur_assets_t, balancesheet.total_cur_liab_t, balancesheet.total_cur_assets_p, balancesheet.total_cur_liab_p]
+    reference: https://doi.org/10.2307/2672906
+  - candidate_id: m5_external_financing_dependence_v1
+    mechanism: external_financing_and_future_return_risk
+    formula: n_cash_flows_fnc_act_t / average_total_assets
+    expected_direction: -1
+    inputs: [cashflow.n_cash_flows_fnc_act_t, balancesheet.total_assets_t, balancesheet.total_assets_p]
+    reference: https://papers.ssrn.com/abstract=383240
+  - candidate_id: m5_free_cashflow_margin_improvement_v1
+    mechanism: self_financing_capacity
+    formula: free_cashflow_t / total_revenue_t - free_cashflow_p / total_revenue_p
+    expected_direction: 1
+    inputs: [cashflow.free_cashflow_t, income.total_revenue_t, cashflow.free_cashflow_p, income.total_revenue_p]
+    reference: https://doi.org/10.2307/2672906
+
+data_gate:
+  real_data_read_authorized_only_after_data_gate_release_approval: true
+  network_requests_authorized: false
+  source_mutation_authorized: false
+  quality_start_month: "2021-01"
+  quality_end_month: "2025-12"
+  minimum_valid_formation_months: 54
+  half_year_segments:
+    - {name: 2021H1, start: "2021-01-01", end: "2021-06-30", minimum_valid_formation_months: 5}
+    - {name: 2021H2, start: "2021-07-01", end: "2021-12-31", minimum_valid_formation_months: 5}
+    - {name: 2022H1, start: "2022-01-01", end: "2022-06-30", minimum_valid_formation_months: 5}
+    - {name: 2022H2, start: "2022-07-01", end: "2022-12-31", minimum_valid_formation_months: 5}
+    - {name: 2023H1, start: "2023-01-01", end: "2023-06-30", minimum_valid_formation_months: 5}
+    - {name: 2023H2, start: "2023-07-01", end: "2023-12-31", minimum_valid_formation_months: 5}
+    - {name: 2024H1, start: "2024-01-01", end: "2024-06-30", minimum_valid_formation_months: 5}
+    - {name: 2024H2, start: "2024-07-01", end: "2024-12-31", minimum_valid_formation_months: 5}
+    - {name: 2025H1, start: "2025-01-01", end: "2025-06-30", minimum_valid_formation_months: 5}
+    - {name: 2025H2, start: "2025-07-01", end: "2025-12-31", minimum_valid_formation_months: 5}
+  aggregate_member_row_coverage_minimum: 0.85
+  worst_formation_coverage_minimum: 0.75
+  minimum_valid_cross_section:
+    star50-official-pit-v2: 30
+    star-board-midcap-pit-v1: 20
+    star-board-smallcap-pit-v1: 20
+  duplicate_feature_keys: 0
+  mixed_component_period_rows: 0
+  nonconsecutive_pair_rows: 0
+  future_availability_rows: 0
+  source_identity_conflicts: 0
+  bse_rows: 0
+  deterministic_full_rerun_required: true
+  candidate_pass_policy: MUST_PASS_ALL_THREE_UNIVERSES
+  candidate_failure_policy: DATA_REJECT_NO_REPLACEMENT_NO_SINGLE_POOL_SHRINK
+  batch_decision:
+    all_8_candidate_go: GO_FULL_M5_2_DATA_PREEXECUTION_ONLY
+    between_1_and_7_candidate_go: GO_PARTIAL_M5_2_DATA_PREEXECUTION_ONLY
+    zero_candidate_go_or_global_integrity_failure: NO_GO_M5_2_DATA_PREEXECUTION
+  partial_go_policy: ALL_DATA_GO_CANDIDATES_MUST_ENTER_ANY_FUTURE_VALIDATION_NO_COVERAGE_RANKING
+  registry_mapping:
+    GO_FULL_M5_2_DATA_PREEXECUTION_ONLY:
+      lifecycle_state: DATA_GO
+      data_gate_status: DATA_GO_FULL
+      evidence_tier: DATA_GO_ONLY
+    GO_PARTIAL_M5_2_DATA_PREEXECUTION_ONLY:
+      lifecycle_state: DATA_GO
+      data_gate_status: DATA_GO_PARTIAL
+      evidence_tier: DATA_GO_ONLY
+    NO_GO_M5_2_DATA_PREEXECUTION:
+      lifecycle_state: BLOCKED_DATA
+      data_gate_status: BLOCKED_DATA
+      evidence_tier: PROTOCOL_ONLY
+  registry_candidate_projection:
+    eligible_candidate_ids: ordered_protocol_candidate_ids_passing_all_three_universes
+    rejected_candidate_ids: ordered_protocol_candidate_ids_failing_one_or_more_universes
+    candidate_matrix_required: true
+    empty_or_overlapping_candidate_sets_fail_closed: true
+
+correlation_diagnostics:
+  used_for_candidate_screening: false
+  used_to_reduce_multiplicity_n: false
+  membership_overlap:
+    metric: JACCARD_BY_FORMATION_DATE_FOR_EACH_UNIVERSE_PAIR
+    report_observation_count_and_distribution: true
+  cross_pool_factor_rank_correlation:
+    metric: SPEARMAN_ON_SAME_SECURITY_AND_FORMATION_DATE
+    minimum_common_securities_each_formation: 10
+    minimum_eligible_formation_dates: 12
+    insufficient_policy: NOT_ESTIMABLE
+  within_pool_candidate_rank_correlation:
+    metric: SPEARMAN_BY_FORMATION_DATE_THEN_MEDIAN
+    minimum_cross_section_by_universe:
+      star50-official-pit-v2: 30
+      star-board-midcap-pit-v1: 20
+      star-board-smallcap-pit-v1: 20
+    minimum_eligible_formation_dates: 12
+    insufficient_policy: NOT_ESTIMABLE
+  future_effect_series_not_authorized:
+    series: [daily_rank_ic, daily_net_excess_return]
+    pairwise_minimum_common_observations: 126
+    insufficient_policy: NOT_ESTIMABLE
+    interpretation_only_not_for_gate_relaxation: true
+
+synthetic_engineering_gate:
+  authorized_only_after_data_go_full_or_partial_and_separate_logical_approval: true
+  real_data_read_authorized: false
+  fixture_only: true
+  required_candidate_count: 8
+  required_universe_count: 3
+  required_unique_evaluation_units: 24
+  schema_failure_paths_required: true
+  pit_failure_paths_required: true
+  hash_drift_failure_paths_required: true
+  deterministic_full_rerun_required: true
+
+future_validation_guardrails_not_authorized:
+  discovery_start_date: "2021-01-04"
+  discovery_signal_end_date: "2022-12-15"
+  discovery_label_maturity_end_date: "2022-12-30"
+  label_clock: signal_close_then_t_plus_1_open_to_t_plus_11_open
+  direction_anchor_universe: star50-official-pit-v2
+  transfer_direction_flip_forbidden: true
+  validation_window_set_id: m3-six-half-years-2023-2025-v1
+  validation_windows:
+    - {name: M5-W1, start: "2023-01-03", end: "2023-06-30"}
+    - {name: M5-W2, start: "2023-07-03", end: "2023-12-29"}
+    - {name: M5-W3, start: "2024-01-02", end: "2024-06-28"}
+    - {name: M5-W4, start: "2024-07-01", end: "2024-12-31"}
+    - {name: M5-W5, start: "2025-01-02", end: "2025-06-30"}
+    - {name: M5-W6, start: "2025-07-01", end: "2025-12-31"}
+  validation_signal_maturity_policy: t_plus_11_exit_open_must_be_on_or_before_window_end
+  cross_window_label_carry_authorized: false
+  stress_set_id: m3-known-stress-v1
+  stress_diagnostics:
+    - {name: microcap_crash_2024, start: "2024-01-01", end: "2024-02-29"}
+    - {name: policy_repricing_2024, start: "2024-09-24", end: "2024-10-18"}
+    - {name: volume_price_drawdown_2026h1, start: "2026-01-01", end: "2026-06-30"}
+  effect_test_family_policy: HOLM_0_05_ACROSS_CANDIDATE_UNIVERSE_UNITS
+  dsr_attempt_n_values: [14, 20]
+  candidate_subset_policy: ALL_AND_ONLY_DATA_GO_CANDIDATES
+  effect_read_authorized: false
+
+authority:
+  protocol_freeze_authorized_by_user_instruction: true
+  data_gate_approval_recorded: false
+  engineering_gate_approval_recorded: false
+  data_gate_execution_authorized: false
+  engineering_gate_execution_authorized: false
+  provider_identity: NONE_NOT_APPLICABLE
+  provider_call_count: 0
+  provider_budget_usd: "0.00"
+  deepseek_authorized: false
+  external_call_authorized: false
+  data_collection_authorized: false
+  label_read_authorized: false
+  sealed_effect_read_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  paper_authorized: false
+  forward_authorized: false
+  production_authorization: none
+  scheduler_mutation_authorized: false
+
+stop_rules:
+  - PROPOSAL_NOT_REVIEW_REQUIRED_AT_DATA_GATE_APPROVAL
+  - PROPOSAL_EXPIRED_BEFORE_DATA_GATE_APPROVAL
+  - PROPOSAL_OR_EVENT_HASH_DRIFT
+  - PROTOCOL_NOT_COMMITTED_AND_PUSHED_BEFORE_GATE_START
+  - INPUT_OR_MEMBERSHIP_HASH_DRIFT
+  - FORMULA_DUPLICATES_F2_OR_OTHER_CANONICAL_CANDIDATE
+  - BSE_ROW_PRESENT
+  - FUTURE_REVISION_OR_MIXED_PERIOD_PRESENT
+  - LABEL_EFFECT_PROVIDER_MODEL_BACKTEST_OR_PRODUCTION_READ_IN_PREEXECUTION
+  - CANDIDATE_OR_EVALUATION_UNIT_CAP_EXCEEDED
+  - REPLACEMENT_DIRECTION_FLIP_THRESHOLD_CHANGE_OR_BUDGET_CARRYOVER
