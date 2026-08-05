@@ -2,6 +2,23 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-05 · M5-2B精确data release已就绪，停在用户授权前
+
+- M5-2B实现已分批提交并推送，最终实现提交`4369d7f9fa08fca023c07beecb47bc898c56ba72`；科创50
+  官方成员源的稳定`code`字段已通过窄source adapter规范化为内部`ts_code`，M3两池仍严格要求
+  `ts_code`，未知池/schema漂移继续fail closed。
+- metadata-only输入清单绑定7类API、16,843个不可变批次和3份成员证据；逻辑/物理SHA分别为
+  `d9de2ece…8d4d`/`3277114e…5919`，`semantic_rows_read=false`。最终断网镜像为
+  `sha256:64928c62…555c`，纯合成8候选×3池/24单元与独立审计PASS。
+- 精确data release scope为`f53085d3cc428e17f014a3d1b0ab7f2f2f0f4ddf6eb64b2db7042fd26ccefe70`，
+  绑定提案到期`2026-08-12T18:48:16+08:00`。scope只标记release ready，所有真实读取、门执行、
+  标签/效果、外部调用、训练/回测、Web、scheduler与生产授权均为false/none。
+- 最终全仓725 PASS、M5专项70 PASS、架构6 PASS；Ruff/compileall/pip/Compose/diff/脱敏通过，生产
+  scheduler仍为原容器`183b8c6c5edd...`、原镜像`722f63de...13b76`且healthy、未重启。
+- 当前必须停止。只有用户明确批准上述精确scope后，才可在一次性断网Docker中运行一次真实
+  DATA_GATE；任何DATA_GO也不授权后续工程门、效果/G1或生产。验收见
+  `docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RELEASE_ACCEPTANCE_20260805.md`。
+
 ## 2026-08-05 · M5-2B数据门实现通过纯合成工程门，待正式release
 
 - 独立`shaiwei.research_gates`已实现：四表SQLite gate registry、候选级财报PIT配对、八式纯函数、
