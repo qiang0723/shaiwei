@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-05 · M5-1冻结口径补正先行
+
+- 独立复核发现首份M5-1配置把家族、联合研究域和全局敏感性尝试N压成单值：静态基本面`12`无法
+  由绑定的F1单独证明，残差风险也丢失本家族`N=3`与相关价量域`N=273`的双层口径。v1协议/配置
+  永久保留，v1配置标为`SUPERSEDED_BEFORE_IMPLEMENTATION`，不得作为运行时真身。
+- `m5-research-proposal-control-correction-v1`仅授权v2配置：五家族分别登记primary与可选sensitivity
+  作用域、计数和证据，planned-after按生成尝试上限一次增加；跨池评价单元不得机械放大尝试N。
+- 确定性生成固定零provider调用/零费用；LLM意向固定调用数和完成响应目标等于尝试上限且费用必须
+  大于0、不超过1美元。两者仍都只是提案意向，approval/provider spend/外部调用继续显式未授权。
+- 架构宪法已进入v2机器身份和启动漂移门；施工只能在v2全部输入哈希通过后进行。见
+  `docs/M5_RESEARCH_PROPOSAL_CONTROL_CORRECTION_PROTOCOL_20260805.md`。
+
 ## 2026-08-05 · M5-1研究提案控制面已结果前冻结
 
 - M5-1对象统一为`NON_AUTHORITATIVE_PROPOSAL`，不是研究任务或协议；只施工create、submit-review、
