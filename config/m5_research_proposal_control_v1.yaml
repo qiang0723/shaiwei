@@ -1,0 +1,121 @@
+schema_version: m5-research-proposal-control-config-v1
+config_id: m5-research-proposal-control-v1
+published_at: "2026-08-05T17:18:00+08:00"
+timezone: Asia/Shanghai
+
+protocol:
+  protocol_id: m5-research-proposal-control-v1
+  path: docs/M5_RESEARCH_PROPOSAL_CONTROL_PROTOCOL_20260805.md
+  sha256: 44a3792edc4ae37ca7e92483205257e1dd0d81cdc97664e8a7f91607a14fdbd3
+adr:
+  decision_id: ADR-0001
+  path: docs/ADR_0001_M5_PROPOSAL_CONTROL_PLANE.md
+  sha256: 007a7e899ca70ad7f7cd96a5590e2f6bfb9bae580d10b424dff71a0112d6cec5
+
+authority:
+  strategy_factory_root: data/web/research_snapshots/strategy_factory_v2
+  snapshot_id: fae1c53c410213e58bd10d938a5854afdd2cce1e3f4c9acd7affb73624c94a6b
+  snapshot_sha256: 36f750639f5643a67ac0c2f9eb7505949542a9404edad9ff3d7fb970f7bd6f2b
+  authority_addendum_sha256: b2ff8baedf878992ebadf2d79f8e38691f8326501e5a9432d821a785c4a6fee6
+  universe_registry_sha256: 964631891a69b4ed2a6c697066a89300910b620d3c71acdf65803248900c4274
+  eligible_universe_ids:
+    - csi800-pit-v1
+    - star50-official-pit-v2
+    - star-board-all-pit-v1
+    - star-board-midcap-pit-v1
+    - star-board-smallcap-pit-v1
+  blocked_universe_ids:
+    - star100-official-pit-v1
+    - star200-official-pit-v1
+    - star-composite-official-v1
+
+proposal_template:
+  template_id: bounded-research-proposal-v1
+  template_version: 1
+  research_stage: DISCOVERY_PROPOSAL
+  evaluation_level: FACTOR_DISCOVERY_PROPOSAL
+  maximum_universe_count: 3
+  generation_attempt_cap_choices: [8, 12, 24]
+  maximum_candidate_count: 24
+  maximum_provider_call_count: 24
+  maximum_provider_budget_usd: "1.00"
+  maximum_valid_days: 14
+  model_identity: NONE_NOT_AUTHORIZED
+  portfolio_identity: NONE_NOT_AUTHORIZED
+  factor_definition_state: TO_BE_GENERATED_WITHIN_BOUNDED_BATCH
+  stop_on_terminal: true
+  no_budget_carryover: true
+
+research_families:
+  - family_id: moneyflow
+    hypothesis_id: incremental-flow-information-v1
+    falsification_rule_id: frozen-gates-reject-v1
+    allowed_generation_modes: [DETERMINISTIC_CODE, LLM_BOUNDED_DSL]
+    prior_related_generation_attempt_count: 18
+    evidence_path: docs/P1_MONEYFLOW_EXPERIMENT_ACCEPTANCE_20260724.md
+    evidence_sha256: 5256ed734d856683208f23d869ec52480112e688179783f08e1cbeef41edc80a
+  - family_id: fundamental_static
+    hypothesis_id: pit-level-quality-value-v1
+    falsification_rule_id: frozen-gates-reject-v1
+    allowed_generation_modes: [DETERMINISTIC_CODE]
+    prior_related_generation_attempt_count: 12
+    evidence_path: docs/F1_CSI800_FUNDAMENTAL_EFFECT_ACCEPTANCE_20260803.md
+    evidence_sha256: ac7f945af2fa1af75f9b59d675862987ab05aebe4a8f2126e8ec974fba29d827
+  - family_id: fundamental_dynamic
+    hypothesis_id: pit-fundamental-change-v1
+    falsification_rule_id: frozen-gates-reject-v1
+    allowed_generation_modes: [DETERMINISTIC_CODE]
+    prior_related_generation_attempt_count: 12
+    evidence_path: docs/F2_CSI800_FUNDAMENTAL_EFFECT_ACCEPTANCE_20260803.md
+    evidence_sha256: bd030519c87a62941003931f0f1481a87ef44fc8e147e1649018b910d1404934
+  - family_id: price_volume
+    hypothesis_id: bounded-price-volume-mechanism-v1
+    falsification_rule_id: frozen-gates-reject-v1
+    allowed_generation_modes: [DETERMINISTIC_CODE, LLM_BOUNDED_DSL]
+    prior_related_generation_attempt_count: 273
+    evidence_path: docs/M4_STAR50_RESIDUAL_FACTOR_ACCEPTANCE_20260804.md
+    evidence_sha256: 12c39a55bae1cf54690b625852fcc8d56d64522476a0df4a1afae9d75b90d9df
+  - family_id: residual_risk
+    hypothesis_id: benchmark-residual-structure-v1
+    falsification_rule_id: frozen-gates-reject-v1
+    allowed_generation_modes: [DETERMINISTIC_CODE]
+    prior_related_generation_attempt_count: 273
+    evidence_path: docs/M4_STAR50_RESIDUAL_FACTOR_ACCEPTANCE_20260804.md
+    evidence_sha256: 12c39a55bae1cf54690b625852fcc8d56d64522476a0df4a1afae9d75b90d9df
+
+fixed_authority:
+  evidence_tier: PROPOSAL_ONLY
+  authority_status: NON_AUTHORITATIVE_PROPOSAL
+  authoritative_outcome: NOT_EVALUATED
+  production_authorization: none
+  protocol_freeze_authorized: false
+  execution_release_authorized: false
+  worker_dispatch_authorized: false
+  external_call_authorized: false
+  deepseek_authorized: false
+  data_collection_authorized: false
+  real_data_read_authorized: false
+  label_read_authorized: false
+  sealed_effect_read_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  paper_authorized: false
+  forward_authorized: false
+  production_authorized: false
+  scheduler_mutation_authorized: false
+  docker_write_authorized: false
+  git_write_authorized: false
+
+storage:
+  schema_version: 1
+  relative_database_path: data/control/m5/research_control.sqlite3
+  busy_timeout_ms: 2000
+  journal_mode: WAL
+  synchronous: FULL
+
+browser_security:
+  allowed_origin: http://127.0.0.1:8080
+  session_ttl_seconds: 1800
+  mutation_limit_per_minute: 12
+  maximum_request_bytes: 16384
+  proxy_secret_path: /run/secrets/m5_control_proxy_token

@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-05 · M5-1研究提案控制面已结果前冻结
+
+- M5-1对象统一为`NON_AUTHORITATIVE_PROPOSAL`，不是研究任务或协议；只施工create、submit-review、
+  cancel，状态最多到`REVIEW_REQUIRED`，冻结/release/enqueue/run/Worker/外部调用端点物理不存在。
+- 首份架构决策选择独立`research-control`与SQLite单事务操作态；M5-1无外部副作用，不提前建设队列、
+  approval、attempt、artifact、outbox或研究ledger。未来M5-2须复审并另立协议。
+- 提案绑定补正后的M5 v2快照和M1注册表，严格登记五个可选池、五个研究家族、尝试/候选/评价/费用/
+  有效期上限及历史multiplicity背景；model/portfolio和全部执行、结果、生产授权显式为false/none。
+- 本机Web写入必须经过loopback Origin、短会话、CSRF、限流和内部Docker secret；control无宿主端口、
+  无外网、`.env`、raw、研究结果、ledger、Docker socket或生产挂载。见
+  `docs/M5_RESEARCH_PROPOSAL_CONTROL_PROTOCOL_20260805.md`与`docs/ADR_0001_M5_PROPOSAL_CONTROL_PLANE.md`。
+
 ## 2026-08-05 · M5-0A跨池评价单元计数补正GO
 
 - M5-0目录把M3的24次生成响应误记为24个评价单元；M3结果前协议和发现验收明确每个响应跨三个池
