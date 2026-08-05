@@ -304,6 +304,8 @@ Web持续展示“哪些池可研究、做过什么、为什么失败、当前�
   DATA_GO候选未来统一验证，不能按覆盖高低挑选。任何数据GO都不是因子有效。
 - 当前只完成M5-2A protocol-only冻结。下一步先施工并推送M5-2B数据门实现/release；只有用户对精确
   data release scope另行批准后，才可在断网短命Docker中读取既有真实数据。工程门仍须DATA_GO后另批。
+- 冻结提交为`98f2d10b...1198b6`，protocol scope为`ab8c3396...b17557`；scope本身不包含任何门执行
+  权限，完整验收见`docs/M5_DYNAMIC_FUNDAMENTAL_CROSS_POOL_PROTOCOL_FREEZE_ACCEPTANCE_20260805.md`。
 
 协议与架构见`docs/M5_DYNAMIC_FUNDAMENTAL_CROSS_POOL_PROTOCOL_20260805.md`、
 `docs/ADR_0002_M5_2_GATE_REGISTRY.md`；机器真身为

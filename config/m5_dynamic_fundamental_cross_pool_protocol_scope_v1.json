@@ -1,0 +1,97 @@
+{
+  "schema_version": "m5-protocol-scope-envelope-v1",
+  "scope_created_at": "2026-08-05T19:32:22+08:00",
+  "protocol_scope_sha256": "ab8c33968c4ced325ec79524b774163f2991edd0c4d5d7eb7c139b27e9b17557",
+  "scope": {
+    "scope_id": "m5-dynamic-fundamental-cross-pool-protocol-scope-v1",
+    "scope_kind": "PROTOCOL_ONLY_NO_GATE_RELEASE",
+    "source_proposal": {
+      "proposal_id": "1dc3afa027401c9fd8ad54382f0b024a8b78b73d2216f2c683a33d4c22497efb",
+      "proposal_request_sha256": "3007af3e6c6f88a74430dfe3dc73e458a8326fc9a6b0717543e61697d038ef79",
+      "canonical_proposal_sha256": "c83c14b462f3f68f669a73c121fdc6aaaa5cdf66d4825c96027a6d3b63644117",
+      "proposal_head_event_sha256": "2d6ff1aace167fa6299414773e031adab9ceac09eadd0b789fbb170c41570f5f",
+      "proposal_export_sha256": "7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc",
+      "required_state_at_data_gate_approval": "REVIEW_REQUIRED",
+      "required_event_seq_at_data_gate_approval": 2,
+      "expires_at": "2026-08-12T10:48:16+00:00"
+    },
+    "git_freeze": {
+      "repository": "qiang0723/shaiwei",
+      "branch": "main",
+      "protocol_commit": "98f2d10b2eb76809b0bf373d0be1ebcd5d1198b6",
+      "protocol_parent_commit": "15bab7accfa01f86791dd4ea31e8ebd5d80f1e6d",
+      "protocol_tree": "b81a70c9894b5570b3833f0eb033d8d349eae17c",
+      "local_origin_main_at_scope_creation": "98f2d10b2eb76809b0bf373d0be1ebcd5d1198b6",
+      "protocol_commit_pushed_before_scope_creation": true
+    },
+    "frozen_files": [
+      {
+        "path": "docs/M5_DYNAMIC_FUNDAMENTAL_CROSS_POOL_PROTOCOL_20260805.md",
+        "sha256": "b9c6215900caa6455f62ecbeee6d8dd1d51bc2e1b48aa625fe9fa694ce7b0fcb"
+      },
+      {
+        "path": "docs/ADR_0002_M5_2_GATE_REGISTRY.md",
+        "sha256": "5887eb4506b13f0c2e09b4a9cac9d9f3300a7976db9db1dd0e209ac130a24762"
+      },
+      {
+        "path": "config/m5_dynamic_fundamental_cross_pool_v1.yaml",
+        "sha256": "ce5cb6390df37baa553e470487c3cd319937a6d017bb43af3d874b5c41696b79"
+      },
+      {
+        "path": "config/m5_dynamic_fundamental_cross_pool_proposal_export_v1.json",
+        "sha256": "7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc"
+      },
+      {
+        "path": "docs/ARCHITECTURE_CONSTITUTION.md",
+        "sha256": "d312dd6389dde45528e8360bbb213456bde8c2522f786892a599421821e1804e"
+      },
+      {
+        "path": "config/architecture_constitution_v1.yaml",
+        "sha256": "3b4ffe73a3aa594d617e4837daa65d0317c130381bff1b6911d374842654eb83"
+      },
+      {
+        "path": "tests/test_m5_dynamic_fundamental_protocol.py",
+        "sha256": "9b1bf6a08e30541ee26959580c68900dd0ce22359a0a61f6f43ef0b843969b6c"
+      }
+    ],
+    "research_identity": {
+      "family_id": "fundamental_dynamic",
+      "home_universe_id": "star50-official-pit-v2",
+      "transfer_universe_ids": [
+        "star-board-midcap-pit-v1",
+        "star-board-smallcap-pit-v1"
+      ],
+      "candidate_count": 8,
+      "evaluation_unit_count": 24,
+      "primary_attempt_n_after_freeze": 14,
+      "sensitivity_attempt_n_after_freeze": 20,
+      "effect_test_count": 0
+    },
+    "permitted_next_construction": {
+      "data_gate_implementation_and_release_only": true,
+      "real_data_gate_execution": false,
+      "synthetic_engineering_gate_execution": false
+    },
+    "authority": {
+      "data_gate_release_scope_created": false,
+      "data_gate_approval_recorded": false,
+      "engineering_gate_release_scope_created": false,
+      "engineering_gate_approval_recorded": false,
+      "provider_call_count": 0,
+      "provider_budget_usd": "0.00",
+      "deepseek_authorized": false,
+      "external_call_authorized": false,
+      "data_collection_authorized": false,
+      "real_data_read_authorized": false,
+      "label_read_authorized": false,
+      "sealed_effect_read_authorized": false,
+      "model_training_authorized": false,
+      "backtest_authorized": false,
+      "paper_authorized": false,
+      "forward_authorized": false,
+      "production_authorization": "none",
+      "scheduler_mutation_authorized": false,
+      "web_change_authorized": false
+    }
+  }
+}

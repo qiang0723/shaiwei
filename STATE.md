@@ -15,11 +15,13 @@
   scope与每门release scope分离，数据门和synthetic工程门必须分别批准。
 - 本节点只授权协议提交推送。`data_gate_approval_recorded=false`、
   `engineering_gate_approval_recorded=false`，零真实数据读取、零标签/效果、零provider/费用、零模型/
-  回测/前瞻/生产/Web/scheduler变化。专项10 PASS、全仓665 PASS、架构6 PASS；研究与架构专项复核
-  均GO。
+  回测/前瞻/生产/Web/scheduler变化。冻结提交`98f2d10b2eb76809b0bf373d0be1ebcd5d1198b6`已先行
+  推送；protocol scope为`ab8c33968c4ced325ec79524b774163f2991edd0c4d5d7eb7c139b27e9b17557`。
+  专项与scope测试12 PASS、全仓667 PASS、架构6 PASS；研究与架构专项复核均GO。
 - 下一合法动作是先施工并推送M5-2B数据门实现/release，生成精确`data_gate_release_scope_sha256`；
   用户批准前不得运行真实数据门。见`docs/M5_DYNAMIC_FUNDAMENTAL_CROSS_POOL_PROTOCOL_20260805.md`
-  与`docs/ADR_0002_M5_2_GATE_REGISTRY.md`。
+  、`docs/ADR_0002_M5_2_GATE_REGISTRY.md`与
+  `docs/M5_DYNAMIC_FUNDAMENTAL_CROSS_POOL_PROTOCOL_FREEZE_ACCEPTANCE_20260805.md`。
 
 ## 2026-08-05 · M5-1A首份跨池研究提案已提交人工复核
 
