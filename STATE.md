@@ -2,14 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-08-05 · M5-0A跨池评价单元计数补正已结果前冻结
+## 2026-08-05 · M5-0A跨池评价单元计数补正GO
 
 - M5-0目录把M3的24次生成响应误记为24个评价单元；M3结果前协议和发现验收明确每个响应跨三个池
   评价，因此权威口径应为生成尝试24、评价单元72，相关价量发现域N仍为270。
 - 旧目录、旧快照和M5-0工程GO永久保留；只将旧快照中的该字段标为非当前multiplicity真身，不改变
   M3合同STOP、策略NOT_EVALUATED、效果读取0、正式库0或任何生产事实。
 - `m5-strategy-factory-count-correction-v1`只授权机器addendum、新内容寻址v2快照和Web只读切换；
-  M5-1 proposal-only在补正验收通过前继续阻断，零research-control、Worker或真实研究授权。
+  补正已验收通过。新v2快照中唯一业务差异为M3评价单元24→72，旧v1目录全树哈希施工前后不变。
+- Web已切换v2并真实返回生成24/评价72/效果0；603项全仓测试及架构、静态、Compose门通过，Web
+  双容器healthy，scheduler身份未变。见
+  `docs/M5_STRATEGY_FACTORY_COUNT_CORRECTION_ACCEPTANCE_20260805.md`。
+- M5-1历史计数阻断解除，但proposal-only仍须独立结果前协议；零research-control、Worker或真实
+  研究授权。
 
 ## 2026-08-05 · 代码与架构宪法v1生效
 

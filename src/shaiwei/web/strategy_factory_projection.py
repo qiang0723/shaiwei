@@ -19,11 +19,12 @@ from shaiwei.web.strategy_factory_contract import (
     StrategyFactoryContractError,
     StrategyFactoryPointer,
 )
+from shaiwei.web.strategy_factory_authority import apply_authority_addendum
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONFIG = Path("config/m5_strategy_factory_v1.yaml")
-DEFAULT_OUTPUT = Path("data/web/research_snapshots/strategy_factory")
+DEFAULT_OUTPUT = Path("data/web/research_snapshots/strategy_factory_v2")
 
 
 def _canonical(value: object) -> bytes:
@@ -220,12 +221,23 @@ def _projection_data(catalog: StrategyFactoryCatalog, admitted: int, admission_r
 def build_strategy_factory_document(project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     root = project_root.resolve()
     catalog, catalog_payload = load_strategy_factory_catalog(root)
+    catalog, addendum_payload, addendum_hashes = apply_authority_addendum(
+        root,
+        catalog,
+        catalog_payload,
+    )
     payloads, evidence_hashes = _read_evidence(root, catalog)
+    evidence_hashes.update(addendum_hashes)
     _validate_m1_identity(catalog, payloads["m1_registry"])
     admitted, admission_rows = _admitted_factor_count(payloads["factor_admissions"])
+    builder_identity = {
+        "projection": _sha256(Path(__file__).read_bytes()),
+        "authority": _sha256(Path(apply_authority_addendum.__code__.co_filename).read_bytes()),
+    }
     source_identity = {
         "catalog_sha256": _sha256(catalog_payload),
-        "builder_sha256": _sha256(Path(__file__).read_bytes()),
+        "authority_addendum_sha256": _sha256(addendum_payload),
+        "builder_sha256": _sha256(_canonical(builder_identity)),
         "evidence_hashes": evidence_hashes,
     }
     data = _projection_data(catalog, admitted, admission_rows)
@@ -306,7 +318,7 @@ def build_strategy_factory_projection(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Build the immutable M5-0 strategy-factory projection")
+    parser = argparse.ArgumentParser(description="Build the corrected immutable M5 strategy-factory projection")
     parser.add_argument("command", choices=["build"])
     parser.add_argument("--project-root", type=Path, default=PROJECT_ROOT)
     args = parser.parse_args(argv)

@@ -16,7 +16,7 @@ from shaiwei.web.strategy_factory_contract import StrategyFactoryPointer
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_OUTPUT = Path("data/web/research_snapshots/strategy_factory")
+DEFAULT_OUTPUT = Path("data/web/research_snapshots/strategy_factory_v2")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
@@ -65,6 +65,9 @@ class StrategyFactoryBundle:
             "evidence_hashes": {
                 "strategy_factory_snapshot": self.document_sha256,
                 "strategy_factory_catalog": str(self.source_identity["catalog_sha256"]),
+                "strategy_factory_authority_addendum": str(
+                    self.source_identity["authority_addendum_sha256"]
+                ),
                 "strategy_factory_builder": str(self.source_identity["builder_sha256"]),
             },
             "protocol_id": self.protocol_id,
@@ -153,6 +156,7 @@ def load_strategy_factory(
     if (
         not isinstance(source_identity, dict)
         or not SHA256_RE.fullmatch(str(source_identity.get("catalog_sha256", "")))
+        or not SHA256_RE.fullmatch(str(source_identity.get("authority_addendum_sha256", "")))
         or not SHA256_RE.fullmatch(str(source_identity.get("builder_sha256", "")))
         or not isinstance(source_identity.get("evidence_hashes"), dict)
     ):

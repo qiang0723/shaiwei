@@ -220,6 +220,11 @@ services:
         read_only: true
         bind: {create_host_path: false}
       - type: bind
+        source: ./config/m5_strategy_factory_authority_addendum_v2.yaml
+        target: /workspace/config/m5_strategy_factory_authority_addendum_v2.yaml
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
         source: ./config/m1_multi_universe_v1.yaml
         target: /workspace/config/m1_multi_universe_v1.yaml
         read_only: true
@@ -227,6 +232,11 @@ services:
       - type: bind
         source: ./docs/M5_STRATEGY_FACTORY_PROTOCOL_20260805.md
         target: /workspace/docs/M5_STRATEGY_FACTORY_PROTOCOL_20260805.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/M5_STRATEGY_FACTORY_COUNT_CORRECTION_PROTOCOL_20260805.md
+        target: /workspace/docs/M5_STRATEGY_FACTORY_COUNT_CORRECTION_PROTOCOL_20260805.md
         read_only: true
         bind: {create_host_path: false}
       - type: bind
@@ -282,6 +292,11 @@ services:
       - type: bind
         source: ./docs/M3_MULTI_POOL_FACTOR_DISCOVERY_ACCEPTANCE_20260802.md
         target: /workspace/docs/M3_MULTI_POOL_FACTOR_DISCOVERY_ACCEPTANCE_20260802.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/M3_MULTI_POOL_FACTOR_PREEXECUTION_PROTOCOL_20260802.md
+        target: /workspace/docs/M3_MULTI_POOL_FACTOR_PREEXECUTION_PROTOCOL_20260802.md
         read_only: true
         bind: {create_host_path: false}
       - type: bind

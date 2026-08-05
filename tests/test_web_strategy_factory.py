@@ -17,13 +17,17 @@ from shaiwei.web.strategy_factory_projection import build_strategy_factory_proje
 
 ROOT = Path(__file__).parents[1]
 CONFIG = Path("config/m5_strategy_factory_v1.yaml")
-OUTPUT = Path("data/web/research_snapshots/strategy_factory")
+ADDENDUM = Path("config/m5_strategy_factory_authority_addendum_v2.yaml")
+OUTPUT = Path("data/web/research_snapshots/strategy_factory_v2")
 
 
 def _fixture_root(tmp_path: Path) -> Path:
     document = yaml.safe_load((ROOT / CONFIG).read_text(encoding="utf-8"))
-    relative_paths = {CONFIG, Path(document["protocol"]["path"])}
+    addendum = yaml.safe_load((ROOT / ADDENDUM).read_text(encoding="utf-8"))
+    relative_paths = {CONFIG, ADDENDUM, Path(document["protocol"]["path"])}
     relative_paths.update(Path(item["path"]) for item in document["evidence_sources"])
+    relative_paths.add(Path(addendum["protocol"]["path"]))
+    relative_paths.update(Path(item["path"]) for item in addendum["corrections"][0]["evidence"])
     for relative in relative_paths:
         target = tmp_path / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -37,6 +41,13 @@ def _replace_evidence_hash(root: Path, evidence_id: str) -> None:
     source = next(item for item in document["evidence_sources"] if item["evidence_id"] == evidence_id)
     source["sha256"] = hashlib.sha256((root / source["path"]).read_bytes()).hexdigest()
     config_path.write_text(yaml.safe_dump(document, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    addendum_path = root / ADDENDUM
+    addendum = yaml.safe_load(addendum_path.read_text(encoding="utf-8"))
+    addendum["base_catalog"]["sha256"] = hashlib.sha256(config_path.read_bytes()).hexdigest()
+    addendum_path.write_text(
+        yaml.safe_dump(addendum, allow_unicode=True, sort_keys=False),
+        encoding="utf-8",
+    )
 
 
 def test_projection_is_source_backed_deterministic_and_read_only(tmp_path: Path) -> None:
@@ -58,9 +69,28 @@ def test_projection_is_source_backed_deterministic_and_read_only(tmp_path: Path)
     assert summary["existing_production_strategy_count"] == 1
     assert summary["admitted_factor_count"] == 0
     assert summary["active_authorized_task_count"] == 0
+    m3 = next(
+        item
+        for item in bundle.data["programs"]
+        if item["program_id"] == "m3-custom-pools-price-volume-v1"
+    )
+    assert m3["generation_attempt_count"] == 24
+    assert m3["evaluation_unit_count"] == 72
+    assert m3["effect_test_count"] == 0
     assert bundle.data["active_tasks"] == []
     assert bundle.data["invariants"]["external_calls_made"] == 0
     assert bundle.data["invariants"]["real_research_runs"] == 0
+    assert len(bundle.source_identity["authority_addendum_sha256"]) == 64
+
+
+def test_projection_rejects_authority_addendum_drift(tmp_path: Path) -> None:
+    root = _fixture_root(tmp_path)
+    addendum_path = root / ADDENDUM
+    addendum = yaml.safe_load(addendum_path.read_text(encoding="utf-8"))
+    addendum["corrections"][0]["corrected_value"] = 71
+    addendum_path.write_text(yaml.safe_dump(addendum, allow_unicode=True), encoding="utf-8")
+    with pytest.raises(StrategyFactoryContractError, match="authority addendum"):
+        build_strategy_factory_projection(root, OUTPUT)
 
 
 def test_projection_rejects_evidence_drift_and_symlinks(tmp_path: Path) -> None:
