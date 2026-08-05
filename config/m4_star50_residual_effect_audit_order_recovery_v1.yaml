@@ -1,0 +1,84 @@
+schema_version: m4-star50-residual-effect-audit-order-recovery-v1
+recovery_id: m4-star50-residual-effect-failed-gate-order-audit-recovery-v1
+frozen_at: "2026-08-05T09:35:27+08:00"
+status: FROZEN_BEFORE_AUDIT_CORRECTION
+production_authorization: none
+
+authority:
+  closure_protocol_path: config/m4_star50_residual_effect_evidence_closure_v1.yaml
+  closure_protocol_sha256: f79931ec501fe1db12b2fd05fdfc01e9cee91aba91b51f2ffb0d132864ce9abe
+  closure_execution_release_path: config/m4_star50_residual_effect_evidence_closure_execution_v1.yaml
+  closure_execution_release_sha256: 60ba1e365f6aa2d60261195f4dd64842aa58c6129f9451ce234aa36f534e0b0c
+  closure_implementation_git_head: 6f2c14caec03e1893c14f623fc91aceed83b86c0
+  closure_image_content_id: sha256:dae293b2cb1c94bccb71312c2ef307e962b8aacda8d3c7dd5fc4feb8828b06b9
+
+completed_publication_state:
+  effect_report_sha256: 627f304a076c5854ab02eb78717a8e6035c3c368dab058ad7212fa7022d0656b
+  sealed_artifact_count: 10
+  run_ledger_data_rows: 1
+  run_ledger_sha256: b400e0856ced8c6e7c66f6c6ee67411725301f16387cea1efc002718b0efad58
+  decision_ledger_data_rows: 3
+  decision_ledger_sha256: 5bd2b49cce4ce9c3059d70c66d74ec2c4f243e2afff69ce7bfd573e99bdc22e2
+  manifest_sha256: fe5715b63847609e596befa3b8b7ff9859a1afbb4ea14b42ddf647f60148c066
+  report_or_artifact_rewrite: false
+
+failed_audit:
+  physical_artifacts: true
+  canonical_artifacts: true
+  first_replay_physical_equal: true
+  first_replay_canonical_equal: true
+  pit_and_shift_integrity: true
+  pass_count: true
+  verdict: true
+  formal_g1_not_claimed: true
+  no_formal_insertions: true
+  run_ledger_one_row: true
+  decision_ledger_three_rows: true
+  run_ledger_exact: true
+  decision_ledger_exact: true
+  manifest_exact: true
+  production_authorization_none: true
+  candidate_decisions: false
+
+root_cause:
+  report_serialization: json_sort_keys_true
+  gates_mapping_order_after_reload: alphabetical
+  failed_gates_order: frozen_judge_evaluation_order
+  affected_effect_branch_candidates: 2
+  expected_and_recorded_failed_gate_counts: [4, 3]
+  unique_member_sets_equal: true
+  decision_labels_match: true
+  defect: audit_compared_ordered_lists_for_semantically_unordered_failed_gate_membership
+
+authorized_change:
+  files:
+    - .gitattributes
+    - src/shaiwei/research/star50_residual_effect/audit.py
+    - tests/test_m4_star50_residual_effect.py
+  behaviors:
+    audit_semantics: >-
+      Require the recorded failed-gate names to be unique and compare their set with the
+      independently reconstructed failed-gate set; retain exact decision-label comparison.
+    ledger_byte_preservation: >-
+      Override text normalization for exactly the two M4 residual-effect CSV ledgers so Git
+      stores their already-published working-tree bytes exactly; do not rewrite either ledger.
+  research_result_change: false
+  threshold_or_gate_change: false
+  report_ledger_manifest_or_artifact_change: false
+
+required_after_fix:
+  - targeted and full tests plus Ruff compileall pip check Compose and diff checks
+  - prove filtered and no-filter Git object hashes are equal for exactly the two sealed ledgers
+  - commit and push the audit correction before execution
+  - freeze and push a new audit-closure release bound to the corrected code bundle
+  - run the corrected independent audit in a new immutable network-none image
+  - run the closure reuse path once and prove every sealed ledger and manifest hash unchanged
+  - disclose effect only after both corrected audit and idempotent reuse pass
+
+forbidden:
+  - rewrite_or_recompute_any_research_result
+  - change_failed_gate_membership
+  - change_candidate_decision_verdict_or_threshold
+  - change_any_ledger_manifest_or_sealed_file
+  - normalize_or_rewrite_existing_ledger_line_endings
+  - network_secret_model_training_scheduler_web_paper_or_production_access
