@@ -178,7 +178,7 @@ def build_input_manifest(
                 ),
             }
         )
-    return {
+    document = {
         "schema_version": "m5-data-input-v1",
         "created_at": created_at,
         "protocol_scope_sha256": PROTOCOL_SCOPE_SHA256,
@@ -188,6 +188,9 @@ def build_input_manifest(
         "sources": sources,
         "memberships": memberships,
     }
+    if _latest_rows(ledger_path) != selected:
+        raise M5GateError("M5 relevant ledger selection changed while inventory was built")
+    return document
 
 
 def write_manifest_once(path: Path, document: dict[str, Any]) -> str:

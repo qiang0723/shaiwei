@@ -6,7 +6,9 @@ import json
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
+from shaiwei.research_gates.m5_dynamic import input_inventory
 from shaiwei.research_gates.m5_dynamic.contract import (
     API_FIELDS,
     REQUIRED_APIS,
@@ -201,3 +203,32 @@ def test_new_relevant_revision_changes_inventory_identity(tmp_path: Path) -> Non
     before_source = next(item for item in before["sources"] if item["source_api"] == REQUIRED_APIS[1])
     after_source = next(item for item in after["sources"] if item["source_api"] == REQUIRED_APIS[1])
     assert before_source["selection_sha256"] != after_source["selection_sha256"]
+
+
+def test_inventory_fails_if_relevant_selection_changes_mid_build(
+    tmp_path: Path, monkeypatch
+) -> None:
+    protocol, ledger, _ = _fixture(tmp_path)
+    original = input_inventory._latest_rows
+    calls = 0
+
+    def changing_selection(path: Path):
+        nonlocal calls
+        calls += 1
+        selected = original(path)
+        if calls == 2:
+            selected[REQUIRED_APIS[0]][0]["batch_id"] = "concurrent-revision"
+        return selected
+
+    monkeypatch.setattr(input_inventory, "_latest_rows", changing_selection)
+
+    with pytest.raises(
+        input_inventory.M5GateError,
+        match="selection changed while inventory was built",
+    ):
+        build_input_manifest(
+            protocol,
+            project_root=tmp_path,
+            ledger_path=ledger,
+            created_at=CREATED_AT,
+        )
