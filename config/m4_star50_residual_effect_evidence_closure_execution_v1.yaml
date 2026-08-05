@@ -1,0 +1,67 @@
+schema_version: m4-star50-residual-effect-evidence-closure-execution-release-v1
+release_id: m4-star50-residual-effect-evidence-closure-execution-v1
+prepared_at: "2026-08-05T09:25:57+08:00"
+status: FROZEN_SINGLE_EVIDENCE_CLOSURE_RELEASE
+protocol_path: config/m4_star50_residual_effect_v1.yaml
+protocol_sha256: a006f62d263249cbbfb33e18de8c18fc2757a80ed145ec273c21c65b46f5a8aa
+closure_protocol_path: config/m4_star50_residual_effect_evidence_closure_v1.yaml
+closure_protocol_sha256: f79931ec501fe1db12b2fd05fdfc01e9cee91aba91b51f2ffb0d132864ce9abe
+closure_timestamp_addendum_path: config/m4_star50_residual_effect_evidence_closure_timestamp_addendum_v1.yaml
+closure_timestamp_addendum_sha256: 578964b7220f52fcc3d6f84b254065c5b645bcb6283b81ce66bfdbf47c851664
+implementation_git_head: 6f2c14caec03e1893c14f623fc91aceed83b86c0
+code_bundle_sha256: 76f113547f8426fb019a2996eb267bd9aac2a9c54619558952ad58e716d69ff3
+execution_authorized: true
+label_and_sealed_oos_read_authorized: true
+report_reuse_only: true
+effect_disclosure_authorized_only_after_independent_audit: true
+model_training_authorized: false
+provider_calls_authorized: false
+api_key_read_authorized: false
+production_authorization: none
+
+sealed_inputs:
+  effect_report_sha256: 627f304a076c5854ab02eb78717a8e6035c3c368dab058ad7212fa7022d0656b
+  sealed_artifact_count: 10
+  input_snapshot_sha256: dd2d058eda1aa914fcbe9f1eda86d621ec6e663f37ea7bd8d2e1e9222f5361c0
+  run_ledger_initial_sha256: c2989a612949cbdf131b8ab6a80b53d6954dea448cee990f5f3448d6b832f293
+  decision_ledger_initial_sha256: dce031439ad677b76ba3bf5e4534988cc7433509c3539b8c69da950a9401dd52
+  manifest_initially_absent: true
+
+runtime:
+  engine: docker_one_off_evidence_closure
+  image: shaiwei:m4-star50-residual-effect-closure-v1
+  image_build_git_head: 6f2c14caec03e1893c14f623fc91aceed83b86c0
+  network_mode: none
+  env_file_mounted: false
+  nonroot: true
+  read_only_root: true
+  tools_mount_read_only_and_hash_bound: true
+  full_data_mount_read_only: true
+  writable_result_root_only: data/research/m4/m4-star50-benchmark-residual-effect-v1
+  writable_ledger_files:
+    - ledger/m4_star50_residual_effect_runs.csv
+    - ledger/m4_star50_residual_effect_decisions.csv
+  writable_ledger_parent: false
+  sibling_lock_files: false
+  memory_limit: 4g
+  cpu_limit: 2.0
+  blas_threads: 1
+  scheduler_restart_or_rebuild: false
+
+required_sequence:
+  - verify all eleven sealed file hashes and report identity
+  - verify initial zero-row ledgers and absent manifest
+  - append one run row and three decision rows by target-file flock
+  - write exact immutable manifest
+  - run independent physical canonical decision ledger and manifest audit
+  - disclose only audited verdict summary
+  - invoke closure a second time and prove zero additions or rewrites
+
+forbidden:
+  - call_effect_run_first_pass_or_replay
+  - recompute_feature_label_rankic_portfolio_or_return
+  - rewrite_report_or_any_parquet
+  - widen_ledger_parent_write_access
+  - network_secret_model_training_scheduler_web_paper_or_production_access
+  - formal_g1_v1_admission_claim
+  - formal_factor_library_insertion
