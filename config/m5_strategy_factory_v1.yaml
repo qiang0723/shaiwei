@@ -1,0 +1,353 @@
+schema_version: m5-strategy-factory-catalog-v1
+catalog_id: m5-strategy-factory-v1
+published_at: "2026-08-05T10:25:18+08:00"
+timezone: Asia/Shanghai
+
+protocol:
+  protocol_id: m5-strategy-factory-contract-v1
+  path: docs/M5_STRATEGY_FACTORY_PROTOCOL_20260805.md
+  sha256: 79dd4cf61df2008233943c86b60f6a303eb62dd2257b186a087b409997465b54
+
+capabilities:
+  mode: LOCAL_READ_ONLY_DRAFTING
+  write_api_authorized: false
+  real_research_authorized: false
+  external_calls_authorized: false
+  deepseek_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  forward_authorized: false
+  new_production_authorized: false
+  production_authorization: none
+  active_authorized_task_count: 0
+
+expected_counts:
+  registered_universe_count: 8
+  research_eligible_universe_count: 5
+  blocked_universe_count: 3
+  existing_production_strategy_count: 1
+  admitted_factor_count: 0
+  active_authorized_task_count: 0
+  registered_program_count: 8
+
+evidence_sources:
+  - evidence_id: m1_registry
+    path: config/m1_multi_universe_v1.yaml
+    sha256: 964631891a69b4ed2a6c697066a89300910b620d3c71acdf65803248900c4274
+  - evidence_id: p0_forward
+    path: docs/P0_FORWARD_ACCEPTANCE_20260722.md
+    sha256: e4b343eb2b212c9eba21fc394f73ec0904e3dd4c8bd0938ebc7c6e07b383e366
+  - evidence_id: m3_custom_pit
+    path: docs/M3_STAR_CUSTOM_PIT_ACCEPTANCE_20260802.md
+    sha256: d3f01e7afc477dc1b3de464d89b09d5d76c356a70d31925a2fbe646fa1abade1
+  - evidence_id: p4_star100_data
+    path: docs/P4_STAR100_DATA_FEASIBILITY_ACCEPTANCE_20260726.md
+    sha256: 4bed849d160b18581658e81a8a6accd765c0a35079949ce9b7604ae85cd0d744
+  - evidence_id: m2_star200_data
+    path: docs/M2_STAR200_DATA_FEASIBILITY_ACCEPTANCE_20260802.md
+    sha256: 0646c985dca6fd5d8ed0728ae641fed7e58d57d699c59f3c3538f24eff8a7334
+  - evidence_id: p1_moneyflow
+    path: docs/P1_MONEYFLOW_EXPERIMENT_ACCEPTANCE_20260724.md
+    sha256: 5256ed734d856683208f23d869ec52480112e688179783f08e1cbeef41edc80a
+  - evidence_id: f1_static_fundamental
+    path: docs/F1_CSI800_FUNDAMENTAL_EFFECT_ACCEPTANCE_20260803.md
+    sha256: ac7f945af2fa1af75f9b59d675862987ab05aebe4a8f2126e8ec974fba29d827
+  - evidence_id: f2_dynamic_fundamental
+    path: docs/F2_CSI800_FUNDAMENTAL_EFFECT_ACCEPTANCE_20260803.md
+    sha256: bd030519c87a62941003931f0f1481a87ef44fc8e147e1649018b910d1404934
+  - evidence_id: p2_star50_effect
+    path: docs/P2_STAR50_EFFECT_CORRECTION_ACCEPTANCE_20260725.md
+    sha256: 3fd8c7687f861151728abc241dbb91d848bf519b98b7c7c46c3b20bcee07a363
+  - evidence_id: m1_star50_discovery
+    path: docs/M1_STAR50_FACTOR_DISCOVERY_ACCEPTANCE_20260801.md
+    sha256: 55504d9990d281d73d0f997e95aaa16e20f20f11e12f7b678527142c5796f513
+  - evidence_id: m1_star50_review
+    path: docs/M1_STAR50_FACTOR_REVIEW_ACCEPTANCE_20260801.md
+    sha256: 283f0f511a2cd420eb7ecd9aafe238f0fc65702c4d387b257bb509e560ce6b37
+  - evidence_id: m3_multi_pool_discovery
+    path: docs/M3_MULTI_POOL_FACTOR_DISCOVERY_ACCEPTANCE_20260802.md
+    sha256: 6db71b9ba19cafeb6dabcd590ea30c284a92d753d74903f5bdd463ffe0fc3ec2
+  - evidence_id: m3_multi_pool_review
+    path: docs/M3_MULTI_POOL_FACTOR_REVIEW_ACCEPTANCE_20260802.md
+    sha256: 96d33e27f9e409749753a05c0f5635f86341d8bbe7476e20914a439236be3954
+  - evidence_id: m4_star50_residual
+    path: docs/M4_STAR50_RESIDUAL_EFFECT_ACCEPTANCE_20260805.md
+    sha256: 5722b08acd93b5cf3762ec902409e13e04af0d85639c34d5b83b8688d88f1fb7
+  - evidence_id: factor_admissions
+    path: ledger/factor_admissions.csv
+    sha256: 0a61018ab3e8f8b0a0c5fe66623cb6a6f4f009e2aba341181a4348cfaafa12cc
+
+research_families:
+  - family_id: baseline_model
+    display_name: 基线模型
+    draft_eligible: false
+  - family_id: moneyflow
+    display_name: 资金流
+    draft_eligible: true
+  - family_id: fundamental_static
+    display_name: 静态基本面
+    draft_eligible: true
+  - family_id: fundamental_dynamic
+    display_name: 动态基本面
+    draft_eligible: true
+  - family_id: price_volume
+    display_name: 量价机制
+    draft_eligible: true
+  - family_id: residual_risk
+    display_name: 残差与特异风险
+    draft_eligible: true
+
+universes:
+  - universe_id: csi800-pit-v1
+    display_name: 中证800
+    identity_kind: OFFICIAL_INDEX
+    official_index_code: 000906.SH
+    data_status: READY
+    evidence_tier: PRODUCTION_CURRENT
+    authoritative_outcome: PRODUCTION_CURRENT_EXISTING
+    research_draft_eligible: true
+    existing_production: true
+    allowed_action: CREATE_RESEARCH_DRAFT
+    blocker: null
+    evidence_ids: [m1_registry, p0_forward]
+  - universe_id: star50-official-pit-v2
+    display_name: 科创50
+    identity_kind: OFFICIAL_INDEX
+    official_index_code: 000688.SH
+    data_status: READY
+    evidence_tier: HISTORICAL_EFFECT_AUDITED
+    authoritative_outcome: REJECT_CURRENT_PROGRAMS
+    research_draft_eligible: true
+    existing_production: false
+    allowed_action: CREATE_RESEARCH_DRAFT
+    blocker: null
+    evidence_ids: [m1_registry, p2_star50_effect, m1_star50_review, m4_star50_residual]
+  - universe_id: star100-official-pit-v1
+    display_name: 科创100
+    identity_kind: OFFICIAL_INDEX
+    official_index_code: 000698.SH
+    data_status: BLOCKED_OFFICIAL_LINEAGE
+    evidence_tier: SOURCE_GO_ONLY
+    authoritative_outcome: NOT_EVALUATED
+    research_draft_eligible: false
+    existing_production: false
+    allowed_action: FREEZE_DATA_RECOVERY_PROTOCOL
+    blocker: 缺少可审计的官方历史成员谱系
+    evidence_ids: [m1_registry, p4_star100_data]
+  - universe_id: star200-official-pit-v1
+    display_name: 科创200
+    identity_kind: OFFICIAL_INDEX
+    official_index_code: 000699.SH
+    data_status: BLOCKED_OFFICIAL_LINEAGE
+    evidence_tier: SECONDARY_SOURCE_GO_ONLY
+    authoritative_outcome: NOT_EVALUATED
+    research_draft_eligible: false
+    existing_production: false
+    allowed_action: WAIT_AUTHORIZED_LINEAGE_SOURCE
+    blocker: 二级月度集合不能替代官方PIT成员谱系
+    evidence_ids: [m1_registry, m2_star200_data]
+  - universe_id: star-composite-official-v1
+    display_name: 科创综指
+    identity_kind: OFFICIAL_INDEX
+    official_index_code: 000680.SH
+    data_status: DATA_GATE_REQUIRED
+    evidence_tier: PROTOCOL_ONLY
+    authoritative_outcome: NOT_EVALUATED
+    research_draft_eligible: false
+    existing_production: false
+    allowed_action: FREEZE_DATA_FEASIBILITY_PROTOCOL
+    blocker: 尚未完成独立数据与PIT门
+    evidence_ids: [m1_registry]
+  - universe_id: star-board-all-pit-v1
+    display_name: 科创板全市场PIT研究池
+    identity_kind: CUSTOM_RULE_BASED
+    official_index_code: null
+    data_status: READY
+    evidence_tier: DISCOVERY_ONLY
+    authoritative_outcome: STOPPED_CONTRACT
+    research_draft_eligible: true
+    existing_production: false
+    allowed_action: CREATE_RESEARCH_DRAFT
+    blocker: null
+    evidence_ids: [m1_registry, m3_custom_pit, m3_multi_pool_review]
+  - universe_id: star-board-midcap-pit-v1
+    display_name: 科创板中盘PIT研究池
+    identity_kind: CUSTOM_RULE_BASED
+    official_index_code: null
+    data_status: READY
+    evidence_tier: DISCOVERY_ONLY
+    authoritative_outcome: STOPPED_CONTRACT
+    research_draft_eligible: true
+    existing_production: false
+    allowed_action: CREATE_RESEARCH_DRAFT
+    blocker: null
+    evidence_ids: [m1_registry, m3_custom_pit, m3_multi_pool_review]
+  - universe_id: star-board-smallcap-pit-v1
+    display_name: 科创板小盘PIT研究池
+    identity_kind: CUSTOM_RULE_BASED
+    official_index_code: null
+    data_status: READY
+    evidence_tier: DISCOVERY_ONLY
+    authoritative_outcome: STOPPED_CONTRACT
+    research_draft_eligible: true
+    existing_production: false
+    allowed_action: CREATE_RESEARCH_DRAFT
+    blocker: null
+    evidence_ids: [m1_registry, m3_custom_pit, m3_multi_pool_review]
+
+programs:
+  - program_id: csi800-production-baseline-v1
+    display_name: 中证800 Alpha158生产基线
+    family_id: baseline_model
+    universe_ids: [csi800-pit-v1]
+    lifecycle_state: CLOSED
+    evidence_tier: PRODUCTION_CURRENT
+    authoritative_outcome: PRODUCTION_CURRENT_EXISTING
+    strategy_effective: EXISTING_PRODUCTION_BASELINE
+    generation_attempt_count: 0
+    evaluation_unit_count: 0
+    effect_test_count: 0
+    candidate_count: 0
+    production_authorization: production_current
+    summary: 当前唯一生产主策略；不等于正式因子准入。
+    next_action: 持续前瞻与模拟仓观察
+    evidence_ids: [p0_forward]
+  - program_id: p1-csi800-moneyflow-v1
+    display_name: 中证800资金流候选
+    family_id: moneyflow
+    universe_ids: [csi800-pit-v1]
+    lifecycle_state: CLOSED
+    evidence_tier: HISTORICAL_EFFECT_AUDITED
+    authoritative_outcome: REJECT
+    strategy_effective: REJECT
+    generation_attempt_count: 18
+    evaluation_unit_count: 6
+    effect_test_count: 6
+    candidate_count: 6
+    production_authorization: none
+    summary: 六个预注册候选全部未通过冻结G1；本家族停止追加变体。
+    next_action: 独立经济机制须新协议并保留既有尝试N
+    evidence_ids: [p1_moneyflow]
+  - program_id: f1-csi800-static-fundamental-v1
+    display_name: 中证800静态基本面候选
+    family_id: fundamental_static
+    universe_ids: [csi800-pit-v1]
+    lifecycle_state: CLOSED
+    evidence_tier: HISTORICAL_EFFECT_AUDITED
+    authoritative_outcome: REJECT
+    strategy_effective: REJECT
+    generation_attempt_count: 6
+    evaluation_unit_count: 6
+    effect_test_count: 6
+    candidate_count: 6
+    production_authorization: none
+    summary: 六候选经济方向成立，但G1通过数为0。
+    next_action: 本家族关闭；新机制另立协议
+    evidence_ids: [f1_static_fundamental]
+  - program_id: f2-csi800-dynamic-fundamental-v1
+    display_name: 中证800动态基本面候选
+    family_id: fundamental_dynamic
+    universe_ids: [csi800-pit-v1]
+    lifecycle_state: CLOSED
+    evidence_tier: HISTORICAL_EFFECT_AUDITED
+    authoritative_outcome: REJECT
+    strategy_effective: REJECT
+    generation_attempt_count: 6
+    evaluation_unit_count: 6
+    effect_test_count: 5
+    candidate_count: 6
+    production_authorization: none
+    summary: 五项进入效果门但G1通过数为0；一项方向失败。
+    next_action: 本家族关闭；累计基本面尝试N保持12
+    evidence_ids: [f2_dynamic_fundamental]
+  - program_id: p2-star50-baseline-v1
+    display_name: 科创50独立基线
+    family_id: baseline_model
+    universe_ids: [star50-official-pit-v2]
+    lifecycle_state: CLOSED
+    evidence_tier: HISTORICAL_EFFECT_AUDITED
+    authoritative_outcome: REJECT
+    strategy_effective: REJECT
+    generation_attempt_count: 1
+    evaluation_unit_count: 1
+    effect_test_count: 1
+    candidate_count: 1
+    production_authorization: none
+    summary: 权威纠错后历史效果门NO-GO，基线停止。
+    next_action: 只允许独立经济机制新批
+    evidence_ids: [p2_star50_effect]
+  - program_id: m1-star50-price-volume-v1
+    display_name: 科创50价量发现批
+    family_id: price_volume
+    universe_ids: [star50-official-pit-v2]
+    lifecycle_state: STOPPED_CONTRACT
+    evidence_tier: DISCOVERY_ONLY
+    authoritative_outcome: STOPPED_CONTRACT
+    strategy_effective: NOT_EVALUATED
+    generation_attempt_count: 40
+    evaluation_unit_count: 14
+    effect_test_count: 0
+    candidate_count: 40
+    production_authorization: none
+    summary: 40个响应完成并锁定Top2；结果盲审查合同失败，封存效果未打开。
+    next_action: 旧批不得补发；未来新批须重新预注册
+    evidence_ids: [m1_star50_discovery, m1_star50_review]
+  - program_id: m3-custom-pools-price-volume-v1
+    display_name: 三自建科创池价量发现批
+    family_id: price_volume
+    universe_ids:
+      - star-board-all-pit-v1
+      - star-board-midcap-pit-v1
+      - star-board-smallcap-pit-v1
+    lifecycle_state: STOPPED_CONTRACT
+    evidence_tier: DISCOVERY_ONLY
+    authoritative_outcome: STOPPED_CONTRACT
+    strategy_effective: NOT_EVALUATED
+    generation_attempt_count: 24
+    evaluation_unit_count: 24
+    effect_test_count: 0
+    candidate_count: 24
+    production_authorization: none
+    summary: 24个响应完成并锁定Top2；审查服务合同失败，效果未评价。
+    next_action: 旧批不得补发；未来新批须重新预注册
+    evidence_ids: [m3_multi_pool_discovery, m3_multi_pool_review]
+  - program_id: m4-star50-residual-v1
+    display_name: 科创50残差因子候选
+    family_id: residual_risk
+    universe_ids: [star50-official-pit-v2]
+    lifecycle_state: CLOSED
+    evidence_tier: HISTORICAL_EFFECT_AUDITED
+    authoritative_outcome: REJECT
+    strategy_effective: REJECT
+    generation_attempt_count: 3
+    evaluation_unit_count: 3
+    effect_test_count: 2
+    candidate_count: 3
+    production_authorization: none
+    summary: 方向2/3，适配效果门0/3；正式G1因窗口域不匹配未运行。
+    next_action: 独立经济机制新批，不能翻方向或调门槛
+    evidence_ids: [m4_star50_residual]
+
+draft_template:
+  template_id: bounded-research-draft-v1
+  display_name: 有界多股票池研究草案
+  status: DRAFT_NOT_SUBMITTED
+  eligible_universe_ids:
+    - csi800-pit-v1
+    - star50-official-pit-v2
+    - star-board-all-pit-v1
+    - star-board-midcap-pit-v1
+    - star-board-smallcap-pit-v1
+  eligible_family_ids:
+    - moneyflow
+    - fundamental_static
+    - fundamental_dynamic
+    - price_volume
+    - residual_risk
+  maximum_universe_count: 3
+  maximum_candidate_count: 24
+  external_call_authorization: NOT_GRANTED
+  sealed_effect_authorization: NOT_GRANTED
+  production_authorization: none
+  disclaimer: 仅生成本浏览器临时预览，不保存、不提交、不冻结、不运行。
+
