@@ -32,6 +32,7 @@ import {
   VERSION_A,
   VERSION_B
 } from "./fixtures";
+import { strategyFactoryData } from "./strategyFactoryFixture";
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
@@ -121,7 +122,9 @@ async function mockApi(
     const historicalBanner = url.searchParams.has("as_of")
       ? "CURRENT_AUTHORITY_APPLIED_TO_HISTORICAL_RECORDS"
       : null;
-    const data = url.pathname === "/api/v1/experiments"
+    const data = url.pathname === "/api/v1/strategy-factory"
+      ? strategyFactoryData
+      : url.pathname === "/api/v1/experiments"
       ? experimentCatalogFor(url)
       : /^\/api\/v1\/experiments\/(research_experiment|p2_effect_original|p2_effect_correction)\//.test(url.pathname)
         ? experimentDetailFor(url)
@@ -231,6 +234,25 @@ test("overview uses one atomic response and preserves as_of during drilldown", a
   await expect(page.getByText("纽威股份", { exact: true })).toBeVisible();
   await expect(page.getByText("603699.SH", { exact: true })).toBeVisible();
   await expectNoPageOverflow(page);
+});
+
+test("strategy factory shows source-backed boundaries and only creates a local draft", async ({ page }, testInfo) => {
+  const requests: string[] = [];
+  await mockApi(page, requests);
+  await page.goto("/strategy-factory");
+  await expect(page.getByRole("heading", { name: "策略工厂" })).toBeVisible();
+  await expect(page.getByText("5个股票池可以继续研究，但当前没有新策略获准执行")).toBeVisible();
+  await expect(page.getByText("当前没有活跃授权任务")).toBeVisible();
+  await expect(page.getByText("正式因子库当前仍为0")).toBeVisible();
+  await expect(page.getByText("科创200", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("官方谱系阻断")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: "提交执行" })).toHaveCount(0);
+  await page.getByRole("button", { name: "生成本地草案预览" }).click();
+  await expect(page.getByRole("heading", { name: "量价机制有界研究草案" })).toBeVisible();
+  await expect(page.getByText("未授权", { exact: true })).toHaveCount(2);
+  expect(requests).toEqual(["/api/v1/strategy-factory"]);
+  await expectNoPageOverflow(page);
+  await captureVisual(page, testInfo, "strategy-factory");
 });
 
 test("paper separates forward performance from full-account audit and exposes day evidence", async ({ page }, testInfo) => {
@@ -541,6 +563,7 @@ test("primary routes have no serious or critical axe violations", async ({ page 
   await mockApi(page);
   for (const route of [
     "/overview",
+    "/strategy-factory",
     "/factors",
     "/experiments",
     `/experiments/p2_effect_correction/${EXPERIMENT_CORRECTION_ID}`,

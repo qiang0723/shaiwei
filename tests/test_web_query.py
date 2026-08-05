@@ -995,10 +995,12 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
         "web-query",
         "research-projector",
         "security-name-projector",
+        "strategy-factory-projector",
         "web-ui",
     }
     query = compose["services"]["web-query"]
     projector = compose["services"]["research-projector"]
+    strategy_factory_projector = compose["services"]["strategy-factory-projector"]
     name_projector = compose["services"]["security-name-projector"]
     ui = compose["services"]["web-ui"]
     for service in (query, ui):
@@ -1030,6 +1032,26 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
         value for value in projector["volumes"]
         if value["target"] == "/workspace/config/p3_experiment_catalog_v1.yaml"
     )["read_only"] is True
+    assert strategy_factory_projector["profiles"] == ["strategy-factory-projection"]
+    assert strategy_factory_projector["read_only"] is True
+    assert strategy_factory_projector["restart"] == "no"
+    assert strategy_factory_projector["network_mode"] == "none"
+    assert "ports" not in strategy_factory_projector
+    assert "env_file" not in strategy_factory_projector
+    assert "docker.sock" not in json.dumps(strategy_factory_projector)
+    assert all(
+        value["read_only"] is True
+        for value in strategy_factory_projector["volumes"]
+        if value["target"] != "/workspace/data/web/research_snapshots"
+    )
+    assert all(
+        value["bind"]["create_host_path"] is False
+        for value in strategy_factory_projector["volumes"]
+    )
+    assert next(
+        value for value in strategy_factory_projector["volumes"]
+        if value["target"] == "/workspace/data/web/research_snapshots"
+    )["read_only"] is False
     assert name_projector["profiles"] == ["security-name-projection"]
     assert name_projector["read_only"] is True
     assert name_projector["restart"] == "no"

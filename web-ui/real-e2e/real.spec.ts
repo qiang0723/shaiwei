@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 
 const pages = [
   { route: "/overview", heading: "今日概览" },
+  { route: "/strategy-factory", heading: "策略工厂" },
   { route: "/paper", heading: "模拟组合" },
   { route: "/signals", heading: "股票池与信号" },
   { route: "/data-quality", heading: "数据质量" },
@@ -43,6 +44,25 @@ interface RealExperimentCatalog {
     sorted_by_performance: false;
   };
   meta: { as_of: string };
+}
+
+interface RealStrategyFactory {
+  data: {
+    summary: {
+      registered_universe_count: number;
+      research_eligible_universe_count: number;
+      blocked_universe_count: number;
+      admitted_factor_count: number;
+      active_authorized_task_count: number;
+    };
+    active_tasks: unknown[];
+    invariants: {
+      web_read_only: boolean;
+      external_calls_made: number;
+      real_research_runs: number;
+      bse_count: number;
+    };
+  };
 }
 
 test("deployed read-only UI serves real evidence under strict CSP", async ({ page, baseURL }, testInfo) => {
@@ -119,6 +139,26 @@ test("deployed read-only UI serves real evidence under strict CSP", async ({ pag
       );
       expect(Math.max(...rowHeights)).toBeLessThanOrEqual(72);
     }
+    if (item.route === "/strategy-factory") {
+      const response = await page.request.get("/api/v1/strategy-factory");
+      expect(response.status()).toBe(200);
+      const factory = await response.json() as RealStrategyFactory;
+      expect(factory.data.summary).toMatchObject({
+        registered_universe_count: 8,
+        research_eligible_universe_count: 5,
+        blocked_universe_count: 3,
+        admitted_factor_count: 0,
+        active_authorized_task_count: 0
+      });
+      expect(factory.data.active_tasks).toEqual([]);
+      expect(factory.data.invariants).toMatchObject({
+        web_read_only: true,
+        external_calls_made: 0,
+        real_research_runs: 0,
+        bse_count: 0
+      });
+      await expect(page.getByRole("button", { name: "提交执行" })).toHaveCount(0);
+    }
     const captureDir = process.env.P3_CAPTURE_REAL_DIR;
     const captureRoute = process.env.P3_CAPTURE_REAL_ROUTE;
     if (captureDir && (!captureRoute || captureRoute === item.route)) {
@@ -141,7 +181,7 @@ test("root route enters overview without changing evidence date semantics", asyn
   await expect(page.getByRole("heading", { name: "今日概览" })).toBeVisible();
 });
 
-test("real paper page switches to the isolated Top20 backfill account without overclaiming", async ({ page }) => {
+test("real paper page follows the isolated Top20 evidence state without overclaiming", async ({ page }) => {
   const portfolioResponse = await page.request.get(
     "/api/v1/paper/portfolio?account_id=model_top20"
   );
@@ -156,25 +196,30 @@ test("real paper page switches to the isolated Top20 backfill account without ov
   const forwardPayload = await forwardResponse.json() as {
     data: { status: string; forward_observation_count: number; series: unknown[] };
   };
-  expect(portfolioPayload.data).toMatchObject({
-    account_id: "model_top20",
-    mode: "BACKFILL"
-  });
-  expect(forwardPayload.data).toMatchObject({
-    status: "NOT_READY",
-    forward_observation_count: 0,
-    series: []
-  });
+  expect(portfolioPayload.data.account_id).toBe("model_top20");
+  expect(forwardPayload.data.series).toHaveLength(forwardPayload.data.forward_observation_count);
+  if (forwardPayload.data.forward_observation_count === 0) {
+    expect(portfolioPayload.data.mode).toBe("BACKFILL");
+    expect(forwardPayload.data).toMatchObject({ status: "NOT_READY", series: [] });
+  } else {
+    expect(portfolioPayload.data.mode).toBe("FORWARD");
+  }
 
   await page.goto("/paper");
   await page.locator(".account-selector-surface")
     .getByText("比较账户 · Top20", { exact: true })
     .click();
-  await expect(page.getByText("Top20 当前只完成工程回放，不能与 Top30 比较策略优劣"))
-    .toBeVisible();
-  await expect(page.getByText("尚无自然前瞻账户日", { exact: true })).toBeVisible();
-  await expect(page.getByText(/自然前瞻 0 日/)).toBeVisible();
-  await expect(page.getByText("前瞻锚点未形成", { exact: true })).toBeVisible();
+  const count = forwardPayload.data.forward_observation_count;
+  await expect(page.getByText(
+    count === 0
+      ? "Top20 当前只完成工程回放，不能与 Top30 比较策略优劣"
+      : "Top20 已开始自然前瞻，但样本仍不足以与 Top30 比较策略优劣"
+  )).toBeVisible();
+  await expect(page.getByText(new RegExp(`自然前瞻 ${count} 日`)).first()).toBeVisible();
+  if (count === 0) {
+    await expect(page.getByText("尚无自然前瞻账户日", { exact: true })).toBeVisible();
+    await expect(page.getByText("前瞻锚点未形成", { exact: true })).toBeVisible();
+  }
   await expect(page.getByText("年化收益")).toHaveCount(0);
   await expect(page.getByText("Sharpe")).toHaveCount(0);
   await expect(page.getByText("信息比率")).toHaveCount(0);

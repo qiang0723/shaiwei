@@ -19,6 +19,7 @@ const overview = [
 ];
 
 const research = [
+  { path: "/strategy-factory", label: "策略工厂", short: "研究", icon: <SafetyCertificateOutlined /> },
   { path: "/factors", label: "因子工厂", short: "因子", icon: <ExperimentOutlined /> },
   { path: "/experiments", label: "模型 / 回测", short: "实验", icon: <ApartmentOutlined /> }
 ];
@@ -121,7 +122,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { asOf, setAsOf, link } = useAsOf();
   const { location } = useRouter();
   const researchContext =
-    location.pathname.startsWith("/factors") || location.pathname.startsWith("/experiments");
+    location.pathname.startsWith("/strategy-factory") ||
+    location.pathname.startsWith("/factors") ||
+    location.pathname.startsWith("/experiments");
 
   return (
     <div className="app-shell">

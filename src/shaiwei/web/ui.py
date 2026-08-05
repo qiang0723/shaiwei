@@ -27,6 +27,7 @@ ALLOWED_UI_PATHS = {
     "/factors",
     "/factors/compare",
     "/experiments",
+    "/strategy-factory",
 }
 ALLOWED_API_PATHS = {
     "/api/v1/overview",
@@ -41,6 +42,7 @@ ALLOWED_API_PATHS = {
     "/api/v1/factors",
     "/api/v1/factors/compare",
     "/api/v1/experiments",
+    "/api/v1/strategy-factory",
 }
 ALLOWED_NOTIFICATION_PATH = re.compile(r"^/api/v1/notifications/[0-9a-f]{16}$")
 ALLOWED_FACTOR_UI_PATH = re.compile(
@@ -199,6 +201,7 @@ def create_app(
     @app.api_route("/factors", methods=["GET", "HEAD"])
     @app.api_route("/factors/compare", methods=["GET", "HEAD"])
     @app.api_route("/experiments", methods=["GET", "HEAD"])
+    @app.api_route("/strategy-factory", methods=["GET", "HEAD"])
     async def page(request: Request) -> Response:
         if not _allowed_ui_path(request.url.path):
             return Response("Not found", status_code=404, media_type="text/plain")

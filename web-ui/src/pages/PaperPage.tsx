@@ -286,7 +286,11 @@ export default function PaperPage() {
         <div className="account-boundary-notice" role="status">
           <SafetyCertificateOutlined aria-hidden="true" />
           <div>
-            <strong>Top20 当前只完成工程回放，不能与 Top30 比较策略优劣</strong>
+            <strong>
+              {forward.forward_observation_count === 0
+                ? "Top20 当前只完成工程回放，不能与 Top30 比较策略优劣"
+                : "Top20 已开始自然前瞻，但样本仍不足以与 Top30 比较策略优劣"}
+            </strong>
             <span>自然前瞻 {forward.forward_observation_count} 日 · {account.automation}；本页只展示可重放的持仓、现金和账户日证据。</span>
           </div>
         </div>

@@ -35,6 +35,7 @@ from shaiwei.web.research_projection import (
     factor_detail,
     load_research_projection,
 )
+from shaiwei.web.strategy_factory import StrategyFactoryBundle, load_strategy_factory
 
 
 MAX_RESPONSE_BYTES = 1_048_576
@@ -89,7 +90,7 @@ def _json_response(
 
 def _success(
     request: Request,
-    bundle: SnapshotBundle | OperationsBundle | ResearchProjectionBundle,
+    bundle: SnapshotBundle | OperationsBundle | ResearchProjectionBundle | StrategyFactoryBundle,
     data: dict[str, object],
     *,
     meta: dict[str, object] | None = None,
@@ -189,6 +190,9 @@ def create_app(project_root: Path | None = None) -> FastAPI:
     def research_snapshot() -> ResearchProjectionBundle:
         return load_research_projection(project_root=root)
 
+    def strategy_factory_snapshot() -> StrategyFactoryBundle:
+        return load_strategy_factory(project_root=root)
+
     @app.api_route("/healthz", methods=["GET", "HEAD"])
     async def health(request: Request) -> Response:
         return _json_response(
@@ -286,6 +290,17 @@ def create_app(project_root: Path | None = None) -> FastAPI:
             ),
             meta=bundle.meta_for(as_of),
         )
+
+    @app.api_route("/api/v1/strategy-factory", methods=["GET", "HEAD"])
+    async def strategy_factory(request: Request) -> Response:
+        if request.query_params:
+            raise WebQueryError(
+                "INVALID_ARGUMENT",
+                "策略工厂当前不接受查询参数",
+                status_code=422,
+            )
+        bundle = strategy_factory_snapshot()
+        return _success(request, bundle, bundle.data)
 
     @app.api_route("/api/v1/factors/compare", methods=["GET", "HEAD"])
     async def factors_compare(

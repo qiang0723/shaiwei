@@ -1,0 +1,241 @@
+.factory-readonly-label {
+  padding: 4px 9px;
+  border: 1px solid #c8d6de;
+  border-radius: 999px;
+  color: #506b7b;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+
+.factory-draft-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+  gap: 24px;
+}
+
+.factory-draft-form fieldset {
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+}
+
+.factory-draft-form legend,
+.factory-field-row label > span {
+  display: block;
+  margin-bottom: 9px;
+  color: #344c5a;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.factory-check-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.factory-check-list label {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid #d7e1e7;
+  border-radius: 6px;
+  background: #fafcfd;
+  cursor: pointer;
+}
+
+.factory-check-list input {
+  margin-top: 3px;
+}
+
+.factory-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.factory-field-row select {
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 9px;
+  border: 1px solid #c7d5dd;
+  border-radius: 6px;
+  background: #fff;
+  color: #263d4a;
+}
+
+.factory-draft-preview {
+  padding: 20px;
+  border: 1px dashed #b9c9d2;
+  border-radius: 8px;
+  background: #f7fafb;
+}
+
+.factory-draft-preview.ready {
+  border-style: solid;
+  border-color: #9fc2b1;
+  background: #f2f8f5;
+}
+
+.factory-draft-preview h3 {
+  margin: 5px 0 14px;
+  color: var(--factory-ink);
+  font-size: 18px;
+}
+
+.factory-draft-preview dl {
+  grid-template-columns: 1fr;
+  border-bottom: 0;
+}
+
+.factory-draft-preview dl div {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  border-right: 0;
+  border-bottom: 1px solid #dce7e1;
+}
+
+.factory-draft-preview dd {
+  margin: 0;
+}
+
+.factory-empty-task {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 22px 26px;
+  border: 1px solid #cddae1;
+  background: #f7fafb;
+}
+
+.factory-empty-task h2 {
+  margin: 5px 0;
+  color: var(--factory-ink);
+  font-size: 19px;
+}
+
+.factory-empty-task p {
+  margin: 0;
+}
+
+.factory-empty-task > svg {
+  color: #6d8999;
+  font-size: 30px;
+}
+
+@media (max-width: 1099px) {
+  .factory-matrix-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .factory-program-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .factory-command,
+  .factory-draft-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .factory-command {
+    gap: 16px;
+    padding: 19px;
+  }
+
+  .factory-command-state {
+    padding: 14px 0 0;
+    border-top: 1px solid #cfdbe2;
+    border-left: 0;
+  }
+
+  .factory-section {
+    padding: 18px 16px;
+  }
+
+  .factory-table {
+    min-width: 0;
+  }
+
+  .factory-table thead {
+    display: none;
+  }
+
+  .factory-table tbody,
+  .factory-table tr,
+  .factory-table td {
+    display: block;
+  }
+
+  .factory-table tr {
+    padding: 13px 0;
+    border-bottom: 1px solid #dce5ea;
+  }
+
+  .factory-table td {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr);
+    gap: 10px;
+    padding: 5px 0;
+    border: 0;
+  }
+
+  .factory-table td::before {
+    color: #536573;
+    font-size: 11px;
+  }
+
+  .factory-table td:nth-child(1)::before { content: "股票池"; }
+  .factory-table td:nth-child(2)::before { content: "数据与PIT"; }
+  .factory-table td:nth-child(3)::before { content: "研究结论"; }
+  .factory-table td:nth-child(4)::before { content: "证据层"; }
+  .factory-table td:nth-child(5)::before { content: "下一动作"; }
+
+  .factory-matrix-list,
+  .factory-check-list,
+  .factory-field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .factory-matrix-list article {
+    min-height: 105px;
+  }
+
+  .factory-program-list article {
+    padding: 16px;
+  }
+
+  .factory-program-list dl {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .factory-program-heading {
+    display: grid;
+  }
+}
+
+@media (max-width: 389px) {
+  .factory-table td {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  .factory-family-tabs button {
+    flex: 1 1 calc(50% - 7px);
+  }
+
+  .factory-program-list dl {
+    grid-template-columns: 1fr;
+  }
+
+  .factory-program-list dl div {
+    display: flex;
+    justify-content: space-between;
+    border-right: 0;
+    border-bottom: 1px solid #e1e8ec;
+  }
+}

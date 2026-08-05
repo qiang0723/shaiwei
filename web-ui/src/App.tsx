@@ -14,6 +14,7 @@ const DataQualityPage = lazy(() => import("./pages/DataQualityPage"));
 const SystemRunsPage = lazy(() => import("./pages/SystemRunsPage"));
 const FactorsPage = lazy(() => import("./pages/FactorsPage"));
 const ExperimentsPage = lazy(() => import("./pages/ExperimentsPage"));
+const StrategyFactoryPage = lazy(() => import("./pages/StrategyFactoryPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,7 +45,7 @@ function NotFound() {
     <section className="request-error" role="alert">
       <div className="error-kicker">404</div>
       <h1>此只读页面未开放</h1>
-      <p>当前只提供总览、因子工厂、模型/回测、模拟组合、股票池/信号、数据质量和系统运行。</p>
+      <p>当前只提供总览、策略工厂、因子工厂、模型/回测、模拟组合、股票池/信号、数据质量和系统运行。</p>
     </section>
   );
 }
@@ -58,6 +59,7 @@ function AppRoutes() {
   else if (location.pathname === "/signals") page = <SignalsPage />;
   else if (location.pathname === "/data-quality") page = <DataQualityPage />;
   else if (location.pathname === "/system-runs") page = <SystemRunsPage />;
+  else if (location.pathname === "/strategy-factory") page = <StrategyFactoryPage />;
   else if (
     location.pathname === "/factors" ||
     location.pathname === "/factors/compare" ||

@@ -28,6 +28,7 @@ def test_ui_serves_only_frozen_routes_and_hashed_assets(tmp_path: Path) -> None:
         "/", "/overview", "/paper", "/signals", "/data-quality", "/system-runs",
         "/factors", "/factors/compare", f"/factors/{factor_id}",
         f"/factors/{factor_id}/admissions", "/experiments",
+        "/strategy-factory",
         "/experiments/research_experiment/a1b2c3d4e5f6",
     ):
         response = client.get(route)
@@ -155,6 +156,13 @@ def test_experiment_ui_and_proxy_paths_are_exact_and_bounded() -> None:
     assert not _allowed_api_path("/api/v1/experiments/research_experiment")
     assert not _allowed_api_path(f"{api_detail}/extra")
     assert not _allowed_api_path("/api/v1/experiments/../../.env")
+
+
+def test_strategy_factory_ui_and_proxy_paths_are_exact() -> None:
+    assert _allowed_ui_path("/strategy-factory")
+    assert _allowed_api_path("/api/v1/strategy-factory")
+    assert not _allowed_ui_path("/strategy-factory/run")
+    assert not _allowed_api_path("/api/v1/strategy-factory/run")
 
 
 def test_experiment_ui_machine_protocol_is_frozen_and_narrow() -> None:
