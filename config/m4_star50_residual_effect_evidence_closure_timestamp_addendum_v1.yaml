@@ -1,0 +1,16 @@
+schema_version: m4-star50-residual-effect-evidence-closure-timestamp-addendum-v1
+addendum_id: m4-star50-residual-effect-evidence-closure-freeze-time-correction-v1
+recorded_at: "2026-08-05T09:25:00+08:00"
+original_protocol_path: config/m4_star50_residual_effect_evidence_closure_v1.yaml
+original_protocol_sha256: f79931ec501fe1db12b2fd05fdfc01e9cee91aba91b51f2ffb0d132864ce9abe
+original_protocol_commit: 6452b554863c87f272264cc3ac9764692c12e282
+original_recorded_frozen_at: "2026-08-05T00:40:00+08:00"
+authoritative_freeze_time: "2026-08-05T09:14:38+08:00"
+authoritative_time_source: git_author_and_committer_timestamp_of_original_protocol_commit
+correction_reason: manual_clock_transcription_error
+original_protocol_rewritten: false
+formula_or_method_change: false
+execution_scope_change: false
+sealed_hash_change: false
+ledger_or_result_change: false
+production_authorization: none

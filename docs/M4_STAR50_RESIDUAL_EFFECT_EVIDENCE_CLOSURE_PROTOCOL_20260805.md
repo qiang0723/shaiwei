@@ -9,6 +9,11 @@
 机器真身为 `config/m4_star50_residual_effect_evidence_closure_v1.yaml`。协议在实现和再次调用入口前
 提交推送；后续执行 release 还须再次绑定实现提交与代码束。
 
+时间留痕补正：机器协议中的 `frozen_at=00:40` 是手工转录错误；原协议提交 `6452b55` 的权威 Git
+作者/提交时间均为 `2026-08-05T09:14:38+08:00`。原协议和哈希不改写，补正真身为
+`config/m4_star50_residual_effect_evidence_closure_timestamp_addendum_v1.yaml`；该补正不改变任何研究
+或执行边界。
+
 ## 封存输入
 
 - 效果报告固定为 `effect_report.json`，SHA-256 为 `627f304a...656b`；
