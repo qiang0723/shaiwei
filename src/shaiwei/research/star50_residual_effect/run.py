@@ -30,6 +30,7 @@ from shaiwei.research.star50_residual_effect.data import (
 )
 from shaiwei.research.star50_residual_effect.evidence import (
     append_ledgers,
+    build_manifest,
     code_bundle_sha256,
     save_pass,
     write_json,
@@ -214,48 +215,6 @@ def _paths(protocol: EffectProtocol) -> tuple[Path, Path, Path, Path]:
     )
 
 
-def _manifest(
-    report: dict[str, Any],
-    report_path: Path,
-    report_sha256: str,
-    run_ledger: Path,
-    decision_ledger: Path,
-) -> dict[str, Any]:
-    return {
-        "schema_version": "m4-star50-residual-effect-manifest-v1",
-        "protocol_id": report["protocol_id"],
-        "protocol_sha256": report["protocol_sha256"],
-        "execution_release_sha256": report["execution_release_sha256"],
-        "implementation_git_head": report["implementation_git_head"],
-        "code_bundle_sha256": report["code_bundle_sha256"],
-        "input_snapshot_sha256": report["input_snapshot_sha256"],
-        "effect_report": {
-            "path": report_path.relative_to(PROJECT_ROOT).as_posix(),
-            "sha256": report_sha256,
-        },
-        "artifact_hashes": report["artifact_hashes"],
-        "direction_pass_count": report["direction_pass_count"],
-        "adapted_gate_pass_count": report["adapted_gate_pass_count"],
-        "candidates": report["candidates"],
-        "formal_g1_v1_status": report["formal_g1_v1_status"],
-        "formal_factor_library_insertions": 0,
-        "determinism_pass": report["determinism_pass"],
-        "verdict": report["verdict"],
-        "strategy_effective": report["strategy_effective"],
-        "production_authorization": "none",
-        "ledgers": {
-            "runs": {
-                "path": run_ledger.relative_to(PROJECT_ROOT).as_posix(),
-                "sha256": sha256_file(run_ledger),
-            },
-            "decisions": {
-                "path": decision_ledger.relative_to(PROJECT_ROOT).as_posix(),
-                "sha256": sha256_file(decision_ledger),
-            },
-        },
-    }
-
-
 def run(protocol_path: Path, release_path: Path) -> dict[str, Any]:
     protocol = EffectProtocol.load(protocol_path)
     bundle = code_bundle_sha256()
@@ -272,7 +231,7 @@ def run(protocol_path: Path, release_path: Path) -> dict[str, Any]:
             run_path=run_ledger,
             decision_path=decision_ledger,
         )
-        manifest = _manifest(report, report_path, report_sha, run_ledger, decision_ledger)
+        manifest = build_manifest(report, report_path, report_sha, run_ledger, decision_ledger)
         write_json(manifest, result_root / "manifest.json")
         return report
 
@@ -349,7 +308,7 @@ def run(protocol_path: Path, release_path: Path) -> dict[str, Any]:
     }
     report_sha, _ = write_json(report, report_path)
     append_ledgers(report, report_sha, run_path=run_ledger, decision_path=decision_ledger)
-    manifest = _manifest(report, report_path, report_sha, run_ledger, decision_ledger)
+    manifest = build_manifest(report, report_path, report_sha, run_ledger, decision_ledger)
     write_json(manifest, result_root / "manifest.json")
     return report
 

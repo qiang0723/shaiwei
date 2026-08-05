@@ -16,7 +16,11 @@ from shaiwei.research.star50_residual_effect.contract import (
     project_path,
     sha256_file,
 )
-from shaiwei.research.star50_residual_effect.evidence import frame_hash
+from shaiwei.research.star50_residual_effect.evidence import (
+    build_manifest,
+    expected_ledger_rows,
+    frame_hash,
+)
 
 
 SORT_KEYS = {
@@ -80,6 +84,19 @@ def audit(protocol_path: Path) -> dict[str, Any]:
     )
     run_rows = _read_rows(project_path(identity["run_ledger"]))
     decision_rows = _read_rows(project_path(identity["decision_ledger"]))
+    report_sha = sha256_file(report_path)
+    expected_run, expected_decisions = expected_ledger_rows(report, report_sha)
+    run_ledger = project_path(identity["run_ledger"])
+    decision_ledger = project_path(identity["decision_ledger"])
+    manifest_path = project_path(f"{identity['result_root']}/manifest.json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    expected_manifest = build_manifest(
+        report,
+        report_path,
+        report_sha,
+        run_ledger,
+        decision_ledger,
+    )
     checks = {
         "physical_artifacts": all(physical_checks.values()),
         "canonical_artifacts": all(canonical_checks.values()),
@@ -96,13 +113,18 @@ def audit(protocol_path: Path) -> dict[str, Any]:
         "no_formal_insertions": report["formal_factor_library_insertions"] == 0,
         "run_ledger_one_row": len(run_rows) == 1,
         "decision_ledger_three_rows": len(decision_rows) == 3,
+        "run_ledger_exact": run_rows == [expected_run],
+        "decision_ledger_exact": sorted(decision_rows, key=lambda row: row["decision_id"])
+        == sorted(expected_decisions, key=lambda row: row["decision_id"]),
+        "manifest_exact": manifest == expected_manifest,
         "production_authorization_none": report["production_authorization"] == "none",
     }
     if not all(checks.values()):
         raise ResidualEffectError(f"M4-1 independent audit failed: {checks}")
     return {
         "schema_version": "m4-star50-residual-effect-independent-audit-v1",
-        "report_sha256": sha256_file(report_path),
+        "report_sha256": report_sha,
+        "manifest_sha256": sha256_file(manifest_path),
         "physical_checks": physical_checks,
         "canonical_checks": canonical_checks,
         "decision_checks": decision_checks,

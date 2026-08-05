@@ -29,6 +29,7 @@ CODE_BUNDLE_PATHS = (
     "src/shaiwei/research/star50_residual_effect/evidence.py",
     "src/shaiwei/research/star50_residual_effect/run.py",
     "src/shaiwei/research/star50_residual_effect/audit.py",
+    "src/shaiwei/research/star50_residual_effect/closure.py",
     "src/shaiwei/research/star50_residual/compute.py",
     "src/shaiwei/research/g1.py",
     "src/shaiwei/research/g1_pipeline.py",
@@ -93,6 +94,48 @@ def write_json(document: dict[str, Any], path: Path) -> tuple[str, bool]:
         return sha256_file(path), True
     path.write_text(rendered, encoding="utf-8")
     return sha256_file(path), False
+
+
+def build_manifest(
+    report: dict[str, Any],
+    report_path: Path,
+    report_sha256: str,
+    run_ledger: Path,
+    decision_ledger: Path,
+) -> dict[str, Any]:
+    return {
+        "schema_version": "m4-star50-residual-effect-manifest-v1",
+        "protocol_id": report["protocol_id"],
+        "protocol_sha256": report["protocol_sha256"],
+        "execution_release_sha256": report["execution_release_sha256"],
+        "implementation_git_head": report["implementation_git_head"],
+        "code_bundle_sha256": report["code_bundle_sha256"],
+        "input_snapshot_sha256": report["input_snapshot_sha256"],
+        "effect_report": {
+            "path": report_path.relative_to(PROJECT_ROOT).as_posix(),
+            "sha256": report_sha256,
+        },
+        "artifact_hashes": report["artifact_hashes"],
+        "direction_pass_count": report["direction_pass_count"],
+        "adapted_gate_pass_count": report["adapted_gate_pass_count"],
+        "candidates": report["candidates"],
+        "formal_g1_v1_status": report["formal_g1_v1_status"],
+        "formal_factor_library_insertions": 0,
+        "determinism_pass": report["determinism_pass"],
+        "verdict": report["verdict"],
+        "strategy_effective": report["strategy_effective"],
+        "production_authorization": "none",
+        "ledgers": {
+            "runs": {
+                "path": run_ledger.relative_to(PROJECT_ROOT).as_posix(),
+                "sha256": sha256_file(run_ledger),
+            },
+            "decisions": {
+                "path": decision_ledger.relative_to(PROJECT_ROOT).as_posix(),
+                "sha256": sha256_file(decision_ledger),
+            },
+        },
+    }
 
 
 def save_pass(
@@ -188,31 +231,65 @@ DECISION_FIELDS = (
 
 def append_once(path: Path, fields: tuple[str, ...], row: dict[str, Any], identity: str) -> bool:
     path.parent.mkdir(parents=True, exist_ok=True)
-    lock = path.with_suffix(f"{path.suffix}.lock")
-    with lock.open("a+", encoding="utf-8") as handle:
+    with path.open("a+", newline="", encoding="utf-8") as handle:
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-        existing: list[dict[str, str]] = []
-        has_header = path.exists() and path.stat().st_size > 0
-        if path.exists():
-            with path.open(newline="", encoding="utf-8") as source:
-                reader = csv.DictReader(source)
-                if tuple(reader.fieldnames or ()) != fields:
-                    raise ResidualEffectError(f"M4-1 ledger schema differs: {path.name}")
-                existing = list(reader)
+        handle.seek(0)
+        reader = csv.DictReader(handle)
+        if tuple(reader.fieldnames or ()) != fields:
+            raise ResidualEffectError(f"M4-1 ledger schema differs: {path.name}")
+        existing = list(reader)
         normalized = {field: str(row.get(field, "")) for field in fields}
         matches = [item for item in existing if item[fields[0]] == identity]
         if matches:
             if len(matches) != 1 or matches[0] != normalized:
                 raise ResidualEffectError(f"M4-1 ledger identity conflict: {identity}")
             return True
-        with path.open("a", newline="", encoding="utf-8") as target:
-            writer = csv.DictWriter(target, fieldnames=fields)
-            if not has_header:
-                writer.writeheader()
-            writer.writerow(normalized)
-            target.flush()
-            os.fsync(target.fileno())
+        handle.seek(0, os.SEEK_END)
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writerow(normalized)
+        handle.flush()
+        os.fsync(handle.fileno())
         return False
+
+
+def expected_ledger_rows(
+    report: dict[str, Any], report_sha256: str
+) -> tuple[dict[str, str], list[dict[str, str]]]:
+    run_id = str(report["run_id"])
+    run_row = {
+        "run_id": run_id,
+        "protocol_sha256": str(report["protocol_sha256"]),
+        "execution_release_sha256": str(report["execution_release_sha256"]),
+        "implementation_git_head": str(report["implementation_git_head"]),
+        "code_bundle_sha256": str(report["code_bundle_sha256"]),
+        "input_snapshot_sha256": str(report["input_snapshot_sha256"]),
+        "run_started_at": str(report["run_started_at"]),
+        "run_finished_at": str(report["run_finished_at"]),
+        "direction_pass_count": str(report["direction_pass_count"]),
+        "adapted_gate_pass_count": str(report["adapted_gate_pass_count"]),
+        "formal_g1_v1_status": str(report["formal_g1_v1_status"]),
+        "determinism_pass": str(report["determinism_pass"]).lower(),
+        "verdict": str(report["verdict"]),
+        "strategy_effective": str(report["strategy_effective"]),
+        "production_authorization": "none",
+        "effect_report_sha256": report_sha256,
+    }
+    decisions = [
+        {
+            "decision_id": f"{run_id}-{row['candidate']}",
+            "run_id": run_id,
+            "candidate": str(row["candidate"]),
+            "direction_pass": str(row["direction"]["direction_pass"]).lower(),
+            "oos_effect_read": str(row["oos_effect_read"]).lower(),
+            "adapted_gate_decision": str(row["adapted_gate_decision"]),
+            "failed_gates": "|".join(row["failed_gates"]),
+            "formal_g1_v1_status": str(row["formal_g1_v1_status"]),
+            "production_authorization": "none",
+            "effect_report_sha256": report_sha256,
+        }
+        for row in report["candidates"]
+    ]
+    return run_row, decisions
 
 
 def append_ledgers(
@@ -223,47 +300,20 @@ def append_ledgers(
     decision_path: Path,
 ) -> dict[str, bool]:
     run_id = str(report["run_id"])
+    run_row, decision_rows = expected_ledger_rows(report, report_sha256)
     run_reused = append_once(
         run_path,
         RUN_FIELDS,
-        {
-            "run_id": run_id,
-            "protocol_sha256": report["protocol_sha256"],
-            "execution_release_sha256": report["execution_release_sha256"],
-            "implementation_git_head": report["implementation_git_head"],
-            "code_bundle_sha256": report["code_bundle_sha256"],
-            "input_snapshot_sha256": report["input_snapshot_sha256"],
-            "run_started_at": report["run_started_at"],
-            "run_finished_at": report["run_finished_at"],
-            "direction_pass_count": report["direction_pass_count"],
-            "adapted_gate_pass_count": report["adapted_gate_pass_count"],
-            "formal_g1_v1_status": report["formal_g1_v1_status"],
-            "determinism_pass": str(report["determinism_pass"]).lower(),
-            "verdict": report["verdict"],
-            "strategy_effective": report["strategy_effective"],
-            "production_authorization": "none",
-            "effect_report_sha256": report_sha256,
-        },
+        run_row,
         run_id,
     )
     decision_reused = True
-    for row in report["candidates"]:
-        decision_id = f"{run_id}-{row['candidate']}"
+    for row in decision_rows:
+        decision_id = row["decision_id"]
         reused = append_once(
             decision_path,
             DECISION_FIELDS,
-            {
-                "decision_id": decision_id,
-                "run_id": run_id,
-                "candidate": row["candidate"],
-                "direction_pass": str(row["direction"]["direction_pass"]).lower(),
-                "oos_effect_read": str(row["oos_effect_read"]).lower(),
-                "adapted_gate_decision": row["adapted_gate_decision"],
-                "failed_gates": "|".join(row["failed_gates"]),
-                "formal_g1_v1_status": row["formal_g1_v1_status"],
-                "production_authorization": "none",
-                "effect_report_sha256": report_sha256,
-            },
+            row,
             decision_id,
         )
         decision_reused = decision_reused and reused

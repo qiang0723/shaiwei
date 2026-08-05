@@ -10,6 +10,9 @@
   新闭环入口须先核封存哈希，只能走报告复用分支，再完成manifest、1+3账本与独立审计。
 - 即使闭环后适配门通过，正式G1-v1仍因窗口域不匹配保持未运行，正式库0、生产none。协议见
   `docs/M4_STAR50_RESIDUAL_EFFECT_EVIDENCE_CLOSURE_PROTOCOL_20260805.md`。
+- 闭环实现已就绪：独立协调器不导入研究计算路径，统一manifest与账本期望行，审计新增manifest和
+  账本逐字段核对；断网Docker仍只给结果根与两个CSV窄写。专项16/全仓592项测试、Ruff、compileall、
+  pip check与Compose检查PASS；须先提交推送本实现，再冻结闭环release，当前仍未补账本或读效果。
 
 ## 2026-08-05 · M4-1R计算完成但证据发布失败，效果报告封存待审
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
@@ -14,6 +15,8 @@ from shaiwei.research.star50_residual_effect.contract import (
     _validate,
     verify_pushed_clean_state,
 )
+import shaiwei.research.star50_residual_effect.closure as closure_module
+from shaiwei.research.star50_residual_effect.closure import EvidenceClosureProtocol
 from shaiwei.research.star50_residual_effect.data import EffectInputs, build_labels, neutralize
 from shaiwei.research.star50_residual_effect.evidence import append_once
 from shaiwei.research.star50_residual_effect.judge import safe_judge_candidates
@@ -163,8 +166,28 @@ def test_append_only_ledger_is_idempotent_and_conflict_closed(tmp_path: Path) ->
     assert append_once(path, fields, {"id": "one", "value": "A"}, "one") is False
     assert append_once(path, fields, {"id": "one", "value": "A"}, "one") is True
     assert path.read_text(encoding="utf-8").splitlines() == ["id,value", "one,A"]
+    assert not path.with_suffix(".csv.lock").exists()
     with pytest.raises(ResidualEffectError, match="conflict"):
         append_once(path, fields, {"id": "one", "value": "B"}, "one")
+
+
+def test_append_only_ledger_requires_precreated_schema(tmp_path: Path) -> None:
+    with pytest.raises(ResidualEffectError, match="schema differs"):
+        append_once(tmp_path / "missing.csv", ("id",), {"id": "one"}, "one")
+
+
+def test_append_only_ledger_works_with_read_only_parent(tmp_path: Path) -> None:
+    directory = tmp_path / "ledger"
+    directory.mkdir()
+    path = directory / "runs.csv"
+    path.write_text("id,value\n", encoding="utf-8")
+    directory.chmod(0o555)
+    try:
+        assert append_once(path, ("id", "value"), {"id": "one", "value": "A"}, "one") is False
+    finally:
+        directory.chmod(0o755)
+    assert path.read_text(encoding="utf-8").splitlines() == ["id,value", "one,A"]
+    assert list(directory.iterdir()) == [path]
 
 
 def test_compose_effect_service_is_isolated_and_has_narrow_writes() -> None:
@@ -185,6 +208,109 @@ def test_compose_effect_service_is_isolated_and_has_narrow_writes() -> None:
         "/workspace/ledger/m4_star50_residual_effect_runs.csv",
         "/workspace/ledger/m4_star50_residual_effect_decisions.csv",
     ]
+
+
+def test_closure_protocol_and_service_are_reuse_only() -> None:
+    protocol = EvidenceClosureProtocol.load().document
+    execution = protocol["execution_contract"]
+    assert execution["report_reuse_branch_only"] is True
+    assert execution["feature_label_rankic_portfolio_or_return_recomputation"] is False
+    assert len(protocol["sealed_result_contract"]["artifacts"]) == 10
+
+    import yaml
+
+    service = yaml.safe_load(Path("compose.research.yaml").read_text())["services"][
+        "m4-star50-residual-effect-closure"
+    ]
+    assert service["network_mode"] == "none"
+    assert service["read_only"] is True
+    assert service["cap_drop"] == ["ALL"]
+    writable = [volume["target"] for volume in service["volumes"] if not volume["read_only"]]
+    assert writable == [
+        "/workspace/data/research/m4/m4-star50-benchmark-residual-effect-v1",
+        "/workspace/ledger/m4_star50_residual_effect_runs.csv",
+        "/workspace/ledger/m4_star50_residual_effect_decisions.csv",
+    ]
+    assert "shaiwei.research.star50_residual_effect.closure" in service["command"]
+
+
+def test_closure_orchestrator_reuses_report_then_audits(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    report = {
+        "run_id": "sealed-run",
+        "direction_pass_count": 2,
+        "adapted_gate_pass_count": 0,
+        "formal_g1_v1_status": "NOT_RUN_UNIVERSE_WINDOW_DOMAIN_MISMATCH",
+        "verdict": "NO_GO",
+        "strategy_effective": "REJECT",
+    }
+    report_path = tmp_path / "result/effect_report.json"
+    report_path.parent.mkdir(parents=True)
+    report_path.write_text("{}\n", encoding="utf-8")
+    (tmp_path / "ledger").mkdir()
+    run_ledger = tmp_path / "ledger/runs.csv"
+    decision_ledger = tmp_path / "ledger/decisions.csv"
+    run_ledger.write_text("run_id\n", encoding="utf-8")
+    decision_ledger.write_text("decision_id\n", encoding="utf-8")
+
+    states = iter([("INITIAL", report), ("COMPLETED", report)])
+    fake_closure = SimpleNamespace(
+        sha256="c" * 64,
+        document={"source_authority": {"effect_protocol_sha256": "p" * 64}},
+        verify_state=lambda: next(states),
+    )
+    fake_protocol = SimpleNamespace(
+        sha256="p" * 64,
+        document={
+            "identity": {
+                "effect_report": "result/effect_report.json",
+                "result_root": "result",
+                "run_ledger": "ledger/runs.csv",
+                "decision_ledger": "ledger/decisions.csv",
+            }
+        },
+        verify_upstream=lambda: {},
+    )
+    fake_release = SimpleNamespace(
+        document={"closure_protocol_sha256": "c" * 64, "report_reuse_only": True}
+    )
+    calls: list[str] = []
+    monkeypatch.setattr(
+        closure_module.EvidenceClosureProtocol, "load", staticmethod(lambda _: fake_closure)
+    )
+    monkeypatch.setattr(closure_module.EffectProtocol, "load", staticmethod(lambda _: fake_protocol))
+    monkeypatch.setattr(
+        closure_module.EffectRelease,
+        "load",
+        staticmethod(lambda *_args, **_kwargs: fake_release),
+    )
+    monkeypatch.setattr(closure_module, "code_bundle_sha256", lambda: "b" * 64)
+    monkeypatch.setattr(closure_module, "verify_pushed_clean_state", lambda _release: "h" * 40)
+    monkeypatch.setattr(
+        closure_module, "project_path", lambda value: (tmp_path / value).resolve()
+    )
+    monkeypatch.setattr(
+        closure_module,
+        "append_ledgers",
+        lambda *_args, **_kwargs: calls.append("append") or {"run": False, "decisions": False},
+    )
+    monkeypatch.setattr(closure_module, "build_manifest", lambda *_args: {"sealed": True})
+    monkeypatch.setattr(
+        closure_module,
+        "write_json",
+        lambda *_args: calls.append("manifest") or ("m" * 64, False),
+    )
+    monkeypatch.setattr(
+        closure_module,
+        "audit",
+        lambda _path: calls.append("audit") or {"status": "PASS"},
+    )
+
+    result = closure_module.close_evidence(Path("effect"), Path("closure"), Path("release"))
+    assert result["status"] == "PASS"
+    assert result["before_state"] == "INITIAL"
+    assert calls == ["append", "manifest", "audit"]
 
 
 def test_container_release_uses_embedded_manifest_identity(monkeypatch: pytest.MonkeyPatch) -> None:

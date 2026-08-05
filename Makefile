@@ -194,6 +194,13 @@ docker-m4-star50-effect: ## release推送后断网执行M4-1首遍与确定性�
 	docker compose -f compose.research.yaml --profile m4-star50-residual-effect run --rm --no-deps m4-star50-residual-effect
 docker-m4-star50-effect-audit: ## 断网只读复核M4-1不可变产物与裁决
 	docker compose -f compose.research.yaml --profile m4-star50-residual-effect run --rm --no-deps m4-star50-residual-effect python -m shaiwei.research.star50_residual_effect.audit --protocol /workspace/config/m4_star50_residual_effect_v1.yaml
+docker-m4-star50-closure-build: ## 以已提交实现构建M4-1R2断网证据闭环镜像
+	@test -n "$(M4_EFFECT_CLOSURE_RELEASE_GIT_HEAD)" || (echo "M4_EFFECT_CLOSURE_RELEASE_GIT_HEAD is required"; exit 2)
+	SHAIWEI_M4_EFFECT_CLOSURE_RELEASE_GIT_HEAD="$(M4_EFFECT_CLOSURE_RELEASE_GIT_HEAD)" docker compose -f compose.research.yaml --profile m4-star50-residual-effect-closure build m4-star50-residual-effect-closure
+docker-m4-star50-closure: ## 仅复用M4-1封存报告并补齐账本、manifest与独立审计
+	docker compose -f compose.research.yaml --profile m4-star50-residual-effect-closure run --rm --no-deps m4-star50-residual-effect-closure
+docker-m4-star50-closure-audit: ## 断网只读复核M4-1R2闭环后的全部证据
+	docker compose -f compose.research.yaml --profile m4-star50-residual-effect-closure run --rm --no-deps m4-star50-residual-effect-closure python -m shaiwei.research.star50_residual_effect.audit --protocol /workspace/config/m4_star50_residual_effect_v1.yaml
 docker-g8-primary-build: ## 以已提交代码身份构建 G8-1 无凭据一次性采集镜像
 	@test -n "$(G8_RELEASE_GIT_HEAD)" || (echo "G8_RELEASE_GIT_HEAD is required"; exit 2)
 	SHAIWEI_G8_RELEASE_GIT_HEAD="$(G8_RELEASE_GIT_HEAD)" docker compose -f compose.research.yaml --profile g8-primary-capture-live build g8-primary-capture
