@@ -22,6 +22,7 @@ from shaiwei.research_gates.m5_dynamic.input_inventory import (
     LEDGER_COLUMNS,
     build_input_manifest,
 )
+from shaiwei.research_gates.m5_dynamic.source_reader import load_allowed_inputs
 
 
 ROOT = Path(__file__).parents[1]
@@ -75,7 +76,7 @@ def _membership_protocol(tmp_path: Path) -> M5DataProtocol:
     custom_path = tmp_path / "data/membership/custom.parquet"
     star_path.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(
-        {"trade_date": ["20210201"], "ts_code": ["990001.SH"]}
+        {"trade_date": ["20210201"], "code": ["990001.SH"]}
     ).to_parquet(star_path, index=False)
     pd.DataFrame(
         {
@@ -159,6 +160,8 @@ def test_metadata_inventory_is_loadable_and_does_not_scan_semantic_rows(tmp_path
     assert document["ledger_selection_scope"] == list(REQUIRED_APIS)
     assert len(loaded.document["sources"]) == 7
     assert len(loaded.document["memberships"]) == 3
+    _, memberships, _ = load_allowed_inputs(protocol, loaded, input_root=tmp_path)
+    assert memberships["star50-official-pit-v2"]["ts_code"].tolist() == ["990001.SH"]
 
 
 def test_unrelated_ledger_append_does_not_change_inventory(tmp_path: Path) -> None:

@@ -7,6 +7,7 @@ import pytest
 
 from shaiwei.research_gates.m5_dynamic.contract import (
     API_FIELDS,
+    MEMBERSHIP_CODE_FIELDS,
     PROTOCOL_SCOPE_SHA256,
     REQUIRED_APIS,
     InputManifest,
@@ -67,7 +68,7 @@ def _manifest(protocol: M5DataProtocol) -> dict:
                 "row_count": 10,
                 "bytes": 1024,
                 "schema_fields": (
-                    ["trade_date", "ts_code"]
+                    ["trade_date", MEMBERSHIP_CODE_FIELDS[universe.universe_id]]
                     if universe.filter_column is None
                     else [
                         "trade_date",

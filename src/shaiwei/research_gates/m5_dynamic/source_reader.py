@@ -9,7 +9,14 @@ from typing import Any
 import pandas as pd
 import pyarrow.parquet as pq
 
-from .contract import API_FIELDS, InputManifest, M5DataProtocol, M5GateError, sha256_file
+from .contract import (
+    API_FIELDS,
+    MEMBERSHIP_CODE_FIELDS,
+    InputManifest,
+    M5DataProtocol,
+    M5GateError,
+    sha256_file,
+)
 
 
 def _bound_path(root: Path, relative: str) -> Path:
@@ -65,10 +72,13 @@ def load_allowed_inputs(
         universe = universe_map[item["universe_id"]]
         path = _bound_path(input_root, item["relative_path"])
         _verify_file(path, item)
-        columns = ["trade_date", "ts_code"]
+        code_field = MEMBERSHIP_CODE_FIELDS[universe.universe_id]
+        columns = ["trade_date", code_field]
         if universe.filter_column:
             columns.extend(["formation_date", universe.filter_column])
         frame = pd.read_parquet(path, columns=columns)
+        if code_field != "ts_code":
+            frame = frame.rename(columns={code_field: "ts_code"})
         if universe.filter_column:
             frame = frame.loc[
                 frame[universe.filter_column].astype(str).eq(str(universe.filter_value))

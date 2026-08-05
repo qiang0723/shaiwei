@@ -57,6 +57,11 @@ FORBIDDEN_TOKENS = {
     "prediction",
     "holding",
 }
+MEMBERSHIP_CODE_FIELDS = {
+    "star50-official-pit-v2": "code",
+    "star-board-midcap-pit-v1": "ts_code",
+    "star-board-smallcap-pit-v1": "ts_code",
+}
 
 
 class M5GateError(RuntimeError):
@@ -191,6 +196,8 @@ class M5DataProtocol:
             )
         if len(universes) != 3 or len({item.universe_id for item in universes}) != 3:
             raise M5GateError("M5 protocol must contain three unique universes")
+        if set(item.universe_id for item in universes) != set(MEMBERSHIP_CODE_FIELDS):
+            raise M5GateError("M5 protocol universe identities differ from source adapters")
         if int(document["scope"]["evaluation_unit_count"]) != 24:
             raise M5GateError("M5 protocol must contain 24 evaluation units")
         return cls(
@@ -315,7 +322,12 @@ class InputManifest:
             if int(item.get("row_count", -1)) < 0 or int(item.get("bytes", -1)) <= 0:
                 raise M5GateError("M5 input membership metadata is invalid")
             fields = item.get("schema_fields")
-            if not isinstance(fields, list) or not {"trade_date", "ts_code"} <= set(fields):
+            code_field = MEMBERSHIP_CODE_FIELDS.get(str(item.get("universe_id")))
+            if (
+                not isinstance(fields, list)
+                or code_field is None
+                or not {"trade_date", code_field} <= set(fields)
+            ):
                 raise M5GateError("M5 input membership schema differs")
         expected_memberships = {
             (item.universe_id, item.membership_relative_path, item.membership_sha256)
