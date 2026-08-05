@@ -41,6 +41,7 @@ def build_release_document(
     auditor_code_sha256: str,
     image_id: str,
     repo_digest: str,
+    platform: str,
     input_bundle_relative_path: str,
     output_relative_path: str,
     audit_relative_path: str,
@@ -80,7 +81,7 @@ def build_release_document(
         "image": {
             "image_id": image_id,
             "repo_digest": repo_digest,
-            "platform": "linux/arm64",
+            "platform": platform,
             "base_image": protocol.build_document["container"]["base_image"],
         },
         "commands": COMMANDS,

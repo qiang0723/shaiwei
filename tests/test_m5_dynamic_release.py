@@ -50,6 +50,7 @@ def _release_document(protocol: M5DataProtocol, manifest: InputManifest) -> dict
         auditor_code_sha256="f" * 64,
         image_id="sha256:" + "1" * 64,
         repo_digest="shaiwei/m5-data-gate@sha256:" + "2" * 64,
+        platform="linux/arm64",
         input_bundle_relative_path="data/control/m5_2/input-bundles/fixture",
         output_relative_path="data/control/m5_2/output-staging/fixture",
         audit_relative_path="data/control/m5_2/audit-staging/fixture",

@@ -6,7 +6,8 @@
 
 - 独立`shaiwei.research_gates`已实现：四表SQLite gate registry、候选级财报PIT配对、八式纯函数、
   月末至下一开市日成员映射、8×3门阵、write-once runner、独立重算auditor、元数据输入清单和精确
-  release/approval合同；新增生产模块最大348行，没有扩写F1/F2/M5-1或生产/Web模块。
+  release/approval合同，以及仅在批准校验后可用的内容寻址硬链接输入包；新增生产模块最大348行，
+  没有扩写F1/F2/M5-1或生产/Web模块。
 - 完全合成数据专项47项、全仓721项、架构6项及Ruff/compileall/pip check/Compose/diff门均PASS。
   首次最小镜像运行发现Pandas Spearman暗依赖未锁定SciPy并失败关闭；现改为确定性平均秩+Pearson，
   不扩大冻结依赖，回归后短命断网容器全链PASS：8候选、3池、24单元、独立审计PASS、临时registry
