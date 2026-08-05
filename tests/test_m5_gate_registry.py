@@ -184,6 +184,49 @@ def test_registry_full_data_chain_is_replayable_and_one_to_one(tmp_path: Path) -
         assert connection.execute("SELECT count(*) FROM outbox WHERE status='PENDING'").fetchone()[0] == 6
 
 
+def test_presemantic_failure_is_auditable_and_returns_to_protocol_frozen(
+    tmp_path: Path,
+) -> None:
+    service = _service(tmp_path)
+    identity = _identity()
+    sequence = _approve_and_start(service, identity)
+    failed = service.advance(
+        identity.case_id,
+        "DATA_GATE_PREEXECUTION_FAILED",
+        {
+            "release_scope_sha256": RELEASE_SHA,
+            "failure_code": "INPUT_BUNDLE_CONTROL_MISSING",
+            "runner_exit_code": 2,
+            "semantic_rows_read": False,
+        },
+        expected_event_seq=sequence,
+        actor=APPROVER,
+        idempotency_key="presemantic-failure-1",
+        recorded_at="2026-08-05T12:05:00+00:00",
+    )
+    assert failed["state"] == {
+        "lifecycle_state": "PROTOCOL_FROZEN",
+        "data_gate_status": "NOT_READY",
+        "engineering_gate_status": "NOT_READY",
+        "evidence_tier": "PROTOCOL_ONLY",
+        "authoritative_outcome": "NOT_EVALUATED",
+        "production_authorization": "none",
+    }
+    next_release = service.advance(
+        identity.case_id,
+        "DATA_GATE_RELEASE_READY",
+        {"release_scope_sha256": "e" * 64},
+        expected_event_seq=sequence + 1,
+        actor=APPROVER,
+        idempotency_key="recovery-release-1",
+        recorded_at="2026-08-05T12:06:00+00:00",
+    )
+    assert next_release["state"]["lifecycle_state"] == "DATA_GATE_RELEASE_READY"
+    with service.store.read() as connection:
+        verify_registry_integrity(connection)
+        assert connection.execute("SELECT count(*) FROM gate_events").fetchone()[0] == 7
+
+
 def test_idempotent_replay_returns_same_response_and_does_not_append(tmp_path: Path) -> None:
     service = _service(tmp_path)
     identity = _identity()

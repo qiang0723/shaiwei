@@ -16,6 +16,7 @@ from .source_reader import _bound_path, _verify_file
 
 CONTROL_DESTINATIONS = {
     "input_manifest": "config/m5_dynamic_fundamental_data_input_v1.json",
+    "build_contract": "config/m5_dynamic_fundamental_data_gate_build_v1.yaml",
     "release_scope": "config/m5_dynamic_fundamental_data_gate_release_scope_v1.json",
     "approval_envelope": "config/m5_dynamic_fundamental_data_gate_approval_v1.json",
 }
@@ -67,7 +68,17 @@ def _expected_data_files(
     return result
 
 
-def _bundle_inventory(root: Path, *, input_manifest_sha256: str) -> dict[str, Any]:
+def _bundle_inventory(
+    root: Path,
+    *,
+    input_manifest: InputManifest,
+    release: DataReleaseScope,
+    approval: ApprovalEnvelope,
+    input_manifest_path: Path,
+    build_contract_path: Path,
+    release_scope_path: Path,
+    approval_envelope_path: Path,
+) -> dict[str, Any]:
     files = []
     for path in sorted(item for item in root.rglob("*") if item.is_file()):
         relative = path.relative_to(root).as_posix()
@@ -81,8 +92,14 @@ def _bundle_inventory(root: Path, *, input_manifest_sha256: str) -> dict[str, An
             }
         )
     return {
-        "schema_version": "m5-input-bundle-v1",
-        "input_manifest_sha256": input_manifest_sha256,
+        "schema_version": "m5-input-bundle-v2",
+        "input_manifest_sha256": input_manifest.sha256,
+        "input_manifest_physical_sha256": sha256_file(input_manifest_path),
+        "build_contract_sha256": sha256_file(build_contract_path),
+        "release_scope_sha256": release.sha256,
+        "release_scope_physical_sha256": sha256_file(release_scope_path),
+        "approval_envelope_sha256": approval.sha256,
+        "approval_envelope_physical_sha256": sha256_file(approval_envelope_path),
         "file_count": len(files),
         "files": files,
         "semantic_rows_read": False,
@@ -92,25 +109,39 @@ def _bundle_inventory(root: Path, *, input_manifest_sha256: str) -> dict[str, An
 def materialize_bundle(
     protocol: M5DataProtocol,
     manifest: InputManifest,
+    release: DataReleaseScope,
+    approval: ApprovalEnvelope,
     *,
     project_root: Path,
-    bundle_parent: Path,
+    bundle_root: Path,
     input_manifest_path: Path,
+    build_contract_path: Path,
     release_scope_path: Path,
     approval_envelope_path: Path,
 ) -> dict[str, Any]:
-    target = bundle_parent / manifest.sha256
+    target = bundle_root
     if target.exists():
+        if target.is_symlink() or not target.is_dir():
+            raise M5GateError("existing M5 input bundle is not a regular directory")
         manifest_path = target / "bundle_manifest.json"
         if not manifest_path.is_file():
             raise M5GateError("existing M5 input bundle is partial")
         stored = json.loads(manifest_path.read_text(encoding="utf-8"))
-        expected = _bundle_inventory(target, input_manifest_sha256=manifest.sha256)
+        expected = _bundle_inventory(
+            target,
+            input_manifest=manifest,
+            release=release,
+            approval=approval,
+            input_manifest_path=input_manifest_path,
+            build_contract_path=build_contract_path,
+            release_scope_path=release_scope_path,
+            approval_envelope_path=approval_envelope_path,
+        )
         if stored != expected or manifest_path.read_text(encoding="utf-8") != canonical_json(stored) + "\n":
             raise M5GateError("existing M5 input bundle identity differs")
         return stored
-    bundle_parent.mkdir(parents=True, exist_ok=True)
-    temporary = bundle_parent / f".{manifest.sha256}.{os.getpid()}.tmp"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = target.parent / f".{target.name}.{os.getpid()}.tmp"
     if temporary.exists():
         raise M5GateError("M5 input bundle temporary directory already exists")
     temporary.mkdir(mode=0o700)
@@ -129,12 +160,22 @@ def materialize_bundle(
             _link(source, temporary / relative)
         controls = {
             CONTROL_DESTINATIONS["input_manifest"]: input_manifest_path,
+            CONTROL_DESTINATIONS["build_contract"]: build_contract_path,
             CONTROL_DESTINATIONS["release_scope"]: release_scope_path,
             CONTROL_DESTINATIONS["approval_envelope"]: approval_envelope_path,
         }
         for relative, source_path in controls.items():
             _link(_project_file(project_root, source_path), temporary / relative)
-        inventory = _bundle_inventory(temporary, input_manifest_sha256=manifest.sha256)
+        inventory = _bundle_inventory(
+            temporary,
+            input_manifest=manifest,
+            release=release,
+            approval=approval,
+            input_manifest_path=input_manifest_path,
+            build_contract_path=build_contract_path,
+            release_scope_path=release_scope_path,
+            approval_envelope_path=approval_envelope_path,
+        )
         (temporary / "bundle_manifest.json").write_text(
             canonical_json(inventory) + "\n", encoding="utf-8"
         )
@@ -154,7 +195,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--input-manifest", type=Path, required=True)
     parser.add_argument("--release-scope", type=Path, required=True)
     parser.add_argument("--approval-envelope", type=Path, required=True)
-    parser.add_argument("--bundle-parent", type=Path, required=True)
     args = parser.parse_args(argv)
     try:
         protocol = M5DataProtocol.load(
@@ -164,13 +204,19 @@ def main(argv: list[str] | None = None) -> int:
         )
         manifest = InputManifest.load(args.input_manifest, protocol)
         release = DataReleaseScope.load(args.release_scope, protocol, manifest)
-        ApprovalEnvelope.load(args.approval_envelope, release)
+        approval = ApprovalEnvelope.load(args.approval_envelope, release)
+        input_mount = next(
+            item for item in release.scope["container"]["mounts"] if item["target"] == "/inputs"
+        )
         result = materialize_bundle(
             protocol,
             manifest,
+            release,
+            approval,
             project_root=args.project_root,
-            bundle_parent=args.bundle_parent,
+            bundle_root=args.project_root / input_mount["source"],
             input_manifest_path=args.input_manifest,
+            build_contract_path=args.build_contract,
             release_scope_path=args.release_scope,
             approval_envelope_path=args.approval_envelope,
         )

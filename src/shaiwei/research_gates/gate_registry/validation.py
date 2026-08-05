@@ -18,6 +18,7 @@ DATA_VERDICTS = {
     "GO_PARTIAL_M5_2_DATA_PREEXECUTION_ONLY",
     "NO_GO_M5_2_DATA_PREEXECUTION",
 }
+PREEXECUTION_FAILURE_CODES = {"INPUT_BUNDLE_CONTROL_MISSING"}
 
 
 def _release_scope(payload: dict[str, Any]) -> str:
@@ -111,6 +112,14 @@ def validate_event_payload(
     elif event_type == "DATA_GATE_STARTED":
         if payload != {"release_scope_sha256": active_data_release_scope}:
             raise RegistryError("data start does not bind the approved release")
+    elif event_type == "DATA_GATE_PREEXECUTION_FAILED":
+        if payload != {
+            "release_scope_sha256": active_data_release_scope,
+            "failure_code": "INPUT_BUNDLE_CONTROL_MISSING",
+            "runner_exit_code": 2,
+            "semantic_rows_read": False,
+        } or payload["failure_code"] not in PREEXECUTION_FAILURE_CODES:
+            raise RegistryError("data preexecution failure evidence differs")
     elif event_type == "DATA_GATE_RECORDED":
         for name in ("evidence_manifest_sha256", "audit_manifest_sha256"):
             require_sha256(str(payload.get(name, "")), name)

@@ -14,6 +14,7 @@ from shaiwei.research_gates.m5_dynamic.contract import (
     sha256_file,
 )
 from shaiwei.research_gates.m5_dynamic.input_bundle import materialize_bundle
+from shaiwei.research_gates.m5_dynamic.release import ApprovalEnvelope, DataReleaseScope
 
 
 ROOT = Path(__file__).parents[1]
@@ -52,11 +53,24 @@ def _manifest(tmp_path: Path) -> tuple[InputManifest, Path]:
     return InputManifest(document=document, sha256="8" * 64), source
 
 
-def _control_files(tmp_path: Path) -> tuple[Path, Path, Path]:
-    paths = tuple(tmp_path / name for name in ("input.json", "release.json", "approval.json"))
+def _control_files(tmp_path: Path) -> tuple[Path, Path, Path, Path]:
+    paths = tuple(
+        tmp_path / name
+        for name in ("input.json", "build.yaml", "release.json", "approval.json")
+    )
     for index, path in enumerate(paths):
         path.write_text(f"fixture-{index}\n", encoding="utf-8")
     return paths
+
+
+def _release_and_approval(
+    release_sha: str = "9" * 64,
+    approval_sha: str = "7" * 64,
+) -> tuple[DataReleaseScope, ApprovalEnvelope]:
+    return (
+        DataReleaseScope(document={}, scope={}, sha256=release_sha),
+        ApprovalEnvelope(document={}, sha256=approval_sha),
+    )
 
 
 def test_approved_input_bundle_is_hard_linked_write_once_and_value_blind(
@@ -64,57 +78,114 @@ def test_approved_input_bundle_is_hard_linked_write_once_and_value_blind(
 ) -> None:
     protocol = _protocol_without_frozen_controls()
     manifest, source = _manifest(tmp_path)
-    input_path, release_path, approval_path = _control_files(tmp_path)
-    parent = tmp_path / "data/control/m5_2/input-bundles"
+    input_path, build_path, release_path, approval_path = _control_files(tmp_path)
+    release, approval = _release_and_approval()
+    bundle = tmp_path / "data/control/m5_2/input-bundles/bundle-a"
 
     first = materialize_bundle(
         protocol,
         manifest,
+        release,
+        approval,
         project_root=tmp_path,
-        bundle_parent=parent,
+        bundle_root=bundle,
         input_manifest_path=input_path,
+        build_contract_path=build_path,
         release_scope_path=release_path,
         approval_envelope_path=approval_path,
     )
     second = materialize_bundle(
         protocol,
         manifest,
+        release,
+        approval,
         project_root=tmp_path,
-        bundle_parent=parent,
+        bundle_root=bundle,
         input_manifest_path=input_path,
+        build_contract_path=build_path,
         release_scope_path=release_path,
         approval_envelope_path=approval_path,
     )
 
-    linked = parent / manifest.sha256 / source.relative_to(tmp_path)
+    linked = bundle / source.relative_to(tmp_path)
     assert first == second
+    assert first["schema_version"] == "m5-input-bundle-v2"
+    assert first["release_scope_sha256"] == release.sha256
+    assert first["approval_envelope_sha256"] == approval.sha256
     assert first["semantic_rows_read"] is False
     assert linked.stat().st_ino == source.stat().st_ino
+    assert (bundle / "config/m5_dynamic_fundamental_data_gate_build_v1.yaml").stat().st_ino == (
+        build_path.stat().st_ino
+    )
 
 
 def test_existing_bundle_tamper_fails_closed(tmp_path: Path) -> None:
     protocol = _protocol_without_frozen_controls()
     manifest, _ = _manifest(tmp_path)
     controls = _control_files(tmp_path)
-    parent = tmp_path / "data/control/m5_2/input-bundles"
+    release, approval = _release_and_approval()
+    bundle = tmp_path / "data/control/m5_2/input-bundles/bundle-a"
     materialize_bundle(
         protocol,
         manifest,
+        release,
+        approval,
         project_root=tmp_path,
-        bundle_parent=parent,
+        bundle_root=bundle,
         input_manifest_path=controls[0],
-        release_scope_path=controls[1],
-        approval_envelope_path=controls[2],
+        build_contract_path=controls[1],
+        release_scope_path=controls[2],
+        approval_envelope_path=controls[3],
     )
-    (parent / manifest.sha256 / "bundle_manifest.json").write_text("{}\n", encoding="utf-8")
+    (bundle / "bundle_manifest.json").write_text("{}\n", encoding="utf-8")
 
     with pytest.raises(M5GateError, match="identity differs"):
         materialize_bundle(
             protocol,
             manifest,
+            release,
+            approval,
             project_root=tmp_path,
-            bundle_parent=parent,
+            bundle_root=bundle,
             input_manifest_path=controls[0],
-            release_scope_path=controls[1],
-            approval_envelope_path=controls[2],
+            build_contract_path=controls[1],
+            release_scope_path=controls[2],
+            approval_envelope_path=controls[3],
+        )
+
+
+def test_existing_bundle_cannot_be_reused_by_another_release_or_approval(
+    tmp_path: Path,
+) -> None:
+    protocol = _protocol_without_frozen_controls()
+    manifest, _ = _manifest(tmp_path)
+    controls = _control_files(tmp_path)
+    release, approval = _release_and_approval()
+    bundle = tmp_path / "data/control/m5_2/input-bundles/bundle-a"
+    materialize_bundle(
+        protocol,
+        manifest,
+        release,
+        approval,
+        project_root=tmp_path,
+        bundle_root=bundle,
+        input_manifest_path=controls[0],
+        build_contract_path=controls[1],
+        release_scope_path=controls[2],
+        approval_envelope_path=controls[3],
+    )
+
+    different_release, different_approval = _release_and_approval("6" * 64, "5" * 64)
+    with pytest.raises(M5GateError, match="identity differs"):
+        materialize_bundle(
+            protocol,
+            manifest,
+            different_release,
+            different_approval,
+            project_root=tmp_path,
+            bundle_root=bundle,
+            input_manifest_path=controls[0],
+            build_contract_path=controls[1],
+            release_scope_path=controls[2],
+            approval_envelope_path=controls[3],
         )

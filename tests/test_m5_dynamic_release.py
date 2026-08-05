@@ -55,7 +55,9 @@ def _release_document(protocol: M5DataProtocol, manifest: InputManifest) -> dict
         image_id="sha256:" + "1" * 64,
         repo_digest="shaiwei/m5-data-gate@sha256:" + "2" * 64,
         platform="linux/arm64",
-        input_bundle_relative_path="data/control/m5_2/input-bundles/fixture",
+        input_bundle_relative_path=(
+            "data/control/m5_2/input-bundles/" + manifest.sha256 + "-aaaaaaa"
+        ),
         output_relative_path="data/control/m5_2/output-staging/fixture",
         audit_relative_path="data/control/m5_2/audit-staging/fixture",
         registry_relative_path="data/control/m5_2/runtime/fixture",
@@ -81,7 +83,9 @@ def test_release_scope_is_content_addressed_but_grants_no_execution(tmp_path: Pa
     assert loaded.scope["authority"]["production_authorization"] == "none"
 
 
-@pytest.mark.parametrize("mutation", ["execution", "mount", "registry", "commit"])
+@pytest.mark.parametrize(
+    "mutation", ["execution", "mount", "registry", "bundle_identity", "commit"]
+)
 def test_release_scope_rejects_rehashed_authority_or_identity_drift(
     tmp_path: Path, mutation: str
 ) -> None:
@@ -98,6 +102,10 @@ def test_release_scope_rejects_rehashed_authority_or_identity_drift(
             for item in document["scope"]["container"]["mounts"]
             if item["target"] != "/registry"
         ]
+    elif mutation == "bundle_identity":
+        document["scope"]["container"]["mounts"][0]["source"] = (
+            "data/control/m5_2/input-bundles/" + manifest.sha256
+        )
     else:
         document["scope"]["implementation"]["origin_main_commit"] = "9" * 40
     document["release_scope_sha256"] = sha256_json(document["scope"])

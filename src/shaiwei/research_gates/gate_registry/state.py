@@ -13,6 +13,7 @@ EVENT_TYPES = {
     "DATA_GATE_RELEASE_READY",
     "DATA_GATE_APPROVED",
     "DATA_GATE_STARTED",
+    "DATA_GATE_PREEXECUTION_FAILED",
     "DATA_GATE_RECORDED",
     "ENGINEERING_GATE_RELEASE_READY",
     "ENGINEERING_GATE_APPROVED",
@@ -55,6 +56,11 @@ def transition(current: AxisState | None, event_type: str, payload: dict[str, An
             engineering_gate_status=current.engineering_gate_status,
             evidence_tier=current.evidence_tier,
         )
+    if (
+        current.lifecycle_state == "DATA_GATE_RUNNING"
+        and event_type == "DATA_GATE_PREEXECUTION_FAILED"
+    ):
+        return _state("PROTOCOL_FROZEN", "NOT_READY", "NOT_READY", "PROTOCOL_ONLY")
     simple = {
         ("IMPORTED", "PROTOCOL_FROZEN"): _state(
             "PROTOCOL_FROZEN", "NOT_READY", "NOT_READY", "PROTOCOL_ONLY"

@@ -219,6 +219,13 @@ class DataReleaseScope:
             raise M5GateError("M5 data release mount targets differ")
         for item in mounts:
             _relative_mount(item["source"])
+        input_source = next(item["source"] for item in mounts if item["target"] == "/inputs")
+        expected_input_source = (
+            "data/control/m5_2/input-bundles/"
+            f"{input_manifest.sha256}-{commit[:7]}"
+        )
+        if input_source != expected_input_source:
+            raise M5GateError("M5 input bundle path is not bound to input and implementation")
         if container.get("resources") != {
             "runner": {"cpus": "1.0", "memory": "2g"},
             "auditor": {"cpus": "0.5", "memory": "512m"},

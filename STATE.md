@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-05 · M5-2B release v2在协议加载阶段失败，真实语义读取仍为0
+
+- 用户批准v2后正式registry已形成至`DATA_GATE_STARTED`的5事件链；runner随即因输入包缺
+  `m5_dynamic_fundamental_data_gate_build_v1.yaml`以exit code 2失败，发生在
+  `M5DataProtocol.load`，早于任何财务列读取。
+- v2没有feature/report/run/audit产物，不产生DATA verdict或策略结论；旧输入包不补文件、不删除、
+  不原地重建。真实财务行/候选/效果仍为0，scheduler未触碰。
+- 根因同时包含“漏build contract”和“仅按input manifest命名却封装release/approval”的跨release碰撞。
+  恢复只允许新增`DATA_GATE_PREEXECUTION_FAILED`证据边、输入包v2四控制身份，以及
+  `<input_sha>-<implementation前7位>`精确路径；研究协议与输入不变。
+- 修复须先推送并登记预语义失败事件，再生成release v3；v2批准不迁移，v3仍须用户重新批准。见
+  `docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_BUNDLE_RECOVERY_20260805.md`。
+
 ## 2026-08-05 · M5-2B release v2已修复并停在重新授权前
 
 - registry挂载恢复提交`a98cd1d4f83dba022b199ae267d0bdc802f5bc2b`已先推送；release合同现强制
