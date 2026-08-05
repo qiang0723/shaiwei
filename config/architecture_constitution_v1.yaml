@@ -1,0 +1,89 @@
+policy_id: architecture-constitution-v1
+version: 1
+status: ACTIVE
+effective_date: "2026-08-05"
+document: docs/ARCHITECTURE_CONSTITUTION.md
+
+module_size:
+  soft_limit_lines: 400
+  hard_limit_lines: 600
+  include:
+    - src/shaiwei/**/*.py
+    - web-ui/src/**/*.ts
+    - web-ui/src/**/*.tsx
+    - web-ui/src/**/*.css
+  exclude:
+    - web-ui/src/test/**
+    - web-ui/src/**/*.test.ts
+    - web-ui/src/**/*.test.tsx
+  grandfathered_hotspots:
+    - path: src/shaiwei/web/research_projection.py
+      max_lines: 1312
+      boundary: research evidence read projection
+      exit_trigger: split the next new projection family into a dedicated module
+    - path: src/shaiwei/research/llm_factor.py
+      max_lines: 1254
+      boundary: legacy D1 factor control and evidence lifecycle
+      exit_trigger: extract the next changed lifecycle responsibility behind a typed contract
+    - path: src/shaiwei/ingest/g8_fund_evidence.py
+      max_lines: 1240
+      boundary: frozen G8 regulatory evidence capture
+      exit_trigger: isolate any new source parser from capture orchestration
+    - path: src/shaiwei/web/operations.py
+      max_lines: 1160
+      boundary: legacy operational read projection
+      exit_trigger: split the next new operations domain into a dedicated projector
+    - path: src/shaiwei/research/llm_factor_review.py
+      max_lines: 920
+      boundary: legacy D1 review lifecycle
+      exit_trigger: extract any future review transport or evidence responsibility
+    - path: src/shaiwei/paper/engine.py
+      max_lines: 860
+      boundary: frozen paper execution domain engine
+      exit_trigger: place new execution policies in independently tested domain modules
+    - path: src/shaiwei/ingest/g8_manager_crosscheck.py
+      max_lines: 814
+      boundary: frozen G8 manager cross-check workflow
+      exit_trigger: isolate any new manager or document adapter
+    - path: src/shaiwei/research/deepseek_client.py
+      max_lines: 808
+      boundary: bounded DeepSeek transport and audit adapter
+      exit_trigger: isolate any new provider or billing policy behind the transport port
+    - path: src/shaiwei/research/llm_factor_live.py
+      max_lines: 741
+      boundary: legacy D1 live-run orchestration
+      exit_trigger: move any new execution stage into a dedicated coordinator
+    - path: web-ui/src/types.ts
+      max_lines: 719
+      boundary: legacy Web read-contract type catalog
+      exit_trigger: place the next domain type family in its own typed module
+    - path: src/shaiwei/research/g1.py
+      max_lines: 693
+      boundary: frozen G1 admission policy and evaluator
+      exit_trigger: add new gates through a separately tested evaluator module
+    - path: src/shaiwei/pipeline/paper_cycle.py
+      max_lines: 670
+      boundary: paper daily application orchestration
+      exit_trigger: extract any new account or settlement workflow
+    - path: src/shaiwei/research/g1_pipeline.py
+      max_lines: 643
+      boundary: legacy G1 evidence application orchestration
+      exit_trigger: extract the next candidate-family adapter from the pipeline
+
+dependency_rules:
+  - id: domain_must_not_depend_on_web
+    include:
+      - src/shaiwei/**/*.py
+    exclude:
+      - src/shaiwei/web/**/*.py
+    forbidden_import_prefixes:
+      - shaiwei.web
+  - id: readonly_query_must_not_depend_on_runtime_or_orchestration
+    include:
+      - src/shaiwei/web/query*.py
+    exclude: []
+    forbidden_import_prefixes:
+      - shaiwei.config
+      - shaiwei.notify
+      - shaiwei.pipeline
+      - shaiwei.web.api
