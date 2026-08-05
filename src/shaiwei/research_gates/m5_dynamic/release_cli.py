@@ -25,6 +25,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--input-bundle-relative-path", required=True)
     parser.add_argument("--output-relative-path", required=True)
     parser.add_argument("--audit-relative-path", required=True)
+    parser.add_argument("--registry-relative-path", required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     try:
@@ -56,6 +57,7 @@ def main(argv: list[str] | None = None) -> int:
             input_bundle_relative_path=args.input_bundle_relative_path,
             output_relative_path=args.output_relative_path,
             audit_relative_path=args.audit_relative_path,
+            registry_relative_path=args.registry_relative_path,
         )
         physical_sha256 = write_release_once(args.output, document)
         loaded = DataReleaseScope.load(args.output, protocol, input_manifest)

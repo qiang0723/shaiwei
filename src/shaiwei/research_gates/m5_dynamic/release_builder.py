@@ -45,6 +45,7 @@ def build_release_document(
     input_bundle_relative_path: str,
     output_relative_path: str,
     audit_relative_path: str,
+    registry_relative_path: str,
 ) -> dict[str, Any]:
     proposal = protocol.document["source_proposal"]
     scope = {
@@ -108,6 +109,11 @@ def build_release_document(
                 {
                     "source": audit_relative_path,
                     "target": "/audit",
+                    "mode": "rw",
+                },
+                {
+                    "source": registry_relative_path,
+                    "target": "/registry",
                     "mode": "rw",
                 },
             ],

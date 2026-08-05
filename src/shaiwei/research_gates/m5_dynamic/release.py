@@ -204,9 +204,14 @@ class DataReleaseScope:
         serialized_mounts = json.dumps(mounts, ensure_ascii=False).lower()
         if any(token in serialized_mounts for token in FORBIDDEN_MOUNT_TOKENS):
             raise M5GateError("M5 data release contains a forbidden mount")
-        expected_modes = {"/inputs": "ro", "/outputs": "rw", "/audit": "rw"}
+        expected_modes = {
+            "/inputs": "ro",
+            "/outputs": "rw",
+            "/audit": "rw",
+            "/registry": "rw",
+        }
         if (
-            len(mounts) != 3
+            len(mounts) != 4
             or any(set(item) != {"source", "target", "mode"} for item in mounts)
             or {item.get("target") for item in mounts} != set(expected_modes)
             or any(item.get("mode") != expected_modes[item.get("target")] for item in mounts)

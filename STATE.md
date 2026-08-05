@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-05 · M5-2B旧release在真实读取前因registry挂载缺失而作废
+
+- 用户对旧scope`f53085d3...cefe70`表示继续执行后，执行前复核发现其只绑定inputs/outputs/audit，
+  未绑定ADR要求的正式`/registry:rw`；继续只能增加未获批挂载或绕过事件链，故在读取真实财务值前
+  fail closed。
+- 旧scope永久保留并标记`SUPERSEDED_BEFORE_REAL_DATA_READ`；不是DATA NO-GO或策略REJECT。
+  正式registry/approval/input bundle/runner/auditor均未创建，真实财务行、候选、门执行仍为0。
+- 唯一恢复为release合同强制第四个内容寻址`/registry:rw`挂载；protocol、8式/3池/24单元、输入
+  manifest、门槛、尝试N、提案到期和未授权项不变。修复须先推送并生成新scope，用户必须重新批准
+  新SHA。恢复单见`docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RELEASE_RECOVERY_20260805.md`。
+
 ## 2026-08-05 · M5-2B精确data release已就绪，停在用户授权前
 
 - M5-2B实现已分批提交并推送，最终实现提交`4369d7f9fa08fca023c07beecb47bc898c56ba72`；科创50
