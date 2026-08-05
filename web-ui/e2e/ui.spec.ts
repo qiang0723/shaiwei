@@ -33,6 +33,7 @@ import {
   VERSION_B
 } from "./fixtures";
 import { strategyFactoryData } from "./strategyFactoryFixture";
+import { proposalDraft, submittedProposal } from "./proposalControlFixture";
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
@@ -107,6 +108,36 @@ async function mockApi(
   requests: string[] = [],
   options: { delayFilteredExperimentCatalog?: boolean } = {}
 ) {
+  let proposal = structuredClone(proposalDraft);
+  await page.route("**/control/v1/research/proposals**", async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    requests.push(url.pathname);
+    if (request.method() === "GET") {
+      const body = url.pathname === "/control/v1/research/proposals"
+        ? { count: proposal.current_event_seq > 0 ? 1 : 0, items: [proposal] }
+        : proposal;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: { "x-csrf-token": "fixture-csrf-token" },
+        body: JSON.stringify(body)
+      });
+      return;
+    }
+    if (url.pathname.endsWith("/commands/submit-review")) {
+      proposal = submittedProposal();
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(proposal) });
+      return;
+    }
+    if (url.pathname.endsWith("/commands/cancel")) {
+      proposal = { ...proposal, current_state: "CANCELLED", current_event_seq: proposal.current_event_seq + 1, available_actions: [] };
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(proposal) });
+      return;
+    }
+    proposal = { ...structuredClone(proposalDraft), canonical_proposal: { ...proposalDraft.canonical_proposal, request: JSON.parse(request.postData() ?? "{}") } };
+    await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify(proposal) });
+  });
   await page.route("**/api/v1/**", async (route) => {
     const url = new URL(route.request().url());
     requests.push(url.pathname);
@@ -236,7 +267,7 @@ test("overview uses one atomic response and preserves as_of during drilldown", a
   await expectNoPageOverflow(page);
 });
 
-test("strategy factory shows source-backed boundaries and only creates a local draft", async ({ page }, testInfo) => {
+test("strategy factory persists only a non-authoritative proposal and stops at human review", async ({ page }, testInfo) => {
   const requests: string[] = [];
   await mockApi(page, requests);
   await page.goto("/strategy-factory");
@@ -246,11 +277,21 @@ test("strategy factory shows source-backed boundaries and only creates a local d
   await expect(page.getByText("正式因子库当前仍为0")).toBeVisible();
   await expect(page.getByText("科创200", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("官方谱系阻断")).toHaveCount(2);
-  await expect(page.getByRole("button", { name: "提交执行" })).toHaveCount(0);
-  await page.getByRole("button", { name: "生成本地草案预览" }).click();
-  await expect(page.getByRole("heading", { name: "量价机制有界研究草案" })).toBeVisible();
-  await expect(page.getByText("未授权", { exact: true })).toHaveCount(2);
-  expect(requests).toEqual(["/api/v1/strategy-factory"]);
+  await expect(page.getByRole("button", { name: /^(执行研究|冻结提案|加入队列|运行研究)$/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "保存提案" })).toBeDisabled();
+  await page.getByLabel(/中证800/).check();
+  await page.getByLabel("研究家族", { exact: true }).selectOption("price_volume");
+  await page.getByLabel(/我理解保存的只是非权威提案/).check();
+  await page.getByRole("button", { name: "保存提案" }).click();
+  await expect(page.getByText("本阶段实际研究尝试增量 N=0")).toBeVisible();
+  await expect(page.getByText("历史 N=273 · 提案后计划背景 N=281")).toBeVisible();
+  await page.getByRole("button", { name: "提交人工复核" }).click();
+  await expect(page.getByRole("alertdialog")).toContainText("未冻结、未排队、未运行");
+  await page.getByRole("button", { name: "确认提交人工复核" }).click();
+  await expect(page.getByText("已提交人工复核 · 未冻结 · 未排队 · 未运行")).toBeVisible();
+  await expect(page.getByRole("button", { name: /^(冻结提案|加入队列|运行研究)$/ })).toHaveCount(0);
+  expect(requests).toContain("/api/v1/strategy-factory");
+  expect(requests).toContain("/control/v1/research/proposals");
   await expectNoPageOverflow(page);
   await captureVisual(page, testInfo, "strategy-factory");
 });

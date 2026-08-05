@@ -370,6 +370,124 @@ services:
         bind:
           create_host_path: false
 
+  research-control:
+    image: shaiwei:research-control-v1
+    profiles: [web, control]
+    build:
+      context: .
+      dockerfile: Dockerfile.control
+    init: true
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    pids_limit: 64
+    mem_limit: 256m
+    cpus: 0.50
+    restart: unless-stopped
+    command:
+      - uvicorn
+      - shaiwei.research_control.api:create_app
+      - --factory
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8090"
+      - --workers
+      - "1"
+      - --limit-concurrency
+      - "16"
+      - --timeout-keep-alive
+      - "5"
+      - --no-access-log
+    expose:
+      - "8090"
+    secrets:
+      - source: m5_control_proxy_token
+        target: m5_control_proxy_token
+    volumes:
+      - type: bind
+        source: ./data/control/m5/runtime
+        target: /workspace/data/control/m5
+        read_only: false
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./config/m5_research_proposal_control_v2.yaml
+        target: /workspace/config/m5_research_proposal_control_v2.yaml
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./config/m5_research_proposal_control_v1.yaml
+        target: /workspace/config/m5_research_proposal_control_v1.yaml
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./config/m1_multi_universe_v1.yaml
+        target: /workspace/config/m1_multi_universe_v1.yaml
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/M5_RESEARCH_PROPOSAL_CONTROL_PROTOCOL_20260805.md
+        target: /workspace/docs/M5_RESEARCH_PROPOSAL_CONTROL_PROTOCOL_20260805.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/M5_RESEARCH_PROPOSAL_CONTROL_CORRECTION_PROTOCOL_20260805.md
+        target: /workspace/docs/M5_RESEARCH_PROPOSAL_CONTROL_CORRECTION_PROTOCOL_20260805.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/ADR_0001_M5_PROPOSAL_CONTROL_PLANE.md
+        target: /workspace/docs/ADR_0001_M5_PROPOSAL_CONTROL_PLANE.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/ARCHITECTURE_CONSTITUTION.md
+        target: /workspace/docs/ARCHITECTURE_CONSTITUTION.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/P1_MONEYFLOW_EXPERIMENT_ACCEPTANCE_20260724.md
+        target: /workspace/docs/P1_MONEYFLOW_EXPERIMENT_ACCEPTANCE_20260724.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/F1_CSI800_FUNDAMENTAL_EFFECT_ACCEPTANCE_20260803.md
+        target: /workspace/docs/F1_CSI800_FUNDAMENTAL_EFFECT_ACCEPTANCE_20260803.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/F2_CSI800_FUNDAMENTAL_EFFECT_ACCEPTANCE_20260803.md
+        target: /workspace/docs/F2_CSI800_FUNDAMENTAL_EFFECT_ACCEPTANCE_20260803.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/M4_STAR50_RESIDUAL_FACTOR_PROTOCOL_20260804.md
+        target: /workspace/docs/M4_STAR50_RESIDUAL_FACTOR_PROTOCOL_20260804.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./data/web/research_snapshots/strategy_factory_v2/snapshots/fae1c53c410213e58bd10d938a5854afdd2cce1e3f4c9acd7affb73624c94a6b.json
+        target: /workspace/data/web/research_snapshots/strategy_factory_v2/snapshots/fae1c53c410213e58bd10d938a5854afdd2cce1e3f4c9acd7affb73624c94a6b.json
+        read_only: true
+        bind: {create_host_path: false}
+    networks: [control-internal]
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen("http://127.0.0.1:8090/healthz", timeout=3).read()
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   web-ui:
     <<: *web-security
     command:
@@ -388,14 +506,23 @@ services:
       - --no-access-log
     environment:
       WEB_QUERY_BASE_URL: http://web-query:8000
+      WEB_CONTROL_BASE_URL: http://research-control:8090
+      WEB_CONTROL_ALLOWED_ORIGIN: http://127.0.0.1:8080
+      WEB_CONTROL_PROXY_TOKEN_FILE: /run/secrets/m5_control_proxy_token
+    secrets:
+      - source: m5_control_proxy_token
+        target: m5_control_proxy_token
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
       web-query:
         condition: service_healthy
+      research-control:
+        condition: service_healthy
     networks:
       - web-loopback
       - web-internal
+      - control-internal
     healthcheck:
       test:
         - CMD
@@ -416,3 +543,9 @@ networks:
     driver: bridge
     driver_opts:
       com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
+  control-internal:
+    internal: true
+
+secrets:
+  m5_control_proxy_token:
+    file: ./data/control/m5/proxy_token

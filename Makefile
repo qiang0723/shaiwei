@@ -1,4 +1,4 @@
-.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test architecture-check backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-d1-fixture docker-d1-live docker-d1-review-live docker-d1-semantic-verify docker-m1-star50-build docker-m1-star50-preflight docker-m1-star50-live docker-m1-star50-review-build docker-m1-star50-review-preflight docker-m1-star50-review-live docker-m3-multi-pool-build docker-m3-multi-pool-preflight docker-m3-multi-pool-live-build docker-m3-multi-pool-live-preflight docker-m3-multi-pool-live docker-m3-multi-pool-review-build docker-m3-multi-pool-review-preflight docker-m3-multi-pool-review-live-build docker-m3-multi-pool-review-live-preflight docker-m3-multi-pool-review-live docker-m3-multi-pool-review-verify docker-llm-review-contract-v2 docker-f1-fundamental-pit-build docker-f1-fundamental-pit docker-f1-fundamental-pit-recovery-build docker-f1-fundamental-pit-recovery docker-f2-fundamental-dynamics-build docker-f2-fundamental-dynamics docker-f2-fundamental-dynamics-recovery-build docker-f2-fundamental-dynamics-recovery docker-f1-fundamental-effect-build docker-f1-fundamental-effect-residual docker-f1-fundamental-effect docker-f2-fundamental-effect-build docker-f2-fundamental-effect-residual docker-f2-fundamental-effect docker-g8-primary-build docker-g8-primary-capture docker-g8-primary-verify docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-guard docker-early-release-guard docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-build docker-web-research-project docker-web-strategy-factory-project docker-web-security-names-project docker-web-up docker-web-status docker-web-logs docker-web-down
+.PHONY: bootstrap fix-lightgbm-macos runtime-check ingest ingest-dry-run crosscheck sentinel qlib-build test architecture-check backtest-baseline shadow shadow-cycle shadow-report paper-cycle paper-query paper-verify paper-acceptance alphagen-benchmark stage1-gp-preflight stage1-g1-preflight stage1-preflight g0-audit g1-schema g1-admit g8-spec stage0-plan stage0-run check-ledger feishu-test network-check docker-build docker-network-check docker-stage0-plan docker-stage0-run docker-daily-plan docker-daily-once docker-shadow-cycle docker-paper-cycle docker-paper-verify docker-paper-acceptance docker-g1-admit docker-stage1-preflight docker-d1-fixture docker-d1-live docker-d1-review-live docker-d1-semantic-verify docker-m1-star50-build docker-m1-star50-preflight docker-m1-star50-live docker-m1-star50-review-build docker-m1-star50-review-preflight docker-m1-star50-review-live docker-m3-multi-pool-build docker-m3-multi-pool-preflight docker-m3-multi-pool-live-build docker-m3-multi-pool-live-preflight docker-m3-multi-pool-live docker-m3-multi-pool-review-build docker-m3-multi-pool-review-preflight docker-m3-multi-pool-review-live-build docker-m3-multi-pool-review-live-preflight docker-m3-multi-pool-review-live docker-m3-multi-pool-review-verify docker-llm-review-contract-v2 docker-f1-fundamental-pit-build docker-f1-fundamental-pit docker-f1-fundamental-pit-recovery-build docker-f1-fundamental-pit-recovery docker-f2-fundamental-dynamics-build docker-f2-fundamental-dynamics docker-f2-fundamental-dynamics-recovery-build docker-f2-fundamental-dynamics-recovery docker-f1-fundamental-effect-build docker-f1-fundamental-effect-residual docker-f1-fundamental-effect docker-f2-fundamental-effect-build docker-f2-fundamental-effect-residual docker-f2-fundamental-effect docker-g8-primary-build docker-g8-primary-capture docker-g8-primary-verify docker-release-build docker-release-promote docker-release-rollback docker-release-start docker-release-guard docker-early-release-guard docker-release-status docker-scheduler-up docker-scheduler-status docker-scheduler-logs docker-scheduler-down docker-web-control-init docker-web-control-build docker-web-control-status docker-web-control-logs docker-web-build docker-web-research-project docker-web-strategy-factory-project docker-web-security-names-project docker-web-up docker-web-status docker-web-logs docker-web-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -233,19 +233,29 @@ docker-scheduler-logs: ## 查看最近 100 行脱敏守护日志
 	docker compose logs --tail=100 scheduler
 docker-scheduler-down: ## 停止日增量守护，不删除本地数据
 	docker compose stop scheduler
-docker-web-build: ## 构建隔离的 P3-0 只读 Web 镜像，不启动服务
-	docker compose -f compose.web.yaml --profile web build web-query
+docker-web-control-init: ## 创建本机 M5 控制面目录和不可回显的随机代理密钥；已有密钥不覆盖
+	mkdir -p data/control/m5/runtime
+	@if [ ! -s data/control/m5/proxy_token ]; then umask 077; openssl rand -hex 32 -out data/control/m5/proxy_token; fi
+	@chmod 600 data/control/m5/proxy_token
+docker-web-control-build: docker-web-control-init ## 构建独立 M5 proposal-only 控制服务，不启动
+	docker compose -f compose.web.yaml --profile control build research-control
+docker-web-control-status: ## 查看无宿主端口的 M5 控制服务状态
+	docker compose -f compose.web.yaml --profile control ps research-control
+docker-web-control-logs: ## 查看最近100行脱敏控制服务日志
+	docker compose -f compose.web.yaml --profile control logs --tail=100 research-control
+docker-web-build: docker-web-control-init ## 构建隔离 Web 与 proposal-only 控制镜像，不启动服务
+	docker compose -f compose.web.yaml --profile web build web-query research-control
 docker-web-research-project: ## 一次性构建 P3-3B 不可变研究投影；不启动 Web 或 scheduler
 	docker compose -f compose.web.yaml --profile research-projection run --rm research-projector
 docker-web-strategy-factory-project: ## 断网构建 M5-0 内容寻址策略工厂投影；不启动 Web 或 scheduler
 	docker compose -f compose.web.yaml --profile strategy-factory-projection run --rm --no-deps strategy-factory-projector
 docker-web-security-names-project: ## 断网构建内容寻址的证券简称投影；不启动 Web 或 scheduler
 	docker compose -f compose.web.yaml --profile security-name-projection run --rm security-name-projector
-docker-web-up: ## 显式启动两个 Web 服务；不会启动或重建 scheduler
-	docker compose -f compose.web.yaml --profile web up -d web-query web-ui
+docker-web-up: docker-web-control-init ## 显式启动 Web、只读查询和proposal-only控制；不触碰scheduler
+	docker compose -f compose.web.yaml --profile web up -d web-query research-control web-ui
 docker-web-status: ## 查看隔离 Web 服务状态
-	docker compose -f compose.web.yaml --profile web ps web-query web-ui
+	docker compose -f compose.web.yaml --profile web ps web-query research-control web-ui
 docker-web-logs: ## 查看 Web 最近 100 行脱敏运行日志
-	docker compose -f compose.web.yaml --profile web logs --tail=100 web-query web-ui
+	docker compose -f compose.web.yaml --profile web logs --tail=100 web-query research-control web-ui
 docker-web-down: ## 仅停止隔离 Web 服务
 	docker compose -f compose.web.yaml --profile web down

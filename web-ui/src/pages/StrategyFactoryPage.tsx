@@ -13,11 +13,11 @@ import { PageError, PageLoading, RefreshNotice } from "../components/RequestStat
 import { fetchStrategyFactory } from "../strategyFactoryApi";
 import type { EvidencePayload } from "../types";
 import {
-  DraftPlanner,
   ProgramCatalog,
   ResearchMatrix,
   UniverseMap
 } from "./strategy-factory/presentation";
+import { ProposalWorkbench } from "./strategy-factory/ProposalWorkbench";
 
 export default function StrategyFactoryPage() {
   const query = useQuery({
@@ -133,12 +133,12 @@ export default function StrategyFactoryPage() {
       <section className="surface-panel factory-section" aria-labelledby="draft-heading">
         <div className="section-heading">
           <div>
-            <span className="section-kicker">LOCAL DRAFT LAB</span>
-            <h2 id="draft-heading">建立研究草案</h2>
+            <span className="section-kicker">LOCAL PROPOSAL CONTROL</span>
+            <h2 id="draft-heading">非权威提案工作台</h2>
           </div>
-          <span className="factory-readonly-label">浏览器临时预览</span>
+          <span className="factory-readonly-label">本机持久化 · 人工复核止步</span>
         </div>
-        <DraftPlanner data={data} />
+        <ProposalWorkbench data={data} />
       </section>
 
       <section className="factory-empty-task" aria-label="当前研究任务">

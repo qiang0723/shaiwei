@@ -13,6 +13,12 @@ from fastapi import FastAPI, Request
 import httpx
 from fastapi.responses import FileResponse, Response
 
+from shaiwei.web.control_proxy import (
+    ProposalControlProxy,
+    allowed_control_path,
+    register_proposal_control_routes,
+)
+
 
 MAX_RESPONSE_BYTES = 1_048_576
 MAX_STATIC_BYTES = 3_145_728
@@ -159,6 +165,11 @@ def _index_response(path: Path, *, head: bool, style_nonce: str) -> Response:
 def create_app(
     query_base_url: str | None = None,
     static_root: Path | None = None,
+    control_base_url: str | None = None,
+    control_proxy_token: str | None = None,
+    control_proxy_token_path: Path | None = None,
+    control_allowed_origin: str | None = None,
+    control_transport: httpx.AsyncBaseTransport | None = None,
 ) -> FastAPI:
     base_url = (query_base_url or os.getenv("WEB_QUERY_BASE_URL", "http://web-query:8000")).rstrip(
         "/"
@@ -170,6 +181,24 @@ def create_app(
     )
     index_path = root / "index.html"
     assets_root = root / "assets"
+    token_file = control_proxy_token_path
+    if token_file is None and (configured := os.getenv("WEB_CONTROL_PROXY_TOKEN_FILE")):
+        token_file = Path(configured)
+    if token_file is None:
+        token_file = Path("/run/secrets/m5_control_proxy_token")
+    control = ProposalControlProxy(
+        base_url=(
+            control_base_url
+            or os.getenv("WEB_CONTROL_BASE_URL", "http://research-control:8000")
+        ),
+        allowed_origin=(
+            control_allowed_origin
+            or os.getenv("WEB_CONTROL_ALLOWED_ORIGIN", "http://127.0.0.1:8080")
+        ),
+        token=control_proxy_token,
+        token_path=token_file,
+        transport=control_transport,
+    )
     app = FastAPI(
         title="",
         docs_url=None,
@@ -185,9 +214,13 @@ def create_app(
     ) -> Response:
         style_nonce = secrets.token_urlsafe(18)
         request.state.style_nonce = style_nonce
-        if request.method not in ALLOWED_METHODS:
+        if request.method not in ALLOWED_METHODS and not allowed_control_path(
+            request.url.path, request.method,
+        ):
+            message = "Not found" if request.url.path.startswith("/control/") else "GET/HEAD only"
+            status_code = 404 if request.url.path.startswith("/control/") else 405
             return _security_headers(
-                Response("GET/HEAD only", status_code=405, media_type="text/plain"),
+                Response(message, status_code=status_code, media_type="text/plain"),
                 style_nonce=style_nonce,
             )
         return _security_headers(await call_next(request), style_nonce=style_nonce)
@@ -256,6 +289,8 @@ def create_app(
             f'{str(index_path.is_file()).lower()}}}'
         )
         return Response(content, status_code=code, media_type="application/json")
+
+    register_proposal_control_routes(app, control)
 
     @app.api_route("/api/{path:path}", methods=["GET", "HEAD"])
     async def proxy(request: Request, path: str) -> Response:

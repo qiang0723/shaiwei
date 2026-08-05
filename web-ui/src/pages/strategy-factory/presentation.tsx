@@ -1,7 +1,5 @@
-import { Button } from "antd";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type {
-  StrategyFactoryData,
   StrategyFactoryFamily,
   StrategyFactoryMatrixCell,
   StrategyFactoryOutcome,
@@ -170,87 +168,6 @@ export function ProgramCatalog({
           <footer><span>下一步</span>{program.next_action}</footer>
         </article>
       ))}
-    </div>
-  );
-}
-
-export function DraftPlanner({ data }: { data: StrategyFactoryData }) {
-  const eligibleUniverses = data.universes.filter((item) => data.draft_template.eligible_universe_ids.includes(item.universe_id));
-  const eligibleFamilies = data.research_families.filter((item) => data.draft_template.eligible_family_ids.includes(item.family_id));
-  const initialUniverse = eligibleUniverses.find((item) => item.universe_id === "star50-official-pit-v2")?.universe_id ?? eligibleUniverses[0]?.universe_id ?? "";
-  const initialFamily = eligibleFamilies.find((item) => item.family_id === "price_volume")?.family_id ?? eligibleFamilies[0]?.family_id ?? "";
-  const [selectedUniverses, setSelectedUniverses] = useState<string[]>(initialUniverse ? [initialUniverse] : []);
-  const [familyId, setFamilyId] = useState(initialFamily);
-  const [candidateCount, setCandidateCount] = useState(8);
-  const [previewed, setPreviewed] = useState(false);
-  const selectedNames = useMemo(
-    () => eligibleUniverses.filter((item) => selectedUniverses.includes(item.universe_id)).map((item) => item.display_name),
-    [eligibleUniverses, selectedUniverses]
-  );
-  const familyName = eligibleFamilies.find((item) => item.family_id === familyId)?.display_name ?? "未选择";
-
-  function toggleUniverse(id: string) {
-    setPreviewed(false);
-    setSelectedUniverses((current) => {
-      if (current.includes(id)) return current.filter((item) => item !== id);
-      if (current.length >= data.draft_template.maximum_universe_count) return current;
-      return [...current, id];
-    });
-  }
-
-  return (
-    <div className="factory-draft-grid">
-      <div className="factory-draft-form">
-        <fieldset>
-          <legend>1. 选择股票池（最多{data.draft_template.maximum_universe_count}个）</legend>
-          <div className="factory-check-list">
-            {eligibleUniverses.map((universe) => (
-              <label key={universe.universe_id}>
-                <input
-                  type="checkbox"
-                  checked={selectedUniverses.includes(universe.universe_id)}
-                  onChange={() => toggleUniverse(universe.universe_id)}
-                />
-                <span>{universe.display_name}<small>{universe.identity_kind === "CUSTOM_RULE_BASED" ? "自建规则池" : "官方池"}</small></span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <div className="factory-field-row">
-          <label>
-            <span>2. 研究机制</span>
-            <select value={familyId} onChange={(event) => { setFamilyId(event.target.value); setPreviewed(false); }}>
-              {eligibleFamilies.map((family) => <option key={family.family_id} value={family.family_id}>{family.display_name}</option>)}
-            </select>
-          </label>
-          <label>
-            <span>3. 候选上限</span>
-            <select value={candidateCount} onChange={(event) => { setCandidateCount(Number(event.target.value)); setPreviewed(false); }}>
-              {[8, 12, 24].filter((value) => value <= data.draft_template.maximum_candidate_count).map((value) => <option key={value} value={value}>{value}个</option>)}
-            </select>
-          </label>
-        </div>
-        <Button type="primary" disabled={!selectedUniverses.length || !familyId} onClick={() => setPreviewed(true)}>
-          生成本地草案预览
-        </Button>
-        <p className="factory-method-note">不会发送网络请求，不会生成任务，不会调用DeepSeek。</p>
-      </div>
-      <aside className={`factory-draft-preview ${previewed ? "ready" : ""}`} aria-live="polite">
-        <span className="section-kicker">DRAFT · NOT SUBMITTED</span>
-        <h3>{previewed ? `${familyName}有界研究草案` : "等待生成草案预览"}</h3>
-        {previewed ? (
-          <>
-            <dl>
-              <div><dt>股票池</dt><dd>{selectedNames.join("、")}</dd></div>
-              <div><dt>候选上限</dt><dd>{candidateCount}个</dd></div>
-              <div><dt>外部调用</dt><dd>未授权</dd></div>
-              <div><dt>封存效果</dt><dd>未授权</dd></div>
-              <div><dt>生产权限</dt><dd>无</dd></div>
-            </dl>
-            <p>下一步需另立结果前协议，冻结池矩阵、尝试N、数据/窗口、费用和停止条件，并由用户逐项批准。</p>
-          </>
-        ) : <p>{data.draft_template.disclaimer}</p>}
-      </aside>
     </div>
   );
 }

@@ -994,6 +994,7 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
     assert set(compose["services"]) == {
         "web-query",
         "research-projector",
+        "research-control",
         "security-name-projector",
         "strategy-factory-projector",
         "web-ui",
@@ -1002,6 +1003,7 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
     projector = compose["services"]["research-projector"]
     strategy_factory_projector = compose["services"]["strategy-factory-projector"]
     name_projector = compose["services"]["security-name-projector"]
+    control = compose["services"]["research-control"]
     ui = compose["services"]["web-ui"]
     for service in (query, ui):
         assert service["profiles"] == ["web"]
@@ -1068,11 +1070,39 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
         value for value in name_projector["volumes"]
         if value["target"] == "/workspace/data/web/security_names"
     )["read_only"] is False
+    assert control["profiles"] == ["web", "control"]
+    assert control["read_only"] is True
+    assert control["user"] == "10001:10001"
+    assert control["cap_drop"] == ["ALL"]
+    assert "no-new-privileges:true" in control["security_opt"]
+    assert "ports" not in control
+    assert "env_file" not in control
+    assert "environment" not in control
+    assert "docker.sock" not in json.dumps(control)
+    assert control["networks"] == ["control-internal"]
+    assert [
+        volume["target"] for volume in control["volumes"] if volume["read_only"] is False
+    ] == ["/workspace/data/control/m5"]
+    assert all(
+        volume["read_only"] is True
+        for volume in control["volumes"]
+        if volume["target"] != "/workspace/data/control/m5"
+    )
+    assert all(volume["bind"]["create_host_path"] is False for volume in control["volumes"])
+    assert control["secrets"][0]["source"] == "m5_control_proxy_token"
+    control_rw_source = next(
+        volume["source"] for volume in control["volumes"] if volume["read_only"] is False
+    )
+    secret_source = compose["secrets"]["m5_control_proxy_token"]["file"]
+    assert control_rw_source == "./data/control/m5/runtime"
+    assert secret_source == "./data/control/m5/proxy_token"
+    assert not Path(secret_source).is_relative_to(Path(control_rw_source))
     assert ui["ports"] == ["127.0.0.1:8080:8080"]
     assert "volumes" not in ui
     assert set(query["networks"]) == {"web-internal"}
-    assert set(ui["networks"]) == {"web-internal", "web-loopback"}
+    assert set(ui["networks"]) == {"control-internal", "web-internal", "web-loopback"}
     assert compose["networks"]["web-internal"]["internal"] is True
+    assert compose["networks"]["control-internal"]["internal"] is True
     assert (
         compose["networks"]["web-loopback"]["driver_opts"][
             "com.docker.network.bridge.host_binding_ipv4"
