@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-05 · M5-2B release v2已修复并停在重新授权前
+
+- registry挂载恢复提交`a98cd1d4f83dba022b199ae267d0bdc802f5bc2b`已先推送；release合同现强制
+  `/inputs:ro`、`/outputs:rw`、`/audit:rw`、`/registry:rw`恰好四个内容寻址挂载。
+- 新镜像`sha256:d04f96f5...39e2f3`的断网纯合成8×3/24单元与独立审计PASS；新release scope为
+  `a847c4da8541f5fd421747079145e723675cfbe6f5ed2eb15d2b7fa4779a6c96`，沿用同一metadata-only
+  输入清单`d9de2ece...f8d4d`与提案到期`2026-08-12T18:48:16+08:00`。
+- M5专项71 PASS、全仓726 PASS、架构6 PASS；生产scheduler身份不变且healthy。正式registry、
+  approval envelope、input bundle和真实运行产物仍不存在，真实财务读取/候选/门执行/效果均为0。
+- 旧批准不能迁移到新scope。当前必须等待用户针对完整新SHA重新明确批准；批准也只覆盖一次断网
+  DATA_GATE。见`docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RELEASE_V2_ACCEPTANCE_20260805.md`。
+
 ## 2026-08-05 · M5-2B旧release在真实读取前因registry挂载缺失而作废
 
 - 用户对旧scope`f53085d3...cefe70`表示继续执行后，执行前复核发现其只绑定inputs/outputs/audit，
