@@ -1,0 +1,209 @@
+schema_version: m5-dynamic-fundamental-data-gate-build-v1
+build_protocol_id: m5-dynamic-fundamental-data-gate-build-v1
+protocol_scope_sha256: ab8c33968c4ced325ec79524b774163f2991edd0c4d5d7eb7c139b27e9b17557
+
+frozen_inputs:
+  adr:
+    path: docs/ADR_0002_M5_2_GATE_REGISTRY.md
+    sha256: 5887eb4506b13f0c2e09b4a9cac9d9f3300a7976db9db1dd0e209ac130a24762
+  research_protocol:
+    path: docs/M5_DYNAMIC_FUNDAMENTAL_CROSS_POOL_PROTOCOL_20260805.md
+    sha256: b9c6215900caa6455f62ecbeee6d8dd1d51bc2e1b48aa625fe9fa694ce7b0fcb
+  research_config:
+    path: config/m5_dynamic_fundamental_cross_pool_v1.yaml
+    sha256: ce5cb6390df37baa553e470487c3cd319937a6d017bb43af3d874b5c41696b79
+  protocol_scope:
+    path: config/m5_dynamic_fundamental_cross_pool_protocol_scope_v1.json
+    sha256: 9477b31aaa767a65f178682947ef8b62e4f2e0f6bf662cdd52359ee1c5a95ca8
+  proposal_export:
+    path: config/m5_dynamic_fundamental_cross_pool_proposal_export_v1.json
+    sha256: 7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc
+
+construction:
+  target_state: RELEASE_READY_NOT_APPROVED
+  new_package_root: src/shaiwei/research_gates
+  maximum_new_module_lines: 400
+  existing_f1_f2_modules_may_be_imported_but_not_modified: true
+  existing_production_or_web_modules_may_be_modified: false
+  real_financial_rows_may_be_read: false
+  real_candidate_values_may_be_computed: false
+  formal_registry_may_be_initialized: false
+  formal_gate_events_may_be_written: false
+  synthetic_fixture_only: true
+
+modules:
+  data_gate:
+    - contract
+    - statements
+    - features
+    - membership
+    - matrix
+    - runner
+    - auditor
+  gate_registry:
+    - schema
+    - storage
+    - state
+    - service
+    - integrity
+    - cli
+
+formation_membership_clock:
+  formation_date: last_sse_open_day_of_month_close
+  effective_date: first_sse_open_day_strictly_after_formation_date
+  membership_date: exact_effective_date
+  star50_date_column: trade_date
+  custom_pool_date_column: trade_date
+  custom_pool_filter_column: universe_id
+  custom_pool_source_formation_date_must_equal_formation_date: true
+  current_member_backfill_forbidden: true
+  missing_effective_date_membership_is_global_failure: true
+
+candidate_pairing:
+  statement_versions_selected_independently: true
+  join_only_candidate_required_components: true
+  all_three_statements_common_intersection_forbidden: true
+  current_and_predecessor_periods_must_be_exactly_one_calendar_year_apart: true
+  cross_statement_end_dates_must_match_for_used_components: true
+  unused_statement_required: false
+  external_financing_requires_predecessor_cashflow: false
+  external_financing_requires_current_cashflow_and_two_asset_periods: true
+  latest_jointly_available_candidate_pair: true
+  fallback_to_older_consecutive_pair_before_staleness_check: true
+  fallback_to_older_same_identity_value_for_nonmissing_forbidden: true
+  future_revision_backfill_forbidden: true
+
+panel_contract:
+  key:
+    - formation_date
+    - effective_date
+    - universe_id
+    - candidate_id
+    - ts_code
+  columns:
+    - formation_date
+    - effective_date
+    - universe_id
+    - candidate_id
+    - ts_code
+    - current_end_date
+    - predecessor_end_date
+    - candidate_available_date
+    - staleness_days
+    - value
+    - invalid_reason
+  forbidden_column_patterns:
+    - label
+    - return
+    - rank_ic
+    - excess
+    - nav
+    - holding
+    - model
+    - prediction
+
+matrix_contract:
+  candidate_count: 8
+  universe_count: 3
+  unique_cell_count: 24
+  valid_formation_month_requires_cross_section_minimum: true
+  denominator: all_formation_members_in_quality_period
+  candidate_pass: all_three_universes_pass
+  no_single_pool_shrink: true
+  no_replacement: true
+  correlations_are_diagnostic_only: true
+
+outputs:
+  staging_root: /outputs
+  runner_files:
+    - feature_panel.parquet
+    - data_gate_report.json
+    - run_manifest.json
+  auditor_files:
+    - audit_report.json
+  write_once: true
+  byte_determinism_required: true
+  absolute_host_paths_forbidden: true
+  effect_fields_forbidden: true
+
+registry:
+  formal_relative_path: data/control/m5_2/runtime/gate_registry.sqlite3
+  construction_test_path_policy: temporary_directory_only
+  tables:
+    - gate_cases
+    - gate_events
+    - idempotency_receipts
+    - outbox
+  journal_mode: WAL
+  synchronous: FULL
+  foreign_keys: true
+  begin_mode: IMMEDIATE
+  schema_fingerprint_required: true
+  append_only_events_receipts_outbox_payloads: true
+  queue_lease_or_heartbeat_forbidden: true
+
+container:
+  dockerfile: Dockerfile.m5-data-gate
+  compose_file: compose.m5-gates.yaml
+  requirements_lock: requirements.m5-data-gate.lock
+  base_image: python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93
+  network_mode: none
+  run_as_non_root: true
+  read_only_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  pids_limit: 128
+  project_root_mount_forbidden: true
+  docker_socket_mount_forbidden: true
+  env_file_mount_forbidden: true
+  labels_effects_models_mount_forbidden: true
+  fixture_data_baked_into_image_only: true
+  services:
+    runner:
+      cpus: 1.0
+      memory: 2g
+      input_mount: /inputs:ro
+      output_mount: /outputs:rw
+    auditor:
+      cpus: 0.5
+      memory: 512m
+      runner_output_mount: /outputs:ro
+      audit_mount: /audit:rw
+    registry:
+      cpus: 0.5
+      memory: 512m
+      registry_mount: /registry:rw
+
+release_scope:
+  implementation_commit_must_be_pushed_first: true
+  image_identity_required: true
+  input_manifest_metadata_only_before_approval: true
+  input_manifest_may_include_values: false
+  unrelated_ledger_append_does_not_change_scope: true
+  new_relevant_allowed_api_revision_invalidates_scope: true
+  code_bundle_sha256_required: true
+  auditor_identity_required: true
+  mounts_resources_commands_bound: true
+  user_approval_role: M5_LOCAL_PROTOCOL_APPROVER
+  approval_must_bind_exact_release_scope_sha256: true
+  any_scope_drift_invalidates_approval: true
+
+authority:
+  data_gate_release_ready: false
+  data_gate_approval_recorded: false
+  data_gate_execution_authorized: false
+  engineering_gate_execution_authorized: false
+  real_data_read_authorized: false
+  label_read_authorized: false
+  effect_read_authorized: false
+  provider_call_count: 0
+  provider_budget_usd: "0.00"
+  deepseek_authorized: false
+  external_call_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  paper_authorized: false
+  forward_authorized: false
+  production_authorization: none
+  scheduler_mutation_authorized: false
+  web_change_authorized: false

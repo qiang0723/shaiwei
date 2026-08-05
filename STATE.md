@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-05 · M5-2B数据门施工合同冻结
+
+- 新施工合同把M5-2B拆为可审计的construction-only节点：本阶段只实现独立registry、候选级PIT
+  配对、八式纯函数、24单元门阵、独立auditor和短命离线Docker，全部真实语义测试只用合成fixture。
+- 两项旧实现不得直接继承：F2三表共同期不适用于候选所需组件独立配对；P2/M3逐日成员必须取月末
+  形成后的下一开市日集合，其中M3行内`formation_date`还须等于对应月末。
+- 有效形成月固定为有效候选数达到池最低横截面；aggregate/worst覆盖分母固定为2021-01至2025-12
+  全部60个月的全部成员行，54个月与十个半年段门都复用该定义。
+- 不扩写既有F1/F2、M5-1或大research compose；新增模块目标不超过400行，使用独立专属镜像与
+  `compose.m5-gates.yaml`，不挂整仓data、项目根、`.env`、Docker socket、标签/效果/模型或生产路径。
+- 当前仍未读取真实财务行、未计算真实候选、未初始化正式M5-2 registry、未登记门批准、未运行
+  data/engineering gate，效果/provider/费用/生产均为0/none。施工合同见
+  `docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_BUILD_PROTOCOL_20260805.md`；实现必须在后续独立提交推送后
+  才能形成精确data release scope，用户批准该scope前不得执行真实数据门。
+
 ## 2026-08-05 · M5-2A科创三池动态基本面协议结果前冻结
 
 - 首份`REVIEW_REQUIRED`提案已通过内容寻址export绑定proposal/request/canonical/event head与七日到期
