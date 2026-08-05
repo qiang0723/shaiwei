@@ -270,7 +270,27 @@ Web持续展示“哪些池可研究、做过什么、为什么失败、当前�
 `docs/M5_MULTI_POOL_RESEARCH_GOVERNANCE_20260805.md`、
 `docs/M5_MULTI_POOL_BACKEND_ARCHITECTURE_20260805.md`和
 `docs/M5_MULTI_POOL_WEB_PRODUCT_20260805.md`。M5-0只读工程已GO，验收见
-`docs/M5_STRATEGY_FACTORY_ACCEPTANCE_20260805.md`；后续写控制面和真实研究仍须另立M5-1。
+`docs/M5_STRATEGY_FACTORY_ACCEPTANCE_20260805.md`。
+
+### M5-1完成边界
+
+- 已建立独立`research-control`与SQLite v1三表操作态，只持久化`NON_AUTHORITATIVE_PROPOSAL`、状态事件
+  和幂等回执；只开放create、submit-review、cancel，状态上限为`REVIEW_REQUIRED`。
+- 所有提案严格绑定M5 v2快照、M1股票池注册表、五个可选池、五个研究家族及补正后的primary/
+  sensitivity multiplicity；确定性意向固定零调用/零费用，LLM意向只登记上限，不产生调用授权。
+- 全库双向重建proposal、event与receipt；孤儿、缺失、重复、错配或伪响应均使health/read/write失败关闭，
+  写入错误在同一事务提交前回滚。Web写入另受loopback Origin、短会话、CSRF、限流、稳定幂等键和内部
+  Docker secret约束。
+- 控制服务无宿主端口、只在内部网络、只读挂载冻结证据，唯一窄写路径为本机控制库；Web仍只绑定
+  `127.0.0.1:8080`，生产scheduler、行情、标签、研究结果和研究账本均未接入。
+- M5-1的GO只代表“可建立并提交人工复核的提案控制面”。freeze、approve、release、enqueue、run、
+  Worker、DeepSeek、效果读取、前瞻和生产全部物理不存在；M5-2必须另立ADR、结果前协议并重新获得用户
+  授权，不能从`REVIEW_REQUIRED`自动推导。
+
+协议、补正与架构决策见`docs/M5_RESEARCH_PROPOSAL_CONTROL_PROTOCOL_20260805.md`、
+`docs/M5_RESEARCH_PROPOSAL_CONTROL_CORRECTION_PROTOCOL_20260805.md`和
+`docs/ADR_0001_M5_PROPOSAL_CONTROL_PLANE.md`；验收见
+`docs/M5_RESEARCH_PROPOSAL_CONTROL_ACCEPTANCE_20260805.md`。
 
 ## R3 · 专业只读 Web
 
@@ -416,7 +436,8 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M3-3 | 三自建池机械Top2结果盲独立审查 | 第1/8份响应服务端结束状态不符合合同；schema/语义未评价、candidate_decisions为空；`$0.00320073`；STOP_M3_3_REVIEW_CONTRACT，策略NOT_EVALUATED | 本批结束；不补发、不续跑、不改提示或替换候选，M3-4验证/G1不获授权 |
 | M4-0 | 科创50基准残差因子数据与预执行门 | 28,838个合法成员日三候选覆盖100%、每日最少49只；幂等/独立审计PASS；GO仅限数据预执行，策略NOT_EVALUATED | 如继续另立M4-1结果前效果协议；固定三式/方向/40-60窗口，冻结标签、中性化、Alpha158增量、成本、压力和G1后才可看效果 |
 | M4-1 | 科创50固定残差因子历史效果门 | 终版独立审计PASS；方向2/3、适配效果门0/3，REJECT；正式G1未运行、正式库0、生产none；14件证据幂等零改写 | 本批关闭，不翻方向、不调公式/门槛、不追加变体；未来仅以独立经济机制新批继续科创50研究 |
-| M5-0 | 多股票池策略工厂合同与只读工程门 | GO；8池/8工作包内容寻址投影、GET/HEAD查询、本机Web、五视口/axe/真实部署及scheduler隔离均PASS；真实研究、写API、Worker、DeepSeek和生产仍未授权 | 如继续另立M5-1独立控制面协议；浏览器草案在获批前始终不提交、不冻结、不运行 |
+| M5-0 | 多股票池策略工厂合同与只读工程门 | GO；8池/8工作包内容寻址投影、GET/HEAD查询、本机Web、五视口/axe/真实部署及scheduler隔离均PASS；真实研究、Worker、DeepSeek和生产仍未授权 | 已由M5-1继承只读真身；历史浏览器临时草案口径不改写 |
+| M5-1 | 多股票池非权威研究提案控制面 | GO；create/submit-review/cancel、SQLite证据链、全库双向完整性、本机Web与隔离Docker均PASS；真实库0提案，研究尝试增量0 | 只允许人工建立/复核/取消提案；M5-2冻结、批准和执行必须另立ADR/协议并重新授权 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |
 | G8-1R | 监管主源不可覆盖采集 | 1 条原 Docker 失败永久保留；恢复 54 条主证据、二遍幂等与断网复核 PASS；G8 仍 NOT_READY | 只允许另立 G8-2 管理人 HTTPS 交叉核验与费率有效期谱系协议 |

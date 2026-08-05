@@ -2,6 +2,24 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-05 · M5-1非权威研究提案控制面GO
+
+- 独立`research-control`、SQLite v1三表和本机Web提案工作台已交付；只允许create、submit-review、
+  cancel，状态上限`REVIEW_REQUIRED`。freeze/approve/release/enqueue/run/Worker/DeepSeek/回测/前瞻/
+  生产端点均不存在，M5-1的GO不等于研究协议冻结、策略有效或生产授权。
+- 服务运行时只接受补正后的v2真身；五个可选池、三个阻断池、五个研究家族及primary/sensitivity
+  multiplicity由服务端派生。确定性意向0调用/0费用；LLM调用数和预算只登记上限，不产生调用权。
+- 第三轮独立审计曾因孤儿receipt和首次写入未在提交前重建给出NO-GO；现已增加全库双向
+  proposal/event/receipt重建，health/read/write前后统一验证，错误响应/status/time整事务回滚；第四轮
+  审计最终GO。
+- 全仓655 PASS、架构6 PASS、前端32 PASS、五视口69 PASS/11 skip、真实部署14 PASS；Ruff、
+  compileall、pip check、Compose、diff与脱敏均PASS。实现提交`d8db2046ff81c06cfefa81aa179918b5cac2e8b8`。
+- 最终control/Web镜像分别为`95c00fb5...22e2`/`7e2dc45b...f7cb`，三Web容器healthy；真实控制库
+  proposals/events/receipts=`0/0/0`。scheduler容器`183b8c6c5edd`与镜像`722f63de...13b76`施工前后
+  完全未变且healthy。验收见`docs/M5_RESEARCH_PROPOSAL_CONTROL_ACCEPTANCE_20260805.md`。
+- 下一合法动作不是自动开跑，而是用户在Web建立具体提案并提交人工复核；任何M5-2冻结、批准或执行
+  必须另立ADR、结果前协议并重新授权。
+
 ## 2026-08-05 · M5-1冻结口径补正先行
 
 - 独立复核发现首份M5-1配置把家族、联合研究域和全局敏感性尝试N压成单值：静态基本面`12`无法
