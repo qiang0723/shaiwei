@@ -1,0 +1,92 @@
+x-m5-common: &m5-common
+  image: shaiwei:m5-data-gate-local
+  profiles: ["m5-gates-release"]
+  network_mode: none
+  read_only: true
+  user: "65532:65532"
+  cap_drop: ["ALL"]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 128
+  init: true
+  tmpfs:
+    - /tmp:size=256m,mode=1777
+
+services:
+  m5-fixture:
+    <<: *m5-common
+    profiles: ["m5-gates-fixture"]
+    build:
+      context: .
+      dockerfile: Dockerfile.m5-data-gate
+    command: ["python", "-m", "shaiwei.research_gates.m5_dynamic.fixture_gate"]
+    cpus: 1.0
+    mem_limit: 2g
+
+  m5-runner:
+    <<: *m5-common
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.m5_dynamic.runner
+      - --protocol
+      - /inputs/config/m5_dynamic_fundamental_cross_pool_v1.yaml
+      - --build-contract
+      - /inputs/config/m5_dynamic_fundamental_data_gate_build_v1.yaml
+      - --input-manifest
+      - /inputs/config/m5_dynamic_fundamental_data_input_v1.json
+      - --release-scope
+      - /inputs/config/m5_dynamic_fundamental_data_gate_release_scope_v1.json
+      - --approval-envelope
+      - /inputs/config/m5_dynamic_fundamental_data_gate_approval_v1.json
+      - --input-root
+      - /inputs
+      - --output-root
+      - /outputs
+    cpus: 1.0
+    mem_limit: 2g
+    volumes:
+      - ${M5_INPUT_BUNDLE:-./data/control/m5_2/unreleased/inputs}:/inputs:ro
+      - ${M5_OUTPUT_STAGING:-./data/control/m5_2/unreleased/outputs}:/outputs:rw
+
+  m5-auditor:
+    <<: *m5-common
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.m5_dynamic.auditor
+      - --protocol
+      - /inputs/config/m5_dynamic_fundamental_cross_pool_v1.yaml
+      - --build-contract
+      - /inputs/config/m5_dynamic_fundamental_data_gate_build_v1.yaml
+      - --input-manifest
+      - /inputs/config/m5_dynamic_fundamental_data_input_v1.json
+      - --release-scope
+      - /inputs/config/m5_dynamic_fundamental_data_gate_release_scope_v1.json
+      - --approval-envelope
+      - /inputs/config/m5_dynamic_fundamental_data_gate_approval_v1.json
+      - --input-root
+      - /inputs
+      - --run-root
+      - /outputs/${M5_RUN_ID:-NOT_APPROVED}
+      - --audit-root
+      - /audit
+    cpus: 0.5
+    mem_limit: 512m
+    volumes:
+      - ${M5_INPUT_BUNDLE:-./data/control/m5_2/unreleased/inputs}:/inputs:ro
+      - ${M5_OUTPUT_STAGING:-./data/control/m5_2/unreleased/outputs}:/outputs:ro
+      - ${M5_AUDIT_STAGING:-./data/control/m5_2/unreleased/audits}:/audit:rw
+
+  m5-registry:
+    <<: *m5-common
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.gate_registry
+      - --database
+      - /registry/gate_registry.sqlite3
+      - verify
+    cpus: 0.5
+    mem_limit: 512m
+    volumes:
+      - ${M5_REGISTRY_ROOT:-./data/control/m5_2/unreleased/registry}:/registry:rw

@@ -321,6 +321,9 @@ Web持续展示“哪些池可研究、做过什么、为什么失败、当前�
   用户批准精确scope前不读真实财务行、不计算真实候选、不运行data gate。
 - 完整施工合同见`docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_BUILD_PROTOCOL_20260805.md`；数据门GO仍只表示
   数据可用，不表示因子有效，synthetic工程门和未来效果门继续分别授权。
+- 独立registry、候选级PIT/八式/24单元门阵、write-once runner、独立auditor、元数据清单合同和
+  专属断网Docker现已完成纯合成工程验证；正式release仍须绑定已推送实现提交、最终镜像和精确输入
+  manifest。当前没有真实财务读取、正式门事件或执行授权。
 
 ## R3 · 专业只读 Web
 
@@ -470,7 +473,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M5-1 | 多股票池非权威研究提案控制面 | GO；create/submit-review/cancel、SQLite证据链、全库双向完整性、本机Web与隔离Docker均PASS；交付验收时空库，研究尝试增量0 | 只允许人工建立/复核/取消提案；M5-2冻结、批准和执行必须另立ADR/协议并重新授权 |
 | M5-1A | 科创50/中盘/小盘动态基本面提案 | `REVIEW_REQUIRED`；8个确定性候选、最多24个跨池评价单元、零provider调用/费用；实际研究尝试增量0，2026-08-12 18:48:16到期 | 停在人工复核；若继续须另立M5-2冻结/批准协议并获得用户明确授权，不自动排队或运行 |
 | M5-2A | 科创三池动态基本面数据/预执行协议 | protocol-only冻结；8式/3池/24单元、PIT/覆盖/陈旧度/未来窗与N=14/20已锁定；效果测试0、门批准0 | 先施工并推送M5-2B数据release；用户批准精确scope前不得读取真实数据，工程门须DATA_GO后另批 |
-| M5-2B | 动态基本面数据门施工与release | construction-only合同已冻结；独立registry/runner/auditor/离线Docker待施工，真实财务行/候选/门运行仍为0 | 先完成纯fixture实现与镜像，再形成精确data release scope；批准前不得执行真实数据门 |
+| M5-2B | 动态基本面数据门施工与release | 纯fixture实现与专属断网镜像工程PASS；四表registry、8式×3池门阵、独立auditor和metadata-only清单合同已完成，真实财务行/候选/门运行仍为0 | 先推送实现并重建最终镜像，再形成精确data release scope；用户批准前不得执行真实数据门 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |
 | G8-1R | 监管主源不可覆盖采集 | 1 条原 Docker 失败永久保留；恢复 54 条主证据、二遍幂等与断网复核 PASS；G8 仍 NOT_READY | 只允许另立 G8-2 管理人 HTTPS 交叉核验与费率有效期谱系协议 |

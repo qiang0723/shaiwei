@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-05 · M5-2B数据门实现通过纯合成工程门，待正式release
+
+- 独立`shaiwei.research_gates`已实现：四表SQLite gate registry、候选级财报PIT配对、八式纯函数、
+  月末至下一开市日成员映射、8×3门阵、write-once runner、独立重算auditor、元数据输入清单和精确
+  release/approval合同；新增生产模块最大348行，没有扩写F1/F2/M5-1或生产/Web模块。
+- 完全合成数据专项47项、全仓721项、架构6项及Ruff/compileall/pip check/Compose/diff门均PASS。
+  首次最小镜像运行发现Pandas Spearman暗依赖未锁定SciPy并失败关闭；现改为确定性平均秩+Pearson，
+  不扩大冻结依赖，回归后短命断网容器全链PASS：8候选、3池、24单元、独立审计PASS、临时registry
+  恰好4表。
+- 本节点仍是construction-only：正式registry不存在，真实财务行/候选值/24单元结果均未读取或计算，
+  data gate批准/执行、效果/provider/费用/训练/回测/生产均为0/none。下一步须先提交推送本实现，再以
+  该提交重建最终镜像并生成metadata-only input manifest与精确data release scope；用户批准scope前
+  不得执行真实数据门。
+
 ## 2026-08-05 · M5-2B数据门施工合同冻结
 
 - 新施工合同把M5-2B拆为可审计的construction-only节点：本阶段只实现独立registry、候选级PIT

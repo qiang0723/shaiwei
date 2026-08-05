@@ -16,7 +16,9 @@ logs
 mlruns
 signals
 vendor
-docs
+docs/*
+!docs/ADR_0002_M5_2_GATE_REGISTRY.md
+!docs/M5_DYNAMIC_FUNDAMENTAL_CROSS_POOL_PROTOCOL_20260805.md
 web-ui/node_modules
 web-ui/dist
 web-ui/.playwright-browsers

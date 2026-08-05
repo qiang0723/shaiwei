@@ -1,0 +1,29 @@
+FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/opt/shaiwei/src
+
+WORKDIR /opt/shaiwei
+
+COPY requirements.m5-data-gate.lock ./
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
+    python -m pip install --no-deps -r requirements.m5-data-gate.lock
+
+COPY src/shaiwei/__init__.py ./src/shaiwei/__init__.py
+COPY src/shaiwei/research_gates ./src/shaiwei/research_gates
+COPY config/m5_dynamic_fundamental_cross_pool_v1.yaml ./config/
+COPY config/m5_dynamic_fundamental_cross_pool_protocol_scope_v1.json ./config/
+COPY config/m5_dynamic_fundamental_cross_pool_proposal_export_v1.json ./config/
+COPY config/m5_dynamic_fundamental_data_gate_build_v1.yaml ./config/
+COPY docs/ADR_0002_M5_2_GATE_REGISTRY.md ./docs/
+COPY docs/M5_DYNAMIC_FUNDAMENTAL_CROSS_POOL_PROTOCOL_20260805.md ./docs/
+
+RUN groupadd --gid 65532 m5gate \
+    && useradd --uid 65532 --gid 65532 --no-create-home --shell /usr/sbin/nologin m5gate \
+    && python -m compileall -q src
+
+USER 65532:65532
+
+CMD ["python", "-m", "shaiwei.research_gates.m5_dynamic.fixture_gate"]
