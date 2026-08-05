@@ -1,0 +1,136 @@
+schema_version: m4-star50-residual-effect-evidence-closure-protocol-v1
+closure_id: m4-star50-residual-effect-evidence-closure-v1
+frozen_at: "2026-08-05T00:40:00+08:00"
+status: FROZEN_BEFORE_EVIDENCE_CLOSURE_IMPLEMENTATION
+production_authorization: none
+
+source_authority:
+  effect_protocol_path: config/m4_star50_residual_effect_v1.yaml
+  effect_protocol_sha256: a006f62d263249cbbfb33e18de8c18fc2757a80ed145ec273c21c65b46f5a8aa
+  recovery_protocol_path: config/m4_star50_residual_effect_recovery_v1.yaml
+  recovery_protocol_sha256: 631608276ab3ddf3ffe0ff15d27184b750c113e7295a02c80b2e66d5fc793e3f
+  recovery_execution_release_path: config/m4_star50_residual_effect_recovery_execution_v1.yaml
+  recovery_execution_release_sha256: 4891c04516913d77e8a64071a050209f533971c467b5ea3cfd8dad4e2c39b430
+  recovery_implementation_git_head: f38ad4ef1cbca9bf06d609e46f7ded5bd813d84e
+  recovery_code_bundle_sha256: 5109ec5b14c899b8696d02089e0e0a80f190241572f05f485cc6ea4692833c83
+  recovery_image_content_id: sha256:28d6c295ad2c5c287cd83c1ad23b99a5b7c714b8adb88bfd6d12a61b2b16dfc5
+  input_snapshot_sha256: dd2d058eda1aa914fcbe9f1eda86d621ec6e663f37ea7bd8d2e1e9222f5361c0
+
+sealed_result_contract:
+  result_root: data/research/m4/m4-star50-benchmark-residual-effect-v1
+  result_file_count_before_closure: 11
+  effect_report:
+    path: data/research/m4/m4-star50-benchmark-residual-effect-v1/effect_report.json
+    sha256: 627f304a076c5854ab02eb78717a8e6035c3c368dab058ad7212fa7022d0656b
+  required_report_identity:
+    schema_version: m4-star50-residual-effect-report-v1
+    protocol_sha256: a006f62d263249cbbfb33e18de8c18fc2757a80ed145ec273c21c65b46f5a8aa
+    execution_release_sha256: 4891c04516913d77e8a64071a050209f533971c467b5ea3cfd8dad4e2c39b430
+    implementation_git_head: f38ad4ef1cbca9bf06d609e46f7ded5bd813d84e
+    code_bundle_sha256: 5109ec5b14c899b8696d02089e0e0a80f190241572f05f485cc6ea4692833c83
+    input_snapshot_sha256: dd2d058eda1aa914fcbe9f1eda86d621ec6e663f37ea7bd8d2e1e9222f5361c0
+    determinism_pass: true
+    formal_g1_v1_status: NOT_RUN_UNIVERSE_WINDOW_DOMAIN_MISMATCH
+    model_training_run: false
+    network_requests: 0
+    api_key_read: false
+    production_authorization: none
+  manifest_path: data/research/m4/m4-star50-benchmark-residual-effect-v1/manifest.json
+  manifest_must_be_absent_before_closure: true
+  artifacts:
+    - pass: first_pass
+      name: core_residuals
+      path: data/research/m4/m4-star50-benchmark-residual-effect-v1/first_pass/core_residuals.parquet
+      sha256: 6d34749bf7bf8c163d84466d86a5776196e5a2ebd897f344b3f899e9a5710db4
+    - pass: first_pass
+      name: daily_executions
+      path: data/research/m4/m4-star50-benchmark-residual-effect-v1/first_pass/daily_executions.parquet
+      sha256: e3c80e377dbaea7ba7deededa356d7db092f0d625e572fd6d80c04bbce79dac6
+    - pass: first_pass
+      name: daily_rank_ic
+      path: data/research/m4/m4-star50-benchmark-residual-effect-v1/first_pass/daily_rank_ic.parquet
+      sha256: 6fbf008bed8961454c32223e7e17354ca416f44b8110d6f03f03b8f6ad242681
+    - pass: first_pass
+      name: extended_features
+      path: data/research/m4/m4-star50-benchmark-residual-effect-v1/first_pass/extended_features.parquet
+      sha256: a1b0f59cdfa5dcac3b255279bd050fa3ff767f73469cb4ec7524ecd96bae3452
+    - pass: first_pass
+      name: incremental_residuals
+      path: data/research/m4/m4-star50-benchmark-residual-effect-v1/first_pass/incremental_residuals.parquet
+      sha256: 243a5500c949d21bc273c083ee218a80dfbbad35d6fd997c9beb32e3d09413f8
+    - pass: determinism_replay
+      name: core_residuals
+      path: data/research/m4/m4-star50-benchmark-residual-effect-v1/determinism_replay/core_residuals.parquet
+      sha256: 6d34749bf7bf8c163d84466d86a5776196e5a2ebd897f344b3f899e9a5710db4
+    - pass: determinism_replay
+      name: daily_executions
+      path: data/research/m4/m4-star50-benchmark-residual-effect-v1/determinism_replay/daily_executions.parquet
+      sha256: e3c80e377dbaea7ba7deededa356d7db092f0d625e572fd6d80c04bbce79dac6
+    - pass: determinism_replay
+      name: daily_rank_ic
+      path: data/research/m4/m4-star50-benchmark-residual-effect-v1/determinism_replay/daily_rank_ic.parquet
+      sha256: 6fbf008bed8961454c32223e7e17354ca416f44b8110d6f03f03b8f6ad242681
+    - pass: determinism_replay
+      name: extended_features
+      path: data/research/m4/m4-star50-benchmark-residual-effect-v1/determinism_replay/extended_features.parquet
+      sha256: a1b0f59cdfa5dcac3b255279bd050fa3ff767f73469cb4ec7524ecd96bae3452
+    - pass: determinism_replay
+      name: incremental_residuals
+      path: data/research/m4/m4-star50-benchmark-residual-effect-v1/determinism_replay/incremental_residuals.parquet
+      sha256: 243a5500c949d21bc273c083ee218a80dfbbad35d6fd997c9beb32e3d09413f8
+
+ledger_contract:
+  run_ledger:
+    path: ledger/m4_star50_residual_effect_runs.csv
+    initial_data_rows: 0
+    initial_sha256: c2989a612949cbdf131b8ab6a80b53d6954dea448cee990f5f3448d6b832f293
+    final_data_rows: 1
+  decision_ledger:
+    path: ledger/m4_star50_residual_effect_decisions.csv
+    initial_data_rows: 0
+    initial_sha256: dce031439ad677b76ba3bf5e4534988cc7433509c3539b8c69da950a9401dd52
+    final_data_rows: 3
+  lock_strategy: flock_target_csv_itself
+  writable_parent_directory: false
+  additional_writable_files: 0
+
+authorized_implementation:
+  - change M4 append_once to flock the pre-created target CSV itself without sibling lock files
+  - add an evidence-closure coordinator that verifies every sealed hash before report reuse
+  - add independent manifest and ledger binding checks to the M4 audit
+  - add a dedicated isolated Docker service and Make targets for closure and audit
+  - add fixture and integration tests proving no research recomputation and no sibling lock files
+
+execution_contract:
+  execution_authorized_before_new_release: false
+  report_reuse_branch_only: true
+  feature_label_rankic_portfolio_or_return_recomputation: false
+  effect_report_rewrite: false
+  artifact_rewrite: false
+  network_mode: none
+  secret_access: false
+  model_training: false
+  scheduler_web_paper_or_production_change: false
+  audit_required_before_effect_disclosure: true
+  second_identical_closure_call_must_add_zero_rows_or_artifacts: true
+
+required_final_state:
+  sealed_report_sha256_unchanged: true
+  ten_artifact_sha256_values_unchanged: true
+  run_ledger_data_rows: 1
+  decision_ledger_data_rows: 3
+  manifest_present_and_hash_bound: true
+  independent_audit: PASS
+  idempotent_reuse: PASS
+  formal_g1_v1_status: NOT_RUN_UNIVERSE_WINDOW_DOMAIN_MISMATCH
+  formal_factor_library_insertions: 0
+  production_authorization: none
+
+forbidden:
+  - delete_or_rewrite_any_sealed_result
+  - enter_first_pass_or_determinism_replay_computation
+  - inspect_or_disclose_effect_before_independent_audit_passes
+  - change_candidates_formulas_directions_windows_labels_or_neutralization
+  - change_alpha158_blend_portfolio_execution_cost_pressure_or_gate
+  - widen_the_whole_ledger_directory_to_writable
+  - network_secret_model_training_scheduler_web_paper_or_production_access
