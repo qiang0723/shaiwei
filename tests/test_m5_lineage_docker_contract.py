@@ -9,14 +9,15 @@ ROOT = Path(__file__).parents[1]
 
 
 def test_lineage_image_contains_only_frozen_controls_and_code() -> None:
-    dockerfile = (ROOT / "Dockerfile.m5-data-gate").read_text(encoding="utf-8")
+    dockerfile = (ROOT / "Dockerfile.m5-lineage-recovery").read_text(encoding="utf-8")
     for required in (
         "m5_dynamic_fundamental_source_lineage_recovery_v3.yaml",
-        "m5_dynamic_fundamental_source_lineage_recovery_protocol_scope_v3.json",
-        "m5_dynamic_fundamental_source_lineage_build_v3.yaml",
-        "M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_REAL_RUN_ACCEPTANCE_20260806.md",
+        "m5_dynamic_fundamental_source_lineage_scope_recovery_v4.yaml",
+        "m5_dynamic_fundamental_source_lineage_recovery_protocol_scope_v4.json",
+        "m5_dynamic_fundamental_source_lineage_build_v4.yaml",
         "ADR_0004_M5_STATEMENT_VERSION_LINEAGE.md",
-        "M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_RECOVERY_PROTOCOL_20260806.md",
+        "M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_SCOPE_RECOVERY_PROTOCOL_20260806.md",
+        "M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_REAL_RUN_ACCEPTANCE_20260806.md",
     ):
         assert required in dockerfile
     for forbidden in ("COPY data", "COPY ledger", "COPY logs", "COPY .env", "COPY tests"):

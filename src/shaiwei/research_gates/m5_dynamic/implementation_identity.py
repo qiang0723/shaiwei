@@ -11,7 +11,7 @@ from .contract import M5GateError, sha256_file, sha256_json
 
 FIXED_FILES = (
     ".dockerignore",
-    "Dockerfile.m5-data-gate",
+    "Dockerfile.m5-lineage-recovery",
     "compose.m5-gates.yaml",
     "compose.m5-lineage.yaml",
     "requirements.m5-data-gate.lock",

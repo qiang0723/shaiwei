@@ -1,0 +1,21 @@
+FROM shaiwei:m5-lineage-local@sha256:fe9101f11a54d0b2111c0000ffff5a21d7d72fd86f4300aa30ae7b934119b606
+
+USER root
+WORKDIR /opt/shaiwei
+
+COPY src/shaiwei/__init__.py ./src/shaiwei/__init__.py
+COPY src/shaiwei/research_gates ./src/shaiwei/research_gates
+COPY config/m5_dynamic_fundamental_cross_pool_v1.yaml ./config/
+COPY config/m5_dynamic_fundamental_cross_pool_proposal_export_v1.json ./config/
+COPY config/m5_dynamic_fundamental_source_lineage_recovery_v3.yaml ./config/
+COPY config/m5_dynamic_fundamental_source_lineage_scope_recovery_v4.yaml ./config/
+COPY config/m5_dynamic_fundamental_source_lineage_recovery_protocol_scope_v4.json ./config/
+COPY config/m5_dynamic_fundamental_source_lineage_build_v4.yaml ./config/
+COPY docs/ADR_0004_M5_STATEMENT_VERSION_LINEAGE.md ./docs/
+COPY docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_SCOPE_RECOVERY_PROTOCOL_20260806.md ./docs/
+COPY docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_REAL_RUN_ACCEPTANCE_20260806.md ./docs/
+
+RUN python -m compileall -q src
+
+USER 65532:65532
+CMD ["python", "-m", "shaiwei.research_gates.m5_dynamic.lineage_fixture"]

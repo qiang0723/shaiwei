@@ -55,7 +55,7 @@ def main(argv: list[str] | None = None) -> int:
             origin_main_commit=implementation["origin_main_commit"],
             code_bundle_sha256=implementation["code_bundle_sha256"],
             requirements_lock_sha256=sha256_file(args.project_root / "requirements.m5-data-gate.lock"),
-            dockerfile_sha256=sha256_file(args.project_root / "Dockerfile.m5-data-gate"),
+            dockerfile_sha256=sha256_file(args.project_root / "Dockerfile.m5-lineage-recovery"),
             compose_sha256=sha256_file(args.project_root / "compose.m5-lineage.yaml"),
             auditor_code_sha256=sha256_file(
                 args.project_root / "src/shaiwei/research_gates/m5_dynamic/audit_lineage.py"

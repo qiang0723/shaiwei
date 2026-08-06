@@ -17,7 +17,10 @@ COMMANDS = {
     "auditor": ["python", "-m", "shaiwei.research_gates.m5_dynamic.lineage_auditor"],
     "registrar": ["python", "-m", "shaiwei.research_gates.gate_registry"],
 }
-BASE_IMAGE = "python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93"
+BASE_IMAGE = (
+    "shaiwei:m5-lineage-local@"
+    "sha256:fe9101f11a54d0b2111c0000ffff5a21d7d72fd86f4300aa30ae7b934119b606"
+)
 
 
 def build_lineage_release_document(
