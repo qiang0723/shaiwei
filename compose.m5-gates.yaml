@@ -31,7 +31,7 @@ services:
       - --protocol
       - /inputs/config/m5_dynamic_fundamental_cross_pool_v1.yaml
       - --build-contract
-      - /inputs/config/m5_dynamic_fundamental_data_gate_build_v1.yaml
+      - /inputs/config/m5_dynamic_fundamental_data_gate_build_v2.yaml
       - --input-manifest
       - /inputs/config/m5_dynamic_fundamental_data_input_v1.json
       - --release-scope
@@ -57,7 +57,7 @@ services:
       - --protocol
       - /inputs/config/m5_dynamic_fundamental_cross_pool_v1.yaml
       - --build-contract
-      - /inputs/config/m5_dynamic_fundamental_data_gate_build_v1.yaml
+      - /inputs/config/m5_dynamic_fundamental_data_gate_build_v2.yaml
       - --input-manifest
       - /inputs/config/m5_dynamic_fundamental_data_input_v1.json
       - --release-scope

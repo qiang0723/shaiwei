@@ -14,8 +14,6 @@ from shaiwei.research_gates.gate_registry.models import sha256_text
 from shaiwei.research_gates.gate_registry.schema import EXPECTED_SCHEMA_FINGERPRINT
 
 from .contract import (
-    BUILD_PROTOCOL_ID,
-    PROTOCOL_SCOPE_SHA256,
     InputManifest,
     M5DataProtocol,
     M5GateError,
@@ -85,20 +83,26 @@ class DataReleaseScope:
             raise M5GateError("M5 data release envelope fields differ")
         if serialized != canonical_json(document) + "\n":
             raise M5GateError("M5 data release envelope is not canonical")
-        if document["schema_version"] != "m5-data-gate-release-scope-v1":
+        expected_schema = (
+            "m5-data-gate-release-scope-v2"
+            if protocol.recovery_mode
+            else "m5-data-gate-release-scope-v1"
+        )
+        if document["schema_version"] != expected_schema:
             raise M5GateError("M5 data release schema differs")
         scope = document["scope"]
+        expected_scope_fields = SCOPE_FIELDS | ({"case_id"} if protocol.recovery_mode else set())
         if (
             not isinstance(scope, dict)
-            or set(scope) != SCOPE_FIELDS
+            or set(scope) != expected_scope_fields
             or document["release_scope_sha256"] != sha256_json(scope)
         ):
             raise M5GateError("M5 data release scope hash differs")
         if (
             scope.get("scope_kind") != "DATA_GATE_RELEASE_NOT_EXECUTION_APPROVAL"
-            or scope.get("protocol_scope_sha256") != PROTOCOL_SCOPE_SHA256
+            or scope.get("protocol_scope_sha256") != protocol.protocol_scope_sha256
             or scope.get("protocol_sha256") != protocol.sha256
-            or scope.get("build_protocol_id") != BUILD_PROTOCOL_ID
+            or scope.get("build_protocol_id") != protocol.build_protocol_id
             or scope.get("input_manifest_sha256") != input_manifest.sha256
             or scope.get("input_manifest_physical_sha256")
             != input_manifest.physical_sha256
@@ -108,6 +112,8 @@ class DataReleaseScope:
             is None
         ):
             raise M5GateError("M5 data release upstream identity differs")
+        if protocol.recovery_mode and scope.get("case_id") != protocol.case_id:
+            raise M5GateError("M5 recovery release case identity differs")
         proposal = protocol.document["source_proposal"]
         expected_proposal = {
             "proposal_id": proposal["proposal_id"],
@@ -300,4 +306,6 @@ class ApprovalEnvelope:
             or re.fullmatch(r"[0-9a-f]{64}", str(document["approval_event_sha256"])) is None
         ):
             raise M5GateError("M5 data approval envelope is not bound to the exact approved release")
+        if "case_id" in release.scope and document["case_id"] != release.scope["case_id"]:
+            raise M5GateError("M5 data approval envelope case differs from recovery release")
         return cls(document=document, sha256=sha256_json(document))

@@ -13,7 +13,6 @@ import pyarrow.parquet as pq
 
 from .contract import (
     API_FIELDS,
-    PROTOCOL_SCOPE_SHA256,
     REQUIRED_APIS,
     M5DataProtocol,
     M5GateError,
@@ -181,7 +180,7 @@ def build_input_manifest(
     document = {
         "schema_version": "m5-data-input-v1",
         "created_at": created_at,
-        "protocol_scope_sha256": PROTOCOL_SCOPE_SHA256,
+        "protocol_scope_sha256": protocol.protocol_scope_sha256,
         "protocol_sha256": protocol.sha256,
         "semantic_rows_read": False,
         "ledger_selection_scope": list(REQUIRED_APIS),

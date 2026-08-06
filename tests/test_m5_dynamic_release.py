@@ -32,6 +32,14 @@ def _protocol() -> M5DataProtocol:
     )
 
 
+def _recovery_protocol() -> M5DataProtocol:
+    return M5DataProtocol.load(
+        ROOT / "config/m5_dynamic_fundamental_cross_pool_v1.yaml",
+        build_path=ROOT / "config/m5_dynamic_fundamental_data_gate_build_v2.yaml",
+        project_root=ROOT,
+    )
+
+
 def _input() -> InputManifest:
     return InputManifest(
         document={"fixture": True},
@@ -139,3 +147,30 @@ def test_approval_must_bind_exact_release_scope_and_registry_identity(tmp_path: 
     approval["release_scope_sha256"] = "0" * 64
     with pytest.raises(M5GateError, match="exact approved release"):
         ApprovalEnvelope.load(_write(tmp_path / "drifted.json", approval), release)
+
+
+def test_recovery_release_and_approval_bind_the_new_case(tmp_path: Path) -> None:
+    protocol = _recovery_protocol()
+    manifest = _input()
+    document = _release_document(protocol, manifest)
+    release = DataReleaseScope.load(
+        _write(tmp_path / "release-v2.json", document), protocol, manifest
+    )
+    assert document["schema_version"] == "m5-data-gate-release-scope-v2"
+    assert release.scope["case_id"] == protocol.case_id
+    approval = {
+        "schema_version": "m5-data-gate-approval-v1",
+        "case_id": protocol.case_id,
+        "release_scope_sha256": release.sha256,
+        "approval_event_seq": 4,
+        "approval_event_sha256": "4" * 64,
+        "approval_actor_sha256": APPROVER_SHA256,
+        "registry_schema_fingerprint": EXPECTED_SCHEMA_FINGERPRINT,
+        "data_gate_execution_authorized": True,
+    }
+    ApprovalEnvelope.load(_write(tmp_path / "approval-v2.json", approval), release)
+    approval["case_id"] = "0" * 64
+    with pytest.raises(M5GateError, match="case differs"):
+        ApprovalEnvelope.load(
+            _write(tmp_path / "approval-drift.json", approval), release
+        )

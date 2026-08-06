@@ -9,7 +9,8 @@ from typing import Any
 import duckdb
 import pandas as pd
 
-from .contract import IDENTITY_FIELDS, STATEMENT_FIELDS, Candidate, M5DataProtocol, M5GateError
+from .contract import STATEMENT_FIELDS, Candidate, M5DataProtocol, M5GateError
+from .source_conflicts import assess_statement_sources
 
 
 COMPONENT_PREFIX = "component__"
@@ -21,35 +22,11 @@ def canonical_statement(
     vip: pd.DataFrame,
     open_days: list[str],
 ) -> tuple[pd.DataFrame, dict[str, int]]:
-    required = set(IDENTITY_FIELDS) | set(STATEMENT_FIELDS[name])
-    if missing := required - set(ordinary.columns):
-        raise M5GateError(f"tushare.{name} missing columns: {sorted(missing)}")
-    if missing := required - set(vip.columns):
-        raise M5GateError(f"tushare.{name}_vip missing columns: {sorted(missing)}")
-    combined = pd.concat(
-        [ordinary.loc[:, sorted(required)], vip.loc[:, sorted(required)]],
-        ignore_index=True,
-    )
-    for column in IDENTITY_FIELDS:
-        combined[column] = combined[column].astype("string")
-    combined["end_date"] = combined["end_date"].str.replace("-", "", regex=False)
-    combined["f_ann_date"] = combined["f_ann_date"].str.replace("-", "", regex=False)
-    combined = combined.loc[
-        combined["end_date"].str.endswith("1231", na=False)
-        & combined["report_type"].isin(["1", "5"])
-    ].copy()
-    conflict_count = 0
-    if not combined.empty:
-        grouped = combined.groupby(list(IDENTITY_FIELDS), dropna=False, sort=False)
-        conflict_count = int(
-            sum(
-                group.loc[:, STATEMENT_FIELDS[name]].nunique(dropna=False).gt(1).any()
-                for _, group in grouped
-            )
-        )
+    assessment = assess_statement_sources(name, ordinary, vip)
+    conflict_count = assessment.conflict_count
     if conflict_count:
         raise M5GateError(f"{name} contains conflicting duplicate source identities")
-    combined = combined.drop_duplicates(list(IDENTITY_FIELDS), keep="last").copy()
+    combined = assessment.canonical_frame.copy()
     for field in STATEMENT_FIELDS[name]:
         combined[field] = pd.to_numeric(combined[field], errors="coerce")
     announcements = pd.to_datetime(combined["f_ann_date"], format="%Y%m%d", errors="coerce")
@@ -68,6 +45,9 @@ def canonical_statement(
     return combined.reset_index(drop=True), {
         "canonical_rows": len(combined),
         "source_identity_conflicts": conflict_count,
+        "source_duplicate_rows_collapsed": int(
+            assessment.report["exact_duplicate_extra_row_count"]
+        ),
         "invalid_announcement_rows": invalid_announcement_rows,
     }
 

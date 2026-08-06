@@ -14,6 +14,7 @@ import pandas as pd
 
 from .audit_quality import verify_quality
 from .audit_recompute import OUTPUT_COLUMNS, recompute_panel
+from .audit_global_failure import audit_global_failure
 from .contract import (
     InputManifest,
     M5DataProtocol,
@@ -96,8 +97,7 @@ def audit_run(
 ) -> dict[str, Any]:
     manifest_path = run_root / "run_manifest.json"
     report_path = run_root / "data_gate_report.json"
-    panel_path = run_root / "feature_panel.parquet"
-    if any(not path.is_file() for path in (manifest_path, report_path, panel_path)):
+    if any(not path.is_file() for path in (manifest_path, report_path)):
         raise M5GateError("M5 run root is incomplete")
     manifest = _canonical_file(manifest_path)
     report = _canonical_file(report_path)
@@ -108,6 +108,49 @@ def audit_run(
     }
     if any(manifest.get(key) != value or report.get(key) != value for key, value in identity.items()):
         raise M5GateError("M5 run identity differs from approved release")
+    shared_identity_keys = (
+        "protocol_sha256",
+        "input_manifest_sha256",
+        "release_scope_sha256",
+        "code_bundle_sha256",
+        "approval_event_sha256",
+    )
+    if (
+        report.get("protocol_sha256") != protocol.sha256
+        or any(manifest.get(key) != report.get(key) for key in shared_identity_keys)
+    ):
+        raise M5GateError("M5 run protocol or code identity differs")
+    run_identity = {key: report[key] for key in shared_identity_keys}
+    if manifest.get("schema_version") == "m5-data-gate-run-manifest-v2":
+        if (
+            report.get("protocol_scope_sha256") != protocol.protocol_scope_sha256
+            or manifest.get("protocol_scope_sha256")
+            != protocol.protocol_scope_sha256
+            or manifest.get("outcome_kind") != report.get("outcome_kind")
+        ):
+            raise M5GateError("M5 recovery run scope or outcome identity differs")
+        run_identity.update(
+            {
+                "protocol_scope_sha256": protocol.protocol_scope_sha256,
+                "outcome_kind": report["outcome_kind"],
+            }
+        )
+    if manifest.get("run_id") != sha256_json(run_identity):
+        raise M5GateError("M5 run ID differs from sealed identity")
+    if manifest.get("outcome_kind") == "GLOBAL_DATA_FAILURE":
+        return audit_global_failure(
+            protocol,
+            frames,
+            run_root=run_root,
+            manifest=manifest,
+            report=report,
+            expected_input_manifest_sha256=expected_input_manifest_sha256,
+            expected_release_scope_sha256=expected_release_scope_sha256,
+            expected_approval_event_sha256=expected_approval_event_sha256,
+        )
+    panel_path = run_root / "feature_panel.parquet"
+    if not panel_path.is_file():
+        raise M5GateError("M5 run root is incomplete")
     artifacts = manifest.get("artifacts") or {}
     if (
         artifacts.get("feature_panel", {}).get("sha256") != sha256_file(panel_path)

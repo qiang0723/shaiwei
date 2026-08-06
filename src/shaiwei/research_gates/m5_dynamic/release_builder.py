@@ -9,8 +9,6 @@ from typing import Any
 from shaiwei.research_gates.gate_registry.schema import EXPECTED_SCHEMA_FINGERPRINT
 
 from .contract import (
-    BUILD_PROTOCOL_ID,
-    PROTOCOL_SCOPE_SHA256,
     InputManifest,
     M5DataProtocol,
     M5GateError,
@@ -65,9 +63,9 @@ def build_release_document(
             ],
             "expires_at": proposal["expires_at"],
         },
-        "protocol_scope_sha256": PROTOCOL_SCOPE_SHA256,
+        "protocol_scope_sha256": protocol.protocol_scope_sha256,
         "protocol_sha256": protocol.sha256,
-        "build_protocol_id": BUILD_PROTOCOL_ID,
+        "build_protocol_id": protocol.build_protocol_id,
         "input_manifest_sha256": input_manifest.sha256,
         "input_manifest_physical_sha256": input_manifest.physical_sha256,
         "implementation": {
@@ -142,8 +140,14 @@ def build_release_document(
             "production_authorization": "none",
         },
     }
+    if protocol.recovery_mode:
+        scope["case_id"] = protocol.case_id
     return {
-        "schema_version": "m5-data-gate-release-scope-v1",
+        "schema_version": (
+            "m5-data-gate-release-scope-v2"
+            if protocol.recovery_mode
+            else "m5-data-gate-release-scope-v1"
+        ),
         "release_scope_sha256": sha256_json(scope),
         "scope": scope,
     }

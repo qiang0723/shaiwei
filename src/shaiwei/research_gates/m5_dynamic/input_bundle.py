@@ -16,10 +16,14 @@ from .source_reader import _bound_path, _verify_file
 
 CONTROL_DESTINATIONS = {
     "input_manifest": "config/m5_dynamic_fundamental_data_input_v1.json",
-    "build_contract": "config/m5_dynamic_fundamental_data_gate_build_v1.yaml",
     "release_scope": "config/m5_dynamic_fundamental_data_gate_release_scope_v1.json",
     "approval_envelope": "config/m5_dynamic_fundamental_data_gate_approval_v1.json",
 }
+
+
+def _build_destination(protocol: M5DataProtocol) -> str:
+    suffix = "v2" if protocol.recovery_mode else "v1"
+    return f"config/m5_dynamic_fundamental_data_gate_build_{suffix}.yaml"
 
 
 def _project_file(project_root: Path, source: Path) -> Path:
@@ -160,7 +164,7 @@ def materialize_bundle(
             _link(source, temporary / relative)
         controls = {
             CONTROL_DESTINATIONS["input_manifest"]: input_manifest_path,
-            CONTROL_DESTINATIONS["build_contract"]: build_contract_path,
+            _build_destination(protocol): build_contract_path,
             CONTROL_DESTINATIONS["release_scope"]: release_scope_path,
             CONTROL_DESTINATIONS["approval_envelope"]: approval_envelope_path,
         }

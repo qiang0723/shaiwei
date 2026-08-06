@@ -32,6 +32,18 @@ def _protocol_without_frozen_controls() -> M5DataProtocol:
     )
 
 
+def _recovery_protocol_without_frozen_controls() -> M5DataProtocol:
+    protocol = M5DataProtocol.load(
+        ROOT / "config/m5_dynamic_fundamental_cross_pool_v1.yaml",
+        build_path=ROOT / "config/m5_dynamic_fundamental_data_gate_build_v2.yaml",
+        project_root=ROOT,
+    )
+    return dataclasses.replace(
+        protocol,
+        build_document={**protocol.build_document, "frozen_inputs": {}},
+    )
+
+
 def _manifest(tmp_path: Path) -> tuple[InputManifest, Path]:
     source = tmp_path / "data/raw/fixture.parquet"
     source.parent.mkdir(parents=True, exist_ok=True)
@@ -189,3 +201,29 @@ def test_existing_bundle_cannot_be_reused_by_another_release_or_approval(
             release_scope_path=controls[2],
             approval_envelope_path=controls[3],
         )
+
+
+def test_recovery_bundle_places_build_v2_at_the_runtime_path(tmp_path: Path) -> None:
+    protocol = _recovery_protocol_without_frozen_controls()
+    manifest, _ = _manifest(tmp_path)
+    controls = _control_files(tmp_path)
+    release, approval = _release_and_approval()
+    bundle = tmp_path / "data/control/m5_2/input-bundles/bundle-recovery"
+    materialize_bundle(
+        protocol,
+        manifest,
+        release,
+        approval,
+        project_root=tmp_path,
+        bundle_root=bundle,
+        input_manifest_path=controls[0],
+        build_contract_path=controls[1],
+        release_scope_path=controls[2],
+        approval_envelope_path=controls[3],
+    )
+    assert (
+        bundle / "config/m5_dynamic_fundamental_data_gate_build_v2.yaml"
+    ).stat().st_ino == controls[1].stat().st_ino
+    assert not (
+        bundle / "config/m5_dynamic_fundamental_data_gate_build_v1.yaml"
+    ).exists()

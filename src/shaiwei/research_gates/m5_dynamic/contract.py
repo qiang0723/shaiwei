@@ -15,6 +15,14 @@ import yaml
 PROTOCOL_ID = "m5-dynamic-fundamental-cross-pool-data-preexecution-v1"
 BUILD_PROTOCOL_ID = "m5-dynamic-fundamental-data-gate-build-v1"
 PROTOCOL_SCOPE_SHA256 = "ab8c33968c4ced325ec79524b774163f2991edd0c4d5d7eb7c139b27e9b17557"
+RECOVERY_BUILD_PROTOCOL_ID = "m5-dynamic-fundamental-data-gate-build-v2"
+RECOVERY_PROTOCOL_SCOPE_SHA256 = (
+    "6f99c0dfdc5cd75df9bf769fb65318feb4e8e7140082a9dfb924a88a3bb0dc49"
+)
+BUILD_PROTOCOL_SCOPES = {
+    BUILD_PROTOCOL_ID: PROTOCOL_SCOPE_SHA256,
+    RECOVERY_BUILD_PROTOCOL_ID: RECOVERY_PROTOCOL_SCOPE_SHA256,
+}
 REQUIRED_APIS = (
     "tushare.trade_cal",
     "tushare.income",
@@ -130,6 +138,8 @@ class M5DataProtocol:
     path: Path
     document: dict[str, Any]
     build_document: dict[str, Any]
+    build_protocol_id: str
+    protocol_scope_sha256: str
     sha256: str
     candidates: tuple[Candidate, ...]
     universes: tuple[Universe, ...]
@@ -148,9 +158,11 @@ class M5DataProtocol:
             raise M5GateError("M5 protocol and build contract must be mappings")
         if document.get("protocol_id") != PROTOCOL_ID:
             raise M5GateError("M5 protocol ID differs")
-        if build.get("build_protocol_id") != BUILD_PROTOCOL_ID:
+        build_protocol_id = str(build.get("build_protocol_id", ""))
+        if build_protocol_id not in BUILD_PROTOCOL_SCOPES:
             raise M5GateError("M5 build protocol ID differs")
-        if build.get("protocol_scope_sha256") != PROTOCOL_SCOPE_SHA256:
+        protocol_scope_sha256 = BUILD_PROTOCOL_SCOPES[build_protocol_id]
+        if build.get("protocol_scope_sha256") != protocol_scope_sha256:
             raise M5GateError("M5 protocol scope differs")
         for item in build.get("frozen_inputs", {}).values():
             frozen_path = project_root / _safe_relative_path(str(item.get("path", "")), "frozen input")
@@ -204,6 +216,8 @@ class M5DataProtocol:
             path=path,
             document=document,
             build_document=build,
+            build_protocol_id=build_protocol_id,
+            protocol_scope_sha256=protocol_scope_sha256,
             sha256=sha256_file(path),
             candidates=candidates,
             universes=tuple(universes),
@@ -216,6 +230,18 @@ class M5DataProtocol:
     @property
     def universe_ids(self) -> tuple[str, ...]:
         return tuple(item.universe_id for item in self.universes)
+
+    @property
+    def recovery_mode(self) -> bool:
+        return self.build_protocol_id == RECOVERY_BUILD_PROTOCOL_ID
+
+    @property
+    def case_id(self) -> str:
+        proposal_id = str(self.document["source_proposal"]["proposal_id"])
+        payload = (
+            "m5-gate-case-v1\0" + proposal_id + "\0" + self.protocol_scope_sha256
+        ).encode("utf-8")
+        return hashlib.sha256(payload).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -251,7 +277,7 @@ class InputManifest:
             raise M5GateError("M5 input manifest creation time is invalid") from exc
         if created_at.tzinfo is None:
             raise M5GateError("M5 input manifest creation time lacks timezone")
-        if document.get("protocol_scope_sha256") != PROTOCOL_SCOPE_SHA256:
+        if document.get("protocol_scope_sha256") != protocol.protocol_scope_sha256:
             raise M5GateError("M5 input manifest protocol scope differs")
         if document.get("protocol_sha256") != protocol.sha256:
             raise M5GateError("M5 input manifest protocol hash differs")

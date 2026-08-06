@@ -35,6 +35,16 @@ def test_m5_image_is_minimal_pinned_and_contains_no_runtime_data() -> None:
         "six",
         "tzdata",
     }
+    dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
+    assert "!docs/ADR_0003_M5_GLOBAL_DATA_FAILURE_EVIDENCE.md" in dockerignore
+    assert (
+        "!docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_PROTOCOL_20260806.md"
+        in dockerignore
+    )
+    assert (
+        "!docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_REAL_RUN_ACCEPTANCE_20260805.md"
+        in dockerignore
+    )
 
 
 def test_m5_compose_services_are_offline_short_lived_and_least_privilege() -> None:
@@ -62,6 +72,12 @@ def test_m5_compose_services_are_offline_short_lived_and_least_privilege() -> No
     assert services["m5-auditor"]["mem_limit"] == "512m"
     assert services["m5-registry"]["cpus"] == 0.5
     assert services["m5-registry"]["mem_limit"] == "512m"
+    assert "m5_dynamic_fundamental_data_gate_build_v2.yaml" in str(
+        services["m5-runner"]["command"]
+    )
+    assert "m5_dynamic_fundamental_data_gate_build_v2.yaml" in str(
+        services["m5-auditor"]["command"]
+    )
 
 
 def test_m5_compose_mounts_are_narrow_and_directional() -> None:
