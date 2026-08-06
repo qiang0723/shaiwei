@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-06 · M5-2B-R1恢复实现完成，release v4停在精确授权前
+
+- 恢复实现提交`18e7502b74919641e02689720dd31b1e36b276a7`已推送：普通/VIP财报源按六类精确
+  分类；三类冲突任一出现都不选边、不进入PIT/公式/feature panel，只write-once封存脱敏冲突报告、
+  24单元全FAIL矩阵和DATA NO-GO，再由不复用主分类器的auditor重算。
+- 两次断网纯合成Docker运行同结论：六类/NULL规范化通过，三种冲突均封存NO-GO，独立audit PASS，
+  临时新case进入`BLOCKED_DATA`，旧合成STOPPED case不变，runner/auditor/registry均幂等。全仓761
+  PASS、架构6 PASS，生产scheduler身份未变且healthy。
+- 新metadata-only输入manifest逻辑/物理SHA为`f4aeb411...9399b`/`683bed3a...f020`，绑定7类API、
+  16,843批次和3份成员证据，`semantic_rows_read=false`。最终镜像为`sha256:acb7c6c2...d1ea7`。
+- 精确release v4 scope为`8858912f14577a8911e47f0ec338cde82208fe818b4c7a921578e42aeeed6f65`，
+  `approval/execution/real read=false`、生产`none`。当前必须停在用户针对完整SHA的再次明确授权前；旧
+  v3批准不迁移。见`docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_RELEASE_ACCEPTANCE_20260806.md`。
+
 ## 2026-08-06 · M5-2B-R1全局数据失败恢复协议已冻结
 
 - 新ADR与恢复协议已把v3双重阻断转成结果前机器合同：完全重复仅无损折叠；普通内、VIP内或两源交叉
