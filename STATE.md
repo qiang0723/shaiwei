@@ -2,14 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-08-06 · M6-1结果盲工程协议已冻结，等待实现
+## 2026-08-06 · M6-1结果盲工程门GO，已停在真实release前
 
-- M6-1只施工独立模型归因合同、时钟、Qlib模型适配、评分、统计裁决、合成预演和独立audit；只读
-  Qlib manifest/交易日历，禁止读取真实特征、价格、标签或效果，策略保持`NOT_EVALUATED`。
-- Docker运行边界固定为断网、非root、只读根、无`.env`/账本/Docker socket/整仓挂载；唯一可写为
-  M6 engineering输出。合成门覆盖五个互斥终态、十二类失败关闭、write-once和双跑确定性。
-- 本节只授权M6-1实现与合成工程验收；真实训练、预测、回测、M6-2 release、前瞻和生产均未授权。
-  见`docs/M6_CSI800_MODEL_ATTRIBUTION_ENGINEERING_PROTOCOL_20260806.md`。
+- 协议提交`64fe39d8...e10f`先行推送；独立合同、11交易日成熟时钟、Qlib LightGBM/Ridge工厂、
+  50/50排名融合、NW(10)+Holm、五终态、十二失败关闭和不导入主裁决器的audit均已实现。
+- 额外发布复核发现首版把只读输入挂进`/workspace/config`导致嵌入式发布清单失败；旧报告/audit作为
+  `formal=false` provisional原样保留。修复提交`c6bf7d6d...eaf8`先推送后重建，输入移到`/inputs`，
+  runner/auditor均绑定并验证release Git/代码快照。
+- 终版断网Docker报告/audit SHA为`43c0716b...1cc2`/`7fb095a3...3a33`，各双跑同哈希、第二遍复用，
+  独立audit PASS；全仓838 PASS、架构6 PASS。scheduler仍为原容器/原镜像且healthy，未重启。
+- 真实特征/价格/标签/效果、模型拟合、预测、回测和外部调用均为0；工程裁决
+  `GO_ENGINEERING_ONLY`，策略`NOT_EVALUATED`、生产`none`。下一步只能另立M6-2完整release scope并
+  取得用户明确授权；现有授权不得继承。见
+  `docs/M6_CSI800_MODEL_ATTRIBUTION_ENGINEERING_ACCEPTANCE_20260806.md`。
 
 ## 2026-08-06 · M6-0中证800模型/组合归因小批协议已结果前冻结
 

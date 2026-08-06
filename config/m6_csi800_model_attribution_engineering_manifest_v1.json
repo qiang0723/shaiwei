@@ -1,0 +1,118 @@
+{
+  "schema_version": "m6-csi800-model-attribution-engineering-manifest-v1",
+  "research_family": "m6-csi800-model-attribution-v1",
+  "engineering_verdict": "GO_ENGINEERING_ONLY",
+  "strategy_effective": "NOT_EVALUATED",
+  "production_authorization": "none",
+  "protocol": {
+    "result_protocol_id": "m6-csi800-model-portfolio-attribution-small-batch-v1",
+    "result_config_path": "config/m6_csi800_model_attribution_v1.yaml",
+    "result_config_sha256": "6c170d991df1ef75f18208837301b545fe50518c028a65c814d425fc36d7a22a",
+    "result_document_path": "docs/M6_CSI800_MODEL_ATTRIBUTION_PROTOCOL_20260806.md",
+    "result_document_sha256": "647682250aff54861dc4888340e88d4e82ac009ec53999e3eddea29fb5a52b0c",
+    "engineering_protocol_id": "m6-csi800-model-attribution-engineering-v1",
+    "engineering_config_path": "config/m6_csi800_model_attribution_engineering_v1.yaml",
+    "engineering_config_sha256": "af6801f72f145e3f0599c26fb03e1ad88998217f218b544bb24c6b31f97a5680",
+    "engineering_document_path": "docs/M6_CSI800_MODEL_ATTRIBUTION_ENGINEERING_PROTOCOL_20260806.md",
+    "engineering_document_sha256": "89bd9da4cd92342fdb7304bb57bce1cc9b6acd7da92101c3d7e5b5964233d555",
+    "engineering_freeze_git_head": "64fe39d8c1ab183bd367f5e6866f8ea3735ae10f"
+  },
+  "release": {
+    "initial_implementation_git_head": "5290a174c23349a120b3acb9c4b774252733fe56",
+    "release_identity_fix_git_head": "c6bf7d6dee3c427e48374aa6ebd5c9886602eaf8",
+    "image": "shaiwei:m6-model-attribution-engineering-v1",
+    "image_id": "sha256:1a9ba6b7697780ec92cce007405b7c93e6399c99ec99963d61a586f850fc1ebd",
+    "embedded_release_manifest_verified": true,
+    "code_snapshot_sha256": "a99ceb508a68d4cff3b2e21f63ccb729e25da53342b338bc4e8c54ed2ded9eec",
+    "model_attribution_code_bundle_sha256": "3755298fa1d96d56a7b0d6ef4dd2691075aac29b5e835f88083bf8e1dd3e6767"
+  },
+  "frozen_inputs": {
+    "qlib_manifest_path": "data/qlib_bin/_shaiwei_manifest.json",
+    "qlib_manifest_sha256": "62cae2f46b57020db202bee1748f072e7859e209663046747f76aaa008f605a9",
+    "qlib_tree_sha256": "0532f6cd7c2c78f0936f92a986aef83a848175fe6f332274e06c7ed6e8c11778",
+    "qlib_file_count": 54464,
+    "calendar_path": "data/qlib_bin/calendars/day.txt",
+    "calendar_sha256": "80ddefd8e3cce5137bb99f6b53dbe090de1b1bd234db1a19f31ef3ddb2bd8bdb",
+    "calendar_row_count": 2557,
+    "semantic_market_rows_read": false
+  },
+  "formal_artifacts": {
+    "engineering_report": {
+      "path": "data/research/m6_csi800_model_attribution_v1/engineering/report.json",
+      "byte_count": 6999,
+      "sha256": "43c0716bcc4b1f595c242897189b7bf9a4cfd879d34a4dfbce6f9ee8a8be1cc2"
+    },
+    "independent_audit": {
+      "path": "data/research/m6_csi800_model_attribution_v1/engineering/audit.json",
+      "byte_count": 721,
+      "sha256": "7fb095a339b066112eccca86fa44f17ac930d0573a2bf7100cdb45f9f5163a33"
+    }
+  },
+  "synthetic_evidence": {
+    "seed": 20260806,
+    "window_count": 6,
+    "mature_score_days_per_window": 210,
+    "pooled_score_days": 1260,
+    "instruments_per_day": 40,
+    "member_day_count": 50400,
+    "real_security_codes_present": false,
+    "qlib_model_factories_instantiated": true,
+    "real_model_fit_count": 0,
+    "real_prediction_count": 0,
+    "real_label_or_effect_read": false,
+    "real_backtest_count": 0,
+    "external_call_count": 0,
+    "decision_case_count": 5,
+    "failure_closed_check_count": 12,
+    "independent_audit": "PASS"
+  },
+  "idempotency": {
+    "formal_report_first_reused": false,
+    "formal_report_replay_reused": true,
+    "formal_report_hash_equal": true,
+    "audit_first_reused": false,
+    "audit_replay_reused": true,
+    "audit_hash_equal": true
+  },
+  "provisional_evidence": {
+    "formal": false,
+    "reason": "runtime input mounts changed the controlled release file set before the release-identity correction",
+    "path": "data/research/m6_csi800_model_attribution_v1/engineering/provisional_docker_unverified_release_54be350a",
+    "report_sha256": "54be350a3e30e90150e81284ae5545b0b7d3f6b94c81d88772995feb66f38da0",
+    "audit_sha256": "949a8f599af5c2e4b172a4f4ded693bfb01dafc1006966560f92f6b9cd4b001a",
+    "preserved": true
+  },
+  "runtime_isolation": {
+    "network_mode": "none",
+    "non_root": true,
+    "read_only_root": true,
+    "cap_drop_all": true,
+    "no_new_privileges": true,
+    "env_file_mounted": false,
+    "docker_socket_mounted": false,
+    "whole_repository_mounted": false,
+    "business_ledger_mounted": false,
+    "input_mounts_read_only": true,
+    "one_shot_containers_remaining": 0
+  },
+  "production_scheduler": {
+    "container_id_before_and_after": "183b8c6c5edd",
+    "image_id_before_and_after": "sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76",
+    "created_at_before_and_after": "2026-08-03 17:39:34 +0800 CST",
+    "release_revision_before_and_after": "210af4dab33c85b38c05b28f56c176b7970c41db",
+    "final_state": "running",
+    "final_health": "healthy",
+    "restarted": false
+  },
+  "validation": {
+    "full_pytest_passed": 838,
+    "architecture_pytest_passed": 6,
+    "m6_specialized_pytest_passed": 23,
+    "ruff": "PASS",
+    "compileall": "PASS_WITH_EXISTING_TEST_SYNTAX_WARNING",
+    "pip_check": "PASS",
+    "compose_config": "PASS",
+    "diff_check": "PASS",
+    "tracked_secret_pattern_scan": "PASS"
+  }
+}
