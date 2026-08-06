@@ -334,7 +334,10 @@ Web持续展示“哪些池可研究、做过什么、为什么失败、当前�
   幂等均经两次断网纯合成fixture通过；release v4 scope为`8858912f...d6f65`，绑定新metadata-only
   输入与镜像`sha256:acb7c6c2...d1ea7`。用户随后已批准并完成唯一真实断网数据门：23个源身份冲突组
   被全局失败关闭，24单元全FAIL，独立audit PASS，新case进入`BLOCKED_DATA`；效果测试仍为0，策略
-  `NOT_EVALUATED`。当前禁止M5-2C；如继续须另立R2源版本冲突恢复协议、新case/release和精确授权。
+  `NOT_EVALUATED`。M5-2B-R2版本谱系恢复协议现已结果前冻结：scope `96c4f996...e463ccd`派生新case
+  `6b6c849f...f7be16`，强制分开公告日、权威修订生效时间和本地观察时间，禁止用latest/VIP/update
+  flag/多数值或删样本解冲突。当前只允许纯合成实现、独立audit和release；真实lineage仍须精确授权，
+  缺权威版本证据时的联网采集必须另立协议，禁止与DATA_GATE混跑。
 
 ## R3 · 专业只读 Web
 
@@ -484,7 +487,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M5-1 | 多股票池非权威研究提案控制面 | GO；create/submit-review/cancel、SQLite证据链、全库双向完整性、本机Web与隔离Docker均PASS；交付验收时空库，研究尝试增量0 | 只允许人工建立/复核/取消提案；M5-2冻结、批准和执行必须另立ADR/协议并重新授权 |
 | M5-1A | 科创50/中盘/小盘动态基本面提案 | `REVIEW_REQUIRED`；8个确定性候选、最多24个跨池评价单元、零provider调用/费用；实际研究尝试增量0，2026-08-12 18:48:16到期 | 停在人工复核；若继续须另立M5-2冻结/批准协议并获得用户明确授权，不自动排队或运行 |
 | M5-2A | 科创三池动态基本面数据/预执行协议 | protocol-only冻结；8式/3池/24单元、PIT/覆盖/陈旧度/未来窗与N=14/20已锁定；效果测试0、门批准0 | 先施工并推送M5-2B数据release；用户批准精确scope前不得读取真实数据，工程门须DATA_GO后另批 |
-| M5-2B | 动态基本面数据门施工与release | v4唯一真实门已完成；23个源身份冲突组，24/24单元全FAIL，独立audit PASS；权威`NO_GO_M5_2_DATA_PREEXECUTION`、registry `BLOCKED_DATA`、策略`NOT_EVALUATED` | 禁止M5-2C/效果/生产；若继续须另立R2结果前源版本冲突恢复协议、新case/release与精确授权，不得按效果选源 |
+| M5-2B | 动态基本面数据门与R2版本谱系恢复 | v4真实门因23个源身份冲突组权威NO-GO；R2 scope已冻结并派生新case，公告/修订/本地观察三时钟与E2/E3历史证据门已锁定；策略仍`NOT_EVALUATED` | 先施工纯合成lineage实现、独立audit和release；未来真实feasibility须精确授权，联网补证另立协议；禁止M5-2C/效果/生产与按效果选源 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |
 | G8-1R | 监管主源不可覆盖采集 | 1 条原 Docker 失败永久保留；恢复 54 条主证据、二遍幂等与断网复核 PASS；G8 仍 NOT_READY | 只允许另立 G8-2 管理人 HTTPS 交叉核验与费率有效期谱系协议 |

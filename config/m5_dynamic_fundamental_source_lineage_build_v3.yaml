@@ -1,0 +1,228 @@
+schema_version: m5-dynamic-fundamental-source-lineage-build-v3
+build_protocol_id: m5-dynamic-fundamental-source-lineage-build-v3
+protocol_scope_sha256: 96c4f996f2641e6b18c26d8228ee72712b2670d70fe0cdedf95c99cd2e463ccd
+derived_case_id: 6b6c849f4ded89f631e1af8127f0e7321898aa7f4ce0c2630806fc8c8ef7be16
+
+frozen_inputs:
+  lineage_adr:
+    path: docs/ADR_0004_M5_STATEMENT_VERSION_LINEAGE.md
+    sha256: 91c4428d01a9eb11fafa24691c8f2fc7e609de4a752d1d60d13784784a80c295
+  lineage_protocol:
+    path: docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_RECOVERY_PROTOCOL_20260806.md
+    sha256: 1a1e2534be02f5707b112b6115ee75dc8f8a96942f376a207377d27fa0ff90ea
+  lineage_config:
+    path: config/m5_dynamic_fundamental_source_lineage_recovery_v3.yaml
+    sha256: badfac341ae1ecd65536a809789c1e1f7f4ad7c0e1b42d6faa6f60dc0adb6673
+  lineage_protocol_scope:
+    path: config/m5_dynamic_fundamental_source_lineage_recovery_protocol_scope_v3.json
+    sha256: 9156b92f545d79a8de1478f1fd3d0ab6191c26caa80568fb9b51ffb708fcf8ba
+  research_config:
+    path: config/m5_dynamic_fundamental_cross_pool_v1.yaml
+    sha256: ce5cb6390df37baa553e470487c3cd319937a6d017bb43af3d874b5c41696b79
+  proposal_export:
+    path: config/m5_dynamic_fundamental_cross_pool_proposal_export_v1.json
+    sha256: 7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc
+  prior_data_no_go_acceptance:
+    path: docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_REAL_RUN_ACCEPTANCE_20260806.md
+    sha256: db56cfe26c9570d78de9d97e7feb7910fdb631ee1d53ae6342a0b05e73b337d9
+  prior_data_no_go_release:
+    path: config/m5_dynamic_fundamental_data_gate_release_scope_v4.json
+    sha256: 08d8180ce4fbbef97985f9b5610afe6b10ac9240ad34018482f919c54aecbef2
+
+construction:
+  target_state: SOURCE_LINEAGE_RELEASE_READY_NOT_APPROVED
+  package_root: src/shaiwei/research_gates/m5_dynamic
+  maximum_new_module_lines: 400
+  existing_hotspot_growth_authorized: false
+  existing_source_conflict_semantics_change_authorized: false
+  existing_research_formula_or_threshold_change_authorized: false
+  existing_registry_schema_change_authorized: false
+  prior_case_or_artifact_mutation_authorized: false
+  production_or_web_module_change_authorized: false
+  real_financial_rows_may_be_read: false
+  real_conflict_rows_may_be_diagnosed: false
+  real_lineage_may_be_executed: false
+  formal_registry_may_be_initialized: false
+  formal_gate_events_may_be_written: false
+  synthetic_fixture_only: true
+
+implementation_responsibilities:
+  observation_contract:
+    layer: domain
+    suggested_module: m5_dynamic/lineage_contract.py
+    reads_files: false
+    writes_files: false
+    validates_three_time_semantics: true
+  value_commitment:
+    layer: domain
+    suggested_module: m5_dynamic/lineage_commitment.py
+    reads_files: false
+    writes_files: false
+    exposes_raw_values: false
+  lineage_builder:
+    layer: domain
+    suggested_module: m5_dynamic/lineage.py
+    reads_files: false
+    writes_files: false
+    computes_candidates: false
+    selects_unproven_versions: false
+  evidence_adapter:
+    layer: adapter
+    suggested_module: m5_dynamic/lineage_reader.py
+    external_network: false
+    reads_only_manifest_allowlist: true
+    may_infer_provider_effective_time_from_ingest_time: false
+  report_projection:
+    layer: domain
+    suggested_module: m5_dynamic/lineage_projection.py
+    row_level_output: false
+    computes_candidates: false
+  runner_orchestration:
+    layer: application
+    suggested_module: m5_dynamic/lineage_runner.py
+    seals_outcome_before_exit: true
+    may_collect_external_evidence: false
+    may_run_data_gate: false
+  independent_lineage_audit:
+    layer: audit
+    suggested_module: m5_dynamic/audit_lineage.py
+    may_import_primary_commitment_normalizer: false
+    may_import_primary_lineage_builder: false
+    may_import_runner_projection: false
+  auditor_orchestration:
+    layer: application
+    suggested_module: m5_dynamic/lineage_auditor.py
+    requires_independent_recompute: true
+
+input_contract:
+  mode: LINEAGE_FEASIBILITY
+  exact_manifest_allowlist_required: true
+  immutable_batch_observations_required: true
+  observation_fields:
+    - source_api
+    - request_params_sha256
+    - batch_id
+    - content_sha256
+    - local_observed_at
+  statement_identity_fields: [ts_code, f_ann_date, end_date, report_type, update_flag]
+  frozen_business_fields_by_table_required: true
+  authoritative_evidence_bundle_optional_but_content_addressed: true
+  missing_authoritative_evidence_is_data_no_go_not_runtime_error: true
+  labels_effects_models_or_holdings_forbidden: true
+  project_root_mount_forbidden: true
+
+output_contract:
+  schema_version: m5-source-lineage-gate-output-v1
+  staging_root: /lineage-output
+  required_files:
+    - source_lineage_report.json
+    - lineage_gate_report.json
+    - run_manifest.json
+  forbidden_files:
+    - feature_panel.parquet
+    - candidate_matrix.json
+  write_once: true
+  byte_determinism_required: true
+  partial_directory_is_failure: true
+  absolute_host_paths_forbidden: true
+  row_level_identity_or_value_output_forbidden: true
+  label_effect_model_fields_forbidden: true
+  pass_verdict: GO_M5_2_SOURCE_LINEAGE_RECOVERABLE
+  no_go_verdict: NO_GO_M5_2_SOURCE_LINEAGE_PREEXECUTION
+  no_go_target_state: BLOCKED_DATA
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+
+auditor_contract:
+  output_file: lineage_audit_report.json
+  runner_output_mount: /lineage-output:ro
+  audit_mount: /lineage-audit:rw
+  independent_value_commitment_required: true
+  independent_interval_rebuild_required: true
+  forbidden_field_scan_required: true
+  physical_and_canonical_hashes_required: true
+  verdict_recompute_required: true
+  audit_pass_required_before_registrar: true
+
+registry:
+  schema_version: 1
+  tables: [gate_cases, gate_events, idempotency_receipts, outbox]
+  schema_migration_authorized: false
+  prior_case_id: a2539149d588a0c19f9cb73331f19a66df63e301df03f56fbb2c8e5c74672068
+  prior_case_expected_terminal_state: BLOCKED_DATA
+  prior_case_replay_required: true
+  prior_case_reopen_authorized: false
+  new_case_id: 6b6c849f4ded89f631e1af8127f0e7321898aa7f4ce0c2630806fc8c8ef7be16
+  new_case_must_differ_from_prior: true
+  no_go_target_state: BLOCKED_DATA
+  runner_verdict_without_audit_cannot_record: true
+
+fixture_matrix:
+  exact_duplicate: PASS_LOSSLESS
+  local_observation_only: NO_GO_FORWARD_ONLY
+  same_update_flag_different_values: NO_GO_MISSING_EFFECTIVE_TIME
+  two_versions_unique_authoritative_times: PASS_RESOLVED_CHAIN
+  simultaneous_divergent_versions: NO_GO_AMBIGUOUS_ORDER
+  missing_middle_version: NO_GO_INCOMPLETE_CHAIN
+  unexplained_rollback: NO_GO_INCOMPLETE_CHAIN
+  future_effective_version: EXCLUDED_UNTIL_EFFECTIVE
+  ingest_time_used_as_historical_time: FAIL_CLOSED
+  latest_or_source_priority_attempt: FAIL_CLOSED
+  report_forbidden_field_injection: AUDIT_FAIL
+  lineage_commitment_tamper: AUDIT_FAIL
+  partial_output_directory: FAIL_CLOSED
+  byte_deterministic_double_run: REQUIRED
+  prior_blocked_case_replay: REQUIRED
+
+container:
+  reuse_existing_short_lived_m5_image_allowed: true
+  new_long_lived_service_authorized: false
+  network_mode: none
+  run_as_non_root: true
+  read_only_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  pids_limit: 128
+  project_root_mount_forbidden: true
+  docker_socket_mount_forbidden: true
+  env_file_mount_forbidden: true
+  labels_effects_models_mount_forbidden: true
+  input_mount: /lineage-input:ro
+  output_mount: /lineage-output:rw
+  audit_mount: /lineage-audit:rw
+  registry_mount: /registry:rw
+
+release_scope:
+  implementation_commit_must_be_pushed_first: true
+  code_and_auditor_identity_required: true
+  image_identity_required: true
+  metadata_only_inventory_before_approval: true
+  semantic_input_bundle_materialization_requires_exact_approval: true
+  exact_mounts_resources_commands_bound: true
+  prior_approval_cannot_migrate: true
+  proposal_must_remain_review_required_and_unexpired: true
+  approval_must_bind_exact_new_release_scope_sha256: true
+  any_scope_drift_invalidates_approval: true
+
+authority:
+  lineage_release_scope_created: false
+  lineage_approval_recorded: false
+  lineage_execution_authorized: false
+  formal_registry_write_authorized: false
+  real_data_read_authorized: false
+  real_conflict_diagnosis_authorized: false
+  provider_call_count: 0
+  provider_budget_usd: "0.00"
+  external_network_authorized: false
+  credential_read_authorized: false
+  pit_read_or_compute_authorized: false
+  label_read_authorized: false
+  effect_read_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  engineering_gate_execution_authorized: false
+  paper_authorized: false
+  forward_authorized: false
+  production_authorization: none
+  scheduler_mutation_authorized: false
+  web_change_authorized: false

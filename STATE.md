@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-06 · M5-2B-R2财报来源版本谱系恢复协议已冻结
+
+- 结果前协议提交`ccc799b073520f04954fcb0da9e9d7ea0052b144`已先推送；protocol scope为
+  `96c4f996f2641e6b18c26d8228ee72712b2670d70fe0cdedf95c99cd2e463ccd`，派生独立case
+  `6b6c849f4ded89f631e1af8127f0e7321898aa7f4ce0c2630806fc8c8ef7be16`。R1 case、release v4、
+  23组冲突、audit和`BLOCKED_DATA`裁决不迁移、不改写、不重跑。
+- R2明确分开财报`f_ann_date`、权威修订生效时间和本地`ingest_time`：本地抓取只证明观察下界，
+  相同五字段身份内的相同`update_flag`也不能给不同值排序。历史恢复至少需要带版本身份/生效时点的
+  provider证据或法披/交易所/发行人一手材料；只有本地观察证据的版本最多future-only，不能回填历史。
+- 禁止latest wins、普通/VIP优先、非空/多数值优先、容差、删除冲突组或按效果选源。未来先做断网
+  `LINEAGE_FEASIBILITY`；若缺权威证据，联网采集必须另立协议，不能和DATA_GATE混跑。
+- 当前只允许按build v3施工纯合成版本谱系实现、独立auditor和release；真实财务/冲突读取、外网、
+  正式case/event、PIT/候选、标签/效果、模型/回测和生产仍为false/none。见
+  `docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_RECOVERY_FREEZE_ACCEPTANCE_20260806.md`。
+
 ## 2026-08-06 · M5-2B-R1 release v4真实数据门权威NO-GO，终态BLOCKED_DATA
 
 - 用户批准精确scope `8858912f14577a8911e47f0ec338cde82208fe818b4c7a921578e42aeeed6f65`

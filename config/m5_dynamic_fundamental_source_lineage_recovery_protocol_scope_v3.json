@@ -1,0 +1,146 @@
+{
+  "schema_version": "m5-source-lineage-protocol-scope-envelope-v3",
+  "scope_created_at": "2026-08-06T12:07:49+08:00",
+  "protocol_scope_sha256": "96c4f996f2641e6b18c26d8228ee72712b2670d70fe0cdedf95c99cd2e463ccd",
+  "scope": {
+    "scope_id": "m5-dynamic-fundamental-source-lineage-recovery-protocol-scope-v3",
+    "scope_kind": "SOURCE_LINEAGE_PROTOCOL_ONLY_NO_REAL_READ",
+    "source_proposal": {
+      "proposal_id": "1dc3afa027401c9fd8ad54382f0b024a8b78b73d2216f2c683a33d4c22497efb",
+      "proposal_request_sha256": "3007af3e6c6f88a74430dfe3dc73e458a8326fc9a6b0717543e61697d038ef79",
+      "canonical_proposal_sha256": "c83c14b462f3f68f669a73c121fdc6aaaa5cdf66d4825c96027a6d3b63644117",
+      "proposal_head_event_sha256": "2d6ff1aace167fa6299414773e031adab9ceac09eadd0b789fbb170c41570f5f",
+      "proposal_export_sha256": "7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc",
+      "required_state_at_lineage_approval": "REVIEW_REQUIRED",
+      "required_event_seq_at_lineage_approval": 2,
+      "expires_at": "2026-08-12T10:48:16+00:00",
+      "expiry_extension_authorized": false
+    },
+    "git_freeze": {
+      "repository": "qiang0723/shaiwei",
+      "branch": "main",
+      "protocol_commit": "ccc799b073520f04954fcb0da9e9d7ea0052b144",
+      "protocol_parent_commit": "07b0b1dcbd7a22ee2e343d0566ea1ff733985207",
+      "protocol_tree": "37a766c3a25d5ff9377fdfb9b467669d6aa4da2e",
+      "local_origin_main_at_scope_creation": "ccc799b073520f04954fcb0da9e9d7ea0052b144",
+      "protocol_commit_pushed_before_scope_creation": true
+    },
+    "frozen_files": [
+      {
+        "path": "docs/ADR_0004_M5_STATEMENT_VERSION_LINEAGE.md",
+        "sha256": "91c4428d01a9eb11fafa24691c8f2fc7e609de4a752d1d60d13784784a80c295"
+      },
+      {
+        "path": "docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_RECOVERY_PROTOCOL_20260806.md",
+        "sha256": "1a1e2534be02f5707b112b6115ee75dc8f8a96942f376a207377d27fa0ff90ea"
+      },
+      {
+        "path": "config/m5_dynamic_fundamental_source_lineage_recovery_v3.yaml",
+        "sha256": "badfac341ae1ecd65536a809789c1e1f7f4ad7c0e1b42d6faa6f60dc0adb6673"
+      },
+      {
+        "path": "config/m5_dynamic_fundamental_cross_pool_v1.yaml",
+        "sha256": "ce5cb6390df37baa553e470487c3cd319937a6d017bb43af3d874b5c41696b79"
+      },
+      {
+        "path": "config/m5_dynamic_fundamental_cross_pool_proposal_export_v1.json",
+        "sha256": "7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc"
+      },
+      {
+        "path": "docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_REAL_RUN_ACCEPTANCE_20260806.md",
+        "sha256": "db56cfe26c9570d78de9d97e7feb7910fdb631ee1d53ae6342a0b05e73b337d9"
+      },
+      {
+        "path": "config/m5_dynamic_fundamental_data_gate_release_scope_v4.json",
+        "sha256": "08d8180ce4fbbef97985f9b5610afe6b10ac9240ad34018482f919c54aecbef2"
+      },
+      {
+        "path": "docs/ARCHITECTURE_CONSTITUTION.md",
+        "sha256": "d312dd6389dde45528e8360bbb213456bde8c2522f786892a599421821e1804e"
+      },
+      {
+        "path": "config/architecture_constitution_v1.yaml",
+        "sha256": "3b4ffe73a3aa594d617e4837daa65d0317c130381bff1b6911d374842654eb83"
+      },
+      {
+        "path": "tests/test_m5_dynamic_fundamental_source_lineage_recovery_protocol.py",
+        "sha256": "873ab0ba3e04f99ad0b414d7dab16ac912bc9ea819808d58344854491ffd4e98"
+      }
+    ],
+    "prior_authoritative_data_no_go": {
+      "release_scope_sha256": "8858912f14577a8911e47f0ec338cde82208fe818b4c7a921578e42aeeed6f65",
+      "case_id": "a2539149d588a0c19f9cb73331f19a66df63e301df03f56fbb2c8e5c74672068",
+      "terminal_event_seq": 6,
+      "terminal_event_sha256": "7c2615a0f9d271b8b898bc8fa2a332edabfac92d48c58f31918c49bffa80917e",
+      "terminal_state": "BLOCKED_DATA",
+      "verdict": "NO_GO_M5_2_DATA_PREEXECUTION",
+      "conflict_group_count": 23,
+      "strategy_effective": "NOT_EVALUATED",
+      "production_authorization": "none",
+      "prior_case_mutation_authorized": false,
+      "prior_release_rerun_authorized": false
+    },
+    "research_identity": {
+      "family_id": "fundamental_dynamic",
+      "research_protocol_id": "m5-dynamic-fundamental-cross-pool-data-preexecution-v1",
+      "research_config_sha256": "ce5cb6390df37baa553e470487c3cd319937a6d017bb43af3d874b5c41696b79",
+      "candidate_count": 8,
+      "universe_count": 3,
+      "evaluation_unit_count": 24,
+      "primary_attempt_n": 14,
+      "sensitivity_attempt_n": 20,
+      "effect_test_count": 0,
+      "research_semantics_changed": false
+    },
+    "source_lineage_contract": {
+      "recovery_protocol_id": "m5-dynamic-fundamental-source-lineage-recovery-v3",
+      "statement_identity_field_count": 5,
+      "time_semantics": [
+        "statement_f_ann_date",
+        "provider_revision_effective_at",
+        "local_observed_at"
+      ],
+      "minimum_historical_resolution_tier": "E2_PROVIDER_DECLARED_VERSION",
+      "local_observation_can_backfill_history": false,
+      "update_flag_orders_same_identity_variants": false,
+      "latest_or_source_priority_authorized": false,
+      "conflict_group_deletion_authorized": false,
+      "lineage_feasibility_precedes_data_gate": true,
+      "network_collection_requires_separate_protocol": true,
+      "pass_authorizes_only_new_data_gate_protocol_and_release": true
+    },
+    "permitted_next_construction": {
+      "lineage_implementation_and_release_only": true,
+      "synthetic_fixture_only": true,
+      "real_financial_read": false,
+      "real_conflict_diagnosis": false,
+      "real_lineage_execution": false,
+      "external_evidence_acquisition": false,
+      "data_gate_execution": false,
+      "effect_or_engineering_execution": false
+    },
+    "authority": {
+      "lineage_release_scope_created": false,
+      "lineage_approval_recorded": false,
+      "lineage_execution_authorized": false,
+      "formal_registry_write_authorized": false,
+      "real_data_read_authorized": false,
+      "real_conflict_diagnosis_authorized": false,
+      "provider_call_count": 0,
+      "provider_budget_usd": "0.00",
+      "external_call_authorized": false,
+      "credential_read_authorized": false,
+      "pit_read_or_compute_authorized": false,
+      "label_read_authorized": false,
+      "effect_read_authorized": false,
+      "model_training_authorized": false,
+      "backtest_authorized": false,
+      "engineering_gate_execution_authorized": false,
+      "paper_authorized": false,
+      "forward_authorized": false,
+      "production_authorization": "none",
+      "scheduler_mutation_authorized": false,
+      "web_change_authorized": false
+    }
+  }
+}
