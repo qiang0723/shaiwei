@@ -16,6 +16,7 @@ from shaiwei.research.model_attribution.contract import (
     canonical_sha256,
 )
 from shaiwei.research.model_attribution.effect_audit import audit
+from shaiwei.research.model_attribution.effect_audit import main as effect_audit_main
 from shaiwei.research.model_attribution.effect_contract import (
     APPROVAL_ACTION,
     EffectApproval,
@@ -202,6 +203,39 @@ def test_release_cli_passes_the_manifest_argument_to_builder(
     )
     assert release_main() == 0
     assert captured["image_release_manifest"] == Path("manifest.json")
+
+
+def test_effect_audit_cli_maps_parser_names_to_function_signature(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured = {}
+
+    def fake_audit(**kwargs):
+        captured.update(kwargs)
+        return {"independent_audit": "PASS"}
+
+    monkeypatch.setattr("shaiwei.research.model_attribution.effect_audit.audit", fake_audit)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "effect-audit",
+            "--release",
+            "release.json",
+            "--approval",
+            "approval.json",
+            "--effect-root",
+            "effect",
+            "--audit-root",
+            "audit",
+        ],
+    )
+    assert effect_audit_main() == 0
+    assert captured == {
+        "release_path": Path("release.json"),
+        "approval_path": Path("approval.json"),
+        "effect_root": Path("effect"),
+        "audit_root": Path("audit"),
+    }
 
 
 def test_synthetic_one_shot_runner_independent_audit_and_tamper_gate(

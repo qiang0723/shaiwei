@@ -182,7 +182,17 @@ def main() -> int:
     parser.add_argument("--effect-root", type=Path, required=True)
     parser.add_argument("--audit-root", type=Path, required=True)
     args = parser.parse_args()
-    print(json.dumps(audit(**vars(args)), sort_keys=True))
+    print(
+        json.dumps(
+            audit(
+                release_path=args.release,
+                approval_path=args.approval,
+                effect_root=args.effect_root,
+                audit_root=args.audit_root,
+            ),
+            sort_keys=True,
+        )
+    )
     return 0
 
 
