@@ -15,6 +15,11 @@ EVENT_TYPES = {
     "DATA_GATE_STARTED",
     "DATA_GATE_PREEXECUTION_FAILED",
     "DATA_GATE_RECORDED",
+    "LINEAGE_GATE_RELEASE_READY",
+    "LINEAGE_GATE_APPROVED",
+    "LINEAGE_GATE_STARTED",
+    "LINEAGE_GATE_PREEXECUTION_FAILED",
+    "LINEAGE_GATE_RECORDED",
     "ENGINEERING_GATE_RELEASE_READY",
     "ENGINEERING_GATE_APPROVED",
     "ENGINEERING_GATE_STARTED",
@@ -48,7 +53,12 @@ def transition(current: AxisState | None, event_type: str, payload: dict[str, An
             evidence_tier=current.evidence_tier,
         )
     if event_type == "CLOSED":
-        if current.lifecycle_state not in {"ENGINEERING_GO", "BLOCKED_ENGINEERING", "BLOCKED_DATA"}:
+        if current.lifecycle_state not in {
+            "LINEAGE_GO",
+            "ENGINEERING_GO",
+            "BLOCKED_ENGINEERING",
+            "BLOCKED_DATA",
+        }:
             raise RegistryError("case can close only after a recorded gate result")
         return AxisState(
             lifecycle_state="CLOSED",
@@ -56,15 +66,12 @@ def transition(current: AxisState | None, event_type: str, payload: dict[str, An
             engineering_gate_status=current.engineering_gate_status,
             evidence_tier=current.evidence_tier,
         )
-    if (
-        current.lifecycle_state == "DATA_GATE_RUNNING"
-        and event_type == "DATA_GATE_PREEXECUTION_FAILED"
-    ):
+    if current.lifecycle_state == "DATA_GATE_RUNNING" and event_type == "DATA_GATE_PREEXECUTION_FAILED":
+        return _state("PROTOCOL_FROZEN", "NOT_READY", "NOT_READY", "PROTOCOL_ONLY")
+    if current.lifecycle_state == "LINEAGE_GATE_RUNNING" and event_type == "LINEAGE_GATE_PREEXECUTION_FAILED":
         return _state("PROTOCOL_FROZEN", "NOT_READY", "NOT_READY", "PROTOCOL_ONLY")
     simple = {
-        ("IMPORTED", "PROTOCOL_FROZEN"): _state(
-            "PROTOCOL_FROZEN", "NOT_READY", "NOT_READY", "PROTOCOL_ONLY"
-        ),
+        ("IMPORTED", "PROTOCOL_FROZEN"): _state("PROTOCOL_FROZEN", "NOT_READY", "NOT_READY", "PROTOCOL_ONLY"),
         ("PROTOCOL_FROZEN", "DATA_GATE_RELEASE_READY"): _state(
             "DATA_GATE_RELEASE_READY", "RELEASE_READY", "NOT_READY", "PROTOCOL_ONLY"
         ),
@@ -73,6 +80,15 @@ def transition(current: AxisState | None, event_type: str, payload: dict[str, An
         ),
         ("DATA_GATE_APPROVED", "DATA_GATE_STARTED"): _state(
             "DATA_GATE_RUNNING", "RUNNING", "NOT_READY", "PROTOCOL_ONLY"
+        ),
+        ("PROTOCOL_FROZEN", "LINEAGE_GATE_RELEASE_READY"): _state(
+            "LINEAGE_GATE_RELEASE_READY", "NOT_READY", "NOT_READY", "PROTOCOL_ONLY"
+        ),
+        ("LINEAGE_GATE_RELEASE_READY", "LINEAGE_GATE_APPROVED"): _state(
+            "LINEAGE_GATE_APPROVED", "NOT_READY", "NOT_READY", "PROTOCOL_ONLY"
+        ),
+        ("LINEAGE_GATE_APPROVED", "LINEAGE_GATE_STARTED"): _state(
+            "LINEAGE_GATE_RUNNING", "NOT_READY", "NOT_READY", "PROTOCOL_ONLY"
         ),
         ("DATA_GO", "ENGINEERING_GATE_RELEASE_READY"): _state(
             "ENGINEERING_GATE_RELEASE_READY",
@@ -104,15 +120,17 @@ def transition(current: AxisState | None, event_type: str, payload: dict[str, An
         if verdict == "NO_GO_M5_2_DATA_PREEXECUTION":
             return _state("BLOCKED_DATA", "BLOCKED_DATA", "NOT_READY", "PROTOCOL_ONLY")
         raise RegistryError("data gate verdict is not frozen")
-    if (
-        current.lifecycle_state == "ENGINEERING_GATE_RUNNING"
-        and event_type == "ENGINEERING_GATE_RECORDED"
-    ):
+    if current.lifecycle_state == "LINEAGE_GATE_RUNNING" and event_type == "LINEAGE_GATE_RECORDED":
+        verdict = payload.get("verdict")
+        if verdict == "GO_M5_2_SOURCE_LINEAGE_RECOVERABLE":
+            return _state("LINEAGE_GO", "NOT_READY", "NOT_READY", "LINEAGE_GO_ONLY")
+        if verdict == "NO_GO_M5_2_SOURCE_LINEAGE_PREEXECUTION":
+            return _state("BLOCKED_DATA", "BLOCKED_DATA", "NOT_READY", "LINEAGE_NO_GO_ONLY")
+        raise RegistryError("lineage gate verdict is not frozen")
+    if current.lifecycle_state == "ENGINEERING_GATE_RUNNING" and event_type == "ENGINEERING_GATE_RECORDED":
         verdict = payload.get("verdict")
         if verdict == "GO_M5_2_ENGINEERING_ONLY":
-            return _state(
-                "ENGINEERING_GO", current.data_gate_status, "ENGINEERING_GO", "ENGINEERING_GO_ONLY"
-            )
+            return _state("ENGINEERING_GO", current.data_gate_status, "ENGINEERING_GO", "ENGINEERING_GO_ONLY")
         if verdict == "NO_GO_M5_2_ENGINEERING":
             return _state(
                 "BLOCKED_ENGINEERING",

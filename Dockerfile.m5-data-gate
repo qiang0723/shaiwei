@@ -20,11 +20,18 @@ COPY config/m5_dynamic_fundamental_data_gate_build_v1.yaml ./config/
 COPY config/m5_dynamic_fundamental_data_gate_recovery_v2.yaml ./config/
 COPY config/m5_dynamic_fundamental_data_gate_recovery_protocol_scope_v2.json ./config/
 COPY config/m5_dynamic_fundamental_data_gate_build_v2.yaml ./config/
+COPY config/m5_dynamic_fundamental_data_gate_release_scope_v4.json ./config/
+COPY config/m5_dynamic_fundamental_source_lineage_recovery_v3.yaml ./config/
+COPY config/m5_dynamic_fundamental_source_lineage_recovery_protocol_scope_v3.json ./config/
+COPY config/m5_dynamic_fundamental_source_lineage_build_v3.yaml ./config/
 COPY docs/ADR_0002_M5_2_GATE_REGISTRY.md ./docs/
 COPY docs/M5_DYNAMIC_FUNDAMENTAL_CROSS_POOL_PROTOCOL_20260805.md ./docs/
 COPY docs/ADR_0003_M5_GLOBAL_DATA_FAILURE_EVIDENCE.md ./docs/
 COPY docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_PROTOCOL_20260806.md ./docs/
 COPY docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_REAL_RUN_ACCEPTANCE_20260805.md ./docs/
+COPY docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_REAL_RUN_ACCEPTANCE_20260806.md ./docs/
+COPY docs/ADR_0004_M5_STATEMENT_VERSION_LINEAGE.md ./docs/
+COPY docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_RECOVERY_PROTOCOL_20260806.md ./docs/
 
 RUN groupadd --gid 65532 m5gate \
     && useradd --uid 65532 --gid 65532 --no-create-home --shell /usr/sbin/nologin m5gate \

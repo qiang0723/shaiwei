@@ -19,6 +19,22 @@ DATA_VERDICTS = {
     "NO_GO_M5_2_DATA_PREEXECUTION",
 }
 PREEXECUTION_FAILURE_CODES = {"INPUT_BUNDLE_CONTROL_MISSING"}
+LINEAGE_VERDICTS = {
+    "GO_M5_2_SOURCE_LINEAGE_RECOVERABLE",
+    "NO_GO_M5_2_SOURCE_LINEAGE_PREEXECUTION",
+}
+LINEAGE_DISPOSITIONS = {
+    "LOSSLESS_EXACT_DUPLICATE",
+    "PIT_VERSION_CHAIN_RESOLVED",
+    "FORWARD_ONLY_OBSERVED_VERSION",
+    "UNRESOLVED_MISSING_EFFECTIVE_TIME",
+    "UNRESOLVED_AMBIGUOUS_ORDER",
+    "UNRESOLVED_INCOMPLETE_CHAIN",
+}
+LINEAGE_BLOCKING_DISPOSITIONS = LINEAGE_DISPOSITIONS - {
+    "LOSSLESS_EXACT_DUPLICATE",
+    "PIT_VERSION_CHAIN_RESOLVED",
+}
 
 
 def _release_scope(payload: dict[str, Any]) -> str:
@@ -47,7 +63,9 @@ def validate_candidate_matrix(payload: dict[str, Any], identity: GateIdentity) -
     if not isinstance(eligible, list) or not isinstance(rejected, list):
         raise RegistryError("candidate projections must be ordered lists")
     expected_eligible = [candidate for candidate in identity.candidate_ids if pass_by_candidate[candidate]]
-    expected_rejected = [candidate for candidate in identity.candidate_ids if not pass_by_candidate[candidate]]
+    expected_rejected = [
+        candidate for candidate in identity.candidate_ids if not pass_by_candidate[candidate]
+    ]
     if eligible != expected_eligible or rejected != expected_rejected:
         raise RegistryError("candidate projections differ from the complete matrix")
     verdict = payload.get("verdict")
@@ -69,10 +87,11 @@ def validate_event_payload(
     *,
     active_data_release_scope: str | None,
     active_engineering_release_scope: str | None,
+    active_lineage_release_scope: str | None,
     recorded_at: str,
     actor_sha256: str,
     approver_sha256: str,
-) -> tuple[str | None, str | None]:
+) -> tuple[str | None, str | None, str | None]:
     if not isinstance(payload, dict):
         raise RegistryError("event payload must be an object")
     if event_type == "IMPORT":
@@ -113,12 +132,16 @@ def validate_event_payload(
         if payload != {"release_scope_sha256": active_data_release_scope}:
             raise RegistryError("data start does not bind the approved release")
     elif event_type == "DATA_GATE_PREEXECUTION_FAILED":
-        if payload != {
-            "release_scope_sha256": active_data_release_scope,
-            "failure_code": "INPUT_BUNDLE_CONTROL_MISSING",
-            "runner_exit_code": 2,
-            "semantic_rows_read": False,
-        } or payload["failure_code"] not in PREEXECUTION_FAILURE_CODES:
+        if (
+            payload
+            != {
+                "release_scope_sha256": active_data_release_scope,
+                "failure_code": "INPUT_BUNDLE_CONTROL_MISSING",
+                "runner_exit_code": 2,
+                "semantic_rows_read": False,
+            }
+            or payload["failure_code"] not in PREEXECUTION_FAILURE_CODES
+        ):
             raise RegistryError("data preexecution failure evidence differs")
     elif event_type == "DATA_GATE_RECORDED":
         for name in ("evidence_manifest_sha256", "audit_manifest_sha256"):
@@ -136,6 +159,44 @@ def validate_event_payload(
             "audit_status",
         }:
             raise RegistryError("data result payload has unknown fields")
+    elif event_type == "LINEAGE_GATE_RELEASE_READY":
+        active_lineage_release_scope = _release_scope(payload)
+        if set(payload) != {"release_scope_sha256"}:
+            raise RegistryError("lineage release-ready payload has unknown fields")
+    elif event_type == "LINEAGE_GATE_APPROVED":
+        if actor_sha256 != approver_sha256:
+            raise RegistryError("only the frozen local approver role can approve")
+        if _release_scope(payload) != active_lineage_release_scope:
+            raise RegistryError("lineage approval release scope differs")
+        if payload.get("decision") != "APPROVE" or payload.get("proposal_state") != "REVIEW_REQUIRED":
+            raise RegistryError("lineage approval does not bind proposal state")
+        if payload.get("proposal_event_seq") != 2:
+            raise RegistryError("lineage approval proposal event sequence differs")
+        if payload.get("proposal_head_event_sha256") != identity.proposal_head_event_sha256:
+            raise RegistryError("lineage approval proposal head differs")
+        if datetime.fromisoformat(recorded_at) >= datetime.fromisoformat(identity.proposal_expires_at):
+            raise RegistryError("lineage approval occurred after proposal expiry")
+        if set(payload) != {
+            "release_scope_sha256",
+            "decision",
+            "proposal_state",
+            "proposal_event_seq",
+            "proposal_head_event_sha256",
+        }:
+            raise RegistryError("lineage approval payload has unknown fields")
+    elif event_type == "LINEAGE_GATE_STARTED":
+        if payload != {"release_scope_sha256": active_lineage_release_scope}:
+            raise RegistryError("lineage start does not bind approved release")
+    elif event_type == "LINEAGE_GATE_PREEXECUTION_FAILED":
+        if payload != {
+            "release_scope_sha256": active_lineage_release_scope,
+            "failure_code": "INPUT_BUNDLE_CONTROL_MISSING",
+            "runner_exit_code": 2,
+            "semantic_rows_read": False,
+        }:
+            raise RegistryError("lineage preexecution failure evidence differs")
+    elif event_type == "LINEAGE_GATE_RECORDED":
+        _validate_lineage_result(payload)
     elif event_type == "ENGINEERING_GATE_RELEASE_READY":
         active_engineering_release_scope = _release_scope(payload)
         if set(payload) != {"release_scope_sha256"}:
@@ -143,7 +204,10 @@ def validate_event_payload(
     elif event_type == "ENGINEERING_GATE_APPROVED":
         if actor_sha256 != approver_sha256:
             raise RegistryError("only the frozen local approver role can approve")
-        if _release_scope(payload) != active_engineering_release_scope or payload.get("decision") != "APPROVE":
+        if (
+            _release_scope(payload) != active_engineering_release_scope
+            or payload.get("decision") != "APPROVE"
+        ):
             raise RegistryError("engineering approval differs from release scope")
         if set(payload) != {"release_scope_sha256", "decision"}:
             raise RegistryError("engineering approval payload has unknown fields")
@@ -167,4 +231,55 @@ def validate_event_payload(
     elif event_type in {"REVOKED", "STOPPED", "CLOSED"}:
         if set(payload) != {"reason"} or not str(payload["reason"]).strip():
             raise RegistryError("terminal event requires one nonempty reason")
-    return active_data_release_scope, active_engineering_release_scope
+    return (
+        active_data_release_scope,
+        active_engineering_release_scope,
+        active_lineage_release_scope,
+    )
+
+
+def _validate_lineage_result(payload: dict[str, Any]) -> None:
+    expected = {
+        "verdict",
+        "identity_group_count",
+        "conflicting_identity_group_count",
+        "resolved_conflicting_group_count",
+        "blocked_conflicting_group_count",
+        "disposition_counts",
+        "evidence_manifest_sha256",
+        "audit_manifest_sha256",
+        "audit_status",
+    }
+    if set(payload) != expected or payload.get("audit_status") != "PASS":
+        raise RegistryError("lineage result fields or audit status differ")
+    for name in ("evidence_manifest_sha256", "audit_manifest_sha256"):
+        require_sha256(str(payload.get(name, "")), name)
+    counts = payload.get("disposition_counts")
+    if not isinstance(counts, dict) or set(counts) != LINEAGE_DISPOSITIONS:
+        raise RegistryError("lineage disposition counts differ")
+    numeric_names = (
+        "identity_group_count",
+        "conflicting_identity_group_count",
+        "resolved_conflicting_group_count",
+        "blocked_conflicting_group_count",
+    )
+    if any(not isinstance(payload.get(name), int) or payload[name] < 0 for name in numeric_names) or any(
+        not isinstance(value, int) or value < 0 for value in counts.values()
+    ):
+        raise RegistryError("lineage result counts are invalid")
+    if sum(counts.values()) != payload["identity_group_count"]:
+        raise RegistryError("lineage dispositions do not cover every identity")
+    resolved = counts["PIT_VERSION_CHAIN_RESOLVED"]
+    blocked = sum(counts[name] for name in LINEAGE_BLOCKING_DISPOSITIONS)
+    if (
+        resolved != payload["resolved_conflicting_group_count"]
+        or blocked != payload["blocked_conflicting_group_count"]
+        or resolved + blocked != payload["conflicting_identity_group_count"]
+        or payload["identity_group_count"] < payload["conflicting_identity_group_count"]
+    ):
+        raise RegistryError("lineage conflict projections differ from dispositions")
+    expected_verdict = (
+        "GO_M5_2_SOURCE_LINEAGE_RECOVERABLE" if blocked == 0 else "NO_GO_M5_2_SOURCE_LINEAGE_PREEXECUTION"
+    )
+    if payload.get("verdict") != expected_verdict or expected_verdict not in LINEAGE_VERDICTS:
+        raise RegistryError("lineage verdict differs from dispositions")

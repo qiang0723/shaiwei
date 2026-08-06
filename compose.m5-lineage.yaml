@@ -1,0 +1,72 @@
+x-m5-lineage-common: &m5-lineage-common
+  image: shaiwei:m5-lineage-local
+  profiles: ["m5-lineage-release"]
+  network_mode: none
+  read_only: true
+  user: "65532:65532"
+  cap_drop: ["ALL"]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 128
+  init: true
+  tmpfs:
+    - /tmp:size=256m,mode=1777
+
+services:
+  m5-lineage-fixture:
+    <<: *m5-lineage-common
+    profiles: ["m5-lineage-fixture"]
+    build:
+      context: .
+      dockerfile: Dockerfile.m5-data-gate
+    command: ["python", "-m", "shaiwei.research_gates.m5_dynamic.lineage_fixture"]
+    cpus: 1.0
+    mem_limit: 2g
+
+  m5-lineage-runner:
+    <<: *m5-lineage-common
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.m5_dynamic.lineage_runner
+      - --input-root
+      - /lineage-input
+      - --output-root
+      - /lineage-output
+    cpus: 1.0
+    mem_limit: 2g
+    volumes:
+      - ${M5_LINEAGE_INPUT:-./data/control/m5_2/lineage-unreleased/inputs}:/lineage-input:ro
+      - ${M5_LINEAGE_OUTPUT:-./data/control/m5_2/lineage-unreleased/outputs}:/lineage-output:rw
+
+  m5-lineage-auditor:
+    <<: *m5-lineage-common
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.m5_dynamic.lineage_auditor
+      - --input-root
+      - /lineage-input
+      - --output-root
+      - /lineage-output
+      - --audit-root
+      - /lineage-audit
+    cpus: 0.5
+    mem_limit: 512m
+    volumes:
+      - ${M5_LINEAGE_INPUT:-./data/control/m5_2/lineage-unreleased/inputs}:/lineage-input:ro
+      - ${M5_LINEAGE_OUTPUT:-./data/control/m5_2/lineage-unreleased/outputs}:/lineage-output:ro
+      - ${M5_LINEAGE_AUDIT:-./data/control/m5_2/lineage-unreleased/audits}:/lineage-audit:rw
+
+  m5-lineage-registry:
+    <<: *m5-lineage-common
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.gate_registry
+      - --database
+      - /registry/gate_registry.sqlite3
+      - verify
+    cpus: 0.5
+    mem_limit: 512m
+    volumes:
+      - ${M5_LINEAGE_REGISTRY:-./data/control/m5_2/lineage-unreleased/registry}:/registry:rw

@@ -64,9 +64,10 @@ class GateRegistryService:
         )
 
     @staticmethod
-    def _active_release_scopes(connection: Any, case_id: str) -> tuple[str | None, str | None]:
+    def _active_release_scopes(connection: Any, case_id: str) -> tuple[str | None, str | None, str | None]:
         data_scope = None
         engineering_scope = None
+        lineage_scope = None
         rows = connection.execute(
             "SELECT event_type,payload_json FROM gate_events WHERE case_id=? ORDER BY event_seq",
             (case_id,),
@@ -77,7 +78,9 @@ class GateRegistryService:
                 data_scope = payload["release_scope_sha256"]
             elif row["event_type"] == "ENGINEERING_GATE_RELEASE_READY":
                 engineering_scope = payload["release_scope_sha256"]
-        return data_scope, engineering_scope
+            elif row["event_type"] == "LINEAGE_GATE_RELEASE_READY":
+                lineage_scope = payload["release_scope_sha256"]
+        return data_scope, engineering_scope, lineage_scope
 
     @staticmethod
     def _replay_receipt(
@@ -98,7 +101,10 @@ class GateRegistryService:
         if row["request_sha256"] != request_sha256:
             raise RegistryError("idempotency key was reused with a different request")
         response = json.loads(row["response_json"])
-        if canonical_json(response) != row["response_json"] or sha256_json(response) != row["response_sha256"]:
+        if (
+            canonical_json(response) != row["response_json"]
+            or sha256_json(response) != row["response_sha256"]
+        ):
             raise RegistryError("stored idempotency response is not canonical")
         return response
 
@@ -162,9 +168,7 @@ class GateRegistryService:
             "payload": payload,
         }
         command_sha = sha256_json(command)
-        request_sha = sha256_json(
-            {"actor_sha256": actor_sha, "command": command, "recorded_at": recorded}
-        )
+        request_sha = sha256_json({"actor_sha256": actor_sha, "command": command, "recorded_at": recorded})
         with self.store.immediate() as connection:
             verify_registry_integrity(connection)
             if replay := self._replay_receipt(
@@ -175,9 +179,7 @@ class GateRegistryService:
                 request_sha256=request_sha,
             ):
                 return replay
-            if connection.execute(
-                "SELECT 1 FROM gate_cases WHERE case_id=?", (identity.case_id,)
-            ).fetchone():
+            if connection.execute("SELECT 1 FROM gate_cases WHERE case_id=?", (identity.case_id,)).fetchone():
                 raise RegistryError("gate case already exists under another command")
             after = transition(None, "IMPORT", payload)
             validate_event_payload(
@@ -186,6 +188,7 @@ class GateRegistryService:
                 identity,
                 active_data_release_scope=None,
                 active_engineering_release_scope=None,
+                active_lineage_release_scope=None,
                 recorded_at=recorded,
                 actor_sha256=actor_sha,
                 approver_sha256=APPROVER_SHA256,
@@ -254,9 +257,7 @@ class GateRegistryService:
             "payload": payload,
         }
         command_sha = sha256_json(command)
-        request_sha = sha256_json(
-            {"actor_sha256": actor_sha, "command": command, "recorded_at": recorded}
-        )
+        request_sha = sha256_json({"actor_sha256": actor_sha, "command": command, "recorded_at": recorded})
         with self.store.immediate() as connection:
             verify_registry_integrity(connection)
             if replay := self._replay_receipt(
@@ -267,9 +268,7 @@ class GateRegistryService:
                 request_sha256=request_sha,
             ):
                 return replay
-            case = connection.execute(
-                "SELECT * FROM gate_cases WHERE case_id=?", (case_id,)
-            ).fetchone()
+            case = connection.execute("SELECT * FROM gate_cases WHERE case_id=?", (case_id,)).fetchone()
             if case is None:
                 raise RegistryError("gate case does not exist")
             if int(case["current_event_seq"]) != expected_event_seq:
@@ -277,13 +276,14 @@ class GateRegistryService:
             identity = identity_from_case(case)
             before = self._state_from_case(case)
             after = transition(before, event_type, payload)
-            data_scope, engineering_scope = self._active_release_scopes(connection, case_id)
+            data_scope, engineering_scope, lineage_scope = self._active_release_scopes(connection, case_id)
             validate_event_payload(
                 event_type,
                 payload,
                 identity,
                 active_data_release_scope=data_scope,
                 active_engineering_release_scope=engineering_scope,
+                active_lineage_release_scope=lineage_scope,
                 recorded_at=recorded,
                 actor_sha256=actor_sha,
                 approver_sha256=APPROVER_SHA256,
@@ -331,9 +331,7 @@ class GateRegistryService:
     def get_case(self, case_id: str) -> dict[str, Any]:
         with self.store.read() as connection:
             verify_registry_integrity(connection)
-            case = connection.execute(
-                "SELECT * FROM gate_cases WHERE case_id=?", (case_id,)
-            ).fetchone()
+            case = connection.execute("SELECT * FROM gate_cases WHERE case_id=?", (case_id,)).fetchone()
             if case is None:
                 raise RegistryError("gate case does not exist")
             return dict(case)

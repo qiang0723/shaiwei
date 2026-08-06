@@ -121,6 +121,7 @@ def _verify_case(connection: Any, case: Any) -> None:
     previous_sha = ZERO_SHA256
     active_data_release: str | None = None
     active_engineering_release: str | None = None
+    active_lineage_release: str | None = None
     for expected_seq, row in enumerate(events, start=1):
         if int(row["event_seq"]) != expected_seq:
             raise RegistryError("case event sequence is not contiguous")
@@ -143,12 +144,17 @@ def _verify_case(connection: Any, case: Any) -> None:
         after = transition(before, stored["event_type"], stored["payload"])
         if stored["to_state"] != after.as_dict():
             raise RegistryError("event to-state differs from replay")
-        active_data_release, active_engineering_release = validate_event_payload(
+        (
+            active_data_release,
+            active_engineering_release,
+            active_lineage_release,
+        ) = validate_event_payload(
             stored["event_type"],
             stored["payload"],
             identity,
             active_data_release_scope=active_data_release,
             active_engineering_release_scope=active_engineering_release,
+            active_lineage_release_scope=active_lineage_release,
             recorded_at=stored["recorded_at"],
             actor_sha256=stored["actor_sha256"],
             approver_sha256=APPROVER_SHA256,

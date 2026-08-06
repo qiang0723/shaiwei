@@ -13,6 +13,7 @@ FIXED_FILES = (
     ".dockerignore",
     "Dockerfile.m5-data-gate",
     "compose.m5-gates.yaml",
+    "compose.m5-lineage.yaml",
     "requirements.m5-data-gate.lock",
     "src/shaiwei/__init__.py",
 )
