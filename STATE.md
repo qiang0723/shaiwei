@@ -2,6 +2,23 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-06 · M5-2B-R2谱系实现与精确release就绪，停在授权前
+
+- 纯合成实现提交`f2e5483f55278010cde4ea5ff5f8e3b56c09ae37`已先推送：版本commitment、六处置
+  谱系构造、未解释回滚门、aggregate-only投影、write-once封存、独立auditor、registry v1新case、
+  metadata inventory和批准后内容寻址输入束均完成；R1冲突分类器、旧case和旧证据未改。
+- 全仓804 PASS、架构6 PASS；最终断网Docker双跑同结论，fixture SHA为`1b4b0008...e9a62`。新增
+  生产模块最大340行；Ruff/compileall/pip/Compose/diff均PASS。
+- metadata-only输入清单绑定16,841个R1锚定批次和同一组16,841个历史批次，逻辑/物理SHA为
+  `b9b7c7fb...e5d7`/`0576de1f...6780`，权威证据0，`semantic_rows_read=false`；未查看真实冲突证券、
+  日期和值。
+- 精确release scope为`b01058b55ff3dd6c06cf0722541214ecbb793de92a3115410c073daab26cf155`，绑定
+  已推送代码、镜像`sha256:fe9101f1...9b606`和四个窄挂载。当前approval/execution/正式registry写/
+  real read/冲突诊断/外网/PIT/候选/效果/模型/回测均false，策略`NOT_EVALUATED`、生产`none`。
+- scheduler仍为原容器`183b8c6c5edd`、原镜像`722f63de...13b76`且healthy。下一步只能等待用户对
+  完整scope SHA明确批准一次断网`LINEAGE_FEASIBILITY`；联网补证及M5-2C继续未授权。见
+  `docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_RELEASE_ACCEPTANCE_20260806.md`。
+
 ## 2026-08-06 · M5-2B-R2财报来源版本谱系恢复协议已冻结
 
 - 结果前协议提交`ccc799b073520f04954fcb0da9e9d7ea0052b144`已先推送；protocol scope为
