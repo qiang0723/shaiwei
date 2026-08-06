@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-06 · M5-2B-R2唯一真实谱系运行因锚定范围不一致STOPPED
+
+- 用户批准精确scope `b01058b55ff3dd6c06cf0722541214ecbb793de92a3115410c073daab26cf155`
+  后，正式新case完成至`LINEAGE_GATE_STARTED`；16,853文件输入束校验通过，runner以断网、非root、
+  只读根和两个窄挂载执行恰好一次。
+- runner在读取anchor财报行后以exit 2失败关闭：`M5 lineage anchor conflict identity changed`；输出和
+  audit均0文件，auditor未启动，没有lineage verdict或新DATA裁决，策略仍`NOT_EVALUATED`、生产`none`。
+- 静态根因是R1基线只统计年报且`report_type∈{1,5}`，R2 reader在23组锚定校验前却读取全部报表行；
+  合成fixture只有年报，未覆盖该范围差异。本轮未为诊断再次读取真实语义数据。
+- 新case event 6已`STOPPED`，SHA `2dc732c8...74e27`；registry 3 case/22 event/22 receipt/22 outbox、
+  pending 0，重放零新增。旧v3/R1 case head、上一registry/ledger哈希不变，scheduler身份不变且healthy。
+- 本release不允许重跑。下一步只能先提交同口径过滤与季度行对抗fixture，重建镜像并生成新scope；用户
+  对新完整SHA再次批准前不得运行。见
+  `docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_REAL_RUN_ACCEPTANCE_20260806.md`。
+
 ## 2026-08-06 · M5-2B-R2谱系实现与精确release就绪，停在授权前
 
 - 纯合成实现提交`f2e5483f55278010cde4ea5ff5f8e3b56c09ae37`已先推送：版本commitment、六处置

@@ -336,8 +336,11 @@ Web持续展示“哪些池可研究、做过什么、为什么失败、当前�
   被全局失败关闭，24单元全FAIL，独立audit PASS，新case进入`BLOCKED_DATA`；效果测试仍为0，策略
   `NOT_EVALUATED`。M5-2B-R2版本谱系恢复协议现已结果前冻结：scope `96c4f996...e463ccd`派生新case
   `6b6c849f...f7be16`，强制分开公告日、权威修订生效时间和本地观察时间，禁止用latest/VIP/update
-  flag/多数值或删样本解冲突。当前只允许纯合成实现、独立audit和release；真实lineage仍须精确授权，
-  缺权威版本证据时的联网采集必须另立协议，禁止与DATA_GATE混跑。
+  flag/多数值或删样本解冲突。用户批准精确release `b01058b5...cf155`后，唯一真实断网runner在读取
+  anchor行后因`anchor conflict identity changed`以exit 2失败，零输出、零audit并进入`STOPPED`；不是
+  lineage NO-GO或策略REJECT。根因是R1冲突基线限定年报且report type 1/5，R2 reader锚定前未复用同一
+  行域。本release不得重跑；须先以新提交修复过滤并补季度行fixture，形成新镜像/scope后重新授权。
+  缺权威版本证据时的联网采集仍必须另立协议，禁止与DATA_GATE混跑。
 
 ## R3 · 专业只读 Web
 
@@ -487,7 +490,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M5-1 | 多股票池非权威研究提案控制面 | GO；create/submit-review/cancel、SQLite证据链、全库双向完整性、本机Web与隔离Docker均PASS；交付验收时空库，研究尝试增量0 | 只允许人工建立/复核/取消提案；M5-2冻结、批准和执行必须另立ADR/协议并重新授权 |
 | M5-1A | 科创50/中盘/小盘动态基本面提案 | `REVIEW_REQUIRED`；8个确定性候选、最多24个跨池评价单元、零provider调用/费用；实际研究尝试增量0，2026-08-12 18:48:16到期 | 停在人工复核；若继续须另立M5-2冻结/批准协议并获得用户明确授权，不自动排队或运行 |
 | M5-2A | 科创三池动态基本面数据/预执行协议 | protocol-only冻结；8式/3池/24单元、PIT/覆盖/陈旧度/未来窗与N=14/20已锁定；效果测试0、门批准0 | 先施工并推送M5-2B数据release；用户批准精确scope前不得读取真实数据，工程门须DATA_GO后另批 |
-| M5-2B | 动态基本面数据门与R2版本谱系恢复 | v4真实门23组冲突的`BLOCKED_DATA`永久保留；R2纯合成lineage、独立audit、metadata清单和断网release已GO，精确scope`b01058b5…f155`尚未批准；策略`NOT_EVALUATED` | 仅在用户明确批准完整scope后运行一次断网`LINEAGE_FEASIBILITY`；当前权威证据0，联网补证须另立协议；禁止M5-2C/效果/生产与按效果选源 |
+| M5-2B | 动态基本面数据门与R2版本谱系恢复 | v4真实门23组冲突的`BLOCKED_DATA`永久保留；R2精确scope已获批并唯一运行，但因锚定行域不一致exit 2、零输出/audit，case=`STOPPED`；无lineage verdict，策略`NOT_EVALUATED` | 不重跑旧scope；先修复R1/R2年报过滤一致性并补季度行fixture，推送新镜像/scope后重新授权；外网补证、M5-2C/效果/生产仍禁止 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |
 | G8-1R | 监管主源不可覆盖采集 | 1 条原 Docker 失败永久保留；恢复 54 条主证据、二遍幂等与断网复核 PASS；G8 仍 NOT_READY | 只允许另立 G8-2 管理人 HTTPS 交叉核验与费率有效期谱系协议 |
