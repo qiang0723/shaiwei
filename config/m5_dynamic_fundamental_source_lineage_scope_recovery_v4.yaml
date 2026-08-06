@@ -1,0 +1,106 @@
+schema_version: m5-dynamic-fundamental-source-lineage-scope-recovery-v4
+recovery_build_protocol_id: m5-dynamic-fundamental-source-lineage-build-v4
+frozen_at: "2026-08-06T14:45:00+08:00"
+
+superseded_release:
+  release_scope_sha256: b01058b55ff3dd6c06cf0722541214ecbb793de92a3115410c073daab26cf155
+  case_id: 6b6c849f4ded89f631e1af8127f0e7321898aa7f4ce0c2630806fc8c8ef7be16
+  terminal_event_seq: 6
+  terminal_event_sha256: 2dc732c8ed42a494b09bec6766f9896f6be73f82fced28bb48654f3481374e27
+  terminal_state: STOPPED
+  runner_exit_code: 2
+  runner_error: M5 lineage anchor conflict identity changed
+  semantic_rows_read: true
+  output_file_count: 0
+  audit_file_count: 0
+  acceptance_path: docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_REAL_RUN_ACCEPTANCE_20260806.md
+  acceptance_sha256: 6ea221d08dce14cc6063f67f5ee2f12af9ef46015e1f00fc068640c63ae87f58
+  rerun_authorized: false
+  mutation_authorized: false
+
+inherited_protocol:
+  recovery_protocol_id: m5-dynamic-fundamental-source-lineage-recovery-v3
+  path: config/m5_dynamic_fundamental_source_lineage_recovery_v3.yaml
+  sha256: badfac341ae1ecd65536a809789c1e1f7f4ad7c0e1b42d6faa6f60dc0adb6673
+  research_semantics_changed: false
+  evidence_tiers_changed: false
+  lineage_dispositions_changed: false
+  verdicts_changed: false
+  output_contract_changed: false
+  attempt_counts_changed: false
+
+scope_alignment:
+  authority: R1_SOURCE_CONFLICT_ANNUAL_SCOPE
+  tables: [income, balancesheet, cashflow]
+  identity_fields: [ts_code, f_ann_date, end_date, report_type, update_flag]
+  eligible_end_date_suffix: "1231"
+  eligible_report_types: ["1", "5"]
+  apply_before:
+    - anchor_conflict_key_construction
+    - history_identity_allowlist
+    - lineage_observation_construction
+    - independent_audit_recompute
+  quarterly_or_other_period_rows: EXCLUDED_NOT_CONFLICT_GROUP_DELETION
+  missing_identity_in_eligible_row: FAIL_CLOSED
+  source_priority_authorized: false
+  value_selection_authorized: false
+  tolerance_authorized: false
+
+implementation_change_set:
+  allowed:
+    - add_one_pure_frozen_statement_scope_predicate
+    - apply_predicate_in_lineage_reader_before_observation_construction
+    - add_quarterly_and_noneligible_report_type_adversarial_fixtures
+    - update_lineage_build_scope_case_and_release_control_paths
+  forbidden:
+    - mutate_source_conflicts_v2_semantics
+    - mutate_prior_registry_or_artifacts
+    - add_network_or_credentials
+    - add_authoritative_evidence
+    - compute_pit_or_candidates
+    - read_labels_or_effects
+    - train_model_or_run_backtest
+    - mutate_web_scheduler_or_production
+
+fixture_contract:
+  annual_report_type_1_conflicts_preserved: true
+  annual_report_type_5_conflicts_preserved: true
+  quarterly_conflicts_do_not_change_anchor_count: true
+  noneligible_report_type_conflicts_do_not_change_anchor_count: true
+  hyphenated_dates_normalized_consistently: true
+  exact_prior_anchor_count: 23
+  exact_prior_counts_by_table:
+    income: 0
+    balancesheet: 8
+    cashflow: 15
+  synthetic_only_before_new_release: true
+
+release_rules:
+  new_protocol_scope_required: true
+  new_case_id_required: true
+  new_implementation_commit_must_be_pushed_first: true
+  new_image_required: true
+  new_metadata_only_input_manifest_required: true
+  new_release_scope_required: true
+  prior_approval_migrates: false
+  real_run_requires_new_exact_user_approval: true
+
+construction_authority:
+  target_state: SOURCE_LINEAGE_RELEASE_READY_NOT_APPROVED
+  implementation_authorized: true
+  synthetic_fixture_authorized: true
+  metadata_only_inventory_authorized: true
+  image_build_authorized: true
+  release_scope_creation_authorized: true
+  formal_registry_write_authorized: false
+  real_financial_read_authorized: false
+  real_lineage_execution_authorized: false
+  external_call_authorized: false
+  credential_read_authorized: false
+  pit_compute_authorized: false
+  candidate_compute_authorized: false
+  label_read_authorized: false
+  effect_read_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  production_authorization: none
