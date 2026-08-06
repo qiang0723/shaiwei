@@ -1,0 +1,156 @@
+schema_version: m5-dynamic-fundamental-data-gate-recovery-v2
+recovery_protocol_id: m5-dynamic-fundamental-data-gate-recovery-v2
+frozen_at: "2026-08-06T09:43:07+08:00"
+
+supersedes_execution_only:
+  prior_protocol_scope_sha256: ab8c33968c4ced325ec79524b774163f2991edd0c4d5d7eb7c139b27e9b17557
+  prior_release_scope_sha256: 49fdc6e79ee7591fb03732fc4fa08430f4049b720d0552cca49ff9e153e05830
+  stopped_case_id: 223414f4341a3edca15e5a626a3d0da642c4aa671db6d9cf67c9c870b8eb0a78
+  stopped_event_seq: 10
+  stopped_event_sha256: e0ca4594e03639212ba6ed5ebe75f651a0d3664da7cad86e232e3cefc0b9b3bd
+  real_run_acceptance_path: docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_REAL_RUN_ACCEPTANCE_20260805.md
+  real_run_acceptance_sha256: 0eeaf5c6cd581f6bfca50ec7b5b4d07d39d40b93fce25f9bdfcc018bf254f937
+  prior_case_mutation_authorized: false
+  prior_release_rerun_authorized: false
+
+frozen_research_identity:
+  research_config_path: config/m5_dynamic_fundamental_cross_pool_v1.yaml
+  research_config_sha256: ce5cb6390df37baa553e470487c3cd319937a6d017bb43af3d874b5c41696b79
+  proposal_export_path: config/m5_dynamic_fundamental_cross_pool_proposal_export_v1.json
+  proposal_export_sha256: 7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc
+  candidate_count: 8
+  universe_count: 3
+  evaluation_unit_count: 24
+  primary_attempt_n: 14
+  sensitivity_attempt_n: 20
+  effect_test_count: 0
+  formula_direction_pit_threshold_or_universe_change_authorized: false
+  candidate_replacement_authorized: false
+
+source_identity_contract:
+  tables: [income, balancesheet, cashflow]
+  source_kinds: [STANDARD, VIP]
+  identity_fields: [ts_code, f_ann_date, end_date, report_type, update_flag]
+  business_fields:
+    income: [total_revenue, total_cogs, rd_exp]
+    balancesheet: [accounts_receiv, inventories, total_assets, total_liab, total_cur_assets, total_cur_liab]
+    cashflow: [n_cash_flows_fnc_act, free_cashflow]
+  identity_normalization:
+    string_dtype: true
+    date_hyphens_removed: true
+    missing_identity_policy: FAIL_CLOSED
+  value_normalization:
+    nulls_are_one_canonical_null: true
+    numeric_equivalence: EXACT_FINITE_NUMERIC
+    integer_and_equal_decimal_are_equivalent: true
+    tolerance_authorized: false
+    rounding_authorized: false
+    fill_or_imputation_authorized: false
+  categories:
+    - EXACT_DUPLICATE_WITHIN_STANDARD
+    - EXACT_DUPLICATE_WITHIN_VIP
+    - CONSISTENT_OVERLAP_STANDARD_VIP
+    - CONFLICT_WITHIN_STANDARD
+    - CONFLICT_WITHIN_VIP
+    - CONFLICT_STANDARD_VIP
+  exact_duplicate_policy: DETERMINISTIC_LOSSLESS_COLLAPSE
+  conflict_policy: NO_SOURCE_SELECTION_GLOBAL_FAILURE
+  source_priority_on_conflict_authorized: false
+
+conflict_evidence_contract:
+  schema_version: m5-source-conflict-report-v2
+  output_file: source_conflict_report.json
+  allowed_payload_groups:
+    - approved_identity
+    - table_category_counts
+    - conflict_field_counts
+    - conflict_set_sha256_by_table
+    - global_conflict_set_sha256
+    - authority
+  forbidden_payload_fields:
+    - ts_code
+    - f_ann_date
+    - end_date
+    - report_type
+    - update_flag
+    - raw_value
+    - normalized_value
+    - candidate_value
+    - absolute_path
+  conflict_set_commitment_input: normalized_identity_plus_per_field_value_sha256
+  commitment_output_only: true
+  raw_or_row_level_export_authorized: false
+
+runner_outcomes:
+  allowed_outcome_kinds: [NORMAL_DATA_MATRIX, GLOBAL_DATA_FAILURE]
+  normal_required_files: [feature_panel.parquet, data_gate_report.json, run_manifest.json]
+  global_failure_required_files: [source_conflict_report.json, data_gate_report.json, run_manifest.json]
+  global_failure_forbidden_files: [feature_panel.parquet]
+  write_once: true
+  byte_determinism_required: true
+  run_id_binds_approval_release_input_code_and_outcome_kind: true
+  exit_codes:
+    GO_SEALED: 0
+    NO_GO_SEALED: 3
+    UNSEALED_CONTROL_OR_RUNTIME_FAILURE: 2
+
+global_failure_projection:
+  trigger: ANY_SOURCE_IDENTITY_CONFLICT_COUNT_GT_ZERO
+  reason_code: GLOBAL_SOURCE_IDENTITY_CONFLICT
+  computation_status: NOT_COMPUTED_GLOBAL_FAILURE
+  candidate_matrix_cell_count: 24
+  every_cell_status: FAIL
+  eligible_candidate_ids: []
+  rejected_candidate_ids: ORDERED_ALL_EIGHT_PROTOCOL_CANDIDATES
+  verdict: NO_GO_M5_2_DATA_PREEXECUTION
+  feature_panel_status: NOT_CREATED_GLOBAL_FAILURE
+  coverage_status: NOT_COMPUTED_GLOBAL_FAILURE
+  correlation_status: NOT_COMPUTED_GLOBAL_FAILURE
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+
+independent_audit:
+  imports_runner_conflict_classifier: false
+  imports_runner_candidate_compute: false
+  rereads_same_frozen_allowlist: true
+  recomputes_categories_counts_fields_and_commitments: true
+  verifies_no_forbidden_payload_fields: true
+  verifies_artifact_set_and_physical_hashes: true
+  verifies_complete_8x3_registry_projection: true
+  audit_pass_required_before_data_gate_recorded: true
+  runner_exit_code_alone_is_authoritative: false
+
+registry_compatibility:
+  schema_version: 1
+  table_migration_authorized: false
+  same_four_tables_required: true
+  new_protocol_scope_required: true
+  new_case_id_required: true
+  old_stopped_case_replay_required: true
+  global_failure_event_type: DATA_GATE_RECORDED
+  global_failure_lifecycle_state: BLOCKED_DATA
+  global_failure_data_gate_status: BLOCKED_DATA
+  global_failure_evidence_tier: PROTOCOL_ONLY
+
+construction_authority:
+  target_state: RECOVERY_RELEASE_READY_NOT_APPROVED
+  recovery_implementation_authorized: true
+  synthetic_fixture_authorized: true
+  formal_registry_initialization_authorized: false
+  formal_gate_event_write_authorized: false
+  real_financial_read_authorized: false
+  real_conflict_diagnosis_authorized: false
+  data_gate_execution_authorized: false
+  source_mutation_authorized: false
+  provider_call_count: 0
+  provider_budget_usd: "0.00"
+  external_network_authorized: false
+  credential_read_authorized: false
+  label_read_authorized: false
+  effect_read_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  engineering_gate_execution_authorized: false
+  web_change_authorized: false
+  scheduler_mutation_authorized: false
+  production_authorization: none
