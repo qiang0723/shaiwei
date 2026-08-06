@@ -1,0 +1,312 @@
+schema_version: m6-csi800-model-attribution-protocol-v1
+protocol_id: m6-csi800-model-portfolio-attribution-small-batch-v1
+frozen_at: "2026-08-06T18:41:35+08:00"
+protocol_stage: RESULT_BLIND_PROTOCOL_FREEZE_ONLY
+
+research_question:
+  objective: >-
+    在固定中证800、Alpha158、t+11开盘标签、W1-W6、成本、成交和Top30组合后，判断当前瓶颈
+    更可能来自学习结构、分数到组合的转换，还是既有特征信息本身。
+  optimization_or_best_model_search: false
+  production_strategy_replacement: false
+  legacy_stage0_results_known_before_freeze: true
+  new_m6_results_inspected_before_freeze: false
+
+authority:
+  protocol_freeze_authorized_by_user_instruction: true
+  implementation_authorized: false
+  real_training_authorized: false
+  prediction_authorized: false
+  label_or_effect_read_authorized: false
+  backtest_authorized: false
+  forward_signal_authorized: false
+  paper_portfolio_authorized: false
+  production_authorization: none
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  tushare_calls: 0
+  deepseek_calls: 0
+
+scope:
+  universe_id: csi800-pit-v1
+  official_index_code: 000906.SH
+  qlib_instrument: csi800
+  benchmark_qlib_code: SH000906
+  feature_set: Alpha158
+  feature_additions: 0
+  control_arm_count: 1
+  alternative_arm_count: 2
+  formal_hypothesis_count: 2
+  grid_search_authorized: false
+  multiple_seed_authorized: false
+  hyperparameter_tuning_authorized: false
+  portfolio_parameter_search_authorized: false
+
+frozen_inputs:
+  settings:
+    path: config/settings.yaml
+    sha256: 23dfbcd6be65a569de265387473cd991b4d10b0da0f4ac13f5bac32be313e242
+  qlib_provider:
+    path: data/qlib_bin
+    manifest_path: data/qlib_bin/_shaiwei_manifest.json
+    manifest_sha256: 62cae2f46b57020db202bee1748f072e7859e209663046747f76aaa008f605a9
+    tree_sha256: 0532f6cd7c2c78f0936f92a986aef83a848175fe6f332274e06c7ed6e8c11778
+    file_count: 54464
+    byte_count: 430835211
+    data_snapshot_sha256: 65990a15cd56cf02b9a4812a0a37e4574affd7fc90b500fcb5e8e64b12c7b866
+  legacy_code_evidence:
+    baseline_path: src/shaiwei/backtest/baseline.py
+    baseline_sha256: 4da9281cf99bcaf0ae70b130620660b1332233759e1ccf7f5b38542567c02fe9
+    strategy_path: src/shaiwei/backtest/strategy.py
+    strategy_sha256: d9a6bb8cc82355f55b13f732a36c2353d35571599d33ea9539351f019b30a3a3
+    metrics_path: src/shaiwei/backtest/metrics.py
+    metrics_sha256: f230ab0daf8968ffc71d21a80d9fdbd95227d032fef87ea298bbd8ab9c22ee22
+  route_review:
+    path: docs/PLATFORM_ROUTE_REVIEW_20260806.md
+    sha256: 5a06ab43d484dae32780b1a6cda8d1ce9d57524cc47126174cd5cc7e15b7c703
+
+legacy_control_boundary:
+  legacy_stage0_preserved_without_rewrite: true
+  legacy_stage0_is_clean_comparator_for_m6: false
+  reason: >-
+    历史Stage0未显式剔除train/valid末端11个信号日，valid early stopping可能读取test期价格形成的标签；
+    旧证据和生产身份继续保留，但不能直接作为本批干净模型比较的控制组。
+  production_or_forward_baseline_modified_by_this_protocol: false
+  clean_control_required: true
+
+clock_and_label:
+  signal_clock: signal_date_close
+  execution_clock: next_trade_day_open
+  label_expression: "Ref($open,-11)/Ref($open,-1)-1"
+  label_semantics: open_t_plus_11_div_open_t_plus_1_minus_1
+  label_horizon_trade_days: 11
+  train_and_valid_purge_policy: remove_final_11_signal_dates
+  handler_fit_end_policy: purged_train_last_signal_date
+  early_stopping_uses_purged_valid_only: true
+  test_boundaries_move: false
+  test_prediction_dates: full_frozen_test_window
+  test_score_dates: signal_dates_whose_t_plus_11_open_is_within_test_window
+  cross_window_label_carry_authorized: false
+  official_calendar_path: data/qlib_bin/calendars/day.txt
+
+windows:
+  - name: W1
+    train: ["2016-01-01", "2018-06-30"]
+    purged_train_last_signal: "2018-06-13"
+    valid: ["2018-07-01", "2018-12-31"]
+    purged_valid_last_signal: "2018-12-13"
+    test: ["2019-01-01", "2019-12-31"]
+    score_last_signal: "2019-12-16"
+  - name: W2
+    train: ["2017-01-01", "2019-06-30"]
+    purged_train_last_signal: "2019-06-13"
+    valid: ["2019-07-01", "2019-12-31"]
+    purged_valid_last_signal: "2019-12-16"
+    test: ["2020-01-01", "2020-12-31"]
+    score_last_signal: "2020-12-16"
+  - name: W3
+    train: ["2018-01-01", "2020-06-30"]
+    purged_train_last_signal: "2020-06-11"
+    valid: ["2020-07-01", "2020-12-31"]
+    purged_valid_last_signal: "2020-12-16"
+    test: ["2021-01-01", "2021-12-31"]
+    score_last_signal: "2021-12-16"
+  - name: W4
+    train: ["2019-01-01", "2021-06-30"]
+    purged_train_last_signal: "2021-06-15"
+    valid: ["2021-07-01", "2021-12-31"]
+    purged_valid_last_signal: "2021-12-16"
+    test: ["2022-01-01", "2022-12-31"]
+    score_last_signal: "2022-12-15"
+  - name: W5
+    train: ["2020-01-01", "2022-06-30"]
+    purged_train_last_signal: "2022-06-15"
+    valid: ["2022-07-01", "2022-12-31"]
+    purged_valid_last_signal: "2022-12-15"
+    test: ["2023-01-01", "2023-12-31"]
+    score_last_signal: "2023-12-14"
+  - name: W6
+    train: ["2021-01-01", "2023-06-30"]
+    purged_train_last_signal: "2023-06-13"
+    valid: ["2023-07-01", "2023-12-31"]
+    purged_valid_last_signal: "2023-12-14"
+    test: ["2024-01-01", "2024-12-31"]
+    score_last_signal: "2024-12-16"
+
+shared_handler:
+  class: qlib.contrib.data.handler.Alpha158
+  infer_processors:
+    - {class: RobustZScoreNorm, fields_group: feature, clip_outlier: true}
+    - {class: Fillna, fields_group: feature}
+  learn_processors:
+    - {class: DropnaLabel}
+    - {class: CSRankNorm, fields_group: label}
+  same_handler_state_per_window_across_arms: true
+
+arms:
+  - arm_id: clean_lgbm_control_v1
+    role: CONTROL
+    class: qlib.contrib.model.gbdt.LGBModel
+    parameters:
+      loss: mse
+      learning_rate: 0.05
+      num_leaves: 31
+      max_depth: -1
+      colsample_bytree: 0.8879
+      subsample: 0.8789
+      reg_alpha: 0.0421
+      reg_lambda: 0.0220
+      seed: 42
+      feature_fraction_seed: 42
+      bagging_seed: 42
+      data_random_seed: 42
+      num_threads: 8
+      deterministic: true
+      force_col_wise: true
+      num_boost_round: 1000
+      early_stopping_rounds: 50
+    structure_question: current_nonlinear_tree_control_after_uniform_label_maturity_purge
+  - arm_id: ridge_alpha1_v1
+    role: ALTERNATIVE_1
+    class: qlib.contrib.model.linear.LinearModel
+    parameters:
+      estimator: ridge
+      alpha: 1.0
+      fit_intercept: false
+      include_valid: false
+    structure_question: whether_a_regularized_linear_map_is_more_stable_than_tree_learning
+  - arm_id: lgbm_ridge_rank_blend_50_50_v1
+    role: ALTERNATIVE_2
+    class: deterministic_score_fusion
+    trained_models: [clean_lgbm_control_v1, ridge_alpha1_v1]
+    parameters:
+      transform: daily_cross_sectional_percentile_rank
+      ascending: true
+      tie_method: average
+      lgbm_weight: 0.5
+      ridge_weight: 0.5
+      missing_member_policy: fail_closed_no_intersection_fallback
+    structure_question: whether_fixed_learning_structure_diversification_adds_value
+
+portfolio:
+  strategy: BiweeklyTopkDropoutStrategy
+  account_rmb: 100000000
+  topk: 30
+  n_drop: 3
+  rebalance_trade_days: 10
+  only_tradable: true
+  forbid_all_trade_at_limit: false
+  deal_price: open
+  benchmark: SH000906
+  open_cost: 0.0006
+  close_cost: 0.0016
+  minimum_cost_rmb: 5
+  cost_multipliers: [1.0, 1.5, 2.0]
+  capacity_model_added: false
+  portfolio_variant_count: 0
+
+coverage_gate:
+  required_windows: [W1, W2, W3, W4, W5, W6]
+  minimum_mature_score_days_per_window: 200
+  minimum_pooled_mature_score_days: 1200
+  identical_prediction_member_day_keys_across_arms: true
+  no_bse_rows: true
+  nonfinite_predictions: fail
+  blend_minimum_cross_section_coverage_ratio: 0.99
+  missing_or_drifted_input_policy: BLOCKED_PRE_EFFECT
+
+primary_inference:
+  outcome: paired_daily_net_active_return_delta_vs_clean_lgbm_control
+  cost_multiplier: 1.0
+  pooled_definition: chronological_concatenation_W1_through_W6
+  hac_lags: 10
+  alternative: greater
+  familywise_alpha: 0.05
+  multiplicity_method: holm
+  hypothesis_family: [ridge_alpha1_v1, lgbm_ridge_rank_blend_50_50_v1]
+  hypothesis_count: 2
+  windows_and_cost_scenarios_are_not_independent_attempts: true
+
+diagnostics:
+  score_improvement:
+    pooled_mean_rank_ic_delta_strictly_positive: true
+    minimum_positive_delta_windows: 4
+  portfolio_conversion:
+    pooled_base_net_excess_delta_strictly_positive: true
+    minimum_positive_base_delta_windows: 4
+    pooled_1_5x_cost_delta_nonnegative: true
+    pooled_2x_cost_delta_nonnegative: true
+    maximum_turnover_ratio_vs_control: 1.10
+    maximum_test_or_evaluable_stress_drawdown: 0.20
+    primary_holm_adjusted_p_must_pass: true
+  required_decomposition:
+    - daily_rank_ic_and_delta
+    - daily_score_spearman_vs_control
+    - rebalance_top30_name_overlap
+    - gross_active_return_delta
+    - transaction_cost_delta
+    - net_active_return_delta
+    - turnover_ratio
+    - maximum_drawdown
+  stress_periods:
+    style_shift_2017:
+      status: NOT_EVALUABLE_NO_PRE_2017_FROZEN_MODEL
+      must_remain_disclosed: true
+    microcap_crash_2024:
+      model_window: W6
+      start: "2024-01-01"
+      end: "2024-02-29"
+    volume_price_drawdown_2026h1:
+      model_window: W6
+      start: "2026-01-01"
+      end: "2026-06-30"
+      stale_model_diagnostic_only: true
+
+attribution_decision:
+  decision_precedence:
+    - BLOCKED
+    - MODEL_STRUCTURE_SUPPORTED
+    - PORTFOLIO_CONVERSION_BOTTLENECK_INDICATED
+    - FEATURE_INFORMATION_BOTTLENECK_INDICATED
+    - MIXED_NOT_CONCLUSIVE
+  MODEL_STRUCTURE_SUPPORTED: >-
+    至少一个替代臂同时通过score_improvement与portfolio_conversion；只允许主控评审下一独立前瞻协议。
+  PORTFOLIO_CONVERSION_BOTTLENECK_INDICATED: >-
+    至少一个替代臂通过score_improvement，但所有替代臂均未通过portfolio_conversion；下一批只能研究
+    一个预冻结的组合转换变量，不得继续添加模型。
+  FEATURE_INFORMATION_BOTTLENECK_INDICATED: >-
+    两个替代臂均未通过score_improvement且均未通过portfolio_conversion；停止本模型家族，返回因子
+    信息机制研究，不得增加第三个模型。
+  MIXED_NOT_CONCLUSIVE: >-
+    没有任何替代臂同时通过分数与组合门，且出现组合通过但分数不支持、不同替代臂分别只过一个门或
+    其他不能落入前述类别的局部结果；停止并审计，不自动续跑。
+  BLOCKED: 数据、身份、覆盖、确定性或执行证据任一不完整。
+  decision_is_not_causal_proof: true
+  production_authorization_for_every_outcome: none
+
+attempt_policy:
+  control_is_not_new_alternative_attempt: true
+  alternative_attempt_count: 2
+  attempts_are_counted_on_first_authorized_effect_read: true
+  failed_implementation_after_effect_read_still_counts: true
+  no_replacement_or_third_arm: true
+  no_post_result_threshold_or_arm_change: true
+  factor_g1_trial_count_increment: 0
+
+future_execution_contract_not_authorized_here:
+  protocol_commit_must_be_pushed_before_implementation: true
+  implementation_requires_new_main_target: true
+  formal_run_count: 1
+  deterministic_replay_count: 1
+  high_load_runs_serial_only: true
+  first_pass_and_replay_canonical_artifacts_must_match: true
+  runner_and_independent_auditor_required: true
+  immutable_write_once_output_required: true
+  production_scheduler_change_or_restart: false
+
+future_outputs:
+  ignored_root: data/research/m6_csi800_model_attribution_v1
+  tracked_manifest: config/m6_csi800_model_attribution_manifest_v1.json
+  experiment_ledger: ledger/experiments.csv
+  acceptance: docs/M6_CSI800_MODEL_ATTRIBUTION_ACCEPTANCE_20260806.md
+  tracked_outputs_exist_at_freeze: false
