@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-06 · M5-2B-R1全局数据失败恢复协议已冻结
+
+- 新ADR与恢复协议已把v3双重阻断转成结果前机器合同：完全重复仅无损折叠；普通内、VIP内或两源交叉
+  任一冲突都不选边，write-once封存脱敏冲突报告、全24单元FAIL矩阵与DATA NO-GO，再由独立实现
+  重读同一冻结输入复算，audit PASS后才可`DATA_GATE_RECORDED → BLOCKED_DATA`。
+- 原八式/三池/24单元、PIT、方向、门槛和尝试`N=14/20`零变化；旧case/release/event 10/零输出证据
+  不迁移、不回写、不重跑。registry继续v1四表，零schema迁移。
+- 协议提交`c0eb26bdc7e25e50e67e7d4acfbf0460f3c05b6e`已先推送；新protocol scope为
+  `6f99c0dfdc5cd75df9bf769fb65318feb4e8e7140082a9dfb924a88a3bb0dc49`，派生新case
+  `a2539149d588a0c19f9cb73331f19a66df63e301df03f56fbb2c8e5c74672068`。
+- 当前只允许按build v2施工恢复实现与纯合成fixture；真实财务/冲突诊断、正式case/event、gate执行、
+  标签/效果/模型/生产仍为false/none。实现和镜像推送后须生成新release scope并再次明确授权。见
+  `docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_FREEZE_ACCEPTANCE_20260806.md`。
+
 ## 2026-08-05 · M5-2B release v3真实DATA_GATE因资产负债表源身份冲突失败关闭
 
 - 用户批准精确scope `49fdc6e79ee7591fb03732fc4fa08430f4049b720d0552cca49ff9e153e05830`

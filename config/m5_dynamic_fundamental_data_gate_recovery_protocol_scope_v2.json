@@ -1,0 +1,136 @@
+{
+  "schema_version": "m5-recovery-protocol-scope-envelope-v2",
+  "scope_created_at": "2026-08-06T09:47:55+08:00",
+  "protocol_scope_sha256": "6f99c0dfdc5cd75df9bf769fb65318feb4e8e7140082a9dfb924a88a3bb0dc49",
+  "scope": {
+    "scope_id": "m5-dynamic-fundamental-data-gate-recovery-protocol-scope-v2",
+    "scope_kind": "RECOVERY_PROTOCOL_ONLY_NO_GATE_RELEASE",
+    "source_proposal": {
+      "proposal_id": "1dc3afa027401c9fd8ad54382f0b024a8b78b73d2216f2c683a33d4c22497efb",
+      "proposal_request_sha256": "3007af3e6c6f88a74430dfe3dc73e458a8326fc9a6b0717543e61697d038ef79",
+      "canonical_proposal_sha256": "c83c14b462f3f68f669a73c121fdc6aaaa5cdf66d4825c96027a6d3b63644117",
+      "proposal_head_event_sha256": "2d6ff1aace167fa6299414773e031adab9ceac09eadd0b789fbb170c41570f5f",
+      "proposal_export_sha256": "7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc",
+      "required_state_at_data_gate_approval": "REVIEW_REQUIRED",
+      "required_event_seq_at_data_gate_approval": 2,
+      "expires_at": "2026-08-12T10:48:16+00:00"
+    },
+    "git_freeze": {
+      "repository": "qiang0723/shaiwei",
+      "branch": "main",
+      "protocol_commit": "c0eb26bdc7e25e50e67e7d4acfbf0460f3c05b6e",
+      "protocol_parent_commit": "5cdf7280c639920debfdbbc55cc376d6aaf79acb",
+      "protocol_tree": "4ba4b4860aae019350cdc99082a5bb7a2737b408",
+      "local_origin_main_at_scope_creation": "c0eb26bdc7e25e50e67e7d4acfbf0460f3c05b6e",
+      "protocol_commit_pushed_before_scope_creation": true
+    },
+    "frozen_files": [
+      {
+        "path": "docs/ADR_0003_M5_GLOBAL_DATA_FAILURE_EVIDENCE.md",
+        "sha256": "eb44c803b7be7785cf275abccc5df4ba95da12b221eaa1dbde48993f70711d93"
+      },
+      {
+        "path": "docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_PROTOCOL_20260806.md",
+        "sha256": "7a6f83f5af2611fb296894c3fed4241d98f18e3ba45ff0b16f3b92753283f796"
+      },
+      {
+        "path": "config/m5_dynamic_fundamental_data_gate_recovery_v2.yaml",
+        "sha256": "3b90053ac4e76dda9fb2c338e0569001e78c5d79bcb399d33b72dd65ebe09fe5"
+      },
+      {
+        "path": "config/m5_dynamic_fundamental_cross_pool_v1.yaml",
+        "sha256": "ce5cb6390df37baa553e470487c3cd319937a6d017bb43af3d874b5c41696b79"
+      },
+      {
+        "path": "config/m5_dynamic_fundamental_cross_pool_proposal_export_v1.json",
+        "sha256": "7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc"
+      },
+      {
+        "path": "docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_REAL_RUN_ACCEPTANCE_20260805.md",
+        "sha256": "0eeaf5c6cd581f6bfca50ec7b5b4d07d39d40b93fce25f9bdfcc018bf254f937"
+      },
+      {
+        "path": "docs/ARCHITECTURE_CONSTITUTION.md",
+        "sha256": "d312dd6389dde45528e8360bbb213456bde8c2522f786892a599421821e1804e"
+      },
+      {
+        "path": "config/architecture_constitution_v1.yaml",
+        "sha256": "3b4ffe73a3aa594d617e4837daa65d0317c130381bff1b6911d374842654eb83"
+      },
+      {
+        "path": "tests/test_m5_dynamic_fundamental_data_gate_recovery_protocol.py",
+        "sha256": "07ab134dbb3b867b36cf2f732b138089af74f2e468cecbbb2cefac37ed4f9702"
+      }
+    ],
+    "prior_failure_identity": {
+      "prior_protocol_scope_sha256": "ab8c33968c4ced325ec79524b774163f2991edd0c4d5d7eb7c139b27e9b17557",
+      "prior_release_scope_sha256": "49fdc6e79ee7591fb03732fc4fa08430f4049b720d0552cca49ff9e153e05830",
+      "prior_case_id": "223414f4341a3edca15e5a626a3d0da642c4aa671db6d9cf67c9c870b8eb0a78",
+      "stopped_event_seq": 10,
+      "stopped_event_sha256": "e0ca4594e03639212ba6ed5ebe75f651a0d3664da7cad86e232e3cefc0b9b3bd",
+      "runner_exit_code": 2,
+      "semantic_rows_read": true,
+      "output_artifact_count": 0,
+      "authoritative_outcome": "NOT_EVALUATED",
+      "prior_case_mutation_authorized": false,
+      "prior_release_rerun_authorized": false
+    },
+    "research_identity": {
+      "family_id": "fundamental_dynamic",
+      "research_protocol_id": "m5-dynamic-fundamental-cross-pool-data-preexecution-v1",
+      "research_config_sha256": "ce5cb6390df37baa553e470487c3cd319937a6d017bb43af3d874b5c41696b79",
+      "home_universe_id": "star50-official-pit-v2",
+      "transfer_universe_ids": [
+        "star-board-midcap-pit-v1",
+        "star-board-smallcap-pit-v1"
+      ],
+      "candidate_count": 8,
+      "evaluation_unit_count": 24,
+      "primary_attempt_n": 14,
+      "sensitivity_attempt_n": 20,
+      "effect_test_count": 0,
+      "research_semantics_changed": false
+    },
+    "recovery_contract": {
+      "recovery_protocol_id": "m5-dynamic-fundamental-data-gate-recovery-v2",
+      "source_conflict_categories": 6,
+      "source_priority_on_conflict_authorized": false,
+      "global_failure_sealed_before_audit": true,
+      "global_failure_requires_independent_audit": true,
+      "global_failure_registry_verdict": "NO_GO_M5_2_DATA_PREEXECUTION",
+      "registry_schema_version": 1,
+      "registry_table_migration_authorized": false,
+      "new_case_required": true
+    },
+    "permitted_next_construction": {
+      "recovery_implementation_and_release_only": true,
+      "synthetic_fixture_only": true,
+      "real_conflict_diagnosis": false,
+      "real_data_gate_execution": false,
+      "synthetic_engineering_gate_execution": false
+    },
+    "authority": {
+      "recovery_release_scope_created": false,
+      "data_gate_approval_recorded": false,
+      "data_gate_execution_authorized": false,
+      "formal_registry_write_authorized": false,
+      "real_data_read_authorized": false,
+      "real_conflict_diagnosis_authorized": false,
+      "provider_call_count": 0,
+      "provider_budget_usd": "0.00",
+      "deepseek_authorized": false,
+      "external_call_authorized": false,
+      "credential_read_authorized": false,
+      "label_read_authorized": false,
+      "effect_read_authorized": false,
+      "model_training_authorized": false,
+      "backtest_authorized": false,
+      "engineering_gate_execution_authorized": false,
+      "paper_authorized": false,
+      "forward_authorized": false,
+      "production_authorization": "none",
+      "scheduler_mutation_authorized": false,
+      "web_change_authorized": false
+    }
+  }
+}

@@ -1,0 +1,196 @@
+schema_version: m5-dynamic-fundamental-data-gate-build-v2
+build_protocol_id: m5-dynamic-fundamental-data-gate-build-v2
+protocol_scope_sha256: 6f99c0dfdc5cd75df9bf769fb65318feb4e8e7140082a9dfb924a88a3bb0dc49
+derived_case_id: a2539149d588a0c19f9cb73331f19a66df63e301df03f56fbb2c8e5c74672068
+
+frozen_inputs:
+  recovery_adr:
+    path: docs/ADR_0003_M5_GLOBAL_DATA_FAILURE_EVIDENCE.md
+    sha256: eb44c803b7be7785cf275abccc5df4ba95da12b221eaa1dbde48993f70711d93
+  recovery_protocol:
+    path: docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_PROTOCOL_20260806.md
+    sha256: 7a6f83f5af2611fb296894c3fed4241d98f18e3ba45ff0b16f3b92753283f796
+  recovery_config:
+    path: config/m5_dynamic_fundamental_data_gate_recovery_v2.yaml
+    sha256: 3b90053ac4e76dda9fb2c338e0569001e78c5d79bcb399d33b72dd65ebe09fe5
+  recovery_protocol_scope:
+    path: config/m5_dynamic_fundamental_data_gate_recovery_protocol_scope_v2.json
+    sha256: a5bcb1a21e9ea2dbe7c2536014511c4ef3b89fcbc9c4ea3dcb4fae6da0890179
+  research_config:
+    path: config/m5_dynamic_fundamental_cross_pool_v1.yaml
+    sha256: ce5cb6390df37baa553e470487c3cd319937a6d017bb43af3d874b5c41696b79
+  proposal_export:
+    path: config/m5_dynamic_fundamental_cross_pool_proposal_export_v1.json
+    sha256: 7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc
+  prior_failure_acceptance:
+    path: docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_REAL_RUN_ACCEPTANCE_20260805.md
+    sha256: 0eeaf5c6cd581f6bfca50ec7b5b4d07d39d40b93fce25f9bdfcc018bf254f937
+
+construction:
+  target_state: RECOVERY_RELEASE_READY_NOT_APPROVED
+  package_root: src/shaiwei/research_gates
+  maximum_new_module_lines: 400
+  existing_hotspot_growth_authorized: false
+  existing_research_formula_or_threshold_change_authorized: false
+  existing_registry_schema_change_authorized: false
+  existing_v1_case_or_artifact_mutation_authorized: false
+  production_or_web_module_change_authorized: false
+  real_financial_rows_may_be_read: false
+  real_conflict_rows_may_be_diagnosed: false
+  real_candidate_values_may_be_computed: false
+  formal_registry_may_be_initialized: false
+  formal_gate_events_may_be_written: false
+  synthetic_fixture_only: true
+
+implementation_responsibilities:
+  source_conflict_classifier:
+    layer: domain
+    module: m5_dynamic/source_conflicts.py
+    reads_files: false
+    writes_files: false
+    computes_candidates: false
+  failure_projection:
+    layer: domain
+    module: m5_dynamic/failure_projection.py
+    reads_files: false
+    writes_files: false
+    candidate_matrix_cell_count: 24
+  runner_orchestration:
+    layer: application
+    module: m5_dynamic/runner.py
+    may_select_conflicting_source: false
+    seals_failure_before_exit: true
+  independent_conflict_audit:
+    layer: audit
+    module: m5_dynamic/audit_source_conflicts.py
+    may_import_runner_classifier: false
+    may_import_runner_candidate_compute: false
+  auditor_orchestration:
+    layer: application
+    module: m5_dynamic/auditor.py
+    requires_independent_recompute: true
+
+source_comparison:
+  identity_fields: [ts_code, f_ann_date, end_date, report_type, update_flag]
+  exact_numeric_comparison: true
+  tolerance: null
+  rounding: null
+  null_equals_null: true
+  exact_duplicate_collapse_is_lossless: true
+  any_conflict_is_global_failure: true
+  ordinary_or_vip_precedence: null
+
+output_contract:
+  schema_version: m5-data-gate-output-v2
+  staging_root: /outputs
+  normal_mode:
+    outcome_kind: NORMAL_DATA_MATRIX
+    required_files: [feature_panel.parquet, data_gate_report.json, run_manifest.json]
+  global_failure_mode:
+    outcome_kind: GLOBAL_DATA_FAILURE
+    required_files: [source_conflict_report.json, data_gate_report.json, run_manifest.json]
+    forbidden_files: [feature_panel.parquet]
+    feature_panel_status: NOT_CREATED_GLOBAL_FAILURE
+    computation_status: NOT_COMPUTED_GLOBAL_FAILURE
+    verdict: NO_GO_M5_2_DATA_PREEXECUTION
+  write_once: true
+  byte_determinism_required: true
+  partial_directory_is_failure: true
+  absolute_host_paths_forbidden: true
+  row_level_identity_or_value_output_forbidden: true
+  label_effect_model_fields_forbidden: true
+
+auditor_contract:
+  output_file: audit_report.json
+  runner_output_mount: /outputs:ro
+  audit_mount: /audit:rw
+  independent_source_classifier_required: true
+  source_conflict_commitment_recomputed: true
+  forbidden_field_scan_required: true
+  physical_and_canonical_hashes_required: true
+  complete_registry_matrix_required: true
+  audit_pass_required_before_registrar: true
+
+registry:
+  schema_version: 1
+  tables: [gate_cases, gate_events, idempotency_receipts, outbox]
+  schema_migration_authorized: false
+  prior_case_id: 223414f4341a3edca15e5a626a3d0da642c4aa671db6d9cf67c9c870b8eb0a78
+  prior_case_expected_terminal_state: STOPPED
+  prior_case_replay_required: true
+  new_case_id: a2539149d588a0c19f9cb73331f19a66df63e301df03f56fbb2c8e5c74672068
+  new_case_must_differ_from_prior: true
+  global_failure_event_type: DATA_GATE_RECORDED
+  global_failure_verdict: NO_GO_M5_2_DATA_PREEXECUTION
+  global_failure_target_state: BLOCKED_DATA
+  runner_exit_three_without_audit_cannot_record: true
+
+fixture_matrix:
+  exact_duplicate_within_standard: PASS_COLLAPSE
+  exact_duplicate_within_vip: PASS_COLLAPSE
+  consistent_standard_vip_overlap: PASS_COLLAPSE
+  conflict_within_standard: SEALED_GLOBAL_NO_GO
+  conflict_within_vip: SEALED_GLOBAL_NO_GO
+  conflict_standard_vip: SEALED_GLOBAL_NO_GO
+  null_numeric_normalization: REQUIRED
+  report_forbidden_field_injection: AUDIT_FAIL
+  conflict_commitment_tamper: AUDIT_FAIL
+  failure_matrix_tamper: AUDIT_FAIL
+  partial_failure_directory: FAIL_CLOSED
+  byte_deterministic_double_run: REQUIRED
+  prior_stopped_case_replay: REQUIRED
+
+container:
+  dockerfile: Dockerfile.m5-data-gate
+  compose_file: compose.m5-gates.yaml
+  requirements_lock: requirements.m5-data-gate.lock
+  network_mode: none
+  run_as_non_root: true
+  read_only_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  pids_limit: 128
+  project_root_mount_forbidden: true
+  docker_socket_mount_forbidden: true
+  env_file_mount_forbidden: true
+  labels_effects_models_mount_forbidden: true
+  input_mount: /inputs:ro
+  output_mount: /outputs:rw
+  audit_mount: /audit:rw
+  registry_mount: /registry:rw
+
+release_scope:
+  implementation_commit_must_be_pushed_first: true
+  image_identity_required: true
+  input_manifest_metadata_only_before_approval: true
+  input_bundle_must_bind_build_v2: true
+  prior_release_approval_cannot_migrate: true
+  code_bundle_sha256_required: true
+  independent_auditor_identity_required: true
+  exact_mounts_resources_commands_bound: true
+  proposal_must_remain_review_required_and_unexpired: true
+  user_approval_role: M5_LOCAL_PROTOCOL_APPROVER
+  approval_must_bind_exact_new_release_scope_sha256: true
+  any_scope_drift_invalidates_approval: true
+
+authority:
+  recovery_release_scope_created: false
+  data_gate_approval_recorded: false
+  data_gate_execution_authorized: false
+  formal_registry_write_authorized: false
+  real_data_read_authorized: false
+  real_conflict_diagnosis_authorized: false
+  provider_call_count: 0
+  provider_budget_usd: "0.00"
+  external_network_authorized: false
+  credential_read_authorized: false
+  label_read_authorized: false
+  effect_read_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  engineering_gate_execution_authorized: false
+  paper_authorized: false
+  forward_authorized: false
+  production_authorization: none
+  scheduler_mutation_authorized: false
+  web_change_authorized: false
