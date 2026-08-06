@@ -1,0 +1,141 @@
+schema_version: m6-csi800-model-attribution-engineering-protocol-v1
+protocol_id: m6-csi800-model-attribution-engineering-v1
+frozen_at: "2026-08-06T19:19:08+08:00"
+stage: RESULT_BLIND_ENGINEERING_ONLY
+
+predecessor:
+  protocol_id: m6-csi800-model-portfolio-attribution-small-batch-v1
+  git_commit: 262d941baa97c4aae4ddf57ed2950529d307dca3
+  config_path: config/m6_csi800_model_attribution_v1.yaml
+  config_sha256: 6c170d991df1ef75f18208837301b545fe50518c028a65c814d425fc36d7a22a
+  document_path: docs/M6_CSI800_MODEL_ATTRIBUTION_PROTOCOL_20260806.md
+  document_sha256: 647682250aff54861dc4888340e88d4e82ac009ec53999e3eddea29fb5a52b0c
+  preserve_without_rewrite: true
+
+authority:
+  engineering_implementation_authorized: true
+  synthetic_fixture_authorized: true
+  qlib_manifest_metadata_read_authorized: true
+  qlib_calendar_read_authorized: true
+  qlib_feature_or_price_read_authorized: false
+  real_model_fit_authorized: false
+  real_prediction_authorized: false
+  real_label_or_effect_read_authorized: false
+  real_backtest_authorized: false
+  experiment_ledger_write_authorized: false
+  forward_signal_authorized: false
+  paper_portfolio_authorized: false
+  production_authorization: none
+  external_runtime_network_authorized: false
+  dependency_build_network_only: true
+  env_or_secret_read_authorized: false
+  tushare_calls: 0
+  deepseek_calls: 0
+
+result_goal:
+  engineering_verdict: GO_ENGINEERING_ONLY_OR_BLOCKED
+  prove_release_ready_components:
+    - frozen_contract_validation
+    - exact_eleven_trade_day_label_maturity
+    - qlib_lgbm_and_ridge_factory_smoke
+    - deterministic_daily_rank_blend
+    - score_and_portfolio_attribution_metrics
+    - newey_west_and_holm_primary_inference
+    - deterministic_terminal_decision_precedence
+    - write_once_canonical_evidence
+    - independent_synthetic_audit
+  strategy_effective_at_every_outcome: NOT_EVALUATED
+
+architecture:
+  package: src/shaiwei/research/model_attribution
+  modules:
+    contract: frozen protocol and project-path boundary
+    clock: official-calendar label maturity and window validation
+    models: qlib model factories and injected training adapter
+    scoring: key alignment, RankIC, rank fusion and conversion diagnostics
+    inference: HAC/Holm, risk/cost gates and terminal decision
+    synthetic: deterministic result-blind fixtures and report writer
+    audit: independent report reconstruction without inference imports
+  forbidden_growth_targets:
+    - src/shaiwei/backtest/baseline.py
+    - src/shaiwei/research/g1.py
+    - src/shaiwei/research/star50_residual_effect
+  new_production_module_soft_limit_lines: 400
+  new_production_module_hard_limit_lines: 600
+  no_new_runtime_dependency: true
+  no_adr_required_reason: one_shot_research_profile_reuses_existing_layers_and_permissions
+
+synthetic_contract:
+  seed: 20260806
+  arms:
+    - clean_lgbm_control_v1
+    - ridge_alpha1_v1
+    - lgbm_ridge_rank_blend_50_50_v1
+  windows: [W1, W2, W3, W4, W5, W6]
+  mature_score_days_per_window: 210
+  instruments_per_day: 40
+  fixture_cases:
+    - MODEL_STRUCTURE_SUPPORTED
+    - PORTFOLIO_CONVERSION_BOTTLENECK_INDICATED
+    - FEATURE_INFORMATION_BOTTLENECK_INDICATED
+    - MIXED_NOT_CONCLUSIVE
+    - BLOCKED
+  real_security_codes_present: false
+  real_market_values_present: false
+  real_effect_claim_forbidden: true
+
+failure_closed_checks:
+  - predecessor_hash_drift
+  - third_or_replacement_arm
+  - changed_model_or_portfolio_parameter
+  - wrong_label_maturity_date
+  - prediction_member_day_key_mismatch
+  - nonfinite_prediction_or_metric
+  - insufficient_window_or_pooled_coverage
+  - wrong_hypothesis_count_or_holm_family
+  - ambiguous_terminal_decision
+  - output_path_escape
+  - write_once_content_conflict
+  - audit_hash_or_reconstruction_mismatch
+
+docker:
+  compose_file: compose.research.yaml
+  profile: m6-model-attribution-engineering
+  service: m6-model-attribution-engineering
+  one_shot: true
+  network_mode: none
+  read_only_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  docker_socket_mounted: false
+  env_file_mounted: false
+  full_project_root_mounted: false
+  semantic_market_data_mounted: false
+  read_only_inputs:
+    - data/qlib_bin/_shaiwei_manifest.json
+    - data/qlib_bin/calendars/day.txt
+  writable_outputs:
+    - data/research/m6_csi800_model_attribution_v1/engineering
+  scheduler_change_or_restart: false
+
+determinism:
+  canonical_json_sort_keys: true
+  generated_timestamp_in_canonical_report: false
+  formal_synthetic_run_count: 1
+  identical_replay_count: 1
+  report_sha256_must_match: true
+  write_once_conflict_must_fail: true
+  independent_audit_must_pass: true
+
+outputs:
+  ignored_root: data/research/m6_csi800_model_attribution_v1/engineering
+  synthetic_report: data/research/m6_csi800_model_attribution_v1/engineering/report.json
+  synthetic_audit: data/research/m6_csi800_model_attribution_v1/engineering/audit.json
+  tracked_manifest: config/m6_csi800_model_attribution_engineering_manifest_v1.json
+  acceptance: docs/M6_CSI800_MODEL_ATTRIBUTION_ENGINEERING_ACCEPTANCE_20260806.md
+  real_model_prediction_nav_trade_or_holding_outputs: 0
+
+stop_condition:
+  stop_after_engineering_go: true
+  m6_2_real_release_requires_new_target_and_explicit_authorization: true
+  no_authority_inheritance_from_m6_0_or_m6_1: true
