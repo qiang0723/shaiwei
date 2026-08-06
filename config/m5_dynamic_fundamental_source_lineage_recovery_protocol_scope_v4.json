@@ -1,0 +1,136 @@
+{
+  "schema_version": "m5-source-lineage-protocol-scope-envelope-v4",
+  "scope_created_at": "2026-08-06T14:50:00+08:00",
+  "protocol_scope_sha256": "0e4ea4ee6c283b9fad28e1b289f146199154a3e2f5c65d5255d2e462cacb20bc",
+  "scope": {
+    "scope_id": "m5-dynamic-fundamental-source-lineage-scope-recovery-v4",
+    "scope_kind": "SOURCE_LINEAGE_SCOPE_RECOVERY_PROTOCOL_ONLY_NO_REAL_READ",
+    "source_proposal": {
+      "proposal_id": "1dc3afa027401c9fd8ad54382f0b024a8b78b73d2216f2c683a33d4c22497efb",
+      "proposal_request_sha256": "3007af3e6c6f88a74430dfe3dc73e458a8326fc9a6b0717543e61697d038ef79",
+      "canonical_proposal_sha256": "c83c14b462f3f68f669a73c121fdc6aaaa5cdf66d4825c96027a6d3b63644117",
+      "proposal_head_event_sha256": "2d6ff1aace167fa6299414773e031adab9ceac09eadd0b789fbb170c41570f5f",
+      "proposal_export_sha256": "7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc",
+      "required_state_at_lineage_approval": "REVIEW_REQUIRED",
+      "required_event_seq_at_lineage_approval": 2,
+      "expires_at": "2026-08-12T10:48:16+00:00",
+      "expiry_extension_authorized": false
+    },
+    "git_freeze": {
+      "repository": "qiang0723/shaiwei",
+      "branch": "main",
+      "recovery_protocol_commit": "cd13e6a0696f67248f20367e85e6cef85947b602",
+      "recovery_protocol_parent_commit": "c8af2ef2c068b283d4e3980c327b223ebe3097bd",
+      "recovery_protocol_tree": "f4399b437dadedca056136524bbcba0802f95ee1",
+      "local_origin_main_at_scope_creation": "cd13e6a0696f67248f20367e85e6cef85947b602",
+      "recovery_protocol_commit_pushed_before_scope_creation": true
+    },
+    "frozen_files": [
+      {
+        "path": "config/m5_dynamic_fundamental_source_lineage_scope_recovery_v4.yaml",
+        "sha256": "4d1af6cc5f9cfc11f0b821d6309d706708b10a465ff98e0891582007203eca8a"
+      },
+      {
+        "path": "docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_SCOPE_RECOVERY_PROTOCOL_20260806.md",
+        "sha256": "776cbaf96e586dc1c027e74a9a008df2cffcb58c8d77441d86ba85220d798287"
+      },
+      {
+        "path": "tests/test_m5_dynamic_lineage_scope_recovery_protocol.py",
+        "sha256": "4032696a4a3d1a88376e67eac0a076a4e029902915fb5ba8149888c3479eedbb"
+      },
+      {
+        "path": "docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_REAL_RUN_ACCEPTANCE_20260806.md",
+        "sha256": "6ea221d08dce14cc6063f67f5ee2f12af9ef46015e1f00fc068640c63ae87f58"
+      },
+      {
+        "path": "config/m5_dynamic_fundamental_source_lineage_recovery_v3.yaml",
+        "sha256": "badfac341ae1ecd65536a809789c1e1f7f4ad7c0e1b42d6faa6f60dc0adb6673"
+      },
+      {
+        "path": "docs/ADR_0004_M5_STATEMENT_VERSION_LINEAGE.md",
+        "sha256": "91c4428d01a9eb11fafa24691c8f2fc7e609de4a752d1d60d13784784a80c295"
+      },
+      {
+        "path": "config/m5_dynamic_fundamental_cross_pool_v1.yaml",
+        "sha256": "ce5cb6390df37baa553e470487c3cd319937a6d017bb43af3d874b5c41696b79"
+      },
+      {
+        "path": "config/m5_dynamic_fundamental_cross_pool_proposal_export_v1.json",
+        "sha256": "7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc"
+      },
+      {
+        "path": "docs/ARCHITECTURE_CONSTITUTION.md",
+        "sha256": "d312dd6389dde45528e8360bbb213456bde8c2522f786892a599421821e1804e"
+      },
+      {
+        "path": "config/architecture_constitution_v1.yaml",
+        "sha256": "3b4ffe73a3aa594d617e4837daa65d0317c130381bff1b6911d374842654eb83"
+      }
+    ],
+    "superseded_lineage_release": {
+      "release_scope_sha256": "b01058b55ff3dd6c06cf0722541214ecbb793de92a3115410c073daab26cf155",
+      "case_id": "6b6c849f4ded89f631e1af8127f0e7321898aa7f4ce0c2630806fc8c8ef7be16",
+      "terminal_event_seq": 6,
+      "terminal_event_sha256": "2dc732c8ed42a494b09bec6766f9896f6be73f82fced28bb48654f3481374e27",
+      "terminal_state": "STOPPED",
+      "rerun_authorized": false,
+      "mutation_authorized": false
+    },
+    "scope_alignment": {
+      "eligible_end_date_suffix": "1231",
+      "eligible_report_types": [
+        "1",
+        "5"
+      ],
+      "apply_before_observation_construction": true,
+      "quarterly_rows_excluded_from_frozen_annual_scope": true,
+      "source_conflict_semantics_changed": false,
+      "lineage_semantics_changed": false,
+      "research_semantics_changed": false
+    },
+    "research_identity": {
+      "family_id": "fundamental_dynamic",
+      "candidate_count": 8,
+      "universe_count": 3,
+      "evaluation_unit_count": 24,
+      "primary_attempt_n": 14,
+      "sensitivity_attempt_n": 20,
+      "effect_test_count": 0,
+      "strategy_effective": "NOT_EVALUATED",
+      "production_authorization": "none"
+    },
+    "permitted_next_construction": {
+      "scope_predicate_and_lineage_reader_fix_only": true,
+      "quarterly_adversarial_fixture_required": true,
+      "synthetic_fixture_only": true,
+      "metadata_only_inventory": true,
+      "new_image_and_release_scope": true,
+      "real_financial_read": false,
+      "real_lineage_execution": false,
+      "external_evidence_acquisition": false,
+      "pit_or_candidate_compute": false,
+      "effect_model_backtest_or_production": false
+    },
+    "authority": {
+      "lineage_release_scope_created": false,
+      "lineage_approval_recorded": false,
+      "lineage_execution_authorized": false,
+      "formal_registry_write_authorized": false,
+      "real_data_read_authorized": false,
+      "real_conflict_diagnosis_authorized": false,
+      "provider_call_count": 0,
+      "provider_budget_usd": "0.00",
+      "external_call_authorized": false,
+      "credential_read_authorized": false,
+      "pit_read_or_compute_authorized": false,
+      "candidate_compute_authorized": false,
+      "label_read_authorized": false,
+      "effect_read_authorized": false,
+      "model_training_authorized": false,
+      "backtest_authorized": false,
+      "production_authorization": "none",
+      "scheduler_mutation_authorized": false,
+      "web_change_authorized": false
+    }
+  }
+}

@@ -18,6 +18,7 @@ from shaiwei.research_gates.m5_dynamic.contract import (
 )
 from shaiwei.research_gates.m5_dynamic.lineage import assess_lineage
 from shaiwei.research_gates.m5_dynamic.lineage_contract import (
+    CASE_ID,
     PROTOCOL_SCOPE_SHA256,
     LineageInputManifest,
     LineageProtocol,
@@ -43,8 +44,8 @@ CREATED_AT = "2026-08-06T04:00:00+00:00"
 def _protocol() -> LineageProtocol:
     return LineageProtocol.load(
         protocol_path=ROOT / "config/m5_dynamic_fundamental_source_lineage_recovery_v3.yaml",
-        build_path=ROOT / "config/m5_dynamic_fundamental_source_lineage_build_v3.yaml",
-        scope_path=(ROOT / "config/m5_dynamic_fundamental_source_lineage_recovery_protocol_scope_v3.json"),
+        build_path=ROOT / "config/m5_dynamic_fundamental_source_lineage_build_v4.yaml",
+        scope_path=(ROOT / "config/m5_dynamic_fundamental_source_lineage_recovery_protocol_scope_v4.json"),
         project_root=ROOT,
     )
 
@@ -111,6 +112,23 @@ def _lineage_manifest(tmp_path: Path) -> Path:
             rows = [_row(api, 100 + index, 200 if api.endswith("_vip") else 199) for index in range(15)]
         else:
             rows = [_row(api, 900, 1)]
+        rows.extend(
+            [
+                {
+                    **_row(api, 8000 + SOURCE_APIS.index(api), 400 if api.endswith("_vip") else 399),
+                    "end_date": "20250930",
+                },
+                {
+                    **_row(api, 9000 + SOURCE_APIS.index(api), 500 if api.endswith("_vip") else 499),
+                    "end_date": "2025-12-31",
+                    "report_type": "2",
+                },
+            ]
+        )
+        if table == "balancesheet":
+            rows[0]["report_type"] = "5"
+        if table == "cashflow":
+            rows[0]["end_date"] = "2025-12-31"
         sources.append(_source(api, _batch(tmp_path, api, rows)))
     document = {
         "schema_version": "m5-source-lineage-input-v1",
@@ -301,7 +319,7 @@ def test_lineage_approval_and_bundle_are_exact_write_once(tmp_path: Path) -> Non
     )
     approval_document = {
         "schema_version": "m5-source-lineage-approval-v1",
-        "case_id": "6b6c849f4ded89f631e1af8127f0e7321898aa7f4ce0c2630806fc8c8ef7be16",
+        "case_id": CASE_ID,
         "release_scope_sha256": release.sha256,
         "approval_event_seq": 4,
         "approval_event_sha256": "3" * 64,

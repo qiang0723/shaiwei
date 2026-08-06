@@ -13,6 +13,7 @@ import pyarrow.parquet as pq
 from .contract import API_FIELDS, IDENTITY_FIELDS, STATEMENT_FIELDS, M5GateError, sha256_file
 from .lineage_commitment import value_version_sha256
 from .lineage_contract import LineageInputManifest, Observation, VersionEvidence
+from .statement_scope import is_frozen_annual_statement_row
 
 
 def _bound_file(root: Path, relative: str) -> Path:
@@ -79,6 +80,8 @@ def _read_source_batches(
             _verify(path, batch)
             frame = pd.read_parquet(path, columns=columns)
             for row in frame.to_dict("records"):
+                if not is_frozen_annual_statement_row(row):
+                    continue
                 identity = tuple(str(row[field]).replace("-", "") for field in IDENTITY_FIELDS)
                 key = (table, identity)
                 if identity_allowlist is None or key in identity_allowlist:

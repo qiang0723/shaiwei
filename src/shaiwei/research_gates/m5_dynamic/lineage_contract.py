@@ -21,9 +21,9 @@ from .contract import (
 
 
 PROTOCOL_ID = "m5-dynamic-fundamental-source-lineage-recovery-v3"
-BUILD_PROTOCOL_ID = "m5-dynamic-fundamental-source-lineage-build-v3"
-PROTOCOL_SCOPE_SHA256 = "96c4f996f2641e6b18c26d8228ee72712b2670d70fe0cdedf95c99cd2e463ccd"
-CASE_ID = "6b6c849f4ded89f631e1af8127f0e7321898aa7f4ce0c2630806fc8c8ef7be16"
+BUILD_PROTOCOL_ID = "m5-dynamic-fundamental-source-lineage-build-v4"
+PROTOCOL_SCOPE_SHA256 = "0e4ea4ee6c283b9fad28e1b289f146199154a3e2f5c65d5255d2e462cacb20bc"
+CASE_ID = "8000c9e107c100cdb41edace547f5869dddda6807005c142ce2847d9433f49ff"
 SOURCE_APIS = tuple(f"tushare.{name}{suffix}" for name in STATEMENT_FIELDS for suffix in ("", "_vip"))
 EVIDENCE_TIERS = {
     "E0_VALUE_VARIANT_ONLY",
@@ -37,11 +37,11 @@ AUTHORITATIVE_TIERS = {
 }
 CONTROL_PATHS = {
     "protocol": "config/m5_dynamic_fundamental_source_lineage_recovery_v3.yaml",
-    "build": "config/m5_dynamic_fundamental_source_lineage_build_v3.yaml",
-    "scope": "config/m5_dynamic_fundamental_source_lineage_recovery_protocol_scope_v3.json",
+    "build": "config/m5_dynamic_fundamental_source_lineage_build_v4.yaml",
+    "scope": "config/m5_dynamic_fundamental_source_lineage_recovery_protocol_scope_v4.json",
     "research": "config/m5_dynamic_fundamental_cross_pool_v1.yaml",
     "manifest": "config/m5_dynamic_fundamental_source_lineage_input_v1.json",
-    "release": "config/m5_dynamic_fundamental_source_lineage_release_scope_v1.json",
+    "release": "config/m5_dynamic_fundamental_source_lineage_release_scope_v2.json",
     "approval": "config/m5_dynamic_fundamental_source_lineage_approval_v1.json",
 }
 

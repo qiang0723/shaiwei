@@ -1,0 +1,153 @@
+schema_version: m5-dynamic-fundamental-source-lineage-build-v4
+build_protocol_id: m5-dynamic-fundamental-source-lineage-build-v4
+protocol_scope_sha256: 0e4ea4ee6c283b9fad28e1b289f146199154a3e2f5c65d5255d2e462cacb20bc
+derived_case_id: 8000c9e107c100cdb41edace547f5869dddda6807005c142ce2847d9433f49ff
+
+frozen_inputs:
+  lineage_adr:
+    path: docs/ADR_0004_M5_STATEMENT_VERSION_LINEAGE.md
+    sha256: 91c4428d01a9eb11fafa24691c8f2fc7e609de4a752d1d60d13784784a80c295
+  lineage_protocol:
+    path: config/m5_dynamic_fundamental_source_lineage_recovery_v3.yaml
+    sha256: badfac341ae1ecd65536a809789c1e1f7f4ad7c0e1b42d6faa6f60dc0adb6673
+  scope_recovery_protocol:
+    path: docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_SCOPE_RECOVERY_PROTOCOL_20260806.md
+    sha256: 776cbaf96e586dc1c027e74a9a008df2cffcb58c8d77441d86ba85220d798287
+  scope_recovery_config:
+    path: config/m5_dynamic_fundamental_source_lineage_scope_recovery_v4.yaml
+    sha256: 4d1af6cc5f9cfc11f0b821d6309d706708b10a465ff98e0891582007203eca8a
+  lineage_protocol_scope:
+    path: config/m5_dynamic_fundamental_source_lineage_recovery_protocol_scope_v4.json
+    sha256: 34836cbec0ca0aae4034650ee2609fb13b20aec1288e5747fdcd5deffe86d222
+  research_config:
+    path: config/m5_dynamic_fundamental_cross_pool_v1.yaml
+    sha256: ce5cb6390df37baa553e470487c3cd319937a6d017bb43af3d874b5c41696b79
+  proposal_export:
+    path: config/m5_dynamic_fundamental_cross_pool_proposal_export_v1.json
+    sha256: 7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc
+  prior_data_no_go_acceptance:
+    path: docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_REAL_RUN_ACCEPTANCE_20260806.md
+    sha256: db56cfe26c9570d78de9d97e7feb7910fdb631ee1d53ae6342a0b05e73b337d9
+  prior_data_no_go_release:
+    path: config/m5_dynamic_fundamental_data_gate_release_scope_v4.json
+    sha256: 08d8180ce4fbbef97985f9b5610afe6b10ac9240ad34018482f919c54aecbef2
+  prior_stopped_lineage_acceptance:
+    path: docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_REAL_RUN_ACCEPTANCE_20260806.md
+    sha256: 6ea221d08dce14cc6063f67f5ee2f12af9ef46015e1f00fc068640c63ae87f58
+  prior_stopped_lineage_release:
+    path: config/m5_dynamic_fundamental_source_lineage_release_scope_v1.json
+    sha256: a60df7e220277249fb7eae2e06304f9d5adddb85597da2422eb6868ffe00ee46
+
+construction:
+  target_state: SOURCE_LINEAGE_RELEASE_READY_NOT_APPROVED
+  allowed_change_set:
+    - frozen_statement_scope_predicate
+    - lineage_reader_scope_alignment
+    - quarterly_and_report_type_adversarial_fixtures
+    - build_scope_case_and_release_control_identity
+  existing_source_conflict_semantics_change_authorized: false
+  inherited_lineage_semantics_change_authorized: false
+  prior_case_or_artifact_mutation_authorized: false
+  real_financial_rows_may_be_read: false
+  real_lineage_may_be_executed: false
+  formal_registry_may_be_initialized: false
+  formal_gate_events_may_be_written: false
+  synthetic_fixture_only: true
+
+statement_scope_contract:
+  source_of_authority: R1_SOURCE_CONFLICT_ANNUAL_SCOPE
+  eligible_end_date_suffix: "1231"
+  eligible_report_types: ["1", "5"]
+  predicate_runs_before_observation_construction: true
+  predicate_runs_before_anchor_conflict_keys: true
+  predicate_runs_before_history_allowlist: true
+  quarterly_and_other_report_types_excluded: true
+  eligible_missing_identity_fails_closed: true
+  source_or_value_selection_authorized: false
+
+implementation_responsibilities:
+  scope_predicate:
+    layer: domain
+    suggested_module: m5_dynamic/statement_scope.py
+    pure_row_predicate: true
+    reads_files: false
+    writes_files: false
+  lineage_reader:
+    layer: adapter
+    apply_scope_before_observation: true
+    external_network: false
+    reads_only_manifest_allowlist: true
+  independent_auditor:
+    rereads_same_scope: true
+    may_import_primary_lineage_builder: false
+    may_import_primary_commitment_normalizer: false
+
+fixture_matrix:
+  original_23_annual_conflicts: PASS_PRESERVED
+  annual_report_type_5_conflict: PASS_INCLUDED
+  quarterly_conflicting_rows: PASS_EXCLUDED_FROM_ANNUAL_SCOPE
+  other_report_type_conflicting_rows: PASS_EXCLUDED_FROM_ANNUAL_SCOPE
+  hyphenated_annual_date: PASS_NORMALIZED
+  eligible_missing_identity: FAIL_CLOSED
+  prior_stopped_case_replay: REQUIRED
+  byte_deterministic_double_run: REQUIRED
+
+registry:
+  schema_version: 1
+  tables: [gate_cases, gate_events, idempotency_receipts, outbox]
+  schema_migration_authorized: false
+  prior_stopped_case_id: 6b6c849f4ded89f631e1af8127f0e7321898aa7f4ce0c2630806fc8c8ef7be16
+  prior_stopped_event_seq: 6
+  prior_stopped_event_sha256: 2dc732c8ed42a494b09bec6766f9896f6be73f82fced28bb48654f3481374e27
+  prior_stopped_case_reopen_authorized: false
+  new_case_id: 8000c9e107c100cdb41edace547f5869dddda6807005c142ce2847d9433f49ff
+  new_case_must_differ_from_prior: true
+  runner_verdict_without_audit_cannot_record: true
+
+container:
+  network_mode: none
+  run_as_non_root: true
+  read_only_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  pids_limit: 128
+  project_root_mount_forbidden: true
+  docker_socket_mount_forbidden: true
+  env_file_mount_forbidden: true
+  labels_effects_models_mount_forbidden: true
+  input_mount: /lineage-input:ro
+  output_mount: /lineage-output:rw
+  audit_mount: /lineage-audit:rw
+  registry_mount: /registry:rw
+
+release_scope:
+  implementation_commit_must_be_pushed_first: true
+  new_image_identity_required: true
+  new_metadata_only_input_manifest_required: true
+  exact_mounts_resources_commands_bound: true
+  prior_approval_cannot_migrate: true
+  proposal_must_remain_review_required_and_unexpired: true
+  approval_must_bind_exact_new_release_scope_sha256: true
+  any_scope_drift_invalidates_approval: true
+
+authority:
+  lineage_release_scope_created: false
+  lineage_approval_recorded: false
+  lineage_execution_authorized: false
+  formal_registry_write_authorized: false
+  real_financial_read_authorized: false
+  real_conflict_diagnosis_authorized: false
+  provider_call_count: 0
+  provider_budget_usd: "0.00"
+  external_network_authorized: false
+  credential_read_authorized: false
+  pit_read_or_compute_authorized: false
+  candidate_compute_authorized: false
+  label_read_authorized: false
+  effect_read_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  engineering_gate_execution_authorized: false
+  web_change_authorized: false
+  scheduler_mutation_authorized: false
+  production_authorization: none
