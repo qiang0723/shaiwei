@@ -194,7 +194,7 @@ def build(
     image_id: str,
     image_platform: str,
     image_git_commit: str,
-    image_release_manifest_path: Path,
+    image_release_manifest: Path,
     output: Path,
     created_at: str,
 ) -> dict[str, Any]:
@@ -207,7 +207,7 @@ def build(
     if head != origin:
         raise AttributionError("M6 implementation HEAD is not synchronized with origin/main")
     snapshot = code_snapshot_sha256()
-    verified = verify_release_manifest(image_release_manifest_path, root=PROJECT_ROOT)
+    verified = verify_release_manifest(image_release_manifest, root=PROJECT_ROOT)
     if snapshot != verified:
         raise AttributionError("M6 host controlled tree differs from the built image")
     document = build_release_document(
@@ -219,7 +219,7 @@ def build(
         image_id=image_id,
         image_platform=image_platform,
         image_git_commit=image_git_commit,
-        image_release_manifest_path=image_release_manifest_path,
+        image_release_manifest_path=image_release_manifest,
     )
     digest, reused = write_once_document(output, document)
     return {

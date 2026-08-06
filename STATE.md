@@ -4,6 +4,9 @@
 
 ## 2026-08-06 · M6-2零效果实现完成，等待不可变镜像与精确scope
 
+- 首个实现镜像`sha256:4e45df7f...92a65`断网合成runner/auditor PASS，但正式scope CLI在写入前因
+  参数绑定名不一致失败关闭；scope/approval/效果产物均不存在，真实读取0、尝试未消费。该镜像仅作
+  provisional，不得生成正式release；最小绑定修复和CLI回归须先提交推送，再重建新镜像。
 - 真实runner已按唯一调用内含`first_pass/replay`实现；六窗串行、每窗只拟合LightGBM/Ridge两个模型，
   固定融合不训练第三模型。Qlib日报、成本缩放、主动收益、策略NAV回撤和信号Top30语义均按冻结协议
   形成独立模块，未改中证800生产基线或scheduler。

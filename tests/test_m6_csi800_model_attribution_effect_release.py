@@ -28,6 +28,7 @@ from shaiwei.research.model_attribution.effect_metrics import (
     portfolio_evidence,
 )
 from shaiwei.research.model_attribution.effect_release import build_release_document
+from shaiwei.research.model_attribution.effect_release import main as release_main
 from shaiwei.research.model_attribution.effect_schema import ARMS, WINDOWS
 
 
@@ -171,6 +172,36 @@ def test_compose_matches_frozen_commands_mounts_and_isolation() -> None:
         "/outputs",
     ]
     assert "/qlib" not in [row["target"] for row in roles["auditor"]["volumes"]]
+
+
+def test_release_cli_passes_the_manifest_argument_to_builder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured = {}
+
+    def fake_build(**kwargs):
+        captured.update(kwargs)
+        return {"release_ready": True}
+
+    monkeypatch.setattr("shaiwei.research.model_attribution.effect_release.build", fake_build)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "effect-release",
+            "--image-id",
+            "sha256:" + "1" * 64,
+            "--image-platform",
+            "linux/arm64",
+            "--image-git-commit",
+            "a" * 40,
+            "--image-release-manifest",
+            "manifest.json",
+            "--output",
+            "scope.json",
+        ],
+    )
+    assert release_main() == 0
+    assert captured["image_release_manifest"] == Path("manifest.json")
 
 
 def test_synthetic_one_shot_runner_independent_audit_and_tamper_gate(
