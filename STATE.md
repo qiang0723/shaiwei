@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-06 · M6-2零效果实现完成，等待不可变镜像与精确scope
+
+- 真实runner已按唯一调用内含`first_pass/replay`实现；六窗串行、每窗只拟合LightGBM/Ridge两个模型，
+  固定融合不训练第三模型。Qlib日报、成本缩放、主动收益、策略NAV回撤和信号Top30语义均按冻结协议
+  形成独立模块，未改中证800生产基线或scheduler。
+- 独立auditor不导入主`effect_metrics`、`inference`、执行器或产物写入器；它从Parquet/JSON重算成员日、
+  RankIC、成本/主动收益/换手/回撤、NW(10)、Holm、Top30与终态，并逐哈希核对两遍完整产物。
+- 专属`compose.m6-attribution.yaml`只定义断网短命runner/auditor，后者无Qlib挂载；scope即使重新哈希也
+  不能扩大权限、挂载、命令或资源。完全合成闭环和篡改对抗PASS；全仓856 PASS、架构6 PASS，Ruff、
+  compileall、pip check、Compose与diff门PASS。
+- 当前仍未构建最终镜像、未生成精确release scope；真实Qlib特征/价格/标签/效果读取、拟合、预测、
+  回测、正式输出和实验账本写入仍为0/未授权。下一步先提交推送本实现，再以该提交构建镜像并形成
+  完整scope；用户明确批准完整SHA前必须停止。
+
 ## 2026-08-06 · M6-2真实release协议已结果前冻结，等待零效果实现
 
 - 本节点只实现一次性真实runner、内部`first_pass/replay`、独立auditor、不可变镜像和精确release

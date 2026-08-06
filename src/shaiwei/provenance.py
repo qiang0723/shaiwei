@@ -18,6 +18,7 @@ CONTROLLED_FILES = {
     "Makefile",
     "compose.yaml",
     "compose.research.yaml",
+    "compose.m6-attribution.yaml",
     "pyproject.toml",
     "requirements.lock",
 }
