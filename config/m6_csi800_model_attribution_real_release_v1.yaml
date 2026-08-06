@@ -1,0 +1,256 @@
+schema_version: m6-csi800-model-attribution-real-release-protocol-v1
+protocol_id: m6-csi800-model-attribution-real-release-v1
+frozen_at: "2026-08-06T21:09:12+08:00"
+stage: RESULT_BLIND_REAL_RELEASE_PREPARATION_ONLY
+
+predecessors:
+  result_protocol:
+    path: config/m6_csi800_model_attribution_v1.yaml
+    sha256: 6c170d991df1ef75f18208837301b545fe50518c028a65c814d425fc36d7a22a
+    git_commit: 262d941baa97c4aae4ddf57ed2950529d307dca3
+  engineering_manifest:
+    path: config/m6_csi800_model_attribution_engineering_manifest_v1.json
+    sha256: 546216de432336e96dd1ea62428c19f57c909469885a6665eb8f657df246809a
+    acceptance_path: docs/M6_CSI800_MODEL_ATTRIBUTION_ENGINEERING_ACCEPTANCE_20260806.md
+    acceptance_sha256: 6b710828c0a80bbd5d01add715bb979692ec0d43bce8ed69a977c32ba0f5ef95
+    acceptance_git_commit: 369e39380a98e8fb83f223511764467bd588aafd
+  preserve_without_rewrite: true
+
+authority:
+  release_protocol_freeze_authorized: true
+  result_blind_implementation_authorized: true
+  synthetic_fixture_authorized: true
+  qlib_manifest_and_calendar_metadata_read_authorized: true
+  immutable_image_build_authorized: true
+  exact_release_scope_generation_authorized: true
+  real_qlib_feature_or_price_read_authorized: false
+  real_label_or_effect_read_authorized: false
+  real_model_fit_authorized: false
+  real_prediction_authorized: false
+  real_backtest_authorized: false
+  formal_effect_output_write_authorized: false
+  experiment_ledger_write_authorized: false
+  forward_signal_authorized: false
+  paper_portfolio_authorized: false
+  production_authorization: none
+  external_runtime_network_authorized: false
+  dependency_build_network_only: true
+  env_or_secret_read_authorized: false
+  tushare_calls: 0
+  deepseek_calls: 0
+
+result_question:
+  objective: >-
+    在中证800、Alpha158、t+11开盘标签、六窗口、Top30、成交和成本全部固定时，只判断Ridge或
+    LightGBM/Ridge固定融合是否改变分数质量与扣费组合结果，从而给出模型结构、组合转换或特征信息
+    瓶颈的资源排序证据。
+  best_model_search: false
+  hyperparameter_search: false
+  factor_addition: false
+  production_replacement: false
+  authority_of_result: attribution_resource_routing_not_causal_proof
+
+real_pipeline:
+  qlib_provider_mount: /qlib
+  qlib_region: cn
+  experiment_store: sqlite:////tmp/m6-mlflow.db
+  windows: [W1, W2, W3, W4, W5, W6]
+  process_windows_serially: true
+  handler:
+    class: qlib.contrib.data.handler.Alpha158
+    instruments: csi800
+    feature_set: Alpha158
+    label_expression: "Ref($open,-11)/Ref($open,-1)-1"
+    fit_end_time: purged_train_last_signal
+    train_end: purged_train_last_signal
+    valid_end: purged_valid_last_signal
+    score_end: score_last_signal
+    learn_data_key: DK_L
+    inference_data_key: DK_I
+    same_fitted_handler_per_window_across_models: true
+  arms:
+    control: clean_lgbm_control_v1
+    alternatives: [ridge_alpha1_v1, lgbm_ridge_rank_blend_50_50_v1]
+    trained_model_count_per_window: 2
+    blend_trains_third_model: false
+  portfolio:
+    strategy: BiweeklyTopkDropoutStrategy
+    account_rmb: 100000000
+    topk: 30
+    n_drop: 3
+    rebalance_trade_days: 10
+    only_tradable: true
+    forbid_all_trade_at_limit: false
+    deal_price: open
+    benchmark: SH000906
+    base_open_cost: 0.0006
+    base_close_cost: 0.0016
+    minimum_cost_rmb: 5
+    cost_multipliers: [1.0, 1.5, 2.0]
+    cost_scenario_method: scale_recorded_base_daily_cost_without_rerunning_trades
+    capacity_model_added: false
+
+metric_contract:
+  mature_score_keys: exact_common_member_day_intersection_after_frozen_score_end
+  prediction_key_policy: exact_equal_across_three_arms_no_inner_join_fallback
+  minimum_cross_section_size_for_rank_ic: 30
+  daily_rank_ic: spearman_rank_prediction_vs_processed_label
+  pooled_rank_ic_delta: chronological_mean_of_aligned_daily_rank_ic_delta
+  score_window_pass: mean_daily_rank_ic_delta_strictly_positive
+  score_gate: pooled_positive_and_at_least_4_of_6_positive_windows
+  daily_net_strategy_return: qlib_return_minus_scaled_qlib_cost
+  daily_net_active_return: one_plus_net_strategy_return_div_one_plus_benchmark_return_minus_one
+  primary_paired_delta: alternative_daily_net_active_return_minus_control_daily_net_active_return
+  cumulative_net_excess: compounded_net_strategy_nav_div_compounded_benchmark_nav_minus_one
+  cumulative_net_excess_delta: alternative_minus_control
+  turnover: sum_of_qlib_turnover_or_total_turnover_base_run
+  drawdown: maximum_drawdown_of_net_strategy_nav_not_active_nav
+  score_spearman_vs_control: daily_cross_sectional_spearman
+  top30_overlap: >-
+    intersection_ratio_of_daily_signal_top30_sets_on_trade_steps_0_10_20_without_claiming_actual_holdings
+  primary_inference:
+    hac_lags: 10
+    alternative: greater
+    hypothesis_count: 2
+    multiplicity: holm
+    familywise_alpha: 0.05
+  portfolio_gate:
+    primary_holm_adjusted_p_must_pass: true
+    pooled_base_net_excess_delta_strictly_positive: true
+    minimum_positive_base_delta_windows: 4
+    pooled_1_5x_cost_delta_nonnegative: true
+    pooled_2x_cost_delta_nonnegative: true
+    maximum_turnover_ratio_vs_control: 1.10
+    maximum_test_or_evaluable_stress_drawdown: 0.20
+
+stress_contract:
+  style_shift_2017:
+    status: NOT_EVALUABLE_NO_PRE_2017_FROZEN_MODEL
+  microcap_crash_2024:
+    source: W6_base_cost_backtest_slice
+    start: "2024-01-01"
+    end: "2024-02-29"
+  volume_price_drawdown_2026h1:
+    source: W6_model_base_cost_additional_prediction_and_backtest
+    start: "2026-01-01"
+    end: "2026-06-30"
+    stale_model_diagnostic_only: true
+  pressure_results_are_not_extra_hypotheses: true
+
+artifact_contract:
+  ignored_root: data/research/m6_csi800_model_attribution_v1/effect
+  passes: [first_pass, replay]
+  per_pass_artifacts:
+    - model_canonical_text_or_coefficients
+    - mature_predictions_and_processed_labels
+    - base_backtest_daily_reports
+    - scheduled_signal_top30_sets
+    - stress_2026h1_predictions_and_base_backtest_reports
+    - pass_summary
+  report: data/research/m6_csi800_model_attribution_v1/effect/report.json
+  independent_audit: data/research/m6_csi800_model_attribution_v1/effect/audit.json
+  failure_record: data/research/m6_csi800_model_attribution_v1/effect/failure.json
+  write_once: true
+  generated_timestamp_in_canonical_artifacts: false
+  first_pass_and_replay_canonical_bundle_sha256_must_match: true
+  first_pass_and_replay_numeric_arrays_must_match_exactly: true
+  model_artifact_identity_must_match: true
+  failed_run_evidence_must_be_preserved: true
+
+independent_audit:
+  imports_primary_inference_module: false
+  rereads_effect_artifacts: true
+  recomputes_member_day_keys: true
+  recomputes_rank_ic_and_score_diagnostics: true
+  recomputes_cost_active_return_turnover_and_drawdown: true
+  recomputes_newey_west_10_and_holm_two: true
+  recomputes_terminal_decision: true
+  verifies_first_pass_replay_identity: true
+  verifies_release_and_approval_identity: true
+  audit_pass_required_before_ledger_finalize: true
+
+execution_counting:
+  runner_invocation_count: 1
+  complete_internal_passes: [first_pass, replay]
+  independent_auditor_invocation_count: 1
+  alternative_attempt_count_consumed_at_first_real_effect_read: 2
+  failed_after_effect_read_still_consumes_both_attempts: true
+  no_replacement_or_third_arm: true
+  no_retry_under_same_release_after_terminal_failure: true
+  experiment_ledger_rows_after_audit: 2
+  factor_g1_trial_count_increment: 0
+
+release_and_approval:
+  release_scope_path: config/m6_csi800_model_attribution_release_scope_v1.json
+  release_scope_kind: REAL_EFFECT_RELEASE_READY_NOT_EXECUTION_APPROVAL
+  scope_binds:
+    - frozen_protocol_hashes
+    - engineering_manifest_hash
+    - implementation_git_commit_and_code_bundle
+    - immutable_image_id_and_release_snapshot
+    - qlib_manifest_tree_and_calendar_hashes
+    - exact_commands_mounts_resources_and_outputs
+  approval_path: data/control/m6_csi800_model_attribution_v1/approval.json
+  approval_git_tracked: false
+  approval_must_bind_exact_release_scope_sha256: true
+  approval_action: M6_REAL_EFFECT_ONCE_WITH_INTERNAL_REPLAY_AND_INDEPENDENT_AUDIT
+  prior_authority_inheritance: false
+  scope_drift_invalidates_approval: true
+  output_exists_before_approval: fail
+
+docker:
+  compose_file: compose.m6-attribution.yaml
+  image: shaiwei:m6-model-attribution-release-v1
+  runtime_network_mode: none
+  read_only_root: true
+  run_as_non_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  pids_limit: 256
+  cpus: 6
+  memory: 12g
+  tmpfs: /tmp
+  env_file_mounted: false
+  docker_socket_mounted: false
+  full_project_root_mounted: false
+  production_ledger_mounted_during_runner_or_audit: false
+  runner_mounts:
+    - {source: data/qlib_bin, target: /qlib, mode: ro}
+    - {source: config/m6_csi800_model_attribution_release_scope_v1.json, target: /inputs/release.json, mode: ro}
+    - {source: data/control/m6_csi800_model_attribution_v1/approval.json, target: /inputs/approval.json, mode: ro}
+    - {source: data/research/m6_csi800_model_attribution_v1/effect, target: /outputs, mode: rw}
+  auditor_mounts:
+    - {source: config/m6_csi800_model_attribution_release_scope_v1.json, target: /inputs/release.json, mode: ro}
+    - {source: data/control/m6_csi800_model_attribution_v1/approval.json, target: /inputs/approval.json, mode: ro}
+    - {source: data/research/m6_csi800_model_attribution_v1/effect, target: /outputs, mode: ro}
+    - {source: data/research/m6_csi800_model_attribution_v1/effect-audit, target: /audit, mode: rw}
+  high_load_runs_serial_only: true
+  do_not_start_within_scheduler_guard_window: true
+  scheduler_change_or_restart: false
+
+preapproval_failure_checks:
+  - predecessor_hash_drift
+  - release_code_or_image_not_pushed_and_bound
+  - qlib_manifest_or_calendar_drift
+  - release_scope_self_hash_mismatch
+  - missing_or_wrong_approval_scope
+  - approval_action_or_authority_mismatch
+  - third_or_replacement_arm
+  - changed_model_handler_window_portfolio_or_cost_parameter
+  - output_exists_before_approval
+  - runtime_network_or_mount_boundary_drift
+  - runner_auditor_code_overlap_in_primary_decision
+  - synthetic_first_pass_replay_or_audit_mismatch
+
+outputs:
+  release_readiness_acceptance: docs/M6_CSI800_MODEL_ATTRIBUTION_RELEASE_ACCEPTANCE_20260806.md
+  future_effect_manifest: config/m6_csi800_model_attribution_manifest_v1.json
+  future_effect_acceptance: docs/M6_CSI800_MODEL_ATTRIBUTION_ACCEPTANCE_20260806.md
+  experiment_ledger: ledger/experiments.csv
+
+stop_condition:
+  stop_after_exact_release_scope_is_committed_and_pushed: true
+  explicit_user_authorization_of_full_scope_required: true
+  no_real_read_fit_prediction_backtest_or_output_before_authorization: true
+  strategy_effective_before_authorized_run: NOT_EVALUATED
+  production_authorization: none

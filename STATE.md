@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-06 · M6-2真实release协议已结果前冻结，等待零效果实现
+
+- 本节点只实现一次性真实runner、内部`first_pass/replay`、独立auditor、不可变镜像和精确release
+  scope；当前真实特征/价格/标签/效果读取、模型拟合、预测、回测、正式输出和实验账本写入均未授权。
+- 三臂、W1—W6、11交易日成熟purge、Top30/`n_drop=3`/10日、成本和两假设NW(10)+Holm全部继承
+  M6-0；真实指标补足主动收益、策略NAV回撤和信号Top30重合的操作化，不新增门槛或变体。
+- 运行边界冻结为断网短命Docker、6 CPU/12GiB、只读Qlib/scope/approval、专属输出；一次runner内部
+  完整双跑，第二进程独立复核。首次效果读取即消费恰好两个替代尝试，失败不得递补或同release重跑。
+- 本轮完成实现、镜像和scope并推送后必须停止；只有用户针对最终完整scope SHA明确批准，才可真实
+  运行。策略仍`NOT_EVALUATED`、生产`none`。见
+  `docs/M6_CSI800_MODEL_ATTRIBUTION_RELEASE_PROTOCOL_20260806.md`。
+
 ## 2026-08-06 · M6-1结果盲工程门GO，已停在真实release前
 
 - 协议提交`64fe39d8...e10f`先行推送；独立合同、11交易日成熟时钟、Qlib LightGBM/Ridge工厂、
