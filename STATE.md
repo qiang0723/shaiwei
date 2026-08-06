@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-06 · M6-2不可变真实release已就绪，停在精确授权前
+
+- M6-2协议、一次性runner、内部`first_pass/replay`、独立auditor和最终断网镜像均已完成；终版镜像
+  `sha256:3c40c9c...cd40e`绑定已推送提交`35fd1d58...1789c`、代码快照`71a0cc5f...1a239`和501文件
+  发布清单`e75e5d55...67d5`，镜像内身份复核PASS。
+- 精确release scope为`9b609f0764240ff3930a4aeaaf16cef9deb82579d2a5875f1be9e8c4ffb0b139`，种类
+  `REAL_EFFECT_RELEASE_READY_NOT_EXECUTION_APPROVAL`；当前除`release_ready=true`外，执行、真实读取、
+  拟合、预测、回测、正式效果写入、实验账本、外网、前瞻、模拟仓和生产权限均false/none。
+- 最终镜像零挂载断网合成runner/auditor再次PASS，报告SHA为`7f489071...3f92`/`becf2c5a...c319`；
+  合成分支不代表真实效果。首镜像`4e45df7f...92a65`因scope CLI参数绑定错误永久provisional，修复前
+  未写scope/approval/效果且真实读取0、尝试未消费。
+- scheduler仍为原容器`183b8c6c5edd`、原镜像`722f63de...13b76`且healthy，未重启。下一步只能等待
+  用户针对完整scope SHA和动作`M6_REAL_EFFECT_ONCE_WITH_INTERNAL_REPLAY_AND_INDEPENDENT_AUDIT`明确
+  批准；批准前必须停止。见`docs/M6_CSI800_MODEL_ATTRIBUTION_RELEASE_ACCEPTANCE_20260806.md`。
+
 ## 2026-08-06 · M6-2零效果实现完成，等待不可变镜像与精确scope
 
 - 首个实现镜像`sha256:4e45df7f...92a65`断网合成runner/auditor PASS，但正式scope CLI在写入前因
