@@ -1,0 +1,207 @@
+schema_version: m5-dynamic-fundamental-source-lineage-recovery-v3
+recovery_protocol_id: m5-dynamic-fundamental-source-lineage-recovery-v3
+frozen_at: "2026-08-06T12:03:11+08:00"
+
+prior_authoritative_data_no_go:
+  release_scope_sha256: 8858912f14577a8911e47f0ec338cde82208fe818b4c7a921578e42aeeed6f65
+  release_scope_path: config/m5_dynamic_fundamental_data_gate_release_scope_v4.json
+  release_scope_physical_sha256: 08d8180ce4fbbef97985f9b5610afe6b10ac9240ad34018482f919c54aecbef2
+  case_id: a2539149d588a0c19f9cb73331f19a66df63e301df03f56fbb2c8e5c74672068
+  terminal_event_seq: 6
+  terminal_event_sha256: 7c2615a0f9d271b8b898bc8fa2a332edabfac92d48c58f31918c49bffa80917e
+  terminal_state: BLOCKED_DATA
+  verdict: NO_GO_M5_2_DATA_PREEXECUTION
+  acceptance_path: docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_REAL_RUN_ACCEPTANCE_20260806.md
+  acceptance_sha256: db56cfe26c9570d78de9d97e7feb7910fdb631ee1d53ae6342a0b05e73b337d9
+  report_sha256: 1c6220884f0cb7394a49f40c623b5e7e4a4d6c02b39259a61dc9634864190db3
+  audit_sha256: 647ac34e2d0ac6ce621c69a02da1ddbb5b4934180d8b0ccce4bcbb5f103f5677
+  conflict_group_count: 23
+  conflict_groups_by_table:
+    income: 0
+    balancesheet: 8
+    cashflow: 15
+  prior_case_mutation_authorized: false
+  prior_release_rerun_authorized: false
+
+frozen_research_identity:
+  research_config_path: config/m5_dynamic_fundamental_cross_pool_v1.yaml
+  research_config_sha256: ce5cb6390df37baa553e470487c3cd319937a6d017bb43af3d874b5c41696b79
+  proposal_export_path: config/m5_dynamic_fundamental_cross_pool_proposal_export_v1.json
+  proposal_export_sha256: 7632a2f5b97784c8776ef6857a4842650d6c3c78996df44439b8c11425c140bc
+  candidate_count: 8
+  universe_count: 3
+  evaluation_unit_count: 24
+  primary_attempt_n: 14
+  sensitivity_attempt_n: 20
+  effect_test_count: 0
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+  formula_direction_pit_threshold_universe_or_history_change_authorized: false
+  candidate_replacement_or_sample_deletion_authorized: false
+
+statement_version_contract:
+  tables: [income, balancesheet, cashflow]
+  source_kinds: [STANDARD, VIP]
+  statement_identity_fields: [ts_code, f_ann_date, end_date, report_type, update_flag]
+  value_version_identity: SHA256_OF_ALL_FROZEN_NORMALIZED_BUSINESS_FIELDS
+  observation_identity_fields:
+    - source_api
+    - request_params_sha256
+    - batch_id
+    - content_sha256
+    - local_observed_at
+  time_fields:
+    statement_f_ann_date:
+      meaning: SOURCE_DECLARED_STATEMENT_ANNOUNCEMENT_DATE
+      availability_policy: NEXT_SSE_TRADING_DAY
+      orders_same_identity_variants: false
+    provider_revision_effective_at:
+      meaning: AUTHORITATIVE_VARIANT_PUBLICATION_OR_REVISION_EFFECTIVE_TIME
+      required_for_historical_lineage: true
+      may_be_derived_from_local_observed_at: false
+    local_observed_at:
+      meaning: LOCAL_IMMUTABLE_BATCH_INGEST_TIME
+      proves_historical_provider_availability: false
+      may_bound_future_use_from_observation_forward: true
+  update_flag_orders_same_identity_variants: false
+  local_latest_batch_is_authoritative: false
+
+evidence_tiers:
+  E0_VALUE_VARIANT_ONLY:
+    historical_resolution_authority: false
+  E1_LOCAL_OBSERVATION:
+    historical_resolution_authority: false
+    forward_lower_bound_only: true
+  E2_PROVIDER_DECLARED_VERSION:
+    historical_resolution_authority: true
+    requires_version_identity_and_effective_time: true
+  E3_AUTHORITATIVE_PRIMARY_DOCUMENT:
+    historical_resolution_authority: true
+    requires_content_time_and_revision_relation: true
+  minimum_historical_resolution_tier: E2_PROVIDER_DECLARED_VERSION
+
+lineage_dispositions:
+  allowed:
+    - LOSSLESS_EXACT_DUPLICATE
+    - PIT_VERSION_CHAIN_RESOLVED
+    - FORWARD_ONLY_OBSERVED_VERSION
+    - UNRESOLVED_MISSING_EFFECTIVE_TIME
+    - UNRESOLVED_AMBIGUOUS_ORDER
+    - UNRESOLVED_INCOMPLETE_CHAIN
+  historical_pass_dispositions:
+    - LOSSLESS_EXACT_DUPLICATE
+    - PIT_VERSION_CHAIN_RESOLVED
+  historical_fail_dispositions:
+    - FORWARD_ONLY_OBSERVED_VERSION
+    - UNRESOLVED_MISSING_EFFECTIVE_TIME
+    - UNRESOLVED_AMBIGUOUS_ORDER
+    - UNRESOLVED_INCOMPLETE_CHAIN
+  version_interval: LEFT_CLOSED_RIGHT_OPEN
+  unique_version_per_formation_date_required: true
+  complete_chain_required: true
+  latest_wins_authorized: false
+  standard_or_vip_priority_authorized: false
+  update_flag_priority_authorized: false
+  non_null_priority_authorized: false
+  majority_vote_authorized: false
+  numeric_tolerance_authorized: false
+  conflict_group_deletion_authorized: false
+  effect_aware_selection_authorized: false
+
+execution_separation:
+  first_stage: LINEAGE_FEASIBILITY
+  first_stage_network_mode: none
+  first_stage_candidate_compute_authorized: false
+  first_stage_pit_compute_authorized: false
+  external_evidence_stage: AUTHORITATIVE_EVIDENCE_ACQUISITION
+  external_evidence_requires_separate_protocol_and_release: true
+  external_collection_and_data_gate_same_release_authorized: false
+  current_value_historical_backfill_authorized: false
+
+future_output_contract:
+  schema_version: m5-source-lineage-gate-output-v1
+  required_files:
+    - source_lineage_report.json
+    - lineage_gate_report.json
+    - run_manifest.json
+  feature_panel_forbidden: true
+  candidate_matrix_forbidden: true
+  write_once: true
+  byte_determinism_required: true
+  row_level_export_authorized: false
+  allowed_public_groups:
+    - approved_identity
+    - evidence_tier_counts_by_table
+    - disposition_counts_by_table
+    - unresolved_reason_counts
+    - lineage_commitment_by_table
+    - global_lineage_commitment
+    - authority
+  forbidden_public_fields:
+    - ts_code
+    - f_ann_date
+    - end_date
+    - report_type
+    - update_flag
+    - raw_value
+    - normalized_value
+    - candidate_value
+    - absolute_path
+    - request_params
+
+future_verdict_contract:
+  pass_verdict: GO_M5_2_SOURCE_LINEAGE_RECOVERABLE
+  fail_verdict: NO_GO_M5_2_SOURCE_LINEAGE_PREEXECUTION
+  runtime_failure_state: STOPPED
+  no_go_lifecycle_state: BLOCKED_DATA
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+  pass_authorizes_data_gate_execution: false
+  pass_authorizes_only_new_data_gate_protocol_and_release: true
+
+independent_audit:
+  may_import_primary_commitment_normalizer: false
+  may_import_primary_lineage_builder: false
+  rereads_same_frozen_allowlist: true
+  recomputes_value_commitments: true
+  verifies_authoritative_effective_times: true
+  rebuilds_version_intervals: true
+  recomputes_dispositions_and_verdict: true
+  verifies_no_forbidden_public_fields: true
+  audit_pass_required_before_registry_record: true
+  runner_verdict_or_exit_code_alone_is_authoritative: false
+
+registry_compatibility:
+  schema_version: 1
+  table_migration_authorized: false
+  same_four_tables_required: true
+  new_protocol_scope_required: true
+  new_case_id_required: true
+  prior_blocked_case_replay_required: true
+  prior_blocked_case_reopen_authorized: false
+
+construction_authority:
+  target_state: SOURCE_LINEAGE_RELEASE_READY_NOT_APPROVED
+  lineage_implementation_authorized: true
+  synthetic_fixture_authorized: true
+  maximum_new_module_lines: 400
+  existing_hotspot_growth_authorized: false
+  real_financial_read_authorized: false
+  real_conflict_diagnosis_authorized: false
+  real_lineage_execution_authorized: false
+  formal_registry_initialization_authorized: false
+  formal_gate_event_write_authorized: false
+  source_mutation_authorized: false
+  provider_call_count: 0
+  provider_budget_usd: "0.00"
+  external_network_authorized: false
+  credential_read_authorized: false
+  pit_read_or_compute_authorized: false
+  label_read_authorized: false
+  effect_read_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  engineering_gate_execution_authorized: false
+  web_change_authorized: false
+  scheduler_mutation_authorized: false
+  production_authorization: none
