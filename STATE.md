@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-06 · M6-2真实runner完成，独立audit入口失败并停在恢复前
+
+- 用户批准精确scope`9b609f07...b139`后，唯一断网runner正常完成内部`first_pass/replay`，正式
+  report SHA为`65e7b7ae...b29f3`；真实读取已消费恰好2个替代尝试，原release不得重跑。effect共
+  199文件/84,957,571字节，整树SHA`dfbc0b52...d5cb`，两遍manifest物理SHA完全相同。
+- 唯一auditor进程在进入审计函数前因CLI参数名`release/approval`与函数关键字
+  `release_path/approval_path`不一致而`TypeError`退出；audit语义读取0、输出0。暂定runner标签不是
+  权威结论，策略保持`PENDING_INDEPENDENT_AUDIT`，实验账本和生产授权均未变化。
+- M6-2R恢复协议已冻结：只允许修显式参数绑定，以原镜像为base增加`/workspace`外控制入口，绑定
+  原scope/approval和完整effect树后另立auditor-only scope。禁止Qlib、训练、预测、回测、runner重跑、
+  指标/门槛/裁决变化和同release重试；新完整scope获用户明确批准前不得执行。见
+  `docs/M6_CSI800_MODEL_ATTRIBUTION_AUDIT_ENTRYPOINT_RECOVERY_PROTOCOL_20260806.md`。
+
 ## 2026-08-06 · M6-2不可变真实release已就绪，停在精确授权前
 
 - M6-2协议、一次性runner、内部`first_pass/replay`、独立auditor和最终断网镜像均已完成；终版镜像

@@ -512,7 +512,8 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M5-2B | 动态基本面数据门与R2版本谱系恢复 | v4冲突`BLOCKED_DATA`、旧R2 `STOPPED`均永久保留；行域恢复后新release唯一运行且audit PASS，23/23仅本地观察、历史PIT可恢复0，权威谱系`NO-GO/BLOCKED_DATA`，策略`NOT_EVALUATED` | 路线复盘已裁`PAUSE`且Web v3已同步；本release不得重跑，外网补证须另立有界协议，M5-2C/效果/生产仍禁止 |
 | M6-0 | 中证800模型/组合归因小批协议 | 三臂、六窗、11日purge、Top30/3/10日、三档成本及NW(10)+Holm已结果前冻结；真实结果0 | 已由M6-1工程门和M6-2真实release继承，不得增加第三臂、网格、多seed、新因子或组合变体 |
 | M6-1 | 中证800模型归因结果盲工程门 | `GO_ENGINEERING_ONLY`；五终态、十二失败关闭、Qlib模型工厂、统计裁决和独立audit均PASS；真实拟合/效果0 | 已作为M6-2冻结上游；工程GO不代表策略有效，也不自动授权真实运行 |
-| M6-2 | 中证800模型归因真实release | 最终镜像、一次runner内部双跑、独立auditor和精确scope均ready；scope `9b609f07...b139`；策略`NOT_EVALUATED`、生产none | 仅在用户明确批准完整scope SHA与冻结动作后运行一次；首次效果读取计2次尝试，同release不得重跑 |
+| M6-2 | 中证800模型归因真实release | 唯一runner及内部双跑完成、2次尝试已消费；auditor在函数调用前因CLI关键字错误STOPPED，audit输出0；暂定标签不具权威性 | 原scope不得重跑；只允许按M6-2R另立auditor-only恢复release，独立audit PASS前不披露、不写实验账本 |
+| M6-2R | M6独立审计入口恢复 | 协议已冻结；绑定原scope/approval、199文件effect树和原镜像，只修参数绑定并复用原审计算法 | 先提交推送最小实现、构建薄恢复镜像和精确scope；用户批准新完整SHA前不得执行 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |
 | G8-1R | 监管主源不可覆盖采集 | 1 条原 Docker 失败永久保留；恢复 54 条主证据、二遍幂等与断网复核 PASS；G8 仍 NOT_READY | 只允许另立 G8-2 管理人 HTTPS 交叉核验与费率有效期谱系协议 |

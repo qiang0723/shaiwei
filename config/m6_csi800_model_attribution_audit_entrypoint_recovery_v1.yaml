@@ -1,0 +1,125 @@
+schema_version: m6-model-attribution-audit-entrypoint-recovery-v1
+recovery_id: m6-csi800-model-attribution-audit-entrypoint-recovery-v1
+frozen_at: "2026-08-06T23:08:00+08:00"
+status: FROZEN_AFTER_RUNNER_BEFORE_AUDIT_RECOVERY_IMPLEMENTATION
+production_authorization: none
+
+objective:
+  recover_exactly_one_independent_audit_of_the_existing_sealed_effect_tree: true
+  research_question_or_result_change: false
+  runner_or_effect_recomputation: false
+
+original_authority:
+  release_scope_path: config/m6_csi800_model_attribution_release_scope_v1.json
+  release_scope_sha256: 9b609f0764240ff3930a4aeaaf16cef9deb82579d2a5875f1be9e8c4ffb0b139
+  release_document_sha256: 3550046f8cb34a6b4ee33ae0655fbec377928d93a043b4c5e424caa98447779d
+  approval_path: data/control/m6_csi800_model_attribution_v1/approval.json
+  approval_sha256: 4fce180e98f6058816a56b29fc0622ca86b5e50a726f2c96b9e59b1f5e41168d
+  approval_action: M6_REAL_EFFECT_ONCE_WITH_INTERNAL_REPLAY_AND_INDEPENDENT_AUDIT
+  base_image_reference: shaiwei:m6-model-attribution-release-v1
+  base_image_id: sha256:3c40c9c74bbbda926433f2d49cd78128c665cbb84e071ab3d44d187ecc2cd40e
+  base_runtime_git_commit: 35fd1d58c7db00a3d97d98ca79699b6f8911789c
+  base_runtime_code_snapshot_sha256: 71a0cc5f704a0ebbc887d76a10382280e4a5945f387292ac976c4fd27ec1a239
+
+sealed_runner_state:
+  runner_invocation_count: 1
+  runner_exit_code: 0
+  effect_read_started: true
+  alternative_attempts_consumed: 2
+  same_release_runner_retry_authorized: false
+  effect_file_count: 199
+  effect_total_bytes: 84957571
+  effect_tree_manifest_algorithm: canonical_json_sorted_relative_path_sha256_size_rows
+  effect_tree_sha256: dfbc0b52f40250b7151d74d9a45f3fdc17a69ca1f7b9c853267c1071b4b0d5cb
+  report_sha256: 65e7b7ae2a8c4844f11d855f978d13c58eb082547f76a92ce92c8d6dc94b29f3
+  authorization_sha256: fbc15be3226e6516821f417745a280085b6434dd1305a809bc2d9c3b1262ef4d
+  effect_read_marker_sha256: a76bd0e54755cb07951537b63ba3b807fb727784d2cf0da65d58728d57acea8c
+  first_pass_manifest_sha256: efa87bfdbfcf83d1b964bc68601a0c9031c5bf276eb04e8fc97fe0d8847cb32f
+  replay_manifest_sha256: efa87bfdbfcf83d1b964bc68601a0c9031c5bf276eb04e8fc97fe0d8847cb32f
+  failure_document_exists: false
+  strategy_effective: PENDING_INDEPENDENT_AUDIT
+  formal_result_disclosure_authorized: false
+
+failed_auditor_state:
+  process_invocation_count: 1
+  audit_function_entered: false
+  sealed_effect_semantics_read_by_auditor: false
+  audit_output_file_count: 0
+  exit_code: 2
+  error_type: TypeError
+  error_message: "audit() got an unexpected keyword argument 'release'"
+  same_release_auditor_retry_authorized: false
+
+root_cause:
+  parser_destinations: [release, approval, effect_root, audit_root]
+  audit_keyword_parameters: [release_path, approval_path, effect_root, audit_root]
+  defect: argparse_namespace_was_expanded_directly_into_nonmatching_keyword_names
+  research_or_statistical_defect: false
+
+authorized_change:
+  files:
+    - docs/ADR_0005_M6_AUDITOR_ENTRYPOINT_RECOVERY.md
+    - src/shaiwei/research/model_attribution/effect_audit.py
+    - src/shaiwei/research/model_attribution/audit_recovery_entrypoint.py
+    - src/shaiwei/research/model_attribution/audit_recovery_contract.py
+    - src/shaiwei/research/model_attribution/audit_recovery_release.py
+    - tests/test_m6_csi800_model_attribution_effect_release.py
+    - tests/test_m6_csi800_model_attribution_audit_recovery.py
+    - Dockerfile.m6-audit-recovery
+    - compose.m6-audit-recovery.yaml
+    - Makefile
+    - config/m6_csi800_model_attribution_audit_recovery_scope_v1.json
+  behaviors:
+    future_main_binding_fix: map_parser_fields_explicitly_to_the_existing_audit_function_signature
+    recovery_runtime: >-
+      Build a thin image from the exact original M6 release image; copy only a recovery control
+      entrypoint outside /workspace; validate a new recovery scope and approval; then call the
+      byte-identical original audit function with explicit keyword names.
+    sealed_input_binding: verify the complete 199-file effect tree before and after audit
+    output: write original audit.json plus a recovery receipt in the previously empty audit root
+  effect_metric_statistic_threshold_or_decision_change: false
+  original_report_or_artifact_rewrite: false
+
+recovery_release_requirements:
+  scope_kind: AUDITOR_ENTRYPOINT_RECOVERY_READY_NOT_EXECUTION_APPROVAL
+  approval_action: M6_INDEPENDENT_AUDIT_ENTRYPOINT_RECOVERY_ONCE
+  implementation_and_scope_committed_and_pushed_before_execution: true
+  exact_recovery_image_and_entrypoint_bound: true
+  old_release_approval_and_complete_effect_tree_bound: true
+  network_mode: none
+  qlib_mount: false
+  effect_mount: ro
+  audit_mount: rw
+  full_project_root_mount: false
+  env_or_secret_mount: false
+  docker_socket_mount: false
+  production_ledger_mount: false
+  run_as_non_root: true
+  read_only_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  cpus: 2
+  memory: 4g
+  pids_limit: 256
+
+required_sequence:
+  - commit_and_push_this_protocol_before_implementation
+  - implement_the_minimal_binding_fix_control_wrapper_and_adversarial_tests
+  - commit_and_push_implementation_before_building_the_thin_recovery_image
+  - build_and_bind_the_exact_recovery_image_scope_and_sealed_effect_tree
+  - stop_and_require_explicit_user_approval_of_the_full_recovery_scope_sha256
+  - on_approval_invoke_exactly_one_auditor_only_process
+  - require_independent_audit_pass_and_effect_tree_before_after_identity
+  - disclose_the_existing_result_only_after_recovery_audit_pass
+
+forbidden:
+  - rerun_or_modify_the_original_release
+  - initialize_or_mount_qlib
+  - read_features_prices_labels_or_unsealed_effect_sources
+  - train_predict_backtest_or_recompute_the_runner
+  - change_any_arm_model_handler_window_portfolio_cost_metric_test_threshold_or_decision_rule
+  - rewrite_delete_or_normalize_any_existing_effect_file
+  - additional_recovery_auditor_invocation
+  - experiment_ledger_write
+  - forward_signal_paper_portfolio_or_production_access
+  - network_secret_scheduler_restart_web_or_other_project_access
