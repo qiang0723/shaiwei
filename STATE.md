@@ -2,7 +2,24 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-08-06 · M5-2B-R1恢复实现完成，release v4停在精确授权前
+## 2026-08-06 · M5-2B-R1 release v4真实数据门权威NO-GO，终态BLOCKED_DATA
+
+- 用户批准精确scope `8858912f14577a8911e47f0ec338cde82208fe818b4c7a921578e42aeeed6f65`
+  后，唯一一次断网真实runner正常封存`NO_GO_M5_2_DATA_PREEXECUTION`：冻结输入共发现23个来源身份
+  冲突组（资产负债表8、现金流量表15、利润表0），未选源、未修数，PIT/公式/feature panel均未执行。
+- 8候选×3池共24单元全部`FAIL / GLOBAL_SOURCE_IDENTITY_CONFLICT /
+  NOT_COMPUTED_GLOBAL_FAILURE`，eligible为0；这是DATA NO-GO，不是策略REJECT，效果测试0、策略
+  `NOT_EVALUATED`、生产`none`。
+- 独立auditor重读同一输入复算六类计数、commitment和24单元后PASS；run manifest/audit SHA为
+  `70cc008b...edc57`/`647ac34e...f5677`。新case event 6
+  `DATA_GATE_RECORDED → BLOCKED_DATA`，SHA `7c2615a0...80917e`。
+- registry全库2 case/16 event/16 receipt/16 outbox且完整性PASS；登记重放零新增，outbox第二次发布0，
+  旧case event 10与旧ledger前缀逐字段不变。M5短命容器已退出，生产scheduler身份不变且healthy。
+- 当前禁止M5-2C、标签/效果、模型、回测和生产。若继续必须另立M5-2B-R2结果前数据恢复协议，以新
+  case/release/精确授权处理源内部版本冲突，不得按效果选源或回写本轮证据。见
+  `docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_REAL_RUN_ACCEPTANCE_20260806.md`。
+
+## 2026-08-06 · M5-2B-R1恢复实现完成，release v4授权前留痕（已由真实门终态取代）
 
 - 恢复实现提交`18e7502b74919641e02689720dd31b1e36b276a7`已推送：普通/VIP财报源按六类精确
   分类；三类冲突任一出现都不选边、不进入PIT/公式/feature panel，只write-once封存脱敏冲突报告、
@@ -12,9 +29,10 @@
   PASS、架构6 PASS，生产scheduler身份未变且healthy。
 - 新metadata-only输入manifest逻辑/物理SHA为`f4aeb411...9399b`/`683bed3a...f020`，绑定7类API、
   16,843批次和3份成员证据，`semantic_rows_read=false`。最终镜像为`sha256:acb7c6c2...d1ea7`。
-- 精确release v4 scope为`8858912f14577a8911e47f0ec338cde82208fe818b4c7a921578e42aeeed6f65`，
-  `approval/execution/real read=false`、生产`none`。当前必须停在用户针对完整SHA的再次明确授权前；旧
-  v3批准不迁移。见`docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_RELEASE_ACCEPTANCE_20260806.md`。
+- 精确release v4 scope为`8858912f14577a8911e47f0ec338cde82208fe818b4c7a921578e42aeeed6f65`；
+  本节记录当时`approval/execution/real read=false`的授权前状态。用户后续已明确批准并完成唯一真实
+  数据门，当前权威状态以上方`BLOCKED_DATA`为准；旧v3批准未迁移。见
+  `docs/M5_DYNAMIC_FUNDAMENTAL_DATA_GATE_RECOVERY_RELEASE_ACCEPTANCE_20260806.md`。
 
 ## 2026-08-06 · M5-2B-R1全局数据失败恢复协议已冻结
 
