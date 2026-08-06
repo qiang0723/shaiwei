@@ -339,7 +339,10 @@ Web持续展示“哪些池可研究、做过什么、为什么失败、当前�
   flag/多数值或删样本解冲突。用户批准精确release `b01058b5...cf155`后，唯一真实断网runner在读取
   anchor行后因`anchor conflict identity changed`以exit 2失败，零输出、零audit并进入`STOPPED`；不是
   lineage NO-GO或策略REJECT。根因是R1冲突基线限定年报且report type 1/5，R2 reader锚定前未复用同一
-  行域。本release不得重跑；须先以新提交修复过滤并补季度行fixture，形成新镜像/scope后重新授权。
+  行域。本release不得重跑。恢复协议与实现现已按单变量完成：reader在Observation前复用年报+type
+  1/5范围，季度/其他类型对抗fixture通过；新镜像`sha256:5dd12995...12d1a`、metadata-only清单
+  `bda3f6b8...35d0df`和新release `f7904929...6e2d5`均已绑定，真实语义仍未重读。旧批准不迁移，必须
+  等用户按新完整scope再次授权一次断网`LINEAGE_FEASIBILITY`。
   缺权威版本证据时的联网采集仍必须另立协议，禁止与DATA_GATE混跑。
 
 ## R3 · 专业只读 Web
@@ -490,7 +493,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M5-1 | 多股票池非权威研究提案控制面 | GO；create/submit-review/cancel、SQLite证据链、全库双向完整性、本机Web与隔离Docker均PASS；交付验收时空库，研究尝试增量0 | 只允许人工建立/复核/取消提案；M5-2冻结、批准和执行必须另立ADR/协议并重新授权 |
 | M5-1A | 科创50/中盘/小盘动态基本面提案 | `REVIEW_REQUIRED`；8个确定性候选、最多24个跨池评价单元、零provider调用/费用；实际研究尝试增量0，2026-08-12 18:48:16到期 | 停在人工复核；若继续须另立M5-2冻结/批准协议并获得用户明确授权，不自动排队或运行 |
 | M5-2A | 科创三池动态基本面数据/预执行协议 | protocol-only冻结；8式/3池/24单元、PIT/覆盖/陈旧度/未来窗与N=14/20已锁定；效果测试0、门批准0 | 先施工并推送M5-2B数据release；用户批准精确scope前不得读取真实数据，工程门须DATA_GO后另批 |
-| M5-2B | 动态基本面数据门与R2版本谱系恢复 | v4真实门23组冲突的`BLOCKED_DATA`永久保留；R2精确scope已获批并唯一运行，但因锚定行域不一致exit 2、零输出/audit，case=`STOPPED`；无lineage verdict，策略`NOT_EVALUATED` | 不重跑旧scope；先修复R1/R2年报过滤一致性并补季度行fixture，推送新镜像/scope后重新授权；外网补证、M5-2C/效果/生产仍禁止 |
+| M5-2B | 动态基本面数据门与R2版本谱系恢复 | v4真实门23组冲突的`BLOCKED_DATA`与旧R2 `STOPPED`永久保留；年报/type 1/5范围恢复、季度对抗fixture、新镜像与release `f7904929...6e2d5`已就绪，真实谱系仍`NOT_EXECUTED`、策略`NOT_EVALUATED` | 等用户对新完整scope重新授权一次断网`LINEAGE_FEASIBILITY`；旧批准不迁移，外网补证、M5-2C/效果/生产仍禁止 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |
 | G8-1R | 监管主源不可覆盖采集 | 1 条原 Docker 失败永久保留；恢复 54 条主证据、二遍幂等与断网复核 PASS；G8 仍 NOT_READY | 只允许另立 G8-2 管理人 HTTPS 交叉核验与费率有效期谱系协议 |

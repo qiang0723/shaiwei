@@ -2,6 +2,22 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-06 · M5-2B-R2年报行域恢复release已就绪，等待新精确授权
+
+- 恢复协议提交`cd13e6a0696f67248f20367e85e6cef85947b602`先行推送，行域实现
+  `823e8360fed406fe56d2d7797d6d810c03b00ab1`与断网镜像构造
+  `213d0a103c9f22b327313bdc568c48eea0a9fff8`随后推送；只修R1/R2年报范围一致性，不改研究或谱系语义。
+- reader现于Observation/锚定键/历史allowlist之前限定`end_date=12月31日`且`report_type∈{"1","5"}`；
+  季度和其他类型冲突对抗fixture、type 5年报、连字符日期和缺身份fail-closed均已锁定。
+- 新metadata-only清单绑定16,841个锚定批次与16,841个历史批次，逻辑/物理SHA为
+  `bda3f6b8...35d0df`/`1e4ea075...795ebf`，权威证据0，`semantic_rows_read=false`。
+- 新协议scope/case为`0e4ea4ee...b20bc`/`8000c9e1...f49ff`；新镜像为
+  `sha256:5dd12995...12d1a`。精确release scope为`f7904929991e90a3d4c220cbdaf88818953694803625c41eb3634731e376e2d5`，
+  只授予release ready；approval/execution/真实读取/正式registry/外网/PIT/候选/效果/模型/生产均未授权。
+- 全仓812 PASS、架构6 PASS，scheduler仍为原容器/原镜像且healthy。旧scope/case/event 6 `STOPPED`
+  永久保留且不得重跑；下一步只能等待用户对新完整scope明确批准一次断网`LINEAGE_FEASIBILITY`。
+  见`docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_SCOPE_RECOVERY_RELEASE_ACCEPTANCE_20260806.md`。
+
 ## 2026-08-06 · M5-2B-R2唯一真实谱系运行因锚定范围不一致STOPPED
 
 - 用户批准精确scope `b01058b55ff3dd6c06cf0722541214ecbb793de92a3115410c073daab26cf155`
