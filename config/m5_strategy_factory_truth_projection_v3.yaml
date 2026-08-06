@@ -1,0 +1,73 @@
+schema_version: m5-strategy-factory-truth-projection-addendum-v1
+addendum_id: m5-strategy-factory-m5-lineage-no-go-v1
+published_at: "2026-08-06T17:30:40+08:00"
+timezone: Asia/Shanghai
+
+protocol:
+  path: docs/M5_WEB_AUTHORITY_PROJECTION_CORRECTION_PROTOCOL_20260806.md
+  sha256: 19d749097e19fef89abd0bbb0f83bf6679681dab040a7e30a5c51383a25551ac
+
+base_projection:
+  catalog_path: config/m5_strategy_factory_v1.yaml
+  catalog_sha256: 9bcc8053d334bdb66895f688377eb5858393909da3379f7b33e488d4b4e5311b
+  authority_addendum_path: config/m5_strategy_factory_authority_addendum_v2.yaml
+  authority_addendum_sha256: b2ff8baedf878992ebadf2d79f8e38691f8326501e5a9432d821a785c4a6fee6
+  prior_snapshot_id: fae1c53c410213e58bd10d938a5854afdd2cce1e3f4c9acd7affb73624c94a6b
+  prior_snapshot_sha256: 36f750639f5643a67ac0c2f9eb7505949542a9404edad9ff3d7fb970f7bd6f2b
+  preserve_prior_snapshot: true
+
+evidence:
+  - evidence_id: lineage_release_scope
+    path: config/m5_dynamic_fundamental_source_lineage_release_scope_v2.json
+    sha256: 9343fa9cfaa8855739b700fbf244d6597f1f10f070c780f8d973ce11cfdd2933
+  - evidence_id: lineage_real_run_acceptance
+    path: docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_SCOPE_RECOVERY_REAL_RUN_ACCEPTANCE_20260806.md
+    sha256: f41fad01c2527cbba1dde0083a490b69424d0863aec655f63d0ee0f1be891309
+  - evidence_id: platform_route_review
+    path: docs/PLATFORM_ROUTE_REVIEW_20260806.md
+    sha256: 5a06ab43d484dae32780b1a6cda8d1ce9d57524cc47126174cd5cc7e15b7c703
+
+decision:
+  decision_id: m5-dynamic-fundamental-lineage-gate-20260806-v1
+  display_name: 动态基本面跨池研究
+  family_id: fundamental_dynamic
+  universe_ids:
+    - star50-official-pit-v2
+    - star-board-midcap-pit-v1
+    - star-board-smallcap-pit-v1
+  gate_stage: SOURCE_LINEAGE_FEASIBILITY
+  terminal_state: BLOCKED_DATA
+  evidence_tier: LINEAGE_NO_GO_ONLY
+  verdict: NO_GO_M5_2_SOURCE_LINEAGE_PREEXECUTION
+  strategy_effective: NOT_EVALUATED
+  effect_read: false
+  real_gate_run_count: 1
+  conflict_group_count: 23
+  forward_only_group_count: 23
+  pit_resolved_group_count: 0
+  route_status: PAUSE
+  blocked_reason: 现有本地批次只能证明当前观察版本，无法证明历史修订何时生效。
+  next_action: 本支线暂停；只有补齐权威历史版本与生效链后，才可另立结果前协议。
+  release_scope_sha256: f7904929991e90a3d4c220cbdaf88818953694803625c41eb3634731e376e2d5
+  run_id: 8ffe2570e740dd84ce8d3ccfc0f75f429488d201cf0088ef54ba715cc9dd1fab
+  independent_audit_sha256: e056e41a3473206ebd806e8b917b33e953210ede4b71e15c3ebdfc009ba2ba45
+  registry_event_sha256: 9cfc67deb0d199d969a09f08494644b18c0aed72c0ab68ade4c834f19cba38d8
+  evidence_commit: fb134b91433003774945ab91f1dba02cf6daad5e
+  route_review_commit: e8dab33217fcce7b9a89bd1d1c78727c91051f52
+  production_authorization: none
+  release_consumed: true
+  active_task: false
+  evidence_ids:
+    - lineage_release_scope
+    - lineage_real_run_acceptance
+    - platform_route_review
+
+invariants:
+  authority_projection_version: m5-strategy-factory-authority-projection-v1
+  prior_registered_program_count: 8
+  active_authorized_task_count: 0
+  formal_factor_admission_count: 0
+  external_calls_made_by_projection: 0
+  production_authorization: none
+  bse_count: 0
+
