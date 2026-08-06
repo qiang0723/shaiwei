@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-06 · M5-2B-R2年报行域恢复后真实谱系门权威NO-GO
+
+- 用户批准精确release `f7904929991e90a3d4c220cbdaf88818953694803625c41eb3634731e376e2d5`
+  后，新case完成唯一断网runner与独立auditor；两者均正常结束，audit PASS，不再发生锚定范围错误。
+- 23个冲突组全部为`FORWARD_ONLY_OBSERVED_VERSION`（资产负债表8、现金流量表15），
+  `PIT_VERSION_CHAIN_RESOLVED=0`；权威裁决`NO_GO_M5_2_SOURCE_LINEAGE_PREEXECUTION`，case event 6进入
+  `BLOCKED_DATA / LINEAGE_NO_GO_ONLY`。这是历史来源谱系DATA阻断，不是因子或策略REJECT。
+- run/audit id为`8ffe2570...d1fab`，独立audit SHA为`e056e41a...2ba45`；registry为4 case/28 event/
+  28 receipt/28 outbox、pending 0，event 6重放与outbox二次发布均零新增，旧registry/ledger哈希不变。
+- 真实读取仅限获批runner与独立auditor；provider/外部调用0，PIT/候选/效果/模型/回测/生产均未运行。
+  scheduler仍为原容器/原镜像且healthy，无M5容器遗留。
+- 本release已消费且不得重跑。M5-2C继续阻断；按用户指令先启动一次只读阶段复盘，再裁定是否另立
+  权威版本证据恢复协议或重排路线。见
+  `docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_SCOPE_RECOVERY_REAL_RUN_ACCEPTANCE_20260806.md`。
+
 ## 2026-08-06 · M5-2B-R2年报行域恢复release已就绪，等待新精确授权
 
 - 恢复协议提交`cd13e6a0696f67248f20367e85e6cef85947b602`先行推送，行域实现
