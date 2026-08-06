@@ -55,6 +55,19 @@ interface RealStrategyFactory {
       admitted_factor_count: number;
       active_authorized_task_count: number;
     };
+    authority_projection_version: string;
+    recent_gate_decisions: Array<{
+      terminal_state: string;
+      evidence_tier: string;
+      strategy_effective: string;
+      effect_read: boolean;
+      conflict_group_count: number;
+      forward_only_group_count: number;
+      pit_resolved_group_count: number;
+      route_status: string;
+      production_authorization: string;
+      release_scope_sha256: string;
+    }>;
     active_tasks: unknown[];
     invariants: {
       web_read_only: boolean;
@@ -151,12 +164,34 @@ test("deployed read-only UI serves real evidence under strict CSP", async ({ pag
         active_authorized_task_count: 0
       });
       expect(factory.data.active_tasks).toEqual([]);
+      expect(factory.data.authority_projection_version).toBe(
+        "m5-strategy-factory-authority-projection-v1"
+      );
+      expect(factory.data.recent_gate_decisions).toHaveLength(1);
+      const gate = factory.data.recent_gate_decisions[0]!;
+      expect(gate).toMatchObject({
+        terminal_state: "BLOCKED_DATA",
+        evidence_tier: "LINEAGE_NO_GO_ONLY",
+        strategy_effective: "NOT_EVALUATED",
+        effect_read: false,
+        conflict_group_count: 23,
+        forward_only_group_count: 23,
+        pit_resolved_group_count: 0,
+        route_status: "PAUSE",
+        production_authorization: "none"
+      });
       expect(factory.data.invariants).toMatchObject({
         web_read_only: true,
         external_calls_made: 0,
         real_research_runs: 0,
         bse_count: 0
       });
+      await expect(page.getByRole("heading", {
+        name: "动态基本面跨池研究：数据证据阻断，未评价策略效果"
+      })).toBeVisible();
+      await expect(page.getByText(gate.release_scope_sha256, { exact: true })).toBeHidden();
+      await page.locator(".factory-gate-evidence summary").click();
+      await expect(page.getByText(gate.release_scope_sha256, { exact: true })).toBeVisible();
       await expect(page.getByRole("button", { name: "提交执行" })).toHaveCount(0);
     }
     const captureDir = process.env.P3_CAPTURE_REAL_DIR;

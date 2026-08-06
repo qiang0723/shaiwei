@@ -31,4 +31,15 @@ describe("strategy factory evidence contract", () => {
     count.summary.admitted_factor_count = 1;
     expect(() => assertStrategyFactory(count)).toThrow(/冻结事实/);
   });
+
+  it("rejects hidden or reclassified M5 terminal gate evidence", () => {
+    const missing = clone();
+    missing.recent_gate_decisions = [];
+    expect(() => assertStrategyFactory(missing)).toThrow(/恰好一条/);
+
+    const reject = clone() as unknown as Record<string, unknown>;
+    const decisions = reject.recent_gate_decisions as Array<Record<string, unknown>>;
+    decisions[0]!.strategy_effective = "REJECT";
+    expect(() => assertStrategyFactory(reject)).toThrow(/strategy_effective/);
+  });
 });

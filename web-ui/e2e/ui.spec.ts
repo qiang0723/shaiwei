@@ -272,7 +272,13 @@ test("strategy factory persists only a non-authoritative proposal and stops at h
   await mockApi(page, requests);
   await page.goto("/strategy-factory");
   await expect(page.getByRole("heading", { name: "策略工厂" })).toBeVisible();
-  await expect(page.getByText("5个股票池可以继续研究，但当前没有新策略获准执行")).toBeVisible();
+  await expect(page.getByText("5个股票池具备研究草案条件；最新M5动态基本面批次因历史来源谱系不足被阻断，未进入效果评价。")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "动态基本面跨池研究：数据证据阻断，未评价策略效果" })).toBeVisible();
+  await expect(page.getByText("仅当前观察版本")).toBeVisible();
+  await expect(page.getByText("历史版本链可恢复")).toBeVisible();
+  await expect(page.getByText(strategyFactoryData.recent_gate_decisions[0]!.release_scope_sha256, { exact: true })).toBeHidden();
+  await page.getByText("查看技术证据", { exact: true }).last().click();
+  await expect(page.getByText(strategyFactoryData.recent_gate_decisions[0]!.release_scope_sha256, { exact: true })).toBeVisible();
   await expect(page.getByText("当前没有活跃授权任务")).toBeVisible();
   await expect(page.getByText("正式因子库当前仍为0")).toBeVisible();
   await expect(page.getByText("科创200", { exact: true }).first()).toBeVisible();

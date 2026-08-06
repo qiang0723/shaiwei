@@ -204,6 +204,75 @@ function validateDraft(value: unknown, universes: Set<string>, families: Set<str
   text(draft.disclaimer, "draft.disclaimer");
 }
 
+function validateGateDecisions(
+  value: unknown,
+  universes: Set<string>,
+  families: Set<string>
+): string {
+  const items = rows(value, "strategyFactory.recent_gate_decisions");
+  if (items.length !== 1) throw new Error("策略工厂必须投影恰好一条最新权威数据门裁决");
+  const decision = items[0]!;
+  const decisionId = text(decision.decision_id, "gateDecision.decision_id");
+  if (decisionId !== "m5-dynamic-fundamental-lineage-gate-20260806-v1") {
+    throw new Error("策略工厂权威数据门身份漂移");
+  }
+  if (decision.display_name !== "动态基本面跨池研究") throw new Error("策略工厂权威数据门名称漂移");
+  const familyId = text(decision.family_id, "gateDecision.family_id");
+  if (familyId !== "fundamental_dynamic" || !families.has(familyId)) {
+    throw new Error("策略工厂权威数据门研究家族漂移");
+  }
+  const universeIds = stringArray(decision.universe_ids, "gateDecision.universe_ids");
+  const expectedUniverses = [
+    "star50-official-pit-v2",
+    "star-board-midcap-pit-v1",
+    "star-board-smallcap-pit-v1"
+  ];
+  if (universeIds.join("|") !== expectedUniverses.join("|") || universeIds.some((id) => !universes.has(id))) {
+    throw new Error("策略工厂权威数据门股票池漂移");
+  }
+  const exact: Record<string, unknown> = {
+    gate_stage: "SOURCE_LINEAGE_FEASIBILITY",
+    terminal_state: "BLOCKED_DATA",
+    evidence_tier: "LINEAGE_NO_GO_ONLY",
+    verdict: "NO_GO_M5_2_SOURCE_LINEAGE_PREEXECUTION",
+    strategy_effective: "NOT_EVALUATED",
+    effect_read: false,
+    real_gate_run_count: 1,
+    conflict_group_count: 23,
+    forward_only_group_count: 23,
+    pit_resolved_group_count: 0,
+    route_status: "PAUSE",
+    production_authorization: "none",
+    release_consumed: true,
+    active_task: false
+  };
+  Object.entries(exact).forEach(([key, expected]) => {
+    if (decision[key] !== expected) throw new Error(`策略工厂权威数据门 ${key} 漂移`);
+  });
+  text(decision.blocked_reason, "gateDecision.blocked_reason");
+  text(decision.next_action, "gateDecision.next_action");
+  [
+    "release_scope_sha256",
+    "run_id",
+    "independent_audit_sha256",
+    "registry_event_sha256"
+  ].forEach((key) => {
+    if (!/^[0-9a-f]{64}$/.test(text(decision[key], `gateDecision.${key}`))) {
+      throw new Error(`策略工厂权威数据门 ${key} 无效`);
+    }
+  });
+  ["evidence_commit", "route_review_commit"].forEach((key) => {
+    if (!/^[0-9a-f]{40}$/.test(text(decision[key], `gateDecision.${key}`))) {
+      throw new Error(`策略工厂权威数据门 ${key} 无效`);
+    }
+  });
+  const evidenceIds = stringArray(decision.evidence_ids, "gateDecision.evidence_ids");
+  if (evidenceIds.join("|") !== "lineage_release_scope|lineage_real_run_acceptance|platform_route_review") {
+    throw new Error("策略工厂权威数据门证据集合漂移");
+  }
+  return decisionId;
+}
+
 export function assertStrategyFactory(value: unknown): asserts value is StrategyFactoryData {
   noBse(value);
   const root = record(value, "strategyFactory");
@@ -212,10 +281,21 @@ export function assertStrategyFactory(value: unknown): asserts value is Strategy
   const families = validateFamilies(root.research_families);
   const programs = validatePrograms(root.programs, universes, families);
   validateMatrix(root.matrix, universes, families, programs);
+  if (root.authority_projection_version !== "m5-strategy-factory-authority-projection-v1") {
+    throw new Error("策略工厂权威投影版本无效");
+  }
+  const gateDecisionId = validateGateDecisions(root.recent_gate_decisions, universes, families);
   const attention = record(root.attention, "strategyFactory.attention");
   stringArray(attention.blocked_universe_ids, "attention.blocked_universe_ids");
   stringArray(attention.rejected_program_ids, "attention.rejected_program_ids");
   stringArray(attention.stopped_program_ids, "attention.stopped_program_ids");
+  const blockedGateIds = stringArray(
+    attention.blocked_gate_decision_ids,
+    "attention.blocked_gate_decision_ids"
+  );
+  if (blockedGateIds.length !== 1 || blockedGateIds[0] !== gateDecisionId) {
+    throw new Error("策略工厂关注项未绑定最新权威数据门");
+  }
   booleanValue(attention.formal_library_empty, "attention.formal_library_empty");
   if (!Array.isArray(root.active_tasks) || root.active_tasks.length !== 0) {
     throw new Error("M5-0 不允许活跃执行任务");

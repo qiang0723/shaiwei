@@ -87,12 +87,43 @@ export interface StrategyFactoryDraftTemplate {
   disclaimer: string;
 }
 
+export interface StrategyFactoryGateDecision {
+  decision_id: "m5-dynamic-fundamental-lineage-gate-20260806-v1";
+  display_name: "动态基本面跨池研究";
+  family_id: "fundamental_dynamic";
+  universe_ids: string[];
+  gate_stage: "SOURCE_LINEAGE_FEASIBILITY";
+  terminal_state: "BLOCKED_DATA";
+  evidence_tier: "LINEAGE_NO_GO_ONLY";
+  verdict: "NO_GO_M5_2_SOURCE_LINEAGE_PREEXECUTION";
+  strategy_effective: "NOT_EVALUATED";
+  effect_read: false;
+  real_gate_run_count: 1;
+  conflict_group_count: 23;
+  forward_only_group_count: 23;
+  pit_resolved_group_count: 0;
+  route_status: "PAUSE";
+  blocked_reason: string;
+  next_action: string;
+  release_scope_sha256: string;
+  run_id: string;
+  independent_audit_sha256: string;
+  registry_event_sha256: string;
+  evidence_commit: string;
+  route_review_commit: string;
+  production_authorization: "none";
+  release_consumed: true;
+  active_task: false;
+  evidence_ids: string[];
+}
+
 export interface StrategyFactoryData {
   summary: StrategyFactorySummary;
   attention: {
     blocked_universe_ids: string[];
     rejected_program_ids: string[];
     stopped_program_ids: string[];
+    blocked_gate_decision_ids: string[];
     formal_library_empty: boolean;
   };
   universes: StrategyFactoryUniverse[];
@@ -100,6 +131,8 @@ export interface StrategyFactoryData {
   programs: StrategyFactoryProgram[];
   matrix: StrategyFactoryMatrixCell[];
   active_tasks: never[];
+  authority_projection_version: "m5-strategy-factory-authority-projection-v1";
+  recent_gate_decisions: StrategyFactoryGateDecision[];
   draft_template: StrategyFactoryDraftTemplate;
   invariants: {
     source_backed: true;

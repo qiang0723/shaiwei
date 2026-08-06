@@ -225,6 +225,16 @@ services:
         read_only: true
         bind: {create_host_path: false}
       - type: bind
+        source: ./config/m5_strategy_factory_truth_projection_v3.yaml
+        target: /workspace/config/m5_strategy_factory_truth_projection_v3.yaml
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./config/m5_dynamic_fundamental_source_lineage_release_scope_v2.json
+        target: /workspace/config/m5_dynamic_fundamental_source_lineage_release_scope_v2.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
         source: ./config/m1_multi_universe_v1.yaml
         target: /workspace/config/m1_multi_universe_v1.yaml
         read_only: true
@@ -237,6 +247,21 @@ services:
       - type: bind
         source: ./docs/M5_STRATEGY_FACTORY_COUNT_CORRECTION_PROTOCOL_20260805.md
         target: /workspace/docs/M5_STRATEGY_FACTORY_COUNT_CORRECTION_PROTOCOL_20260805.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/M5_WEB_AUTHORITY_PROJECTION_CORRECTION_PROTOCOL_20260806.md
+        target: /workspace/docs/M5_WEB_AUTHORITY_PROJECTION_CORRECTION_PROTOCOL_20260806.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_SCOPE_RECOVERY_REAL_RUN_ACCEPTANCE_20260806.md
+        target: /workspace/docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_SCOPE_RECOVERY_REAL_RUN_ACCEPTANCE_20260806.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/PLATFORM_ROUTE_REVIEW_20260806.md
+        target: /workspace/docs/PLATFORM_ROUTE_REVIEW_20260806.md
         read_only: true
         bind: {create_host_path: false}
       - type: bind

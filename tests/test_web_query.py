@@ -1054,6 +1054,14 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
         value for value in strategy_factory_projector["volumes"]
         if value["target"] == "/workspace/data/web/research_snapshots"
     )["read_only"] is False
+    strategy_targets = {value["target"] for value in strategy_factory_projector["volumes"]}
+    assert {
+        "/workspace/config/m5_strategy_factory_truth_projection_v3.yaml",
+        "/workspace/config/m5_dynamic_fundamental_source_lineage_release_scope_v2.json",
+        "/workspace/docs/M5_WEB_AUTHORITY_PROJECTION_CORRECTION_PROTOCOL_20260806.md",
+        "/workspace/docs/M5_DYNAMIC_FUNDAMENTAL_SOURCE_LINEAGE_SCOPE_RECOVERY_REAL_RUN_ACCEPTANCE_20260806.md",
+        "/workspace/docs/PLATFORM_ROUTE_REVIEW_20260806.md",
+    } <= strategy_targets
     assert name_projector["profiles"] == ["security-name-projection"]
     assert name_projector["read_only"] is True
     assert name_projector["restart"] == "no"

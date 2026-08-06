@@ -20,11 +20,12 @@ from shaiwei.web.strategy_factory_contract import (
     StrategyFactoryPointer,
 )
 from shaiwei.web.strategy_factory_authority import apply_authority_addendum
+from shaiwei.web.strategy_factory_gate_authority import load_truth_projection_addendum
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONFIG = Path("config/m5_strategy_factory_v1.yaml")
-DEFAULT_OUTPUT = Path("data/web/research_snapshots/strategy_factory_v2")
+DEFAULT_OUTPUT = Path("data/web/research_snapshots/strategy_factory_v3")
 
 
 def _canonical(value: object) -> bytes:
@@ -171,7 +172,12 @@ def _matrix(catalog: StrategyFactoryCatalog) -> list[dict[str, object]]:
     return cells
 
 
-def _projection_data(catalog: StrategyFactoryCatalog, admitted: int, admission_rows: int) -> dict[str, object]:
+def _projection_data(
+    catalog: StrategyFactoryCatalog,
+    admitted: int,
+    admission_rows: int,
+    gate_decision: dict[str, object],
+) -> dict[str, object]:
     expected = catalog.expected_counts
     if admitted != expected.admitted_factor_count:
         raise StrategyFactoryContractError("formal factor admission count differs from the frozen catalog")
@@ -181,7 +187,7 @@ def _projection_data(catalog: StrategyFactoryCatalog, admitted: int, admission_r
     return {
         "summary": {
             "overall_status": "WARN",
-            "decision": "5个股票池具备研究草案条件；3个池仍受数据或PIT证据阻断。",
+            "decision": "5个股票池具备研究草案条件；最新M5动态基本面批次因历史来源谱系不足被阻断，未进入效果评价。",
             **catalog.expected_counts.model_dump(mode="json"),
             "authoritative_reject_program_count": rejected,
             "stopped_contract_program_count": stopped,
@@ -198,12 +204,15 @@ def _projection_data(catalog: StrategyFactoryCatalog, admitted: int, admission_r
                 if item.authoritative_outcome == "STOPPED_CONTRACT"
             ],
             "formal_library_empty": admitted == 0,
+            "blocked_gate_decision_ids": [gate_decision["decision_id"]],
         },
         "universes": [item.model_dump(mode="json") for item in catalog.universes],
         "research_families": [item.model_dump(mode="json") for item in catalog.research_families],
         "programs": [item.model_dump(mode="json") for item in catalog.programs],
         "matrix": _matrix(catalog),
         "active_tasks": [],
+        "authority_projection_version": "m5-strategy-factory-authority-projection-v1",
+        "recent_gate_decisions": [gate_decision],
         "draft_template": catalog.draft_template.model_dump(mode="json"),
         "invariants": {
             "source_backed": True,
@@ -226,25 +235,41 @@ def build_strategy_factory_document(project_root: Path = PROJECT_ROOT) -> dict[s
         catalog,
         catalog_payload,
     )
+    truth, truth_payload, truth_hashes = load_truth_projection_addendum(
+        root,
+        catalog,
+        catalog_payload,
+        addendum_payload,
+    )
     payloads, evidence_hashes = _read_evidence(root, catalog)
     evidence_hashes.update(addendum_hashes)
+    evidence_hashes.update(truth_hashes)
     _validate_m1_identity(catalog, payloads["m1_registry"])
     admitted, admission_rows = _admitted_factor_count(payloads["factor_admissions"])
     builder_identity = {
         "projection": _sha256(Path(__file__).read_bytes()),
         "authority": _sha256(Path(apply_authority_addendum.__code__.co_filename).read_bytes()),
+        "gate_authority": _sha256(
+            Path(load_truth_projection_addendum.__code__.co_filename).read_bytes()
+        ),
     }
     source_identity = {
         "catalog_sha256": _sha256(catalog_payload),
         "authority_addendum_sha256": _sha256(addendum_payload),
+        "truth_projection_addendum_sha256": _sha256(truth_payload),
         "builder_sha256": _sha256(_canonical(builder_identity)),
         "evidence_hashes": evidence_hashes,
     }
-    data = _projection_data(catalog, admitted, admission_rows)
+    data = _projection_data(
+        catalog,
+        admitted,
+        admission_rows,
+        truth.decision.model_dump(mode="json"),
+    )
     identity = {
         "protocol_id": catalog.protocol.protocol_id,
         "catalog_id": catalog.catalog_id,
-        "published_at": catalog.published_at,
+        "published_at": truth.published_at,
         "source_identity": source_identity,
         "data": data,
     }
@@ -254,7 +279,7 @@ def build_strategy_factory_document(project_root: Path = PROJECT_ROOT) -> dict[s
         "protocol_id": catalog.protocol.protocol_id,
         "catalog_id": catalog.catalog_id,
         "snapshot_id": snapshot_id,
-        "generated_at": catalog.published_at,
+        "generated_at": truth.published_at,
         "timezone": catalog.timezone,
         "source_identity": source_identity,
         "data": data,

@@ -16,7 +16,7 @@ from shaiwei.web.strategy_factory_contract import StrategyFactoryPointer
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_OUTPUT = Path("data/web/research_snapshots/strategy_factory_v2")
+DEFAULT_OUTPUT = Path("data/web/research_snapshots/strategy_factory_v3")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
@@ -67,6 +67,9 @@ class StrategyFactoryBundle:
                 "strategy_factory_catalog": str(self.source_identity["catalog_sha256"]),
                 "strategy_factory_authority_addendum": str(
                     self.source_identity["authority_addendum_sha256"]
+                ),
+                "strategy_factory_truth_projection_addendum": str(
+                    self.source_identity["truth_projection_addendum_sha256"]
                 ),
                 "strategy_factory_builder": str(self.source_identity["builder_sha256"]),
             },
@@ -157,6 +160,9 @@ def load_strategy_factory(
         not isinstance(source_identity, dict)
         or not SHA256_RE.fullmatch(str(source_identity.get("catalog_sha256", "")))
         or not SHA256_RE.fullmatch(str(source_identity.get("authority_addendum_sha256", "")))
+        or not SHA256_RE.fullmatch(
+            str(source_identity.get("truth_projection_addendum_sha256", ""))
+        )
         or not SHA256_RE.fullmatch(str(source_identity.get("builder_sha256", "")))
         or not isinstance(source_identity.get("evidence_hashes"), dict)
     ):
@@ -186,6 +192,44 @@ def load_strategy_factory(
         or invariants.get("production_authorization") != "none"
     ):
         raise WebQueryError("EVIDENCE_MISMATCH", "策略工厂只读或生产边界失效")
+    decisions = data.get("recent_gate_decisions")
+    if (
+        data.get("authority_projection_version")
+        != "m5-strategy-factory-authority-projection-v1"
+        or not isinstance(decisions, list)
+        or len(decisions) != 1
+    ):
+        raise WebQueryError("EVIDENCE_MISMATCH", "策略工厂权威裁决投影无效")
+    decision = decisions[0]
+    expected_gate_facts = {
+        "decision_id": "m5-dynamic-fundamental-lineage-gate-20260806-v1",
+        "family_id": "fundamental_dynamic",
+        "gate_stage": "SOURCE_LINEAGE_FEASIBILITY",
+        "terminal_state": "BLOCKED_DATA",
+        "evidence_tier": "LINEAGE_NO_GO_ONLY",
+        "verdict": "NO_GO_M5_2_SOURCE_LINEAGE_PREEXECUTION",
+        "strategy_effective": "NOT_EVALUATED",
+        "effect_read": False,
+        "real_gate_run_count": 1,
+        "conflict_group_count": 23,
+        "forward_only_group_count": 23,
+        "pit_resolved_group_count": 0,
+        "route_status": "PAUSE",
+        "production_authorization": "none",
+        "release_consumed": True,
+        "active_task": False,
+    }
+    if not isinstance(decision, dict) or any(
+        decision.get(key) != value for key, value in expected_gate_facts.items()
+    ):
+        raise WebQueryError("EVIDENCE_MISMATCH", "策略工厂权威数据门事实漂移")
+    expected_universes = [
+        "star50-official-pit-v2",
+        "star-board-midcap-pit-v1",
+        "star-board-smallcap-pit-v1",
+    ]
+    if decision.get("universe_ids") != expected_universes:
+        raise WebQueryError("EVIDENCE_MISMATCH", "策略工厂权威数据门股票池漂移")
     return StrategyFactoryBundle(
         snapshot_id=pointer.snapshot_id,
         generated_at=str(document["generated_at"]),

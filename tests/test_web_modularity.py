@@ -16,6 +16,7 @@ def test_web_modularization_ratchet():
         "src/shaiwei/web/query_signal.py",
         "src/shaiwei/web/strategy_factory.py",
         "src/shaiwei/web/strategy_factory_contract.py",
+        "src/shaiwei/web/strategy_factory_gate_authority.py",
         "src/shaiwei/web/strategy_factory_projection.py",
         "web-ui/src/validation.ts",
         "web-ui/src/validation/core.ts",
@@ -49,6 +50,7 @@ def test_web_modularization_ratchet():
         "web-ui/src/pages/experiments/DetailPage.tsx",
         "web-ui/src/pages/StrategyFactoryPage.tsx",
         "web-ui/src/pages/strategy-factory/presentation.tsx",
+        "web-ui/src/pages/strategy-factory/GateDecisionPanel.tsx",
     )
     oversized = {path: _lines(path) for path in bounded_modules if _lines(path) > 600}
     assert oversized == {}

@@ -18,16 +18,20 @@ from shaiwei.web.strategy_factory_projection import build_strategy_factory_proje
 ROOT = Path(__file__).parents[1]
 CONFIG = Path("config/m5_strategy_factory_v1.yaml")
 ADDENDUM = Path("config/m5_strategy_factory_authority_addendum_v2.yaml")
-OUTPUT = Path("data/web/research_snapshots/strategy_factory_v2")
+TRUTH_ADDENDUM = Path("config/m5_strategy_factory_truth_projection_v3.yaml")
+OUTPUT = Path("data/web/research_snapshots/strategy_factory_v3")
 
 
 def _fixture_root(tmp_path: Path) -> Path:
     document = yaml.safe_load((ROOT / CONFIG).read_text(encoding="utf-8"))
     addendum = yaml.safe_load((ROOT / ADDENDUM).read_text(encoding="utf-8"))
-    relative_paths = {CONFIG, ADDENDUM, Path(document["protocol"]["path"])}
+    truth = yaml.safe_load((ROOT / TRUTH_ADDENDUM).read_text(encoding="utf-8"))
+    relative_paths = {CONFIG, ADDENDUM, TRUTH_ADDENDUM, Path(document["protocol"]["path"])}
     relative_paths.update(Path(item["path"]) for item in document["evidence_sources"])
     relative_paths.add(Path(addendum["protocol"]["path"]))
     relative_paths.update(Path(item["path"]) for item in addendum["corrections"][0]["evidence"])
+    relative_paths.add(Path(truth["protocol"]["path"]))
+    relative_paths.update(Path(item["path"]) for item in truth["evidence"])
     for relative in relative_paths:
         target = tmp_path / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -46,6 +50,16 @@ def _replace_evidence_hash(root: Path, evidence_id: str) -> None:
     addendum["base_catalog"]["sha256"] = hashlib.sha256(config_path.read_bytes()).hexdigest()
     addendum_path.write_text(
         yaml.safe_dump(addendum, allow_unicode=True, sort_keys=False),
+        encoding="utf-8",
+    )
+    truth_path = root / TRUTH_ADDENDUM
+    truth = yaml.safe_load(truth_path.read_text(encoding="utf-8"))
+    truth["base_projection"]["catalog_sha256"] = hashlib.sha256(config_path.read_bytes()).hexdigest()
+    truth["base_projection"]["authority_addendum_sha256"] = hashlib.sha256(
+        addendum_path.read_bytes()
+    ).hexdigest()
+    truth_path.write_text(
+        yaml.safe_dump(truth, allow_unicode=True, sort_keys=False),
         encoding="utf-8",
     )
 
@@ -78,9 +92,23 @@ def test_projection_is_source_backed_deterministic_and_read_only(tmp_path: Path)
     assert m3["evaluation_unit_count"] == 72
     assert m3["effect_test_count"] == 0
     assert bundle.data["active_tasks"] == []
+    assert bundle.generated_at == "2026-08-06T17:30:40+08:00"
+    assert (
+        bundle.data["authority_projection_version"]
+        == "m5-strategy-factory-authority-projection-v1"
+    )
+    decision = bundle.data["recent_gate_decisions"][0]
+    assert decision["terminal_state"] == "BLOCKED_DATA"
+    assert decision["strategy_effective"] == "NOT_EVALUATED"
+    assert decision["effect_read"] is False
+    assert decision["conflict_group_count"] == 23
+    assert decision["forward_only_group_count"] == 23
+    assert decision["pit_resolved_group_count"] == 0
+    assert decision["active_task"] is False
     assert bundle.data["invariants"]["external_calls_made"] == 0
     assert bundle.data["invariants"]["real_research_runs"] == 0
     assert len(bundle.source_identity["authority_addendum_sha256"]) == 64
+    assert len(bundle.source_identity["truth_projection_addendum_sha256"]) == 64
 
 
 def test_projection_rejects_authority_addendum_drift(tmp_path: Path) -> None:
@@ -90,6 +118,22 @@ def test_projection_rejects_authority_addendum_drift(tmp_path: Path) -> None:
     addendum["corrections"][0]["corrected_value"] = 71
     addendum_path.write_text(yaml.safe_dump(addendum, allow_unicode=True), encoding="utf-8")
     with pytest.raises(StrategyFactoryContractError, match="authority addendum"):
+        build_strategy_factory_projection(root, OUTPUT)
+
+
+def test_projection_rejects_truth_addendum_and_terminal_fact_drift(tmp_path: Path) -> None:
+    root = _fixture_root(tmp_path / "hash")
+    evidence = root / "docs/PLATFORM_ROUTE_REVIEW_20260806.md"
+    evidence.write_text(evidence.read_text(encoding="utf-8") + "tamper\n", encoding="utf-8")
+    with pytest.raises(StrategyFactoryContractError, match="truth projection evidence SHA-256"):
+        build_strategy_factory_projection(root, OUTPUT)
+
+    root = _fixture_root(tmp_path / "fact")
+    truth_path = root / TRUTH_ADDENDUM
+    truth = yaml.safe_load(truth_path.read_text(encoding="utf-8"))
+    truth["decision"]["strategy_effective"] = "REJECT"
+    truth_path.write_text(yaml.safe_dump(truth, allow_unicode=True), encoding="utf-8")
+    with pytest.raises(StrategyFactoryContractError, match="truth projection addendum"):
         build_strategy_factory_projection(root, OUTPUT)
 
 
@@ -151,6 +195,9 @@ def test_strategy_factory_api_is_atomic_and_get_head_only(tmp_path: Path) -> Non
     assert payload["schema_version"] == "web-v1"
     assert payload["data"]["summary"]["registered_program_count"] == 8
     assert payload["data"]["draft_template"]["status"] == "DRAFT_NOT_SUBMITTED"
+    assert payload["data"]["recent_gate_decisions"][0]["terminal_state"] == "BLOCKED_DATA"
+    assert payload["data"]["recent_gate_decisions"][0]["strategy_effective"] == "NOT_EVALUATED"
+    assert payload["meta"]["as_of"] == "2026-08-06"
     assert response.headers["etag"] == f'"{payload["meta"]["snapshot_id"]}"'
 
     head = client.head("/api/v1/strategy-factory")

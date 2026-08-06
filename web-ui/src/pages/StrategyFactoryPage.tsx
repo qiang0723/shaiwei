@@ -17,6 +17,7 @@ import {
   ResearchMatrix,
   UniverseMap
 } from "./strategy-factory/presentation";
+import { GateDecisionPanel } from "./strategy-factory/GateDecisionPanel";
 import { ProposalWorkbench } from "./strategy-factory/ProposalWorkbench";
 
 export default function StrategyFactoryPage() {
@@ -32,6 +33,7 @@ export default function StrategyFactoryPage() {
   const envelope = query.data;
   const data = envelope.data;
   const summary = data.summary;
+  const latestGateDecision = data.recent_gate_decisions[0]!;
   const evidence: EvidencePayload = {
     title: "多股票池策略工厂原子快照",
     snapshotId: envelope.meta.snapshot_id,
@@ -47,7 +49,7 @@ export default function StrategyFactoryPage() {
     ],
     technicalFacts: [
       { label: "查询边界", value: "GET/HEAD only" },
-      { label: "真实研究运行", value: String(data.invariants.real_research_runs) },
+      { label: "页面触发研究运行", value: String(data.invariants.real_research_runs) },
       { label: "外部调用", value: String(data.invariants.external_calls_made) },
       { label: "北交所计数", value: String(data.invariants.bse_count) }
     ]
@@ -71,22 +73,24 @@ export default function StrategyFactoryPage() {
       <section className="factory-command" aria-labelledby="factory-decision">
         <div>
           <span className="section-kicker">CURRENT DECISION</span>
-          <h2 id="factory-decision">5个股票池可以继续研究，但当前没有新策略获准执行</h2>
-          <p>正式因子库仍为0。已有拒绝、合同停止和数据阻断不是无效产出，而是下一批研究必须继承的边界。</p>
+          <h2 id="factory-decision">{summary.decision}</h2>
+          <p>这次阻断不是策略拒绝。正式因子库仍为0，其他已就绪股票池继续按有界协议研究。</p>
         </div>
         <div className="factory-command-state">
-          <span>当前行动</span>
-          <strong>只建立有界草案</strong>
-          <small>未提交 · 未冻结 · 未运行</small>
+          <span>M5历史支线</span>
+          <strong>暂停</strong>
+          <small>等待权威历史版本与生效链</small>
         </div>
       </section>
+
+      <GateDecisionPanel decision={latestGateDecision} universes={data.universes} />
 
       <div className="metric-grid five-up factory-metrics">
         <MetricCard label="可研究股票池" value={`${summary.research_eligible_universe_count} / ${summary.registered_universe_count}`} detail="具备数据与PIT条件" icon={<ApartmentOutlined />} />
         <MetricCard label="数据/PIT阻断" value={summary.blocked_universe_count} detail="不可绕过建立因子任务" tone="warning" icon={<StopOutlined />} />
         <MetricCard label="正式因子准入" value={summary.admitted_factor_count} detail={`${summary.factor_admission_decision_count}条裁决已核验`} tone="warning" icon={<SafetyCertificateOutlined />} />
         <MetricCard label="既有生产策略" value={summary.existing_production_strategy_count} detail="仍仅中证800主策略" icon={<ThunderboltOutlined />} />
-        <MetricCard label="活跃授权任务" value={summary.active_authorized_task_count} detail="本轮没有真实研究执行" icon={<ExperimentOutlined />} />
+        <MetricCard label="活跃授权任务" value={summary.active_authorized_task_count} detail="当前无获准执行任务" icon={<ExperimentOutlined />} />
       </div>
 
       <Alert
