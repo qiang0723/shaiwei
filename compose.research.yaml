@@ -1542,3 +1542,62 @@ services:
       - /workspace/config/m4_star50_residual_effect_evidence_closure_v1.yaml
       - --execution-release
       - /workspace/config/m4_star50_residual_effect_evidence_closure_execution_v1.yaml
+
+  m6-model-attribution-engineering:
+    image: shaiwei:m6-model-attribution-engineering-v1
+    pull_policy: never
+    profiles: [m6-model-attribution-engineering]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_M6_ENGINEERING_RELEASE_GIT_HEAD:-}
+    init: true
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=1g,mode=1777
+    pids_limit: 128
+    mem_limit: 4g
+    cpus: 2.0
+    environment:
+      HOME: /tmp
+      MPLCONFIGDIR: /tmp/matplotlib
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+    volumes:
+      - type: bind
+        source: ./data/qlib_bin/_shaiwei_manifest.json
+        target: /workspace/config/m6_frozen_qlib_manifest.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/qlib_bin/calendars/day.txt
+        target: /workspace/config/m6_frozen_calendar.txt
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/m6_csi800_model_attribution_v1/engineering
+        target: /workspace/data/research/m6_csi800_model_attribution_v1/engineering
+        read_only: false
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.model_attribution.synthetic
+      - --manifest-path
+      - /workspace/config/m6_frozen_qlib_manifest.json
+      - --calendar-path
+      - /workspace/config/m6_frozen_calendar.txt
+      - --output
+      - /workspace/data/research/m6_csi800_model_attribution_v1/engineering/report.json
