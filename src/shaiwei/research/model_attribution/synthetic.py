@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 from copy import deepcopy
 import json
+import os
 from pathlib import Path
 from typing import Any, Callable
 
@@ -12,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 from shaiwei.config import PROJECT_ROOT
+from shaiwei.provenance import RELEASE_MANIFEST_ENV, code_snapshot_sha256, git_head
 from shaiwei.research.model_attribution.clock import load_calendar, verify_frozen_windows
 from shaiwei.research.model_attribution.contract import (
     AttributionError,
@@ -310,6 +312,11 @@ def build_report(
     if not all(failure_checks.values()):
         raise AttributionError("M6 failure-closed fixture matrix is incomplete")
     code_bundle = _code_bundle()
+    release_identity = {
+        "git_head": git_head(),
+        "code_snapshot_sha256": code_snapshot_sha256(),
+        "embedded_release_manifest_verified": bool(os.getenv(RELEASE_MANIFEST_ENV)),
+    }
     return {
         "schema_version": "m6-model-attribution-engineering-report-v1",
         "protocol_id": bundle.result["protocol_id"],
@@ -324,6 +331,7 @@ def build_report(
         "failure_closed_checks": failure_checks,
         "code_bundle": code_bundle,
         "code_bundle_sha256": canonical_sha256(code_bundle),
+        "release_identity": release_identity,
         "real_model_fit_count": 0,
         "real_prediction_count": 0,
         "real_label_or_effect_read": False,

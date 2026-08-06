@@ -227,7 +227,7 @@ docker-m6-model-attribution-preflight: ## 只读manifest/交易日历并运行�
 	mkdir -p data/research/m6_csi800_model_attribution_v1/engineering
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.research.yaml --profile m6-model-attribution-engineering run --rm --no-deps m6-model-attribution-engineering
 docker-m6-model-attribution-audit: ## 独立复算M6-1合成报告、Holm与五类唯一终态
-	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.research.yaml --profile m6-model-attribution-engineering run --rm --no-deps m6-model-attribution-engineering python -m shaiwei.research.model_attribution.audit --calendar-path /workspace/config/m6_frozen_calendar.txt --report /workspace/data/research/m6_csi800_model_attribution_v1/engineering/report.json --output /workspace/data/research/m6_csi800_model_attribution_v1/engineering/audit.json
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.research.yaml --profile m6-model-attribution-engineering run --rm --no-deps m6-model-attribution-engineering python -m shaiwei.research.model_attribution.audit --calendar-path /inputs/m6_frozen_calendar.txt --report /workspace/data/research/m6_csi800_model_attribution_v1/engineering/report.json --output /workspace/data/research/m6_csi800_model_attribution_v1/engineering/audit.json
 docker-release-build: ## 从干净工作树构建并验证内容寻址 scheduler 镜像
 	$(PYTHON) -m shaiwei.release build
 docker-release-promote: ## 提升 RELEASE_IMAGE；默认重建 scheduler 并验收隔离契约

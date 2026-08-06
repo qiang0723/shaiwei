@@ -1575,13 +1575,13 @@ services:
     volumes:
       - type: bind
         source: ./data/qlib_bin/_shaiwei_manifest.json
-        target: /workspace/config/m6_frozen_qlib_manifest.json
+        target: /inputs/m6_frozen_qlib_manifest.json
         read_only: true
         bind:
           create_host_path: false
       - type: bind
         source: ./data/qlib_bin/calendars/day.txt
-        target: /workspace/config/m6_frozen_calendar.txt
+        target: /inputs/m6_frozen_calendar.txt
         read_only: true
         bind:
           create_host_path: false
@@ -1596,8 +1596,8 @@ services:
       - -m
       - shaiwei.research.model_attribution.synthetic
       - --manifest-path
-      - /workspace/config/m6_frozen_qlib_manifest.json
+      - /inputs/m6_frozen_qlib_manifest.json
       - --calendar-path
-      - /workspace/config/m6_frozen_calendar.txt
+      - /inputs/m6_frozen_calendar.txt
       - --output
       - /workspace/data/research/m6_csi800_model_attribution_v1/engineering/report.json

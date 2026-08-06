@@ -6,10 +6,12 @@ import argparse
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 from typing import Any
 
 from shaiwei.config import PROJECT_ROOT
+from shaiwei.provenance import RELEASE_MANIFEST_ENV, code_snapshot_sha256, git_head
 from shaiwei.research.model_attribution.contract import (
     AttributionError,
     ProtocolBundle,
@@ -76,6 +78,12 @@ def audit(report_path: Path, calendar_path: Path, output: Path) -> dict[str, Any
     report = json.loads(report_path.read_text(encoding="utf-8"))
     report_sha = sha256_file(report_path)
     checks: dict[str, bool] = {
+        "release_identity": report.get("release_identity")
+        == {
+            "git_head": git_head(),
+            "code_snapshot_sha256": code_snapshot_sha256(),
+            "embedded_release_manifest_verified": bool(os.getenv(RELEASE_MANIFEST_ENV)),
+        },
         "protocol_identity": report.get("protocol_sha256") == bundle.result_sha256,
         "engineering_identity": report.get("engineering_protocol_sha256")
         == bundle.engineering_sha256,

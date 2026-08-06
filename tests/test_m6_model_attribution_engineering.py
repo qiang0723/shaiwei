@@ -10,6 +10,7 @@ import pytest
 import yaml
 
 from shaiwei.config import PROJECT_ROOT
+from shaiwei.provenance import code_snapshot_sha256, git_head
 from shaiwei.research.model_attribution.audit import audit
 from shaiwei.research.model_attribution.clock import (
     load_calendar,
@@ -210,6 +211,11 @@ def test_synthetic_runner_replay_and_independent_audit_are_deterministic() -> No
     document = json.loads(report.read_text(encoding="utf-8"))
     assert document["engineering_verdict"] == "GO_ENGINEERING_ONLY"
     assert document["strategy_effective"] == "NOT_EVALUATED"
+    assert document["release_identity"] == {
+        "git_head": git_head(),
+        "code_snapshot_sha256": code_snapshot_sha256(),
+        "embedded_release_manifest_verified": False,
+    }
     assert len(document["decision_cases"]) == 5
     assert all(document["failure_closed_checks"].values())
 
@@ -248,6 +254,12 @@ def test_m6_docker_profile_is_offline_narrow_and_non_production() -> None:
         "./data/research/m6_csi800_model_attribution_v1/engineering",
     ]
     assert "./data" not in sources and "./ledger" not in sources and "." not in sources
+    targets = [volume["target"] for volume in service["volumes"]]
+    assert targets[:2] == [
+        "/inputs/m6_frozen_qlib_manifest.json",
+        "/inputs/m6_frozen_calendar.txt",
+    ]
+    assert all(not target.startswith("/workspace/config/") for target in targets)
     assert service["command"][:3] == [
         "python",
         "-m",
