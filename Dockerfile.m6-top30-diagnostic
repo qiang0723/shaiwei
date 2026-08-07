@@ -1,4 +1,4 @@
-ARG BASE_IMAGE
+ARG BASE_IMAGE=shaiwei:m6-model-attribution-release-v1
 FROM ${BASE_IMAGE}
 
 ARG SHAIWEI_M6_TOP30_DIAGNOSTIC_GIT_HEAD=""
