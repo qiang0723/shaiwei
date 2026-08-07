@@ -108,6 +108,12 @@ def test_protocol_and_release_scope_are_strict(
         ReleaseScope.load(release_path, protocol)
 
 
+def test_wrapper_copy_preserves_directory_traversal_for_non_root() -> None:
+    dockerfile = Path("Dockerfile.m6-top30-diagnostic").read_text(encoding="utf-8")
+    copy_line = next(line for line in dockerfile.splitlines() if "top30_diagnostic" in line and line.startswith("COPY"))
+    assert "--chmod" not in copy_line
+
+
 def test_exact_encoding_has_no_tolerance() -> None:
     baseline, changed = exact_rows(_report()), exact_rows(_report(1e-15))
     result = exact_diff(baseline, changed)
