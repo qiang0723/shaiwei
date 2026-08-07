@@ -1,0 +1,138 @@
+schema_version: m6-csi800-top30-numeric-provenance-protocol-v1
+protocol_id: m6-csi800-top30-numeric-provenance-v1
+frozen_at: "2026-08-07T18:12:39+08:00"
+stage: FROZEN_READ_ONLY_NUMERIC_PROVENANCE_RECONSTRUCTION
+
+objective:
+  question: >-
+    在不新增回测、模型拟合、预测或Top20读取的前提下，复原封存规范日报、原M6镜像回放和
+    失败M6-3C镜像回放的数值生产谱系，判断既有约1e-16差异能否归因到可审计的运行时、
+    依赖、BLAS、计算代码或Parquet序列化差异。
+  strategy_or_effect_evaluation: false
+  threshold_or_parameter_change: false
+  numeric_tolerance_added: false
+  historical_artifact_rewrite: false
+
+predecessor:
+  protocol_id: m6-csi800-top30-compatibility-diagnostic-recovery-v2
+  diagnostic_scope_sha256: f4ade91b9cd93f4bc248138eb3b06f5283361c7642c4b497bcfc70414422d13e
+  approval_sha256: 9c92e86d3ab4aaa96d9530034fe47da02c89682a1191dcaa84bfb347c7b5ae5f
+  audit_sha256: db03a7e59985759f9d56302aa60a0bab00fdb459ba9abe9917cf69d5871a8c75
+  artifact_tree_sha256: 5c58f796cff52c8e574d311ddbc50d9b5f5ff3d4f5849a4a7470a467a614750c
+  classification: MIXED_UNRESOLVED
+  total_top30_backtest_count: 6
+  top20_backtest_count: 0
+  same_scope_retry_authorized: false
+
+frozen_inputs:
+  canonical_report:
+    path: data/research/m6_csi800_model_attribution_v1/effect/first_pass/W1/backtest/clean_lgbm_control_v1.parquet
+    sha256: c705c067192bdb483f7cc97f70a790724573ca550429ed624b8d6c1f3d6a1262
+  diagnostic_root:
+    path: data/research/m6_csi800_top30_compatibility_diagnostic_recovery_v2
+    file_count: 7
+    total_bytes: 310131
+    tree_sha256: 5c58f796cff52c8e574d311ddbc50d9b5f5ff3d4f5849a4a7470a467a614750c
+  original_m6_image:
+    reference: shaiwei:m6-model-attribution-release-v1
+    image_id: sha256:3c40c9c74bbbda926433f2d49cd78128c665cbb84e071ab3d44d187ecc2cd40e
+    recorded_git_commit: 35fd1d58c7db00a3d97d98ca79699b6f8911789c
+  failed_m6_3c_image:
+    reference: shaiwei:m6-topk-conversion-release-v1
+    image_id: sha256:69c1a4976e4c89973789413d7a9635d575669e785c4fe4621d6b3f34e09afa17
+    recorded_git_commit: 322c599b616843ab76fd22c4d13f554f55614f40
+  repository_inputs:
+    - config/m6_csi800_model_attribution_release_scope_v1.json
+    - config/m6_csi800_topk20_conversion_release_scope_v1.json
+    - config/m6_csi800_top30_compatibility_diagnostic_recovery_scope_v2.json
+    - config/m6_csi800_top30_compatibility_diagnostic_recovery_manifest_v2.json
+    - requirements.lock
+
+read_only_evidence_matrix:
+  identity_precheck:
+    - frozen_file_sha256
+    - diagnostic_tree_identity
+    - image_id
+    - recorded_git_object_exists
+  runtime_provenance:
+    - python_version
+    - implementation_and_platform
+    - libc
+    - installed_distribution_versions
+    - numpy_build_configuration
+    - thread_and_blas_environment_names_without_values
+    - image_config_and_layer_identity
+  artifact_provenance:
+    - parquet_created_by
+    - parquet_format_version
+    - parquet_schema
+    - row_group_and_compression_metadata
+    - file_mtime_diagnostic_only
+  code_provenance:
+    - recorded_commit_execution_source_sha256
+    - current_frozen_execution_source_sha256
+    - source_diff_names_only_and_hunks_for_authorized_execution_modules
+    - release_manifest_identity
+  existing_row_topology:
+    - exact_row_and_column_identity
+    - per_column_mismatch_count
+    - first_and_last_mismatch_position
+    - ieee754_ulp_distance_distribution
+    - absolute_difference_distribution_diagnostic_only
+    - equality_relationship_across_existing_three_lanes
+
+classification_contract:
+  ROOT_CAUSE_IDENTIFIED: >-
+    既有证据形成唯一、无竞争解释的生产谱系差异，并且该差异与现有三路输出关系逐项一致；
+    不得仅凭版本不同或相关性判定。
+  PRODUCER_ENVIRONMENT_IDENTIFIED_NOT_CAUSALLY_PROVEN: >-
+    规范日报的完整生产环境可被内容寻址，但现有零新回测证据不足以证明某一差异就是因果来源。
+  PROVENANCE_GAP_CONFIRMED: >-
+    规范日报缺少至少一个不可替代的生产身份，现有镜像、提交或元数据不能闭合，因而无法继续归因。
+  MIXED_UNRESOLVED: every_other_evidence_pattern
+  classification_changes_top20_or_strategy_decision: false
+  automatic_rerun_or_tolerance_authorized: false
+
+authority:
+  protocol_and_read_only_execution_authorized_by_user_continue_instruction: true
+  existing_canonical_top30_report_read_authorized: true
+  existing_r2_top30_rows_read_authorized: true
+  local_git_object_read_authorized: true
+  local_docker_image_metadata_read_authorized: true
+  offline_package_probe_in_existing_images_authorized: true
+  dedicated_ignored_evidence_write_authorized: true
+  top30_backtest_authorized: false
+  top20_read_or_backtest_authorized: false
+  qlib_provider_mount_or_read_authorized: false
+  model_fit_authorized: false
+  prediction_generation_authorized: false
+  experiment_ledger_write_authorized: false
+  external_network_authorized: false
+  env_secret_values_read_authorized: false
+  forward_signal_authorized: false
+  paper_portfolio_authorized: false
+  production_authorization: none
+
+execution_contract:
+  output_root: data/research/m6_csi800_top30_numeric_provenance_v1
+  collector_invocation_count: 1
+  independent_auditor_invocation_count: 1
+  total_top30_backtest_count: 0
+  top20_backtest_count: 0
+  research_attempt_increment: 0
+  network_mode: none
+  run_as_non_root: true
+  read_only_root: true
+  full_project_root_mount: false
+  qlib_mount: false
+  env_file_mount: false
+  docker_socket_mount: false
+  production_ledger_mount: false
+  same_scope_retry_authorized: false
+
+stop_condition:
+  stop_after_single_collector_and_single_independent_audit: true
+  preserve_all_predecessor_artifacts: true
+  top20_remains_prohibited: true
+  no_new_backtest_release_may_be_inferred: true
+  production_authorization: none
