@@ -527,7 +527,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M6-2R | M6独立审计入口恢复 | 唯一断网恢复audit PASS；新增尝试0、effect前后同SHA；权威`PORTFOLIO_CONVERSION_BOTTLENECK_INDICATED`、生产none | 本scope关闭不得重跑；下一批最多预冻结一个组合转换变量，不增加模型且须重新授权 |
 | M6-3A | 中证800 Top20组合转换结果前协议 | 仅冻结`TopK 30→20`；复用三组封存预测，两个组合假设采用NW(10)+Holm差分中的差分；真实Top20效果0、生产none | 协议推送后停止；如继续另立M6-3B合成工程目标，真实效果须新release scope和用户精确授权 |
 | M6-3B | 中证800 Top20组合转换结果盲工程门 | `GO_ENGINEERING_ONLY`；Top30兼容、Top20转换、四终态、15类失败关闭、物理双跑和独立audit均PASS；真实effect/Qlib/拟合/预测/回测0 | 工程scope关闭；真实Top20效果须另立M6-3C精确release scope并由用户明确授权，生产仍为none |
-| M6-3C | 中证800 Top20组合转换真实release | release协议已结果前冻结；真实接线前发现并冻结全调仓日名单分解补遗，未改门槛/假设/尝试；真实effect/Qlib/回测仍为0 | 先完成结果盲runner/auditor、合成多调仓日验证、不可变镜像和精确scope；用户批准完整scope SHA前不得真实运行 |
+| M6-3C | 中证800 Top20组合转换真实release | 结果前全调仓日补遗、runner/auditor、正式镜像和精确scope均就绪；scope `ba4d03be...5fd9`，approval不存在，真实effect/Qlib/回测0 | 只有用户逐字批准固定动作并绑定完整scope SHA后，才运行一次runner+一次独立audit；禁止重跑、外网、模型、其他TopK、前瞻或生产 |
 | A1 | 代码架构整理与受控瘦身 | 计划与机器门已冻结，基线约113,500行；当前未删除代码 | M6系列关闭后、下一重大能力前先做A1-0只读清单；用户复核后才可进入A1-1小批施工 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |

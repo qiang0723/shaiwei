@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · M6-3C真实Top20 release已就绪，停在精确批准门前
+
+- 结果盲实现提交`322c599b...14f40`已推送；7个真实release窄模块最大292行。runner先完成21个Top30
+  常规/压力兼容回测，全部逐内容一致后才写Top20尝试标记并执行21个Top20回测；独立auditor不挂
+  Qlib或旧effect，单独复算统计、门和终态。
+- 正式镜像`69c1a497...afa17`绑定Git`322c599b...14f40`、代码快照`961f51ad...cd2e`及538文件
+  发布清单；最终断网合成runner/auditor PASS，真实数据、Qlib和回测读取均为0。
+- 首次构建误把短Git手工补成错误40位值，scope入口正确失败关闭；错误镜像`21810132...ed08`已标
+  provisional并留痕，未生成scope、未读效果。正式镜像以Git实际完整值重建并重验。
+- release scope SHA为`ba4d03be675e63fd94211271e5dc6d4812bc12954fbf8f77ef0eea85c5065fd9`，
+  approval文件不存在，组合尝试尚未消费，策略`NOT_EVALUATED_FOR_PRODUCTION`、生产none。只有用户逐字
+  批准动作`M6_TOPK20_CONVERSION_EFFECT_ONCE_WITH_INTERNAL_REPLAY_AND_INDEPENDENT_AUDIT`并绑定该SHA，
+  才能运行一次runner+一次audit。见`docs/M6_CSI800_TOPK20_CONVERSION_RELEASE_ACCEPTANCE_20260807.md`。
+
 ## 2026-08-07 · M6-3结果前补正全调仓日名单分解
 
 - M6-3C真实接线前发现M6-3B合成bundle每窗口/臂只保存一组计划证券，而10日调仓的真实窗口有多组
