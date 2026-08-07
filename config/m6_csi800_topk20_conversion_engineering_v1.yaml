@@ -1,0 +1,173 @@
+schema_version: m6-csi800-topk20-conversion-engineering-protocol-v1
+protocol_id: m6-csi800-topk20-conversion-engineering-v1
+frozen_at: "2026-08-07T10:08:13+08:00"
+stage: RESULT_BLIND_SYNTHETIC_ENGINEERING_ONLY
+
+predecessor:
+  protocol_id: m6-csi800-topk20-portfolio-conversion-v1
+  git_commit: 931d6334d9996cc27fdcc1f327d6dac93fab005c
+  config_path: config/m6_csi800_topk20_conversion_v1.yaml
+  config_sha256: c61728582c0c611015fab90221423db678373b115e1d9010ae12d9035590e71b
+  document_path: docs/M6_CSI800_TOPK20_CONVERSION_PROTOCOL_20260807.md
+  document_sha256: fb958edbf5b2e6d197b2e039a26cf0b974ec821c44d34b22fdc38948c22993f2
+  preserve_without_rewrite: true
+
+authority:
+  engineering_implementation_authorized: true
+  synthetic_fixture_authorized: true
+  immutable_engineering_image_build_authorized: true
+  dependency_build_network_only: true
+  existing_m6_effect_artifact_read_authorized: false
+  qlib_manifest_feature_price_or_calendar_read_authorized: false
+  real_model_fit_authorized: false
+  real_prediction_authorized: false
+  real_label_or_effect_read_authorized: false
+  real_backtest_authorized: false
+  experiment_ledger_write_authorized: false
+  forward_signal_authorized: false
+  paper_portfolio_authorized: false
+  production_authorization: none
+  external_runtime_network_authorized: false
+  env_or_secret_read_authorized: false
+  tushare_calls: 0
+  deepseek_calls: 0
+
+result_goal:
+  engineering_verdict: GO_ENGINEERING_ONLY_OR_BLOCKED
+  prove_release_ready_components:
+    - exact_predecessor_contract_validation
+    - topk_is_the_only_portfolio_variable
+    - portfolio_only_execution_adapter_without_model_imports
+    - exact_top30_compatibility_gate_before_top20_evaluation
+    - paired_difference_in_differences_and_direct_top20_gate
+    - newey_west_10_and_holm_two
+    - deterministic_four_state_decision
+    - canonical_write_once_first_pass_and_replay
+    - independent_auditor_without_primary_metric_imports
+    - tamper_and_boundary_failure_closure
+  strategy_effective_at_every_outcome: NOT_EVALUATED_FOR_PRODUCTION
+  production_authorization: none
+
+architecture:
+  package: src/shaiwei/research/topk_conversion
+  modules:
+    schema: immutable identifiers and typed bundle shapes
+    contract: predecessor hashes, authority and path boundary
+    execution: generic TopK schedule and injectable portfolio adapter
+    metrics: primary difference-in-differences, gates and decision
+    artifacts: canonical write-once bundle and report
+    synthetic: deterministic result-blind fixture runner
+    audit_statistics: independent formula reimplementation
+    audit: independent artifact reader and verdict reconstruction
+  forbidden_imports_in_execution_or_metrics:
+    - shaiwei.research.model_attribution.models
+    - shaiwei.research.model_attribution.effect_data
+    - shaiwei.research.model_attribution.scoring
+  independent_auditor_forbidden_imports:
+    - shaiwei.research.topk_conversion.metrics
+    - shaiwei.research.topk_conversion.execution
+    - shaiwei.research.topk_conversion.synthetic
+  forbidden_growth_targets:
+    - src/shaiwei/research/model_attribution
+    - src/shaiwei/backtest/baseline.py
+    - src/shaiwei/backtest/strategy.py
+    - compose.research.yaml
+  new_production_module_soft_limit_lines: 400
+  new_production_module_hard_limit_lines: 600
+  no_new_runtime_dependency: true
+  no_adr_required_reason: one_shot_research_package_reuses_frozen_contract_and_existing_backtest_port
+
+synthetic_contract:
+  seed: 20260807
+  arms:
+    - clean_lgbm_control_v1
+    - ridge_alpha1_v1
+    - lgbm_ridge_rank_blend_50_50_v1
+  alternatives: [ridge_alpha1_v1, lgbm_ridge_rank_blend_50_50_v1]
+  windows: [W1, W2, W3, W4, W5, W6]
+  topk_values: [30, 20]
+  daily_rows_per_window: 40
+  instruments_per_signal_day: 40
+  fixture_cases:
+    - TOPK20_CONVERSION_SUPPORTED
+    - TOPK20_CONVERSION_NOT_SUPPORTED
+    - MIXED_NOT_CONCLUSIVE
+    - BLOCKED
+  real_security_codes_present: false
+  real_market_values_present: false
+  real_effect_claim_forbidden: true
+
+failure_closed_checks:
+  - predecessor_hash_drift
+  - broadened_authority
+  - second_changed_portfolio_variable
+  - model_training_or_scoring_import
+  - wrong_arm_window_or_topk_set
+  - top30_canonical_report_mismatch
+  - prediction_member_day_key_mismatch
+  - bse_security_code
+  - nonfinite_or_noncompoundable_return
+  - wrong_hypothesis_count_or_holm_family
+  - ambiguous_terminal_decision
+  - first_pass_replay_mismatch
+  - output_path_escape
+  - write_once_content_conflict
+  - audit_hash_or_reconstruction_mismatch
+
+artifact_contract:
+  ignored_root: data/research/m6_csi800_topk20_conversion_v1/engineering
+  runner_root: data/research/m6_csi800_topk20_conversion_v1/engineering/runner
+  audit_root: data/research/m6_csi800_topk20_conversion_v1/engineering/audit
+  passes: [first_pass, replay]
+  per_pass_bundle: bundle.json
+  formal_report: report.json
+  independent_audit: audit.json
+  generated_timestamp_in_canonical_artifacts: false
+  write_once: true
+  first_pass_and_replay_bundle_sha256_must_match: true
+  failed_evidence_must_not_be_overwritten: true
+
+docker:
+  compose_file: compose.m6-topk-conversion.yaml
+  image: shaiwei:m6-topk-conversion-engineering-v1
+  runner_service: m6-topk-conversion-fixture
+  auditor_service: m6-topk-conversion-auditor
+  one_shot: true
+  network_mode: none
+  read_only_root: true
+  run_as_non_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  docker_socket_mounted: false
+  env_file_mounted: false
+  full_project_root_mounted: false
+  qlib_or_m6_effect_mounted: false
+  runner_writable_mounts:
+    - data/research/m6_csi800_topk20_conversion_v1/engineering/runner
+  auditor_read_only_mounts:
+    - data/research/m6_csi800_topk20_conversion_v1/engineering/runner
+  auditor_writable_mounts:
+    - data/research/m6_csi800_topk20_conversion_v1/engineering/audit
+  scheduler_change_or_restart: false
+
+determinism:
+  canonical_json_sort_keys: true
+  formal_synthetic_runner_invocation_count: 1
+  complete_internal_passes: [first_pass, replay]
+  independent_auditor_invocation_count: 1
+  first_pass_and_replay_physical_sha_equal: true
+  repeat_same_identity_reuses_outputs: true
+  write_once_conflict_must_fail: true
+  independent_audit_must_pass: true
+
+outputs:
+  tracked_manifest: config/m6_csi800_topk20_conversion_engineering_manifest_v1.json
+  acceptance: docs/M6_CSI800_TOPK20_CONVERSION_ENGINEERING_ACCEPTANCE_20260807.md
+  real_model_prediction_nav_trade_or_holding_outputs: 0
+  experiment_ledger_rows: 0
+
+stop_condition:
+  stop_after_engineering_go: true
+  real_effect_release_requires_new_target_exact_scope_and_user_authorization: true
+  no_authority_inheritance_from_m6_3a_or_m6_3b: true
+  production_authorization: none

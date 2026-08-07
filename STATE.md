@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · M6-3B结果盲工程协议已冻结，等待合成实现
+
+- 用户指令继续下一任务；M6-3B只建设Top20组合转换的portfolio-only runner、差分中的差分裁决、
+  write-once证据和独立auditor，全部使用虚构证券与合成收益，不读取M6 effect或Qlib真实输入。
+- 新包固定为`shaiwei.research.topk_conversion`八个窄职责模块；执行/指标不得导入模型训练，独立audit
+  不得导入主指标、执行或fixture。另建小型`compose.m6-topk-conversion.yaml`，不继续增长既有大型
+  research compose。
+- 当前只冻结工程范围，真实效果、模型、回测、实验账本、前瞻、模拟仓、Web、scheduler和生产均未获
+  授权。协议提交先行推送后再实现；工程GO后仍须停止在新精确release scope前。见
+  `docs/M6_CSI800_TOPK20_CONVERSION_ENGINEERING_PROTOCOL_20260807.md`。
+
 ## 2026-08-07 · M6-3A Top20组合转换协议已结果前冻结
 
 - 用户同意按主控建议继续M6组合转换归因；本节点只冻结`portfolio.topk: 30→20`一个变量，复用M6-2
