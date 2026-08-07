@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · M6-3C-R2编排恢复协议已结果盲冻结
+
+- R2只修复R1未加引号的flow-style tmpfs被拆分这一编排问题；旧Compose/scope/approval/失败记录永久
+  保留。新版本使用独立Compose、Dockerfile、镜像名、approval路径和输出根，不复用失败scope。
+- 原三路矩阵、Top30 6次回放、IEEE-754逐位比较、六类分类、参数、资源和安全边界全部不变；核心
+  runner/auditor必须依赖注入复用，不复制第二套回测或分类逻辑。
+- 当前只授权结果盲实现、无真实挂载的Compose fixture、镜像和新scope；真实Qlib/封存日报/Top30/
+  Top20读取与执行仍为0。新scope生成后停止，须用户绑定新SHA逐字批准恢复动作才可运行。见
+  `docs/M6_CSI800_TOP30_COMPATIBILITY_DIAGNOSTIC_RECOVERY_PROTOCOL_20260807.md`。
+
 ## 2026-08-07 · M6-3C-R1在容器创建前失败关闭，真实诊断仍为0
 
 - 用户绑定scope`cad1928c...1fc23`逐字批准后，主控于15:15调用一次original入口；Docker因

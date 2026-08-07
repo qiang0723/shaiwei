@@ -532,6 +532,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M6-3B | 中证800 Top20组合转换结果盲工程门 | `GO_ENGINEERING_ONLY`；Top30兼容、Top20转换、四终态、15类失败关闭、物理双跑和独立audit均PASS；真实effect/Qlib/拟合/预测/回测0 | 工程scope关闭；真实Top20效果须另立M6-3C精确release scope并由用户明确授权，生产仍为none |
 | M6-3C | 中证800 Top20组合转换真实release | 唯一runner在首个W1控制臂Top30规范日报逐内容门失败关闭；`BLOCKED_PRE_EFFECT`，Top20尝试0、Top20回测0、audit未启动、生产none | 原scope永久不得重跑；如继续另立结果盲Top30兼容诊断/恢复协议，先定位差异且不得放宽门或读取Top20，新真实执行须新scope和精确授权 |
 | M6-3C-R1 | M6-3C Top30兼容差异诊断 | scope `cad1928c...1fc23`获批后，original入口因tmpfs YAML被拆分而在容器创建前失败；Top30诊断0/6、Top20 0、分类NOT_EVALUATED、生产none | 本scope永久不得重跑；如继续另立M6-3C-R2结果盲编排恢复，fixture通过后重建镜像/新scope并再次精确授权，不得改变矩阵或比较口径 |
+| M6-3C-R2 | M6-3C Top30兼容诊断编排恢复 | 结果盲协议已冻结；只修tmpfs单字符串和版本化发布边界，真实诊断0、Top20 0、生产none | 协议先推送，再复用核心runner/auditor完成Compose fixture、镜像和新scope；新scope获逐字批准前停止 |
 | A1 | 代码架构整理与受控瘦身 | 计划与机器门已冻结，基线约113,500行；当前未删除代码 | M6系列关闭后、下一重大能力前先做A1-0只读清单；用户复核后才可进入A1-1小批施工 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |

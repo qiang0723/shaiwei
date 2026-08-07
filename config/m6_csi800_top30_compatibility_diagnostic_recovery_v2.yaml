@@ -1,0 +1,114 @@
+schema_version: m6-csi800-top30-compatibility-diagnostic-recovery-protocol-v2
+protocol_id: m6-csi800-top30-compatibility-diagnostic-recovery-v2
+frozen_at: "2026-08-07T15:36:03+08:00"
+stage: RESULT_BLIND_ORCHESTRATION_RECOVERY_PROTOCOL_FREEZE_ONLY
+
+objective:
+  question: >-
+    在不读取真实Qlib、封存日报或Top20的前提下，修复M6-3C-R1因未加引号的flow-style tmpfs
+    列表被拆分而导致的容器创建失败，并重建可精确授权的三路Top30兼容诊断release。
+  diagnostic_logic_change: false
+  strategy_or_effect_evaluation: false
+  top20_read_or_execution: false
+  threshold_or_parameter_change: false
+
+predecessor_failure:
+  protocol_id: m6-csi800-top30-compatibility-diagnostic-v1
+  protocol_sha256: 02b4893208af3afa74ff8f4ce414d8143322e760080761199023666cd452b09c
+  release_scope_sha256: cad1928cfc882f259fe9cfc5aeb753d69a03fcfe769b6a860eed4eec71a1fc23
+  release_document_sha256: 2a80241ff0f8f11c23826a49cc30362b13f7fd02a2c925c21d65bbe93089de75
+  approval_sha256: 62b794739ce3cf9336b46da85c1f97d2586b2fbedc8ce51243c5bfc4da5df570
+  execution_acceptance_sha256: 56c838bd7742ae7b94c31bd6d455866f227c9b0da266d6e6e63eae934ff4cc99
+  failed_compose_sha256: 64d619f6dddc5d9abcab19654e58d03464540dcf3bd8fbc4d78d0f21ccdcb47d
+  orchestration_invocation_count: 1
+  container_created: false
+  top30_backtest_count: 0
+  top20_backtest_count: 0
+  diagnosis: UNQUOTED_FLOW_STYLE_TMPFS_SPLIT_INTO_MULTIPLE_MOUNTS
+  same_scope_retry_authorized: false
+
+single_change_contract:
+  preserve_failed_compose_and_scope_unchanged: true
+  new_compose_path: compose.m6-top30-diagnostic-recovery.yaml
+  new_dockerfile_path: Dockerfile.m6-top30-diagnostic-recovery
+  tmpfs:
+    original: "/tmp:rw,noexec,nosuid,size=1g,mode=1777"
+    current: "/tmp:rw,noexec,nosuid,size=1g,mode=1777"
+    auditor: "/tmp:rw,noexec,nosuid,size=512m,mode=1777"
+    yaml_list_cardinality_each_service: 1
+    docker_compose_expansion_cardinality_each_service: 1
+  inherited_without_change:
+    - frozen_diagnostic_case
+    - frozen_runtime_inputs
+    - three_lane_matrix
+    - exact_ieee754_comparison
+    - six_classification_contract
+    - resource_limits
+    - security_boundary
+    - zero_research_attempt_increment
+
+architecture:
+  reuse_existing_top30_domain_runner_and_auditor: true
+  recovery_layer_responsibility: versioned_contract_runtime_identity_and_orchestration_only
+  duplicate_backtest_or_classification_logic: prohibited
+  failed_r1_release_mutation: prohibited
+  production_or_web_dependency: prohibited
+
+preapproval_validation:
+  synthetic_classifier_fixture_required: true
+  compose_yaml_tmpfs_cardinality_test_required: true
+  docker_compose_expansion_test_required: true
+  non_root_network_none_compose_fixture_required_for:
+    - original_image
+    - current_image
+    - auditor_security_profile
+  fixture_real_input_mount_count: 0
+  fixture_real_qlib_read: false
+  fixture_sealed_report_read: false
+  fixture_top30_backtest_count: 0
+  fixture_top20_backtest_count: 0
+
+future_release_contract:
+  scope_kind: TOP30_COMPATIBILITY_DIAGNOSTIC_RECOVERY_RELEASE_READY_NOT_EXECUTION_APPROVAL
+  scope_schema: m6-top30-compatibility-diagnostic-recovery-release-scope-v2
+  approval_action: M6_TOP30_COMPATIBILITY_DIAGNOSTIC_MATRIX_RECOVERY_ONCE
+  approval_schema: m6-top30-compatibility-diagnostic-recovery-approval-v2
+  original_image: shaiwei:m6-top30-diagnostic-recovery-original-v2
+  current_image: shaiwei:m6-top30-diagnostic-recovery-current-v2
+  approval_path: data/control/m6_csi800_top30_compatibility_diagnostic_recovery_v2/approval.json
+  output_root: data/research/m6_csi800_top30_compatibility_diagnostic_recovery_v2
+  original_runner_invocation_count: 1
+  current_runner_invocation_count: 1
+  independent_auditor_invocation_count: 1
+  total_top30_backtest_count: 6
+  top20_backtest_count: 0
+  research_attempt_increment: 0
+  same_release_retry_authorized: false
+
+authority:
+  protocol_freeze_authorized_by_user_continue_instruction: true
+  implementation_after_protocol_push_authorized: true
+  synthetic_and_compose_fixture_authorized: true
+  image_build_and_scope_generation_authorized: true
+  real_qlib_read_authorized: false
+  sealed_prediction_or_report_read_authorized: false
+  failed_release_evidence_semantic_read_authorized: false
+  real_top30_diagnostic_backtest_authorized: false
+  real_top20_read_or_backtest_authorized: false
+  model_fit_authorized: false
+  prediction_generation_authorized: false
+  experiment_ledger_write_authorized: false
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  forward_signal_authorized: false
+  paper_portfolio_authorized: false
+  production_authorization: none
+
+stop_condition:
+  stop_after_protocol_commit_is_pushed: false
+  continue_result_blind_implementation_after_push: true
+  stop_after_exact_recovery_scope_is_generated: true
+  real_diagnostic_execution_requires_new_user_scope_approval: true
+  failed_r1_scope_remains_non_retryable: true
+  top20_remains_prohibited_after_diagnostic: true
+  production_authorization: none
