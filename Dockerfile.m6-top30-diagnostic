@@ -10,6 +10,7 @@ ENV SHAIWEI_M6_TOP30_DIAGNOSTIC_ROLE=${SHAIWEI_M6_TOP30_DIAGNOSTIC_ROLE}
 ENV SHAIWEI_M6_TOP30_DIAGNOSTIC_BASE_IMAGE_ID=${SHAIWEI_M6_TOP30_DIAGNOSTIC_BASE_IMAGE_ID}
 
 COPY src/shaiwei/research/top30_diagnostic /workspace/src/shaiwei/research/top30_diagnostic
+COPY Dockerfile.m6-top30-diagnostic compose.m6-top30-diagnostic.yaml /workspace/
 RUN python -m shaiwei.research.top30_diagnostic.image_manifest \
     --output /opt/shaiwei/m6-top30-diagnostic/release-manifest.json
 

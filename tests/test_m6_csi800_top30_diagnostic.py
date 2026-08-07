@@ -112,6 +112,7 @@ def test_wrapper_copy_preserves_directory_traversal_for_non_root() -> None:
     dockerfile = Path("Dockerfile.m6-top30-diagnostic").read_text(encoding="utf-8")
     copy_line = next(line for line in dockerfile.splitlines() if "top30_diagnostic" in line and line.startswith("COPY"))
     assert "--chmod" not in copy_line
+    assert "COPY Dockerfile.m6-top30-diagnostic compose.m6-top30-diagnostic.yaml /workspace/" in dockerfile
 
 
 def test_exact_encoding_has_no_tolerance() -> None:
