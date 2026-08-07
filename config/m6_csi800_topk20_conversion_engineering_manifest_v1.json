@@ -1,0 +1,143 @@
+{
+  "schema_version": "m6-csi800-topk20-conversion-engineering-manifest-v1",
+  "research_family": "m6-csi800-topk20-portfolio-conversion-v1",
+  "engineering_verdict": "GO_ENGINEERING_ONLY",
+  "strategy_effective": "NOT_EVALUATED_FOR_PRODUCTION",
+  "production_authorization": "none",
+  "protocol": {
+    "result_protocol_id": "m6-csi800-topk20-portfolio-conversion-v1",
+    "result_config_path": "config/m6_csi800_topk20_conversion_v1.yaml",
+    "result_config_sha256": "c61728582c0c611015fab90221423db678373b115e1d9010ae12d9035590e71b",
+    "result_document_path": "docs/M6_CSI800_TOPK20_CONVERSION_PROTOCOL_20260807.md",
+    "result_document_sha256": "fb958edbf5b2e6d197b2e039a26cf0b974ec821c44d34b22fdc38948c22993f2",
+    "engineering_protocol_id": "m6-csi800-topk20-conversion-engineering-v1",
+    "engineering_config_path": "config/m6_csi800_topk20_conversion_engineering_v1.yaml",
+    "engineering_config_sha256": "06331ba4fd8780bbc3f418dd23482604d63b674ea227c548b2916b301060f9b4",
+    "engineering_document_path": "docs/M6_CSI800_TOPK20_CONVERSION_ENGINEERING_PROTOCOL_20260807.md",
+    "engineering_document_sha256": "0afbff2a27e85b45c41de4343ba53daeb7de234b908993f592b0654a9f3d33f7",
+    "engineering_freeze_git_head": "843fca67d3e292bf1c6716743a34f967760b0be7"
+  },
+  "release": {
+    "initial_implementation_git_head": "60a272722c3f731e10f969f213fbf34982aa0b72",
+    "release_identity_fix_git_head": "2337076fac310d513050af9788ee1a69e3534a4f",
+    "image": "shaiwei:m6-topk-conversion-engineering-v1",
+    "image_id": "sha256:e14fc6c3cf867ed7e1b5daf030186c9893acbcf6f20384c677adc6098e4953eb",
+    "platform": "linux/arm64",
+    "embedded_release_git_head": "2337076fac310d513050af9788ee1a69e3534a4f",
+    "embedded_release_manifest_verified": true,
+    "code_snapshot_sha256": "7857c0a3df50ffd67e1c450512b8619b780a5b7cd9b31080977b30b8077008ef",
+    "release_manifest_file_count": 524,
+    "topk_conversion_code_bundle_sha256": "087b85b8845928a8683dd3e85be9e45c4fc347f773693465f55e24ebe6c6eecc",
+    "compose_path": "compose.m6-topk-conversion.yaml",
+    "compose_sha256": "87aa73ce912038fcdd791824b2ddf81433a435d877ceddccf77f802611dd28a9"
+  },
+  "formal_artifacts": {
+    "ignored_root": "data/research/m6_csi800_topk20_conversion_v1/engineering",
+    "file_count": 4,
+    "byte_count": 2912704,
+    "first_pass_bundle": {
+      "path": "data/research/m6_csi800_topk20_conversion_v1/engineering/runner/first_pass/bundle.json",
+      "byte_count": 1450605,
+      "sha256": "10fb244964fb96f190f366f55503fc2f96b70bcee8392a0238e7e8811b329a3c"
+    },
+    "replay_bundle": {
+      "path": "data/research/m6_csi800_topk20_conversion_v1/engineering/runner/replay/bundle.json",
+      "byte_count": 1450605,
+      "sha256": "10fb244964fb96f190f366f55503fc2f96b70bcee8392a0238e7e8811b329a3c"
+    },
+    "engineering_report": {
+      "path": "data/research/m6_csi800_topk20_conversion_v1/engineering/runner/report.json",
+      "byte_count": 10361,
+      "sha256": "f3e5fd52d067615d2d2c8952ad7eb9ed16e247ed467c4f98464e5c927ea230fa"
+    },
+    "independent_audit": {
+      "path": "data/research/m6_csi800_topk20_conversion_v1/engineering/audit/audit.json",
+      "byte_count": 1133,
+      "sha256": "e443a1e87c6719dd01a2d310689be654b3bf21c1b35a8685e106bc4905477690"
+    },
+    "independent_reconstruction_sha256": "97babbc38d5630cb4e2de7f14bf2c66edebb347eed4cdfe7e818d1659c04cdcd"
+  },
+  "synthetic_evidence": {
+    "seed": 20260807,
+    "arm_count": 3,
+    "alternative_count": 2,
+    "window_count": 6,
+    "topk_values": [30, 20],
+    "decision_case_count": 4,
+    "failure_closed_check_count": 15,
+    "first_pass_replay_physical_sha_equal": true,
+    "independent_audit": "PASS",
+    "real_security_codes_present": false,
+    "real_market_values_present": false,
+    "real_m6_effect_read": false,
+    "qlib_data_read": false,
+    "real_model_fit_count": 0,
+    "real_prediction_count": 0,
+    "real_backtest_count": 0,
+    "external_call_count": 0,
+    "experiment_ledger_rows": 0
+  },
+  "provisional_evidence": {
+    "formal": false,
+    "reason": "the embedded full release Git identity was not an existing repository commit",
+    "preserved_path": "data/research/m6_csi800_topk20_conversion_v1/engineering/provisional_wrong_release_identity_02a325de",
+    "invalid_embedded_git_head": "60a2727a7292349e307336241470981e466a92d1",
+    "image_id": "sha256:cb34d4ceb40f8771e5d53f02cef7cfdf98443b240a4ed76da3fe5c7ce7f8f75d",
+    "code_snapshot_sha256": "7950bfd4029c38390b1793786808456d9b21e4653a5672965c7b602b7a400969",
+    "report_sha256": "02a325de5b159c1f6419201c5805b8c642c972e3b8343a94bdac42faebcdaff5",
+    "audit_sha256": "453fc23b2675b0a7f58d5b8536f7f2f4c337f576b09f527dcb411124885b9ea4",
+    "preserved": true,
+    "research_attempt_consumed": false
+  },
+  "runtime_isolation": {
+    "network_mode": "none",
+    "non_root": true,
+    "read_only_root": true,
+    "cap_drop_all": true,
+    "no_new_privileges": true,
+    "env_file_mounted": false,
+    "docker_socket_mounted": false,
+    "whole_repository_mounted": false,
+    "qlib_or_m6_effect_mounted": false,
+    "business_ledger_mounted": false,
+    "runner_writable_mount_count": 1,
+    "auditor_writable_mount_count": 1,
+    "one_shot_containers_remaining": 0
+  },
+  "production_scheduler": {
+    "container_id_before_and_after": "183b8c6c5edd",
+    "image_id_before_and_after": "sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76",
+    "created_at_before_and_after": "2026-08-03T09:39:34.800579793Z",
+    "final_state": "running",
+    "final_health": "healthy",
+    "restart_count": 0,
+    "restarted": false
+  },
+  "architecture": {
+    "package": "src/shaiwei/research/topk_conversion",
+    "production_module_count_excluding_init": 8,
+    "largest_production_module": "src/shaiwei/research/topk_conversion/synthetic.py",
+    "largest_production_module_lines": 361,
+    "new_production_module_soft_limit_lines": 400,
+    "independent_auditor_imports_primary_metrics_or_execution": false,
+    "existing_large_research_compose_modified": false,
+    "new_runtime_dependency_added": false
+  },
+  "validation": {
+    "full_pytest_passed": 903,
+    "architecture_pytest_passed": 10,
+    "m6_specialized_pytest_passed": 28,
+    "ruff": "PASS",
+    "compileall": "PASS",
+    "pip_check": "PASS",
+    "compose_config": "PASS",
+    "diff_check": "PASS",
+    "tracked_secret_pattern_scan": "PASS"
+  },
+  "stop_condition": {
+    "engineering_scope_closed": true,
+    "real_effect_release_requires_new_exact_scope": true,
+    "real_effect_release_requires_user_authorization": true,
+    "production_authorization": "none"
+  }
+}

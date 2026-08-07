@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · M6-3B Top20组合转换结果盲工程门GO
+
+- 严格继承M6-3A且只允许`TopK 30→20`一个变化的portfolio-only执行、差分中的差分、Top20直接门、
+  四终态、write-once双跑和独立auditor均已在纯合成输入上通过；工程裁决`GO_ENGINEERING_ONLY`，
+  策略`NOT_EVALUATED_FOR_PRODUCTION`，生产授权none。
+- 正式断网runner内部first_pass/replay物理SHA同为`10fb2449...29a3c`；报告`f3e5fd52...230fa`，独立
+  audit`e443a1e8...77690`并逐项复算PASS。真实M6 effect、Qlib、拟合、预测、回测、实验账本和外部
+  调用均为0。
+- 首镜像嵌入的完整Git身份不属于真实提交，虽代码快照可复算仍被判provisional并原样保留；随后新增
+  镜像Git/代码快照强绑定和漂移失败关闭。正式镜像`e14fc6c3...953eb`绑定已推送提交
+  `2337076f...534a4f`与代码快照`7857c0a3...008ef`。
+- 八个窄职责模块最大361行，独立Compose不扩大旧research compose。全仓903 PASS、架构10 PASS；
+  scheduler原容器/镜像保持healthy、重启0。M6-3B已关闭；真实Top20效果只能另立M6-3C精确scope并
+  再获用户授权。见`docs/M6_CSI800_TOPK20_CONVERSION_ENGINEERING_ACCEPTANCE_20260807.md`。
+
 ## 2026-08-07 · M6-3B结果盲工程协议已冻结，等待合成实现
 
 - 用户指令继续下一任务；M6-3B只建设Top20组合转换的portfolio-only runner、差分中的差分裁决、
