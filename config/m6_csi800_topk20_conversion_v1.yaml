@@ -1,0 +1,238 @@
+schema_version: m6-csi800-topk20-conversion-protocol-v1
+protocol_id: m6-csi800-topk20-portfolio-conversion-v1
+frozen_at: "2026-08-07T09:54:14+08:00"
+protocol_stage: RESULT_BEFORE_TOPK20_PORTFOLIO_PROTOCOL_FREEZE_ONLY
+
+research_question:
+  objective: >-
+    在复用M6-2同一组封存预测、同一中证800成员、窗口、成交和成本的前提下，只把TopK从30改为20，
+    判断更窄的持仓宽度能否把已确认的分数增量转化为扣费后的组合增量。
+  best_portfolio_search: false
+  strategy_parameter_grid: false
+  production_strategy_replacement: false
+  prior_m6_attribution_result_known_before_freeze: true
+  prior_m6_attribution_result: PORTFOLIO_CONVERSION_BOTTLENECK_INDICATED
+  new_top20_historical_effect_inspected_before_freeze: false
+  paper_top20_relative_performance_used_to_select_parameter: false
+
+authority:
+  protocol_freeze_authorized_by_user_instruction: true
+  tracked_protocol_test_and_status_write_authorized: true
+  implementation_authorized: false
+  existing_effect_artifact_read_authorized: false
+  qlib_feature_or_price_read_authorized: false
+  model_fit_authorized: false
+  prediction_generation_authorized: false
+  label_or_effect_read_authorized: false
+  backtest_authorized: false
+  experiment_ledger_write_authorized: false
+  forward_signal_authorized: false
+  paper_portfolio_change_authorized: false
+  scheduler_change_or_restart_authorized: false
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  production_authorization: none
+  tushare_calls: 0
+  deepseek_calls: 0
+
+predecessors:
+  m6_result_protocol:
+    path: config/m6_csi800_model_attribution_v1.yaml
+    sha256: 6c170d991df1ef75f18208837301b545fe50518c028a65c814d425fc36d7a22a
+  m6_real_release_protocol:
+    path: config/m6_csi800_model_attribution_real_release_v1.yaml
+    sha256: 3d0f76fe0ede71cb3c4b8a7a280767e82b989dd3d1c9e56de7983ef87f0a1b7c
+  m6_real_release_scope:
+    path: config/m6_csi800_model_attribution_release_scope_v1.json
+    file_sha256: 3550046f8cb34a6b4ee33ae0655fbec377928d93a043b4c5e424caa98447779d
+    release_scope_sha256: 9b609f0764240ff3930a4aeaaf16cef9deb82579d2a5875f1be9e8c4ffb0b139
+  m6_release_acceptance:
+    path: docs/M6_CSI800_MODEL_ATTRIBUTION_RELEASE_ACCEPTANCE_20260806.md
+    sha256: d956456fc0d425b916d1d9a142cb0434504ad7ef3785fb44dd6b05b4d40e54aa
+  m6_authoritative_audit_acceptance:
+    path: docs/M6_CSI800_MODEL_ATTRIBUTION_AUDIT_RECOVERY_ACCEPTANCE_20260807.md
+    sha256: 1463b29e67a46a919f440808a36d50d703b338519da1eb0b5300e90843d1e920
+  paper_top20_operational_protocol:
+    path: docs/PAPER_TOP20_PROTOCOL_20260726.md
+    sha256: 6e20d155deaa9f12a11fb38983d730664c07469e61849e37fc2fe4dc0337aa7b
+    role: fixed_parameter_and_operational_feasibility_reference_only
+    historical_effect_input_authorized: false
+  preserve_without_rewrite: true
+
+immutable_m6_evidence:
+  effect_root: data/research/m6_csi800_model_attribution_v1/effect
+  effect_file_count: 199
+  effect_byte_count: 84957571
+  effect_tree_sha256: dfbc0b52f40250b7151d74d9a45f3fdc17a69ca1f7b9c853267c1071b4b0d5cb
+  report_sha256: 65e7b7ae2a8c4844f11d855f978d13c58eb082547f76a92ce92c8d6dc94b29f3
+  first_pass_bundle_sha256: 424e3ff9751522bb11736b4a80ef5dc8225a25ef14475611e6335e6ff0dea27e
+  replay_bundle_sha256: 424e3ff9751522bb11736b4a80ef5dc8225a25ef14475611e6335e6ff0dea27e
+  audit_sha256: 8788bddc6df2bdd74de489b7efaaf8eb1818c9787424a59a9e59b8ab2c5d0fd6
+  artifact_semantics_read_during_this_freeze: false
+  future_use_requires_exact_scope_and_user_approval: true
+
+scope:
+  universe_id: csi800-pit-v1
+  official_index_code: 000906.SH
+  qlib_instrument: csi800
+  benchmark_qlib_code: SH000906
+  feature_set: Alpha158
+  feature_additions: 0
+  existing_score_arm_count: 3
+  new_model_arm_count: 0
+  new_model_fit_count: 0
+  new_prediction_generation_count: 0
+  changed_portfolio_variable_count: 1
+  formal_portfolio_hypothesis_count: 2
+  grid_search_authorized: false
+  multiple_seed_authorized: false
+  hyperparameter_tuning_authorized: false
+  additional_topk_value_authorized: false
+
+score_surfaces:
+  source: immutable_m6_first_pass_predictions_verified_equal_to_replay
+  arms:
+    - clean_lgbm_control_v1
+    - ridge_alpha1_v1
+    - lgbm_ridge_rank_blend_50_50_v1
+  prediction_member_day_keys_must_match_predecessor: true
+  prediction_values_must_match_predecessor: true
+  score_or_rank_transformation_added: false
+  refit_or_rescore_authorized: false
+
+single_variable_contract:
+  variable_path: portfolio.topk
+  variable_name: topk
+  control_value: 30
+  treatment_value: 20
+  rationale: >-
+    M6-2已显示分数增量但Top30组合未转化；Top20是事先选择的唯一更窄宽度，并已有独立模拟账户协议
+    证明操作化可行。本批不读取该模拟账户的相对业绩，也不测试10、15、25或其他TopK。
+  prohibited_additional_values: [10, 15, 25, 30_plus]
+  all_other_portfolio_fields_byte_semantically_equal: true
+
+portfolio_constants:
+  strategy: BiweeklyTopkDropoutStrategy
+  account_rmb: 100000000
+  n_drop: 3
+  rebalance_trade_days: 10
+  only_tradable: true
+  forbid_all_trade_at_limit: false
+  deal_price: open
+  benchmark: SH000906
+  open_cost: 0.0006
+  close_cost: 0.0016
+  minimum_cost_rmb: 5
+  cost_multipliers: [1.0, 1.5, 2.0]
+  cost_scenario_method: scale_recorded_base_daily_cost_without_rerunning_trades
+  capacity_model_added: false
+  allocation_and_cash_semantics: inherit_unmodified_biweekly_topk_dropout_defaults
+
+windows_and_clock:
+  inherit_exactly_from: config/m6_csi800_model_attribution_v1.yaml
+  windows: [W1, W2, W3, W4, W5, W6]
+  signal_clock: signal_date_close
+  execution_clock: next_trade_day_open
+  label_expression: "Ref($open,-11)/Ref($open,-1)-1"
+  label_maturity_or_window_change_authorized: false
+  stress_contract_change_authorized: false
+
+future_input_compatibility_gate:
+  predecessor_effect_tree_identity_must_match: true
+  first_pass_and_replay_prediction_bundles_must_match: true
+  top30_portfolio_replay_must_match_predecessor_canonical_reports_before_top20_effect: true
+  top30_replay_mismatch_outcome: BLOCKED_PRE_EFFECT
+  prediction_or_member_day_drift_outcome: BLOCKED_PRE_EFFECT
+  bse_row_outcome: BLOCKED_PRE_EFFECT
+  paper_account_artifacts_as_historical_input: prohibited
+
+primary_inference:
+  outcome: >-
+    paired_daily_difference_in_differences_of_net_active_return:
+    (alternative_top20-clean_top20)-(alternative_top30-clean_top30)
+  cost_multiplier: 1.0
+  pooled_definition: chronological_concatenation_W1_through_W6
+  hac_lags: 10
+  alternative: greater
+  familywise_alpha: 0.05
+  multiplicity_method: holm
+  hypothesis_family: [ridge_alpha1_v1, lgbm_ridge_rank_blend_50_50_v1]
+  hypothesis_count: 2
+  windows_and_cost_scenarios_are_not_independent_attempts: true
+
+conversion_gate:
+  interaction:
+    primary_holm_adjusted_p_must_pass: true
+    pooled_base_difference_in_differences_strictly_positive: true
+    minimum_positive_difference_in_differences_windows: 4
+  top20_direct_vs_clean_control:
+    pooled_base_net_excess_delta_strictly_positive: true
+    minimum_positive_base_delta_windows: 4
+    pooled_1_5x_cost_delta_nonnegative: true
+    pooled_2x_cost_delta_nonnegative: true
+    maximum_turnover_ratio_vs_top20_clean_control: 1.10
+    maximum_test_or_evaluable_stress_drawdown: 0.20
+  predecessor_score_gate:
+    reuse_authoritative_m6_score_pass_only: true
+    new_rank_ic_hypothesis_or_threshold: false
+  required_decomposition:
+    - top20_and_top30_daily_net_active_return
+    - top20_direct_delta_vs_clean_control
+    - top30_predecessor_delta_vs_clean_control
+    - paired_difference_in_differences
+    - gross_active_return_delta
+    - transaction_cost_delta
+    - turnover_ratio
+    - maximum_drawdown
+    - scheduled_top20_name_overlap
+
+decision_contract:
+  precedence: [BLOCKED, TOPK20_CONVERSION_SUPPORTED, TOPK20_CONVERSION_NOT_SUPPORTED, MIXED_NOT_CONCLUSIVE]
+  TOPK20_CONVERSION_SUPPORTED: >-
+    至少一个既有替代分数臂同时通过interaction和Top20直接组合门；只支持下一阶段独立评审，不代表
+    策略有效或生产准入。
+  TOPK20_CONVERSION_NOT_SUPPORTED: >-
+    两个既有替代分数臂均未通过interaction且均未通过Top20直接组合门；M6系列关闭并进入A1-0只读盘点。
+  MIXED_NOT_CONCLUSIVE: >-
+    没有臂同时通过两门，但存在仅通过interaction、仅通过直接组合门或两臂证据冲突；停止且不再测试
+    其他TopK、n_drop、调仓周期、权重或新模型。
+  BLOCKED: 输入身份、Top30复现、覆盖、确定性、执行或独立审计证据任一不完整。
+  strategy_effective_for_every_outcome: NOT_EVALUATED_FOR_PRODUCTION
+  production_authorization_for_every_outcome: none
+
+attempt_policy:
+  prior_model_alternative_attempt_count_preserved: 2
+  new_model_alternative_attempt_count: 0
+  portfolio_conversion_attempt_count: 2
+  attempts_consumed_on_first_authorized_top20_effect_read: true
+  failed_after_effect_read_still_consumes_both_portfolio_attempts: true
+  no_replacement_model_or_portfolio_hypothesis: true
+  no_post_result_topk_threshold_or_gate_change: true
+  factor_g1_trial_count_increment: 0
+
+future_execution_contract_not_authorized_here:
+  protocol_commit_must_be_pushed_before_implementation: true
+  implementation_requires_new_main_target: true
+  synthetic_engineering_before_real_effect: true
+  real_execution_requires_new_exact_release_scope_and_user_approval: true
+  portfolio_only_runner_may_not_import_model_training_factory: true
+  formal_runner_invocation_count: 1
+  complete_internal_passes: [first_pass, replay]
+  independent_auditor_invocation_count: 1
+  high_load_runs_serial_only: true
+  immutable_write_once_output_required: true
+  scheduler_change_or_restart: false
+  forward_or_paper_change: false
+
+future_outputs:
+  ignored_root: data/research/m6_csi800_topk20_conversion_v1
+  tracked_manifest: config/m6_csi800_topk20_conversion_manifest_v1.json
+  acceptance: docs/M6_CSI800_TOPK20_CONVERSION_ACCEPTANCE_20260807.md
+  experiment_ledger: ledger/experiments.csv
+  tracked_outputs_exist_at_freeze: false
+
+stop_condition:
+  stop_after_protocol_commit_is_pushed: true
+  no_implementation_or_effect_read_in_this_target: true
+  next_step_requires_separate_main_target: true
+  production_authorization: none
