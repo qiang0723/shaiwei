@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · M6-3C-R1兼容诊断release就绪，停在精确批准门前
+
+- 三路诊断runner、IEEE-754位级证据、独立分类auditor、两套薄镜像和精确scope已完成；最终scope
+  `cad1928c...1fc23`绑定协议、实现Git`67d53fa3...9b73d`、两个base/wrapper镜像、8文件代码bundle、
+  Qlib/封存M6/原M6-3C失败证据、命令、挂载和资源。approval与真实输出目录均不存在。
+- 两套最终镜像断网合成fixture覆盖6类分类并PASS，真实Qlib、封存日报、Top30回测、Top20、模型、
+  新预测和实验账本读取/写入均为0；全仓926 PASS、专项8 PASS、架构10 PASS。
+- 结果盲发布过程中三批provisional分别暴露错误完整Git、非root目录不可遍历和缺部署证据文件；均在
+  scope授权前失败关闭并留存镜像/候选scope身份，正式镜像已通过非root fixture和容器runtime门。
+- 只有用户逐字批准动作`M6_TOP30_COMPATIBILITY_DIAGNOSTIC_MATRIX_ONCE`并绑定完整scope SHA，才可
+  各运行一次original/current runner与独立audit；失败不得重跑。即使诊断PASS也不恢复Top20或生产。
+  见`docs/M6_CSI800_TOP30_COMPATIBILITY_DIAGNOSTIC_RELEASE_ACCEPTANCE_20260807.md`。
+
 ## 2026-08-07 · M6-3C-R1 Top30兼容诊断协议已结果盲冻结
 
 - 下一任务只诊断M6-3C首个W1控制臂Top30日报差异，不读取Top20或评价策略。固定三路为原M6镜像+
