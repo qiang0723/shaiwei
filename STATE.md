@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · M6-3C-R3数值谱系复原完成，生产环境已识别但因果未证
+
+- scope`70ae0cc5...5b87`下双镜像probe、collector和独立auditor各唯一成功一次；Top30/Top20新回测、
+  Qlib、训练、预测、研究尝试、外网和生产写入均为0，同scope已关闭。
+- 规范生产身份完整；两镜像关键包/BLAS版本和原执行器源码一致。主要竞争差异是规范6线程/6 CPU/
+  12 GiB完整effect流程，对比诊断1线程/2 CPU/4 GiB单臂入口，以及两base整体内容地址不同。
+- 独立audit八项PASS，权威`PRODUCER_ENVIRONMENT_IDENTIFIED_NOT_CAUSALLY_PROVEN`；不能把线程差异
+  或其他相关事实冒充唯一根因。5件产物整树`9888eb8e...dcae`，Top20继续禁止、生产none。
+- 建议关闭M6-3C连续诊断并进入A1-0只读代码整理清单；若未来坚持因果验证，须另立单变量R4并重新
+  授权，R3不自动授权。见`docs/M6_CSI800_TOP30_NUMERIC_PROVENANCE_EXECUTION_ACCEPTANCE_20260807.md`。
+
 ## 2026-08-07 · M6-3C-R3只读取证release就绪
 
 - 结果盲实现已按职责拆为镜像探针、证据collector、ULP拓扑与独立auditor；全仓934 PASS，架构10 PASS，

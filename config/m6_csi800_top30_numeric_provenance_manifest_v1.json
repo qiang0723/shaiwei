@@ -1,0 +1,67 @@
+{
+  "schema_version": "m6-top30-numeric-provenance-manifest-v1",
+  "provenance_scope_sha256": "70ae0cc5ab00e3ca0972d013d6898defbc2399861ca33f70e96952a1de1b5b87",
+  "implementation_git_commit": "ad969dcadae3a68e7d5a1ec7fed25c5bee67bde3",
+  "execution": {
+    "original_image_probe_invocation_count": 1,
+    "failed_image_probe_invocation_count": 1,
+    "collector_invocation_count": 1,
+    "independent_auditor_invocation_count": 1,
+    "total_top30_backtest_count": 0,
+    "top20_backtest_count": 0,
+    "research_attempt_increment": 0,
+    "same_scope_retry_authorized": false
+  },
+  "artifacts": {
+    "original_probe_sha256": "6c193269f4e7516f1eb75f1f269b82588a6fc524ce5f30166cf31e67bb5250af",
+    "failed_probe_sha256": "9f02d8eaeb47edb1ae5d55aa8ab3af08628e518d50fcd546979b34ce2173db4c",
+    "collector_report_sha256": "c8b29c6a218c7947c8660be5db4b68056d568aaf3c9a006ba2be7abd75f9393e",
+    "independent_audit_sha256": "15d360f4aae2a25b4478ee6e5c537a2b9e6c558bb91dbfdaebe832bd3094c1cd",
+    "whole_tree": {
+      "file_count": 5,
+      "total_bytes": 19923,
+      "tree_sha256": "9888eb8e1221d092030784d6681e86122aac956f513b2483d866c3085b71dcae"
+    }
+  },
+  "provenance_findings": {
+    "canonical_producer_identity_complete": true,
+    "canonical_base_image_reused_by_original_diagnostic": true,
+    "critical_distribution_difference_count": 0,
+    "common_original_execution_source_difference_count": 0,
+    "topk_conversion_source_presence_difference_count": 1,
+    "canonical_runner_cpu_count": 6,
+    "diagnostic_runner_cpu_count": 2,
+    "canonical_thread_count": 6,
+    "diagnostic_thread_count": 1,
+    "runner_command_path_differs": true,
+    "causal_proof": false,
+    "competing_explanation_count": 6
+  },
+  "row_topology": {
+    "original_image_original_adapter": {
+      "mismatch_cell_count": 245,
+      "maximum_ulp_distance": 66559,
+      "median_ulp_distance": 130,
+      "maximum_absolute_difference_diagnostic_only": 7.528699885739343e-16
+    },
+    "failed_image_original_adapter": {
+      "mismatch_cell_count": 217,
+      "maximum_ulp_distance": 26595,
+      "median_ulp_distance": 131,
+      "maximum_absolute_difference_diagnostic_only": 6.175615574477433e-16
+    },
+    "failed_image_new_adapter": {
+      "mismatch_cell_count": 217,
+      "maximum_ulp_distance": 26595,
+      "median_ulp_distance": 131,
+      "maximum_absolute_difference_diagnostic_only": 6.175615574477433e-16
+    }
+  },
+  "verdict": {
+    "independent_audit": "PASS",
+    "classification": "PRODUCER_ENVIRONMENT_IDENTIFIED_NOT_CAUSALLY_PROVEN",
+    "top20_remains_prohibited": true,
+    "strategy_effective": "NOT_EVALUATED_FOR_PRODUCTION",
+    "production_authorization": "none"
+  }
+}

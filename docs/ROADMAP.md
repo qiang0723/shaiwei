@@ -17,8 +17,9 @@ M6-1结果盲工程门已`GO_ENGINEERING_ONLY`；M6-2唯一真实runner与内部
 W1控制臂Top30重建日报与封存规范日报逐内容比对时失败关闭为`BLOCKED_PRE_EFFECT`。Top20尝试消费0、
 Top20效果仍为0，独立audit因runner前置失败未启动；原scope不得重跑。M6-3C-R1因Compose tmpfs
 编排错误在容器前失败；R2修复后完成6次Top30诊断及独立audit。三路各自确定，但原M6镜像、失败镜像
-和封存规范日报形成不满足任何单因分类的差异模式，权威`MIXED_UNRESOLVED`；Top20继续禁止。R3已
-结果前冻结为零新回测数值谱系复原，只读历史镜像/依赖/代码/Parquet与既有rows，不挂Qlib或读Top20。
+和封存规范日报形成不满足任何单因分类的差异模式；R3已证明规范生产环境身份完整，但线程/资源、
+进程路径和整体镜像差异并存，权威`PRODUCER_ENVIRONMENT_IDENTIFIED_NOT_CAUSALLY_PROVEN`。Top20
+继续禁止，建议关闭M6-3C连续诊断并先进入A1-0；未来R4须另立单变量协议和授权。
 科创三池独立机制批次仍须单独排期。
 完整依据、资源比例和停止条件见
 `docs/PLATFORM_ROUTE_REVIEW_20260806.md`和
@@ -534,7 +535,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M6-3C | 中证800 Top20组合转换真实release | 唯一runner在首个W1控制臂Top30规范日报逐内容门失败关闭；`BLOCKED_PRE_EFFECT`，Top20尝试0、Top20回测0、audit未启动、生产none | 原scope永久不得重跑；如继续另立结果盲Top30兼容诊断/恢复协议，先定位差异且不得放宽门或读取Top20，新真实执行须新scope和精确授权 |
 | M6-3C-R1 | M6-3C Top30兼容差异诊断 | scope `cad1928c...1fc23`获批后，original入口因tmpfs YAML被拆分而在容器创建前失败；Top30诊断0/6、Top20 0、分类NOT_EVALUATED、生产none | 本scope永久不得重跑；如继续另立M6-3C-R2结果盲编排恢复，fixture通过后重建镜像/新scope并再次精确授权，不得改变矩阵或比较口径 |
 | M6-3C-R2 | M6-3C Top30兼容诊断编排恢复 | 6次Top30及独立audit完成；三路内部确定，失败镜像两适配器相同，但原M6/失败镜像/规范日报三者不等，权威`MIXED_UNRESOLVED`；Top20 0、生产none | 本scope关闭不得重跑；如继续另立零新回测R3数值谱系复原，不加容差、不读Top20，否则关闭M6-3路线 |
-| M6-3C-R3 | M6-3C Top30数值生产谱系复原 | 只读取证实现与scope `70ae0cc5...5b87`就绪；全仓934 PASS、双镜像fixture PASS，正式输出为空 | 串行各一次双镜像probe、collector和独立audit；失败不重跑，分类不自动恢复Top20或生产 |
+| M6-3C-R3 | M6-3C Top30数值生产谱系复原 | 双镜像probe、collector、独立audit均唯一完成；环境身份完整但多项竞争差异使因果未证，audit PASS；新回测0 | scope关闭；Top20继续禁止。默认转A1-0，若未来做R4须单变量新协议与授权 |
 | A1 | 代码架构整理与受控瘦身 | 计划与机器门已冻结，基线约113,500行；当前未删除代码 | M6系列关闭后、下一重大能力前先做A1-0只读清单；用户复核后才可进入A1-1小批施工 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |
