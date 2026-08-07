@@ -1,0 +1,67 @@
+policy_id: codebase-consolidation-v1
+version: 1
+status: SCHEDULED_NOT_EXECUTION_AUTHORIZED
+effective_date: "2026-08-07"
+parent_authority:
+  constitution:
+    path: docs/ARCHITECTURE_CONSTITUTION.md
+    sha256: d312dd6389dde45528e8360bbb213456bde8c2522f786892a599421821e1804e
+  machine_policy:
+    path: config/architecture_constitution_v1.yaml
+    sha256: 3b4ffe73a3aa594d617e4837daa65d0317c130381bff1b6911d374842654eb83
+plan_document: docs/CODEBASE_CONSOLIDATION_PLAN_20260807.md
+
+baseline:
+  tracked_files: 977
+  code_files: 522
+  tracked_code_physical_lines: 113500
+  core_python_files: 243
+  core_python_physical_lines: 56703
+  web_code_physical_lines: 17196
+  tools_python_files: 87
+  tools_python_physical_lines: 17137
+  test_python_files: 119
+  test_python_physical_lines: 21940
+  grandfathered_hotspot_count: 13
+
+first_checkpoint:
+  inventory_phase: A1-0
+  deletion_phase: A1-1
+  trigger: after_m6_series_closes_before_next_major_strategy_pool_or_web_capability
+  if_m6_followup_is_skipped: before_next_major_capability
+  automatic_deletion_authorized: false
+  candidate_list_user_review_required: true
+
+future_review_triggers:
+  tracked_code_growth_lines: 20000
+  new_over_soft_limit_file_count: 3
+  same_hotspot_touched_in_consecutive_goals: 2
+  major_phase_closed: true
+
+dependency_debt:
+  forbidden_direction: src_must_not_import_tools
+  include: src/shaiwei/**/*.py
+  forbidden_import_prefix: tools
+  grandfathered:
+    - path: src/shaiwei/research/star50_residual_effect/metrics.py
+      import: tools.p2_star50_effect_correction.executor
+      first_registered: "2026-08-07"
+      boundary: P2-2C corrected execution reused by the frozen M4-1 historical replay
+      exit_trigger: A1-0 must decide promotion into a stable src execution kernel before either family changes
+
+deletion_gates:
+  - static_and_dynamic_entrypoint_reachability_checked
+  - replacement_and_callers_migrated
+  - characterization_tests_frozen_before_deletion
+  - production_rollback_and_historical_replay_not_required
+  - full_test_architecture_lint_compose_and_hygiene_pass
+  - scheduler_identity_unchanged
+
+protected_classes:
+  - immutable_data_artifacts_and_ledgers
+  - frozen_protocols_acceptances_failures_and_audits
+  - migrations_and_compatible_public_schemas
+  - production_release_rollback_scheduler_and_paper_entrypoints
+  - sole_legal_historical_replay_implementations
+
+mandatory_line_reduction_target: null

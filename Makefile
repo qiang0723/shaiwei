@@ -35,7 +35,7 @@ qlib-build:       ## 哨兵通过后构建 qlib 原生 bin
 test:             ## 单元测试 + 账本追加校验
 	$(PYTHON) -m pytest -q
 architecture-check: ## 架构宪法：模块棘轮、依赖方向和入口绑定
-	$(PYTHON) -m pytest -q tests/test_architecture_constitution.py tests/test_web_modularity.py
+	$(PYTHON) -m pytest -q tests/test_architecture_constitution.py tests/test_codebase_consolidation_policy.py tests/test_web_modularity.py
 backtest-baseline:## Alpha158+LightGBM 双周基线，输出 G0 三条件数字与成本情景带
 	$(PYTHON) -m shaiwei.backtest.baseline
 shadow:           ## 复用当前快照生成不可覆盖影子信号 manifest
