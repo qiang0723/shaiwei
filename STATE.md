@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · M6-3C-R1在容器创建前失败关闭，真实诊断仍为0
+
+- 用户绑定scope`cad1928c...1fc23`逐字批准后，主控于15:15调用一次original入口；Docker因
+  `invalid mount path: 'mode=1777'`在创建容器前退出，返回码2。同scope按冻结规则永久不得重跑，
+  current和独立audit均未启动。
+- 已由Compose v5.3.0展开结果证实：三项未加引号的flow-style `tmpfs`值被逗号拆成五个列表项，
+  `mode=1777`被daemon误作路径。这是release编排错误，不是六类Top30兼容诊断之一，不能形成根因
+  分类或恢复Top20。
+- approval仍显示`consumed=false`，三个输出目录合计0文件；Top30回测0/6、Top20/QLib/封存效果语义
+  读取0、研究尝试0、实验账本写入0。scheduler原容器/镜像保持healthy、重启0，7个自然账本改动
+  未暂存。见`docs/M6_CSI800_TOP30_COMPATIBILITY_DIAGNOSTIC_EXECUTION_ACCEPTANCE_20260807.md`。
+- 若继续只能另立M6-3C-R2结果盲编排恢复，先修并fixture验证tmpfs单字符串，再重建镜像和新scope、
+  获取新精确批准；不得修改诊断矩阵、比较口径、参数或复用本scope。
+
 ## 2026-08-07 · M6-3C-R1兼容诊断release就绪，停在精确批准门前
 
 - 三路诊断runner、IEEE-754位级证据、独立分类auditor、两套薄镜像和精确scope已完成；最终scope
