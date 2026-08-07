@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · M6-3C-R3只读取证release就绪
+
+- 结果盲实现已按职责拆为镜像探针、证据collector、ULP拓扑与独立auditor；全仓934 PASS，架构10 PASS，
+  两套最终镜像断网合成fixture均PASS。无回测入口、无Qlib/Top20/账本/外网挂载。
+- 正式scope`70ae0cc5...5b87`绑定实现Git`ad969dca...bde3`、两套base/thin镜像、24文件代码bundle、
+  协议/Compose/Dockerfile、规范日报和R2整树；输出根为空。
+- 用户继续指令已在冻结协议中授权一次original probe、一次failed probe、一次collector和一次独立
+  auditor；同scope失败不得重跑。成功也不恢复Top20或生产。见
+  `docs/M6_CSI800_TOP30_NUMERIC_PROVENANCE_RELEASE_ACCEPTANCE_20260807.md`。
+
 ## 2026-08-07 · M6-3C-R3零新回测数值谱系协议已冻结
 
 - R3只复原封存规范日报、原M6镜像和失败M6-3C镜像的生产谱系；固定读取既有R2 rows、镜像/包元数据、
