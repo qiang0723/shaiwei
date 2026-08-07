@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · M6-3C-R2编排恢复release就绪，停在新精确授权门前
+
+- 新scope`f4ade91b...2d13e`绑定恢复/base协议、实现Git`9c36088f...935e3`、两套正式镜像、代码
+  bundle、Compose/Dockerfile、旧失败输入、三路命令/挂载/资源和独立输出；approval及正式输出根均
+  不存在，真实Top30诊断0/6、Top20/QLib/封存效果语义读取0。
+- 六个服务的tmpfs经Compose v5.3.0展开均为单字符串；三项零挂载fixture实际以UID501、无IPv4路由、
+  只读根和可写tmpfs运行PASS。两套镜像内仅挂配置完成scope/运行身份复核PASS。
+- 三批provisional分别暴露过窄网络接口判据、错误完整Git和base协议未显式挂载；均在approval/scope
+  正式授权前失败关闭并留存身份，真实数据/回测/尝试仍为0。全仓929 PASS、专项11 PASS、架构10 PASS。
+- 只有用户逐字批准动作`M6_TOP30_COMPATIBILITY_DIAGNOSTIC_MATRIX_RECOVERY_ONCE`并绑定完整scope
+  SHA，才可各运行一次R2 original/current/audit；失败不得重跑，成功也不自动恢复Top20或生产。见
+  `docs/M6_CSI800_TOP30_COMPATIBILITY_DIAGNOSTIC_RECOVERY_RELEASE_ACCEPTANCE_20260807.md`。
+
 ## 2026-08-07 · M6-3C-R2编排恢复协议已结果盲冻结
 
 - R2只修复R1未加引号的flow-style tmpfs被拆分这一编排问题；旧Compose/scope/approval/失败记录永久
