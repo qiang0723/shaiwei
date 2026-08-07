@@ -253,6 +253,15 @@ docker-m6-topk-conversion-fixture: ## 断网运行Top20组合转换first-pass/re
 docker-m6-topk-conversion-audit: ## 第二个无Qlib进程独立复算M6-3B合成证据
 	mkdir -p data/research/m6_csi800_topk20_conversion_v1/engineering/audit
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-topk-conversion.yaml --profile m6-topk-conversion run --rm --no-deps m6-topk-conversion-auditor
+docker-m6-topk-effect-build: ## 以已推送实现构建M6-3C一次性真实Top20镜像；不运行真实效果
+	@test -n "$(M6_TOPK_EFFECT_RELEASE_GIT_HEAD)" || (echo "M6_TOPK_EFFECT_RELEASE_GIT_HEAD is required"; exit 2)
+	SHAIWEI_M6_TOPK_EFFECT_RELEASE_GIT_HEAD="$(M6_TOPK_EFFECT_RELEASE_GIT_HEAD)" docker compose -f compose.m6-topk-conversion-release.yaml --profile m6-topk-effect build m6-topk-effect-runner
+docker-m6-topk-effect-fixture: ## 在最终镜像内断网运行纯合成release合同；不挂载Qlib或M6 effect
+	docker run --rm --network none --read-only --user "$$(id -u):$$(id -g)" --tmpfs /tmp:rw,noexec,nosuid,size=2g shaiwei:m6-topk-conversion-release-v1 python -m shaiwei.research.topk_conversion.real_fixture --output-root /tmp/m6-topk-real-fixture
+docker-m6-topk-effect-run: ## 仅在完整scope获明确批准后执行唯一真实Top20 runner
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-topk-conversion-release.yaml --profile m6-topk-effect run --rm --no-deps m6-topk-effect-runner
+docker-m6-topk-effect-audit: ## 唯一runner成功后由无Qlib/旧effect挂载的第二进程独立复核
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-topk-conversion-release.yaml --profile m6-topk-effect run --rm --no-deps m6-topk-effect-auditor
 docker-release-build: ## 从干净工作树构建并验证内容寻址 scheduler 镜像
 	$(PYTHON) -m shaiwei.release build
 docker-release-promote: ## 提升 RELEASE_IMAGE；默认重建 scheduler 并验收隔离契约

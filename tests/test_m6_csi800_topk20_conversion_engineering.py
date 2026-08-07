@@ -175,8 +175,17 @@ def test_top30_drift_nonfinite_and_bse_fail_before_decision() -> None:
     with pytest.raises(ConversionError, match="nonfinite"):
         evaluate_case(changed, protocols.result)
     changed = deepcopy(case)
-    changed["scheduled_names"]["20"]["W1"]["clean_lgbm_control_v1"][0] = "430001.BJ"
+    schedule = changed["scheduled_names"]["20"]["W1"]["clean_lgbm_control_v1"]
+    first_day = next(iter(schedule))
+    schedule[first_day][0] = "430001.BJ"
     with pytest.raises(ConversionError, match="contains .BJ"):
+        evaluate_case(changed, protocols.result)
+
+    changed = deepcopy(case)
+    changed["scheduled_names"]["20"]["W1"]["clean_lgbm_control_v1"] = [
+        f"SYN{index:03d}" for index in range(20)
+    ]
+    with pytest.raises(ConversionError, match="date map"):
         evaluate_case(changed, protocols.result)
 
 

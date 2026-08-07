@@ -151,17 +151,18 @@ def _stress_for_case(
     return output
 
 
-def _scheduled_names() -> dict[str, dict[str, dict[str, list[str]]]]:
+def _scheduled_names() -> dict[str, dict[str, dict[str, dict[str, list[str]]]]]:
     names = [f"SYN{index:03d}" for index in range(40)]
-    output: dict[str, dict[str, dict[str, list[str]]]] = {}
+    output: dict[str, dict[str, dict[str, dict[str, list[str]]]]] = {}
     for topk in TOPK_KEYS:
         count = int(topk)
         output[topk] = {}
         for window in WINDOWS:
+            days = _dates(WINDOWS.index(window) + 1, 31)[::10]
             output[topk][window] = {
-                ARMS[0]: names[:count],
-                ARMS[1]: names[5 : 5 + count],
-                ARMS[2]: names[10 : 10 + count],
+                ARMS[0]: {day: names[:count] for day in days},
+                ARMS[1]: {day: names[5 : 5 + count] for day in days},
+                ARMS[2]: {day: names[10 : 10 + count] for day in days},
             }
     return output
 
@@ -221,7 +222,8 @@ def _failure_checks(
     bad_arm = deepcopy(supported)
     del bad_arm["reports"]["20"]["W1"][ARMS[2]]
     bad_bj = deepcopy(supported)
-    bad_bj["scheduled_names"]["20"]["W1"][ARMS[0]][0] = "430001.BJ"
+    first_day = next(iter(bad_bj["scheduled_names"]["20"]["W1"][ARMS[0]]))
+    bad_bj["scheduled_names"]["20"]["W1"][ARMS[0]][first_day][0] = "430001.BJ"
     nonfinite = deepcopy(supported)
     nonfinite["reports"]["20"]["W1"][ARMS[0]][0]["gross_return"] = float("nan")
     dates = pd.bdate_range("2091-01-02", periods=2)

@@ -126,6 +126,7 @@ def _name_overlap(case: dict[str, Any], arm: str) -> float:
     if not isinstance(schedules, dict) or set(schedules) != set(TOPK_KEYS):
         raise ConversionError("M6-3 scheduled TopK keys differ")
     ratios: list[float] = []
+    expected_dates: dict[str, tuple[str, ...]] = {}
     for topk in TOPK_KEYS:
         expected_count = int(topk)
         if not isinstance(schedules[topk], dict) or set(schedules[topk]) != set(WINDOWS):
@@ -134,14 +135,31 @@ def _name_overlap(case: dict[str, Any], arm: str) -> float:
             values = schedules[topk][window]
             if not isinstance(values, dict) or set(values) != set(ARMS):
                 raise ConversionError("M6-3 scheduled arms differ")
-            for names in values.values():
-                if len(names) != expected_count or len(set(names)) != expected_count:
-                    raise ConversionError("M6-3 scheduled set size or uniqueness differs")
-                if any(str(name).endswith(".BJ") for name in names):
-                    raise ConversionError("M6-3 scheduled set contains .BJ")
+            date_keys: tuple[str, ...] | None = None
+            for schedule in values.values():
+                if not isinstance(schedule, dict) or not schedule:
+                    raise ConversionError("M6-3 scheduled date map differs")
+                dates = tuple(schedule)
+                if dates != tuple(sorted(set(dates))):
+                    raise ConversionError("M6-3 scheduled dates differ")
+                if date_keys is None:
+                    date_keys = dates
+                elif dates != date_keys:
+                    raise ConversionError("M6-3 scheduled arm dates differ")
+                for names in schedule.values():
+                    if len(names) != expected_count or len(set(names)) != expected_count:
+                        raise ConversionError("M6-3 scheduled set size or uniqueness differs")
+                    if any(str(name).endswith(".BJ") for name in names):
+                        raise ConversionError("M6-3 scheduled set contains .BJ")
+            if date_keys is None:
+                raise ConversionError("M6-3 scheduled dates are absent")
+            if window in expected_dates and date_keys != expected_dates[window]:
+                raise ConversionError("M6-3 scheduled TopK dates differ")
+            expected_dates[window] = date_keys
             if topk == "20":
-                control = set(values[ARMS[0]])
-                ratios.append(len(control & set(values[arm])) / 20.0)
+                for day in date_keys:
+                    control = set(values[ARMS[0]][day])
+                    ratios.append(len(control & set(values[arm][day])) / 20.0)
     return float(np.mean(ratios))
 
 

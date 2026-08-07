@@ -141,6 +141,7 @@ def _overlap(case: dict[str, Any], arm: str) -> float:
     if not isinstance(schedules, dict) or set(schedules) != set(TOPK_KEYS):
         raise ConversionError("M6-3 audit schedules differ")
     ratios: list[float] = []
+    expected_dates: dict[str, tuple[str, ...]] = {}
     for topk in TOPK_KEYS:
         if set(schedules[topk]) != set(WINDOWS):
             raise ConversionError("M6-3 audit schedule windows differ")
@@ -149,13 +150,32 @@ def _overlap(case: dict[str, Any], arm: str) -> float:
             values = schedules[topk][window]
             if set(values) != set(ARMS):
                 raise ConversionError("M6-3 audit schedule arms differ")
-            for names in values.values():
-                if len(names) != count or len(set(names)) != count:
-                    raise ConversionError("M6-3 audit schedule size differs")
-                if any(str(name).endswith(".BJ") for name in names):
-                    raise ConversionError("M6-3 audit schedule contains .BJ")
+            date_keys: tuple[str, ...] | None = None
+            for schedule in values.values():
+                if not isinstance(schedule, dict) or not schedule:
+                    raise ConversionError("M6-3 audit schedule date map differs")
+                dates = tuple(schedule)
+                if dates != tuple(sorted(set(dates))):
+                    raise ConversionError("M6-3 audit schedule dates differ")
+                if date_keys is None:
+                    date_keys = dates
+                elif dates != date_keys:
+                    raise ConversionError("M6-3 audit schedule arm dates differ")
+                for names in schedule.values():
+                    if len(names) != count or len(set(names)) != count:
+                        raise ConversionError("M6-3 audit schedule size differs")
+                    if any(str(name).endswith(".BJ") for name in names):
+                        raise ConversionError("M6-3 audit schedule contains .BJ")
+            if date_keys is None:
+                raise ConversionError("M6-3 audit schedule dates are absent")
+            if window in expected_dates and date_keys != expected_dates[window]:
+                raise ConversionError("M6-3 audit schedule TopK dates differ")
+            expected_dates[window] = date_keys
             if topk == "20":
-                ratios.append(len(set(values[ARMS[0]]) & set(values[arm])) / 20.0)
+                ratios.extend(
+                    len(set(values[ARMS[0]][day]) & set(values[arm][day])) / 20.0
+                    for day in date_keys
+                )
     return float(pd.Series(ratios).mean())
 
 
