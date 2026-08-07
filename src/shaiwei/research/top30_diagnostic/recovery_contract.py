@@ -10,6 +10,7 @@ from typing import Any
 from shaiwei.config import PROJECT_ROOT
 from shaiwei.research.model_attribution.contract import sha256_file
 from shaiwei.research.top30_diagnostic.contract import (
+    PROTOCOL_PATH as BASE_PROTOCOL_PATH,
     Protocol,
     code_bundle_identity,
     mapping,
@@ -54,6 +55,7 @@ AUDITOR_COMMAND = [
 ]
 RUNNER_COMMON_MOUNTS = [
     {"source": "config/m6_csi800_top30_compatibility_diagnostic_recovery_v2.yaml", "target": "/inputs/protocol.yaml", "mode": "ro"},
+    {"source": "config/m6_csi800_top30_compatibility_diagnostic_v1.yaml", "target": "/inputs/base-protocol.yaml", "mode": "ro"},
     {"source": "config/m6_csi800_top30_compatibility_diagnostic_recovery_scope_v2.json", "target": "/inputs/release.json", "mode": "ro"},
     {"source": APPROVAL_PATH, "target": "/inputs/approval.json", "mode": "ro"},
     {"source": "data/qlib_bin", "target": "/qlib", "mode": "ro"},
@@ -70,6 +72,7 @@ CURRENT_MOUNTS = [
 ]
 AUDITOR_MOUNTS = [
     {"source": "config/m6_csi800_top30_compatibility_diagnostic_recovery_v2.yaml", "target": "/inputs/protocol.yaml", "mode": "ro"},
+    {"source": "config/m6_csi800_top30_compatibility_diagnostic_v1.yaml", "target": "/inputs/base-protocol.yaml", "mode": "ro"},
     {"source": "config/m6_csi800_top30_compatibility_diagnostic_recovery_scope_v2.json", "target": "/inputs/release.json", "mode": "ro"},
     {"source": APPROVAL_PATH, "target": "/inputs/approval.json", "mode": "ro"},
     {"source": "data/research/m6_csi800_model_attribution_v1/effect/first_pass/W1/backtest/clean_lgbm_control_v1.parquet", "target": "/inputs/canonical.parquet", "mode": "ro"},
@@ -96,7 +99,12 @@ class RecoveryProtocol:
     def load(cls, path: Path = PROTOCOL_PATH) -> "RecoveryProtocol":
         resolved = path.resolve()
         recovery = mapping(resolved, yaml_document=True)
-        base = Protocol.load()
+        base_path = (
+            BASE_PROTOCOL_PATH
+            if resolved == PROTOCOL_PATH.resolve()
+            else resolved.parent / "base-protocol.yaml"
+        )
+        base = Protocol.load(base_path)
         future = recovery.get("future_release_contract", {})
         predecessor = recovery.get("predecessor_failure", {})
         single = recovery.get("single_change_contract", {})

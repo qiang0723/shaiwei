@@ -33,6 +33,7 @@ services:
       NUMEXPR_NUM_THREADS: "1"
     volumes:
       - {type: bind, source: ./config/m6_csi800_top30_compatibility_diagnostic_recovery_v2.yaml, target: /inputs/protocol.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_top30_compatibility_diagnostic_v1.yaml, target: /inputs/base-protocol.yaml, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./config/m6_csi800_top30_compatibility_diagnostic_recovery_scope_v2.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/control/m6_csi800_top30_compatibility_diagnostic_recovery_v2/approval.json, target: /inputs/approval.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/qlib_bin, target: /qlib, read_only: true, bind: {create_host_path: false}}
@@ -68,6 +69,7 @@ services:
     environment: *runner_environment
     volumes:
       - {type: bind, source: ./config/m6_csi800_top30_compatibility_diagnostic_recovery_v2.yaml, target: /inputs/protocol.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_top30_compatibility_diagnostic_v1.yaml, target: /inputs/base-protocol.yaml, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./config/m6_csi800_top30_compatibility_diagnostic_recovery_scope_v2.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/control/m6_csi800_top30_compatibility_diagnostic_recovery_v2/approval.json, target: /inputs/approval.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/qlib_bin, target: /qlib, read_only: true, bind: {create_host_path: false}}
@@ -95,6 +97,7 @@ services:
     environment: *runner_environment
     volumes:
       - {type: bind, source: ./config/m6_csi800_top30_compatibility_diagnostic_recovery_v2.yaml, target: /inputs/protocol.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_top30_compatibility_diagnostic_v1.yaml, target: /inputs/base-protocol.yaml, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./config/m6_csi800_top30_compatibility_diagnostic_recovery_scope_v2.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/control/m6_csi800_top30_compatibility_diagnostic_recovery_v2/approval.json, target: /inputs/approval.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/m6_csi800_model_attribution_v1/effect/first_pass/W1/backtest/clean_lgbm_control_v1.parquet, target: /inputs/canonical.parquet, read_only: true, bind: {create_host_path: false}}

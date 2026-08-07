@@ -91,6 +91,12 @@ def test_recovery_protocol_scope_and_approval_are_versioned(
     assert release.scope["predecessor_failure"]["top30_backtest_count"] == 0
     assert release.scope["execution"]["total_top30_backtest_count"] == 6
     assert release.scope["execution"]["top20_backtest_count"] == 0
+    original_mounts = release.scope["container"]["services"]["original"]["mounts"]
+    assert {
+        "source": "config/m6_csi800_top30_compatibility_diagnostic_v1.yaml",
+        "target": "/inputs/base-protocol.yaml",
+        "mode": "ro",
+    } in original_mounts
     assert approval.document["action"] == ACTION
     changed = json.loads(approval_path.read_text())
     changed["action"] = "M6_TOP30_COMPATIBILITY_DIAGNOSTIC_MATRIX_ONCE"
