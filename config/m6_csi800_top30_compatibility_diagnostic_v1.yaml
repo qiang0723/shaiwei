@@ -1,0 +1,173 @@
+schema_version: m6-csi800-top30-compatibility-diagnostic-protocol-v1
+protocol_id: m6-csi800-top30-compatibility-diagnostic-v1
+frozen_at: "2026-08-07T12:26:41+08:00"
+stage: RESULT_BLIND_DIAGNOSTIC_PROTOCOL_FREEZE_ONLY
+
+objective:
+  question: >-
+    在不读取或运行Top20的前提下，定位M6-3C首个W1控制臂Top30重建日报为何不能与封存规范日报
+    逐内容一致，并区分新适配器差异、镜像环境差异、历史复现缺口和运行内不确定性。
+  strategy_or_effect_evaluation: false
+  top20_read_or_execution: false
+  threshold_or_parameter_change: false
+  numeric_tolerance_added: false
+
+authority:
+  protocol_freeze_authorized_by_user_continue_instruction: true
+  implementation_after_protocol_push_authorized: true
+  synthetic_fixture_authorized: true
+  image_build_and_scope_generation_authorized: true
+  real_qlib_read_authorized: false
+  sealed_prediction_or_report_read_authorized: false
+  real_top30_diagnostic_backtest_authorized: false
+  real_top20_read_or_backtest_authorized: false
+  model_fit_authorized: false
+  prediction_generation_authorized: false
+  experiment_ledger_write_authorized: false
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  forward_signal_authorized: false
+  paper_portfolio_authorized: false
+  production_authorization: none
+
+failed_release:
+  release_scope_sha256: ba4d03be675e63fd94211271e5dc6d4812bc12954fbf8f77ef0eea85c5065fd9
+  release_document_sha256: 0d4f6e550b71acb6a8fa5bef00eb28bb6ec4b6e12cbdb2c52277275a8914535e
+  approval_sha256: 374f049c4ff591c4332d78691866b2e4c8307198bd9e007e3a5ea714fb06db09
+  authorization_sha256: 67a6d98c2b906f3da41008efd71c29aff8b950bff5fef70c3f6792a173edbf02
+  failure_sha256: 0b837144676a3b3dfbd33e4da9835b43439f9a56f6ac2dd8edd26acc1f7d7537
+  effect_tree_sha256: d2c22e1738eec49294c814355d29bf76e9b6d9e36c5b8db82ced119c34b3615a
+  effect_file_count: 2
+  effect_total_bytes: 896
+  runner_invocation_count: 1
+  top20_effect_started: false
+  portfolio_attempts_consumed: 0
+  same_release_retry_authorized: false
+  failure_label: W1/clean_lgbm_control_v1
+
+frozen_diagnostic_case:
+  universe: csi800
+  window: W1
+  arm: clean_lgbm_control_v1
+  topk: 30
+  start: "2019-01-01"
+  end: "2019-12-31"
+  account_rmb: 100000000
+  n_drop: 3
+  rebalance_trade_days: 10
+  only_tradable: true
+  forbid_all_trade_at_limit: false
+  deal_price: open
+  benchmark: SH000906
+  open_cost: 0.0006
+  close_cost: 0.0016
+  minimum_cost_rmb: 5
+  prediction:
+    path: data/research/m6_csi800_model_attribution_v1/effect/first_pass/W1/test_predictions/clean_lgbm_control_v1.parquet
+    sha256: 83376e799c853b6bb83edab87758d041626a0d7158cab6f91e97af93edcc9bb0
+    byte_count: 1782695
+  canonical_report:
+    path: data/research/m6_csi800_model_attribution_v1/effect/first_pass/W1/backtest/clean_lgbm_control_v1.parquet
+    sha256: c705c067192bdb483f7cc97f70a790724573ca550429ed624b8d6c1f3d6a1262
+    byte_count: 8137
+  canonical_schedule:
+    path: data/research/m6_csi800_model_attribution_v1/effect/first_pass/W1/top30/clean_lgbm_control_v1.json
+    sha256: 692f41118a70e44f5b30eb2dec5230defb6007c20445d9943a7749d17896cfaa
+    byte_count: 8627
+
+frozen_runtime_inputs:
+  qlib_manifest_sha256: 62cae2f46b57020db202bee1748f072e7859e209663046747f76aaa008f605a9
+  qlib_tree_sha256: 0532f6cd7c2c78f0936f92a986aef83a848175fe6f332274e06c7ed6e8c11778
+  qlib_file_count: 54464
+  calendar_sha256: 80ddefd8e3cce5137bb99f6b53dbe090de1b1bd234db1a19f31ef3ddb2bd8bdb
+  calendar_row_count: 2557
+  original_m6_image:
+    reference: shaiwei:m6-model-attribution-release-v1
+    image_id: sha256:3c40c9c74bbbda926433f2d49cd78128c665cbb84e071ab3d44d187ecc2cd40e
+    platform: linux/arm64
+  failed_m6_3c_image:
+    reference: shaiwei:m6-topk-conversion-release-v1
+    image_id: sha256:69c1a4976e4c89973789413d7a9635d575669e785c4fe4621d6b3f34e09afa17
+    platform: linux/arm64
+  original_execution_sha256: 3969575d81b4c5a52b63e641a50dbb31a79a4890cc47c97e49c1b3977c7ba1ad
+  new_execution_sha256: 7a9e22d8a1011bbeb563b39729aef8e14988ba4f875173c93354250d84c51cc5
+  strategy_sha256: d9a6bb8cc82355f55b13f732a36c2353d35571599d33ea9539351f019b30a3a3
+
+diagnostic_matrix:
+  lanes:
+    - lane: original_image_original_adapter
+      base_image: original_m6_image
+      adapter: original_execution
+      exact_replay_count: 2
+    - lane: failed_image_original_adapter
+      base_image: failed_m6_3c_image
+      adapter: original_execution
+      exact_replay_count: 2
+    - lane: failed_image_new_adapter
+      base_image: failed_m6_3c_image
+      adapter: new_execution
+      exact_replay_count: 2
+  total_top30_backtest_count: 6
+  top20_backtest_count: 0
+  model_fit_count: 0
+  prediction_generation_count: 0
+  research_attempt_increment: 0
+  run_each_lane_serially: true
+
+exact_comparison_contract:
+  required_columns: [gross_return, benchmark_return, recorded_cost, turnover]
+  date_index_and_order_must_match: true
+  float_representation: python_float_hex_ieee754
+  missing_or_nonfinite: fail_closed
+  inner_join_or_row_drop: prohibited
+  rounding: prohibited
+  numeric_tolerance: prohibited
+  persist_each_replay_bitwise_rows: true
+  persist_first_exact_mismatch_and_total_mismatch_count: true
+  absolute_difference_is_diagnostic_only: true
+
+classification_contract:
+  NO_CURRENT_MISMATCH_REPRODUCED: all_six_replays_equal_canonical
+  NEW_ADAPTER_DIVERGENCE: >-
+    original-image/original-adapter and failed-image/original-adapter equal canonical while
+    failed-image/new-adapter is internally deterministic but differs
+  FAILED_IMAGE_ENVIRONMENT_DIVERGENCE: >-
+    original-image/original-adapter equals canonical while both failed-image lanes are internally deterministic,
+    equal each other, and differ from canonical
+  HISTORICAL_REPRODUCIBILITY_GAP: >-
+    all three lanes are internally deterministic and equal each other but differ from canonical
+  RUNTIME_NONDETERMINISM: any_lane_internal_replays_differ
+  MIXED_UNRESOLVED: every_other_exact_pattern
+  classification_changes_strategy_or_top20_decision: false
+  automatic_top20_resume_authorized: false
+
+future_release_requirements:
+  scope_kind: TOP30_COMPATIBILITY_DIAGNOSTIC_RELEASE_READY_NOT_EXECUTION_APPROVAL
+  approval_action: M6_TOP30_COMPATIBILITY_DIAGNOSTIC_MATRIX_ONCE
+  runner_container_count: 2
+  independent_auditor_container_count: 1
+  network_mode: none
+  qlib_mount: ro_runners_only
+  sealed_m6_effect_mount: ro
+  failed_m6_3c_effect_mount: ro
+  output_mount: rw_dedicated_only
+  full_project_root_mount: false
+  env_or_secret_mount: false
+  docker_socket_mount: false
+  production_ledger_mount: false
+  run_as_non_root: true
+  read_only_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  original_runner_resources: {cpus: 2, memory: 4g, pids_limit: 128}
+  current_runner_resources: {cpus: 2, memory: 4g, pids_limit: 128}
+  auditor_resources: {cpus: 1, memory: 2g, pids_limit: 64}
+  same_release_retry_authorized: false
+
+stop_condition:
+  stop_after_protocol_commit_is_pushed: false
+  continue_result_blind_implementation_after_push: true
+  stop_after_exact_scope_is_generated: true
+  real_diagnostic_execution_requires_user_scope_approval: true
+  top20_remains_prohibited_after_diagnostic: true
+  production_authorization: none
