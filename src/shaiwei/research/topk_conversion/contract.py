@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import hashlib
+import json
+import os
 from pathlib import Path
+import re
 from typing import Any
 
 import yaml
@@ -21,6 +24,36 @@ ENGINEERING_PROTOCOL = (
 
 class ConversionError(RuntimeError):
     """Fail-closed M6-3 contract, data, or evidence violation."""
+
+
+def runtime_release_identity(
+    *,
+    manifest_path: Path = Path("/opt/shaiwei/release-manifest.json"),
+) -> dict[str, str | int]:
+    """Read the immutable image identity without inspecting Git or host state."""
+    git_head = os.environ.get("SHAIWEI_RELEASE_GIT_HEAD", "")
+    if re.fullmatch(r"[0-9a-f]{40}", git_head) is None:
+        raise ConversionError("M6-3 image release Git identity is missing or invalid")
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ConversionError("M6-3 image release manifest cannot be read") from exc
+    snapshot = manifest.get("code_snapshot_sha256") if isinstance(manifest, dict) else None
+    file_count = manifest.get("file_count") if isinstance(manifest, dict) else None
+    if (
+        not isinstance(manifest, dict)
+        or manifest.get("schema_version") != "shaiwei-release-manifest-v1"
+        or not isinstance(snapshot, str)
+        or re.fullmatch(r"[0-9a-f]{64}", snapshot) is None
+        or not isinstance(file_count, int)
+        or file_count <= 0
+    ):
+        raise ConversionError("M6-3 image release manifest identity differs")
+    return {
+        "git_head": git_head,
+        "code_snapshot_sha256": snapshot,
+        "release_manifest_file_count": file_count,
+    }
 
 
 def sha256_file(path: Path) -> str:

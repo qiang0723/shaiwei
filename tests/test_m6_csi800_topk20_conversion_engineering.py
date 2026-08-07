@@ -12,7 +12,11 @@ import yaml
 
 from shaiwei.config import PROJECT_ROOT
 from shaiwei.research.topk_conversion.audit import audit
-from shaiwei.research.topk_conversion.contract import ConversionError, ProtocolBundle
+from shaiwei.research.topk_conversion.contract import (
+    ConversionError,
+    ProtocolBundle,
+    runtime_release_identity,
+)
 from shaiwei.research.topk_conversion.execution import (
     assert_top30_compatible,
     backtest_signal,
@@ -23,6 +27,11 @@ from shaiwei.research.topk_conversion.synthetic import EXPECTED_CASES, build_bun
 
 
 TEST_ROOT = PROJECT_ROOT / "data/cache/tests/m6_topk_conversion"
+TEST_RELEASE_IDENTITY = {
+    "git_head": "a" * 40,
+    "code_snapshot_sha256": "b" * 64,
+    "release_manifest_file_count": 1,
+}
 
 
 @pytest.fixture
@@ -173,8 +182,8 @@ def test_top30_drift_nonfinite_and_bse_fail_before_decision() -> None:
 
 def test_fixture_writes_identical_passes_and_reuses_same_identity(output_root: Path) -> None:
     runner_root = output_root / "runner"
-    first = execute_fixture(runner_root)
-    second = execute_fixture(runner_root)
+    first = execute_fixture(runner_root, release_identity=TEST_RELEASE_IDENTITY)
+    second = execute_fixture(runner_root, release_identity=TEST_RELEASE_IDENTITY)
     report = json.loads((runner_root / "report.json").read_text(encoding="utf-8"))
 
     assert first["bundle_sha256"] == second["bundle_sha256"]
@@ -186,6 +195,7 @@ def test_fixture_writes_identical_passes_and_reuses_same_identity(output_root: P
     assert second["replay_reused"] is True
     assert second["report_reused"] is True
     assert report["engineering_verdict"] == "GO_ENGINEERING_ONLY"
+    assert report["release_identity"] == TEST_RELEASE_IDENTITY
     assert report["real_m6_effect_read"] is False
     assert report["real_model_fit_count"] == report["real_backtest_count"] == 0
 
@@ -193,10 +203,10 @@ def test_fixture_writes_identical_passes_and_reuses_same_identity(output_root: P
 def test_independent_audit_reconstructs_and_reuses(output_root: Path) -> None:
     runner_root = output_root / "runner"
     audit_root = output_root / "audit"
-    execute_fixture(runner_root)
+    execute_fixture(runner_root, release_identity=TEST_RELEASE_IDENTITY)
 
-    first = audit(runner_root, audit_root)
-    second = audit(runner_root, audit_root)
+    first = audit(runner_root, audit_root, release_identity=TEST_RELEASE_IDENTITY)
+    second = audit(runner_root, audit_root, release_identity=TEST_RELEASE_IDENTITY)
 
     assert first["independent_audit"] == "PASS"
     assert first["audit_sha256"] == second["audit_sha256"]
@@ -206,7 +216,7 @@ def test_independent_audit_reconstructs_and_reuses(output_root: Path) -> None:
 
 def test_independent_audit_rejects_tampered_bundle(output_root: Path) -> None:
     runner_root = output_root / "runner"
-    execute_fixture(runner_root)
+    execute_fixture(runner_root, release_identity=TEST_RELEASE_IDENTITY)
     path = runner_root / "first_pass/bundle.json"
     document = json.loads(path.read_text(encoding="utf-8"))
     document["cases"]["TOPK20_CONVERSION_SUPPORTED"]["reports"]["20"]["W1"][
@@ -215,7 +225,71 @@ def test_independent_audit_rejects_tampered_bundle(output_root: Path) -> None:
     path.write_text(json.dumps(document, sort_keys=True), encoding="utf-8")
 
     with pytest.raises(ConversionError, match="audit failed"):
-        audit(runner_root, output_root / "audit")
+        audit(
+            runner_root,
+            output_root / "audit",
+            release_identity=TEST_RELEASE_IDENTITY,
+        )
+
+
+def test_independent_audit_rejects_release_identity_drift(output_root: Path) -> None:
+    runner_root = output_root / "runner"
+    execute_fixture(runner_root, release_identity=TEST_RELEASE_IDENTITY)
+    changed_identity = {**TEST_RELEASE_IDENTITY, "git_head": "c" * 40}
+
+    with pytest.raises(ConversionError, match="release_identity"):
+        audit(
+            runner_root,
+            output_root / "audit",
+            release_identity=changed_identity,
+        )
+
+
+def test_runtime_release_identity_fails_closed_for_missing_or_invalid_identity(
+    output_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manifest = output_root / "release-manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "schema_version": "shaiwei-release-manifest-v1",
+                "code_snapshot_sha256": "b" * 64,
+                "file_count": 1,
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("SHAIWEI_RELEASE_GIT_HEAD", raising=False)
+    with pytest.raises(ConversionError, match="Git identity"):
+        runtime_release_identity(manifest_path=manifest)
+    monkeypatch.setenv("SHAIWEI_RELEASE_GIT_HEAD", "not-a-commit")
+    with pytest.raises(ConversionError, match="Git identity"):
+        runtime_release_identity(manifest_path=manifest)
+
+
+def test_runtime_release_identity_binds_git_and_snapshot(
+    output_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manifest = output_root / "release-manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "schema_version": "shaiwei-release-manifest-v1",
+                "code_snapshot_sha256": "b" * 64,
+                "file_count": 7,
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("SHAIWEI_RELEASE_GIT_HEAD", "a" * 40)
+
+    assert runtime_release_identity(manifest_path=manifest) == {
+        "git_head": "a" * 40,
+        "code_snapshot_sha256": "b" * 64,
+        "release_manifest_file_count": 7,
+    }
 
 
 def test_independent_auditor_has_no_primary_metric_or_execution_import() -> None:

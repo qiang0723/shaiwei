@@ -21,6 +21,7 @@ from shaiwei.research.topk_conversion.contract import (
     ConversionError,
     ProtocolBundle,
     bounded_path,
+    runtime_release_identity,
 )
 
 
@@ -60,6 +61,7 @@ def audit(
     audit_root: Path = DEFAULT_AUDIT_ROOT,
     *,
     project_root: Path = PROJECT_ROOT,
+    release_identity: dict[str, str | int] | None = None,
 ) -> dict[str, Any]:
     runner_root = bounded_path(runner_root, root=project_root)
     audit_root = bounded_path(audit_root, root=project_root)
@@ -67,6 +69,7 @@ def audit(
         result_path=project_root / "config/m6_csi800_topk20_conversion_v1.yaml",
         engineering_path=project_root / "config/m6_csi800_topk20_conversion_engineering_v1.yaml",
     )
+    image_identity = release_identity or runtime_release_identity()
     first_path = runner_root / "first_pass/bundle.json"
     replay_path = runner_root / "replay/bundle.json"
     report_path = runner_root / "report.json"
@@ -93,6 +96,7 @@ def audit(
         "engineering_identity": first.get("engineering_protocol_sha256")
         == protocols.engineering_sha256
         and report.get("engineering_protocol_sha256") == protocols.engineering_sha256,
+        "release_identity": report.get("release_identity") == image_identity,
         "first_pass_replay_physical_identity": first_sha == replay_sha,
         "first_pass_replay_semantic_identity": first == replay,
         "bundle_identity": report.get("bundle_sha256") == first_sha,
@@ -121,6 +125,7 @@ def audit(
         "schema_version": "m6-topk20-conversion-engineering-audit-v1",
         "report_sha256": sha256_file(report_path),
         "bundle_sha256": first_sha,
+        "release_identity": image_identity,
         "checks": checks,
         "case_checks": case_checks,
         "independent_reconstruction_sha256": canonical_sha256(case_results),

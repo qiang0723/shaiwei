@@ -23,6 +23,7 @@ from shaiwei.research.topk_conversion.contract import (
     ConversionError,
     ProtocolBundle,
     bounded_path,
+    runtime_release_identity,
 )
 from shaiwei.research.topk_conversion.execution import scheduled_topk
 from shaiwei.research.topk_conversion.metrics import evaluate_case
@@ -279,12 +280,14 @@ def execute_fixture(
     output_root: Path = DEFAULT_ROOT,
     *,
     project_root: Path = PROJECT_ROOT,
+    release_identity: dict[str, str | int] | None = None,
 ) -> dict[str, Any]:
     output_root = bounded_path(output_root, root=project_root)
     protocols = ProtocolBundle.load(
         result_path=project_root / "config/m6_csi800_topk20_conversion_v1.yaml",
         engineering_path=project_root / "config/m6_csi800_topk20_conversion_engineering_v1.yaml",
     )
+    image_identity = release_identity or runtime_release_identity()
     bundle = build_bundle(protocols)
     first_sha, first_reused = write_once_json(output_root / "first_pass/bundle.json", bundle)
     replay_sha, replay_reused = write_once_json(output_root / "replay/bundle.json", bundle)
@@ -314,6 +317,7 @@ def execute_fixture(
         "schema_version": "m6-topk20-conversion-engineering-report-v1",
         "protocol_sha256": protocols.result_sha256,
         "engineering_protocol_sha256": protocols.engineering_sha256,
+        "release_identity": image_identity,
         "bundle_sha256": first_sha,
         "first_pass_replay_equal": True,
         "case_results": first_results,
