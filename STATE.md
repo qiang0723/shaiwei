@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · M6-3C-R2六次Top30诊断完成，权威MIXED_UNRESOLVED
+
+- 用户绑定scope`f4ade91b...2d13e`逐字批准后，original/current/audit各唯一调用一次并正常退出；
+  Top30回放恰好6次、Top20 0、研究尝试增量0，同scope永久不得重跑。
+- 三路内部双回放均逐位一致；失败镜像内原/新执行器完全一致，但原M6镜像、失败镜像和封存规范日报
+  三者并不相等。独立audit七项检查PASS，按冻结分类权威裁定`MIXED_UNRESOLVED`，不能归因成单独的
+  新适配器、失败镜像环境或统一历史复现缺口。
+- 两类差异最大绝对值仅`7.53e-16`/`6.18e-16`，但严格门禁止事后加容差。正式7件产物整树
+  `5c58f796...750c`，audit`db03a7e5...8c75`；策略仍`NOT_EVALUATED_FOR_PRODUCTION`、生产none，
+  Top20继续禁止。
+- 若继续只能另立M6-3C-R3零新回测的数值谱系复原协议，查封存生成环境、依赖/BLAS/序列化和既有
+  rows差异；不得重跑本scope或放宽比较门。见
+  `docs/M6_CSI800_TOP30_COMPATIBILITY_DIAGNOSTIC_RECOVERY_EXECUTION_ACCEPTANCE_20260807.md`。
+
 ## 2026-08-07 · M6-3C-R2编排恢复release就绪，停在新精确授权门前
 
 - 新scope`f4ade91b...2d13e`绑定恢复/base协议、实现Git`9c36088f...935e3`、两套正式镜像、代码
