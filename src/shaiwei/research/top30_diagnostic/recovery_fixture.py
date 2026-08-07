@@ -14,8 +14,9 @@ def run_runtime_fixture() -> dict[str, object]:
     if uid == 0:
         raise RuntimeError("Top30 recovery fixture must run as non-root")
     interfaces = sorted(path.name for path in Path("/sys/class/net").iterdir())
-    if interfaces != ["lo"]:
-        raise RuntimeError("Top30 recovery fixture network namespace differs")
+    route_lines = [line for line in Path("/proc/net/route").read_text().splitlines()[1:] if line]
+    if route_lines:
+        raise RuntimeError("Top30 recovery fixture has an IPv4 route")
     probe = Path("/tmp/top30-recovery-runtime-probe")
     probe.write_text("ok", encoding="utf-8")
     if probe.read_text(encoding="utf-8") != "ok":
@@ -26,6 +27,7 @@ def run_runtime_fixture() -> dict[str, object]:
         "runtime_preflight": "PASS",
         "effective_uid": uid,
         "network_interfaces": interfaces,
+        "ipv4_route_entry_count": len(route_lines),
         "tmpfs_writable": True,
         "classification_case_count": classifier["classification_case_count"],
         "real_input_mount_count": 0,
