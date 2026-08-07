@@ -2,7 +2,7 @@
 
 - 审计日期：2026-08-07（UTC+8）
 - 审计代码：`8e2c5d4399e5705c7bd570c1e208f6394f8db668`
-- 状态：`A1_0_COMPLETE_A1_1A_DEFERRED`
+- 状态：`A1_1B_COMPLETE_A1_1C_REVIEW_REQUIRED`
 - 权限边界：只读检查代码、Git 入口和依赖；未删除、拆分或修改生产代码，未运行研究、数据或生产任务
 - 上位规则：`docs/ARCHITECTURE_CONSTITUTION.md`、`docs/CODEBASE_CONSOLIDATION_PLAN_20260807.md`
 - 机器清单：`config/codebase_inventory_a1_0_20260807.yaml`
@@ -21,7 +21,7 @@ auditor 和恢复入口，以及少数高中心度模块继续承担过多职责
 当前最值得处理的不是批量删代码，而是三项边界裁决：
 
 1. 科创50纠错执行内核经 A1-1A 前置检查确认被 P2/M4 双重冻结身份锁定，暂缓迁移并继续机器隔离；
-2. 拆开 DeepSeek 传输与 `llm_factor.py` 之间的循环依赖；
+2. DeepSeek 传输与 `llm_factor.py` 之间的循环依赖已由A1-1B拆开；
 3. 把 M3 发现输入身份移入独立合同模块，拆开 data/release 循环依赖。
 
 三项必须分别施工、分别回滚。它们不改变模型、因子、执行参数、研究结论或生产授权，也不以净减行数
@@ -77,7 +77,7 @@ auditor 和恢复入口，以及少数高中心度模块继续承担过多职责
 | `shaiwei.provenance` | 194 | 40 | 发布身份核心；修改须独立回归发布清单与回滚 |
 | `research_gates.m5_dynamic.contract` | 391 | 40 | 冻结合同中心；M5 暂停时不得泛化 |
 | `research.model_attribution.contract` | 246 | 35 | M6 共享合同；转入 no-growth |
-| `research.llm_factor` | 1,254 | 32 | 最大的“体积 + 中心度”组合；先拆传输合同和 fixture/lifecycle 边界 |
+| `research.llm_factor` | 944 | 32 | A1-1B已抽出357行纯合同；剩余执行/账本生命周期继续按触碰棘轮拆分 |
 
 最长函数中，`llm_factor.execute_completed_attempt` 为 410 行，`web.query._build_from_cut` 为 349 行，
 `web.api.create_app` 为 324 行，`paper_cycle.run_once` 为 238 行，`paper.engine.execute_day` 为 233 行。
@@ -94,8 +94,8 @@ auditor 和恢复入口，以及少数高中心度模块继续承担过多职责
 - 该 executor 又导入 `tools.p2_star50_effect.metrics` 和
   `tools.p2_star50_effect_correction.contract`，因此不能只改一行 import；必须把执行类型、开盘/容量语义和
   最小收益计算作为一个稳定领域内核迁移，并让历史工具反向成为兼容适配器。
-- AST 图存在两个强连通分量：
-  `deepseek_client <-> llm_factor`，以及 `m3_multi_pool_data <-> m3_multi_pool_release`。
+- A1-1B前AST图存在两个强连通分量；D1循环已消除，当前只剩
+  `m3_multi_pool_data <-> m3_multi_pool_release`一个强连通分量。
 - 未发现核心领域反向依赖 Web 的新增违规；现有 `make architecture-check` 仍是最终机器门。
 
 ### 3.3 前端可达性
@@ -109,7 +109,7 @@ auditor 和恢复入口，以及少数高中心度模块继续承担过多职责
 | ID | 文件/职责族 | 引用与入口证据 | 动态/历史风险 | 替代目标 | 保护等级 | 收益 | 回滚点 |
 |---|---|---|---|---|---|---|---|
 | A1-C01 | P2-2C corrected execution → M4-1 | M4 `metrics.py:16` 直接导入 tools；P2 run/tests 也直接调用 | executor 路径/物理SHA、M4 code bundle和P2纠错身份三重绑定 | v1保持字节不变；未来只在版本化 successor 建新 `src` 内核 | `DEFERRED_FROZEN_IDENTITY_CONFLICT` | 不以架构整齐破坏合法复算；禁止第二处反向依赖 | 现状即回滚点；裁决见A1-1A文档 |
-| A1-C02 | `llm_factor` / `deepseek_client` | transport 从 `llm_factor` 导入 6 个合同/规划符号；fixture 又反向导入 transport | 真实 API、计费、恢复账本与旧 D1 STOP 证据 | 抽出 transport 所需 typed contract/planning seam；原 API re-export | `SPLIT_NO_BEHAVIOR_CHANGE` | 消除循环；缩小 1,254 行热点和 secret 边界 | 独立提交；mock transport、40 响应恢复与语义门 characterization |
+| A1-C02 | `llm_factor` / `deepseek_client` | transport原先从`llm_factor`导入合同；fixture反向导入transport | 真实 API、计费、恢复账本与旧 D1 STOP 证据 | 已抽出357行`llm_factor_contract.py`；原 API 同对象re-export | `COMPLETED_NO_BEHAVIOR_CHANGE` | 循环2→1；热点1,254→944行，transport保持808行 | A1-1B独立提交；请求SHA和D1专项回归通过 |
 | A1-C03 | M3 data/release | release 导入 `M3DiscoveryIdentity`；data 的 CLI main 反向导入 release | M3-2/M3-3 冻结输入与 release 身份 | 将 identity 移到 `m3_multi_pool_contract` 或独立 identity 模块 | `SPLIT_NO_BEHAVIOR_CHANGE` | 消除循环；data 不再知道 release 实现 | 独立提交；原 CLI 输出和 release SHA 校验回归 |
 | A1-C04 | Web evidence read primitives | `operations.py` 与 `query_evidence.py` 有相同 `_normalize_as_of`、`_read`、JSON 文档逻辑 | 原子 snapshot、mtime/hash 双读和错误码不能漂移 | 下次 Web 查询变化时抽 `web/evidence_reader.py` 窄端口 | `DEFER_UNTIL_TOUCHED` | 避免两套 fail-closed 文件读取语义 | 保留旧函数包装；真实只读 E2E 与 snapshot 哈希 |
 | A1-C05 | 两套 SQLite schema fingerprint | 两个 `schema_descriptor` 物理跨度 42/43 行且主体相同 | fingerprint 常量、错误类型和迁移域不同 | 下次 schema 变化时抽无状态 descriptor，领域层保留 fingerprint/error | `DEFER_UNTIL_SCHEMA_CHANGE` | 减少迁移审计重复 | 两套 schema fixture 和旧 fingerprint 精确不变 |
@@ -169,12 +169,14 @@ Web / CLI / 告警
 - 未来另立M4/P2版本化successor时，新版本必须直接建设`src`领域内核；不得让新能力继续消费旧tools。
 - 完整裁决见`docs/A1_STAR50_EXECUTION_MIGRATION_DECISION_20260807.md`。
 
-### A1-1B · D1 传输依赖解环
+### A1-1B · D1 传输依赖解环（已完成）
 
 - 抽出 DeepSeek transport 真正需要的 D1 typed contract、request planning 和敏感输出规则；
   `deepseek_client` 不再导入 1,254 行 `llm_factor.py`。
 - 原公共符号从旧模块 re-export，旧 CLI、mock transport、恢复账本、费用与“未授权不读 secret”行为不变。
 - 验收：循环依赖减少为 1 个；D1 preexecution、mock transport、语义门和恢复 characterization 通过。
+- 结果：新增纯合同模块357行，`llm_factor.py`降至944行，原公共导入保持同一对象；未调用LLM、未读
+  `.env`、未运行研究，完整验收见`docs/A1_D1_TRANSPORT_CONTRACT_EXTRACTION_ACCEPTANCE_20260807.md`。
 
 ### A1-1C · M3 输入身份依赖解环
 
@@ -199,5 +201,6 @@ Web、数据库和生产。它们继续由热点上限和“触碰即拆一项�
 
 项目不需要“大扫除式重构”，需要的是可验证的架构棘轮。12.1 万行本身不是失败；真正应被压住的是
 新增反向依赖、循环依赖、热点继续长大和一次性研究框架复制。A1-1A说明有些结构债就是历史证据的一部分，
-不能假装可以无损抹去；下一步应先做A1-1B/C两个解环包，再在后续真实功能中逐步拆Web、D1与配置热点。
+不能假装可以无损抹去；A1-1B已安全完成，下一步只建议在单独继续指令后做A1-1C，再在后续真实功能中
+逐步拆Web、D1与配置热点。
 这条路线比一次性追求十万行以下更稳，也更符合筛微“拿到可信结果”的目标。

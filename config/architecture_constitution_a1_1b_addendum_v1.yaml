@@ -1,0 +1,38 @@
+policy_id: architecture-constitution-a1-1b-addendum-v1
+version: 1
+status: ACTIVE
+effective_date: "2026-08-07"
+parent_authority:
+  path: config/architecture_constitution_v1.yaml
+  sha256: 3b4ffe73a3aa594d617e4837daa65d0317c130381bff1b6911d374842654eb83
+
+scope:
+  package: A1-1B
+  objective: break_d1_transport_llm_factor_cycle_without_behavior_change
+  frozen_parent_rewritten: false
+
+module_size_ratchets:
+  - path: src/shaiwei/research/llm_factor.py
+    max_lines: 944
+    boundary: D1 factor execution and evidence lifecycle after contract extraction
+  - path: src/shaiwei/research/llm_factor_contract.py
+    max_lines: 400
+    boundary: pure D1 protocol candidate attempt and request contract
+  - path: src/shaiwei/research/deepseek_client.py
+    max_lines: 808
+    boundary: bounded DeepSeek transport and audit adapter
+
+dependency_ratchets:
+  contract_forbidden_imports:
+    - httpx
+    - shaiwei.ledger
+    - shaiwei.research.deepseek_client
+    - shaiwei.research.llm_factor
+  deepseek_forbidden_imports:
+    - shaiwei.research.llm_factor
+  expected_python_import_cycle_count: 1
+
+compatibility:
+  legacy_public_module: shaiwei.research.llm_factor
+  contract_module: shaiwei.research.llm_factor_contract
+  request_ordinal_1_sha256: 8ddb033eac5a8b2d0595868ed38f8fb424afb9404c56353e1cfa08d0fb14e21c

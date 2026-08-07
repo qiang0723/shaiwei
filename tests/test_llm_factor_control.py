@@ -1,5 +1,6 @@
 import ast
 import csv
+import hashlib
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -9,7 +10,7 @@ import yaml
 from pydantic import ValidationError
 
 from shaiwei.config import PROJECT_ROOT
-from shaiwei.research import llm_factor
+from shaiwei.research import llm_factor, llm_factor_contract
 from shaiwei.research.llm_factor import (
     ATTEMPT_LEDGER_HEADER,
     CandidateProposal,
@@ -28,6 +29,43 @@ from shaiwei.research.llm_factor_prompt import PromptContractError
 
 
 PROTOCOL_PATH = PROJECT_ROOT / "config/d1_llm_factor_research_v1.yaml"
+
+
+def test_legacy_contract_imports_are_exact_aliases():
+    assert D1ControlError is llm_factor_contract.D1ControlError
+    assert D1Protocol is llm_factor_contract.D1Protocol
+    assert CandidateProposal is llm_factor_contract.CandidateProposal
+    assert ProviderResponse is llm_factor_contract.ProviderResponse
+    assert build_request is llm_factor_contract.build_request
+    assert plan_attempt is llm_factor_contract.plan_attempt
+
+
+def test_d1_contract_seam_has_no_transport_control_or_ledger_dependency():
+    contract_path = Path(llm_factor_contract.__file__)
+    contract_tree = ast.parse(contract_path.read_text(encoding="utf-8"))
+    contract_imports = {
+        node.module
+        for node in ast.walk(contract_tree)
+        if isinstance(node, ast.ImportFrom) and node.module
+    }
+    contract_imports.update(
+        alias.name
+        for node in ast.walk(contract_tree)
+        if isinstance(node, ast.Import)
+        for alias in node.names
+    )
+    forbidden = {
+        "httpx",
+        "shaiwei.ledger",
+        "shaiwei.research.deepseek_client",
+        "shaiwei.research.llm_factor",
+    }
+    assert contract_imports.isdisjoint(forbidden)
+
+    deepseek_path = PROJECT_ROOT / "src/shaiwei/research/deepseek_client.py"
+    deepseek_source = deepseek_path.read_text(encoding="utf-8")
+    assert "from shaiwei.research.llm_factor_contract import" in deepseek_source
+    assert "from shaiwei.research.llm_factor import" not in deepseek_source
 
 
 def _proposal(*, topic: str = "trend_momentum", expression: str = "Mean(close,20)") -> dict:
@@ -126,6 +164,20 @@ def test_request_uses_frozen_prompt_topic_knowledge_and_no_sampling_or_tools():
     assert request["tools"] == []
     assert request["stream"] is False
     assert "temperature" not in request
+
+
+def test_request_canonical_identity_is_stable_before_contract_extraction():
+    protocol = D1Protocol.load(PROTOCOL_PATH)
+    request = build_request(protocol, plan_attempt(protocol, 1))
+    payload = json.dumps(
+        request,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    assert hashlib.sha256(payload).hexdigest() == (
+        "8ddb033eac5a8b2d0595868ed38f8fb424afb9404c56353e1cfa08d0fb14e21c"
+    )
 
 
 def test_feedback_is_same_topic_prior_allowlisted_sorted_and_bounded():

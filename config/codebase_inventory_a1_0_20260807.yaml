@@ -1,6 +1,6 @@
 inventory_id: codebase-inventory-a1-0-20260807
 version: 1
-status: A1_0_COMPLETE_A1_1A_DEFERRED
+status: A1_1B_COMPLETE_A1_1C_REVIEW_REQUIRED
 measured_at: "2026-08-07"
 measured_git: 8e2c5d4399e5705c7bd570c1e208f6394f8db668
 document: docs/A1_CODEBASE_INVENTORY_20260807.md
@@ -9,7 +9,7 @@ parent_policy:
   sha256: 8cf7b1f5f438f76bdf70211d1acfbd57fa3b82a0ec96e1219ab7baad5b43f2c8
 
 scope:
-  production_code_modified: false
+  production_code_modified: true
   files_deleted: 0
   data_or_research_run: false
   production_run: false
@@ -59,11 +59,8 @@ dependency_findings:
     - source: src/shaiwei/research/star50_residual_effect/metrics.py
       line: 16
       target: tools.p2_star50_effect_correction.executor
-  import_cycle_count: 2
+  import_cycle_count: 1
   import_cycles:
-    - modules:
-        - shaiwei.research.deepseek_client
-        - shaiwei.research.llm_factor
     - modules:
         - shaiwei.research.m3_multi_pool_data
         - shaiwei.research.m3_multi_pool_release
@@ -79,6 +76,13 @@ frontend_reachability:
 
 candidate_groups:
   safe_delete: []
+  completed_no_behavior_change:
+    - id: A1-C02
+      family: d1_transport_contract_and_planning
+      contract: src/shaiwei/research/llm_factor_contract.py
+      legacy_public_api: src/shaiwei/research/llm_factor.py
+      adapter: src/shaiwei/research/deepseek_client.py
+      result: dependency_cycle_removed_public_symbols_and_request_identity_preserved
   deferred_frozen_identity_conflict:
     - id: A1-C01
       family: star50_corrected_execution_kernel
@@ -91,11 +95,6 @@ candidate_groups:
       decision_document: docs/A1_STAR50_EXECUTION_MIGRATION_DECISION_20260807.md
       future_target: src/shaiwei/research/star50_execution/
   split_no_behavior_change:
-    - id: A1-C02
-      family: d1_transport_contract_and_planning
-      files:
-        - src/shaiwei/research/llm_factor.py
-        - src/shaiwei/research/deepseek_client.py
     - id: A1-C03
       family: m3_discovery_identity
       files:
@@ -131,15 +130,23 @@ candidate_groups:
 
 recommended_a1_1_packages:
   - order: 1
-    id: A1-1B
-    objective: break_d1_transport_llm_factor_cycle
-    expected_gate_change:
-      import_cycle_count: 1
-  - order: 2
     id: A1-1C
     objective: break_m3_data_release_cycle
     expected_gate_change:
       import_cycle_count: 0
+
+a1_1b_outcome:
+  status: COMPLETE
+  files_deleted: 0
+  new_contract: src/shaiwei/research/llm_factor_contract.py
+  llm_factor_lines_before: 1254
+  llm_factor_lines_after: 944
+  deepseek_client_lines_before: 808
+  deepseek_client_lines_after: 808
+  new_contract_lines: 357
+  request_ordinal_1_sha256: 8ddb033eac5a8b2d0595868ed38f8fb424afb9404c56353e1cfa08d0fb14e21c
+  llm_api_calls: 0
+  scheduler_changed: false
 
 review_gate:
   user_review_required_before_a1_1: true

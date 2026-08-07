@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · A1-1B D1传输合同解环完成，停在A1-1C前
+
+- 新增纯合同模块`llm_factor_contract.py`，承载D1协议、候选schema、attempt/request规划和transport
+  response值对象；不含HTTP、环境读取、账本写入或研究执行。旧`llm_factor`公共导入保持同对象兼容。
+- `deepseek_client <-> llm_factor`循环已消除，全仓Python循环由2降至1；`llm_factor.py`由1,254降至
+  944行并收紧机器上限，`deepseek_client.py`保持808行，新模块357行。
+- ordinal 1 canonical request SHA保持`8ddb033e...e21c`；专项兼容、mock transport、恢复、敏感输出与
+  未授权先停验证通过。未读取`.env`、未调用DeepSeek、未运行数据/研究/生产、未重启scheduler；七个
+  自然账本保持未暂存。
+- A1-1B到此停止，不自动进入A1-1C。下一建议包是M3 data/release解环，须新的继续指令；见
+  `docs/A1_D1_TRANSPORT_CONTRACT_EXTRACTION_ACCEPTANCE_20260807.md`。
+
 ## 2026-08-07 · A1-1A执行内核迁移因冻结身份冲突暂缓
 
 - 完整施工前置检查确认M4 v1协议写死P2-2C executor路径和物理SHA，当前M4 recovery release又绑定

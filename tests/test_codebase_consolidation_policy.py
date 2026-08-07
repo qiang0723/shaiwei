@@ -7,6 +7,7 @@ import yaml
 
 ROOT = Path(__file__).parents[1]
 POLICY_PATH = ROOT / "config/codebase_consolidation_v1.yaml"
+A1_1B_ADDENDUM_PATH = ROOT / "config/architecture_constitution_a1_1b_addendum_v1.yaml"
 
 
 def _sha256(path: Path) -> str:
@@ -94,3 +95,25 @@ def test_grandfathered_star50_executor_keeps_the_frozen_m4_identity():
     assert upstream["corrected_executor_sha256"] == (
         "d8dbdb8bf0706af86757a853602c70dc4e7b5f73a901de1ea8f4045165bc9679"
     )
+
+
+def test_a1_1b_addendum_ratchets_d1_modules_without_rewriting_frozen_parent():
+    addendum = yaml.safe_load(A1_1B_ADDENDUM_PATH.read_text(encoding="utf-8"))
+    assert addendum["status"] == "ACTIVE"
+    parent = addendum["parent_authority"]
+    assert _sha256(ROOT / parent["path"]) == parent["sha256"]
+    assert addendum["scope"]["frozen_parent_rewritten"] is False
+
+    observed = {
+        item["path"]: len((ROOT / item["path"]).read_text(encoding="utf-8").splitlines())
+        for item in addendum["module_size_ratchets"]
+    }
+    limits = {
+        item["path"]: item["max_lines"] for item in addendum["module_size_ratchets"]
+    }
+    assert observed == {
+        "src/shaiwei/research/llm_factor.py": 944,
+        "src/shaiwei/research/llm_factor_contract.py": 357,
+        "src/shaiwei/research/deepseek_client.py": 808,
+    }
+    assert all(observed[path] <= limits[path] for path in observed)

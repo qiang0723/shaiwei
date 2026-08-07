@@ -60,6 +60,12 @@ release和P2-2C又分别绑定代码身份。为架构整齐改wrapper或切换i
 下一安全整理包改为A1-1B D1解环，仍须单独继续指令。见
 `docs/A1_STAR50_EXECUTION_MIGRATION_DECISION_20260807.md`。
 
+A1-1B已于2026-08-07完成：新增纯D1 typed contract/request planning seam，旧公共导入兼容，
+`llm_factor.py`由1,254行降至944行，`deepseek_client.py`保持808行；全仓Python循环由2降至1，D1请求
+身份、mock transport、恢复与敏感输出语义不变，且未调用LLM或研究。下一安全整理包为A1-1C M3
+data/release解环，必须另收继续指令，不自动施工。见
+`docs/A1_D1_TRANSPORT_CONTRACT_EXTRACTION_ACCEPTANCE_20260807.md`。
+
 截至 2026-07-23，P0 三次闭环和验收后通知健壮性复核均已完成：飞书瞬时网络、HTTP 408/425/429/5xx 与响应解码异常采用最多 3 次的有界退避，同一逻辑消息固定 `message_id`，每次尝试追加留痕；通知仍不改变核心任务退出语义。P0.5 已冻结 500,000 RMB 和 `paper-v1`，工程、Docker 接入、四日 BACKFILL 及首个自然 `FORWARD` 验收全部 PASS；完整证据见 `docs/P05_FORWARD_ACCEPTANCE_20260723.md`。
 
 ## R0.5 · 模拟组合与前瞻绩效闭环

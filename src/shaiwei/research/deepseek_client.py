@@ -23,7 +23,7 @@ import httpx
 import yaml
 
 from shaiwei.ledger import append_llm_factor_transport, sha256_file
-from shaiwei.research.llm_factor import (
+from shaiwei.research.llm_factor_contract import (
     D1ControlError,
     D1Protocol,
     ProviderResponse,
