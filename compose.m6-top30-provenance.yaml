@@ -1,0 +1,157 @@
+services:
+  m6-top30-provenance-original-probe:
+    image: shaiwei:m6-top30-provenance-original-v1
+    pull_policy: never
+    profiles: [m6-top30-provenance]
+    build:
+      context: .
+      dockerfile: Dockerfile.m6-top30-provenance
+      args:
+        BASE_IMAGE: shaiwei:m6-model-attribution-release-v1
+        SHAIWEI_M6_TOP30_PROVENANCE_GIT_HEAD: ${SHAIWEI_M6_TOP30_PROVENANCE_GIT_HEAD:-}
+        SHAIWEI_M6_TOP30_PROVENANCE_ROLE: original
+        SHAIWEI_M6_TOP30_PROVENANCE_BASE_IMAGE_ID: sha256:3c40c9c74bbbda926433f2d49cd78128c665cbb84e071ab3d44d187ecc2cd40e
+    init: true
+    restart: "no"
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - "/tmp:rw,noexec,nosuid,size=256m,mode=1777"
+    pids_limit: 64
+    mem_limit: 1g
+    cpus: 1.0
+    environment: &safe_environment
+      HOME: /tmp
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+    volumes:
+      - {type: bind, source: ./config/m6_csi800_top30_numeric_provenance_v1.yaml, target: /inputs/protocol.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_top30_numeric_provenance_scope_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_top30_numeric_provenance_v1/probes, target: /evidence/probes, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.top30_provenance.image_probe, --role, original, --protocol, /inputs/protocol.yaml, --release, /inputs/release.json, --output, /evidence/probes/original.json]
+
+  m6-top30-provenance-failed-probe:
+    image: shaiwei:m6-top30-provenance-failed-v1
+    pull_policy: never
+    profiles: [m6-top30-provenance]
+    build:
+      context: .
+      dockerfile: Dockerfile.m6-top30-provenance
+      args:
+        BASE_IMAGE: shaiwei:m6-topk-conversion-release-v1
+        SHAIWEI_M6_TOP30_PROVENANCE_GIT_HEAD: ${SHAIWEI_M6_TOP30_PROVENANCE_GIT_HEAD:-}
+        SHAIWEI_M6_TOP30_PROVENANCE_ROLE: failed
+        SHAIWEI_M6_TOP30_PROVENANCE_BASE_IMAGE_ID: sha256:69c1a4976e4c89973789413d7a9635d575669e785c4fe4621d6b3f34e09afa17
+    init: true
+    restart: "no"
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - "/tmp:rw,noexec,nosuid,size=256m,mode=1777"
+    pids_limit: 64
+    mem_limit: 1g
+    cpus: 1.0
+    environment: *safe_environment
+    volumes:
+      - {type: bind, source: ./config/m6_csi800_top30_numeric_provenance_v1.yaml, target: /inputs/protocol.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_top30_numeric_provenance_scope_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_top30_numeric_provenance_v1/probes, target: /evidence/probes, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.top30_provenance.image_probe, --role, failed, --protocol, /inputs/protocol.yaml, --release, /inputs/release.json, --output, /evidence/probes/failed.json]
+
+  m6-top30-provenance-collector:
+    image: shaiwei:m6-top30-provenance-failed-v1
+    pull_policy: never
+    profiles: [m6-top30-provenance]
+    init: true
+    restart: "no"
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - "/tmp:rw,noexec,nosuid,size=512m,mode=1777"
+    pids_limit: 64
+    mem_limit: 2g
+    cpus: 1.0
+    environment: *safe_environment
+    volumes: &collector_mounts
+      - {type: bind, source: ./config/m6_csi800_top30_numeric_provenance_v1.yaml, target: /inputs/protocol.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_top30_numeric_provenance_scope_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_model_attribution_release_scope_v1.json, target: /inputs/original-release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_topk20_conversion_release_scope_v1.json, target: /inputs/failed-release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./compose.m6-attribution.yaml, target: /inputs/canonical-compose.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./compose.m6-top30-diagnostic-recovery.yaml, target: /inputs/diagnostic-compose.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_model_attribution_v1/effect/first_pass/W1/backtest/clean_lgbm_control_v1.parquet, target: /inputs/canonical.parquet, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_top30_compatibility_diagnostic_recovery_v2, target: /inputs/r2, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_top30_numeric_provenance_v1/probes, target: /evidence/probes, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_top30_numeric_provenance_v1/collector, target: /evidence/collector, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.top30_provenance.collector, --protocol-path, /inputs/protocol.yaml, --release-path, /inputs/release.json, --canonical-path, /inputs/canonical.parquet, --r2-root, /inputs/r2, --original-probe-path, /evidence/probes/original.json, --failed-probe-path, /evidence/probes/failed.json, --original-release-path, /inputs/original-release.json, --failed-release-path, /inputs/failed-release.json, --canonical-compose-path, /inputs/canonical-compose.yaml, --diagnostic-compose-path, /inputs/diagnostic-compose.yaml, --output-root, /evidence/collector]
+
+  m6-top30-provenance-auditor:
+    image: shaiwei:m6-top30-provenance-failed-v1
+    pull_policy: never
+    profiles: [m6-top30-provenance]
+    init: true
+    restart: "no"
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - "/tmp:rw,noexec,nosuid,size=512m,mode=1777"
+    pids_limit: 64
+    mem_limit: 2g
+    cpus: 1.0
+    environment: *safe_environment
+    volumes:
+      - {type: bind, source: ./config/m6_csi800_top30_numeric_provenance_v1.yaml, target: /inputs/protocol.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_top30_numeric_provenance_scope_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_model_attribution_v1/effect/first_pass/W1/backtest/clean_lgbm_control_v1.parquet, target: /inputs/canonical.parquet, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_top30_compatibility_diagnostic_recovery_v2, target: /inputs/r2, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_top30_numeric_provenance_v1/probes, target: /evidence/probes, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_top30_numeric_provenance_v1/collector, target: /evidence/collector, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_top30_numeric_provenance_v1/audit, target: /evidence/audit, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.top30_provenance.audit, --protocol-path, /inputs/protocol.yaml, --release-path, /inputs/release.json, --canonical-path, /inputs/canonical.parquet, --r2-root, /inputs/r2, --original-probe-path, /evidence/probes/original.json, --failed-probe-path, /evidence/probes/failed.json, --collector-root, /evidence/collector, --audit-root, /evidence/audit]
+
+  m6-top30-provenance-original-fixture:
+    image: shaiwei:m6-top30-provenance-original-v1
+    pull_policy: never
+    profiles: [m6-top30-provenance-fixture]
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=256m,mode=1777"]
+    pids_limit: 64
+    mem_limit: 1g
+    cpus: 1.0
+    environment: *safe_environment
+    command: [python, -m, shaiwei.research.top30_provenance.fixture]
+
+  m6-top30-provenance-failed-fixture:
+    image: shaiwei:m6-top30-provenance-failed-v1
+    pull_policy: never
+    profiles: [m6-top30-provenance-fixture]
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=256m,mode=1777"]
+    pids_limit: 64
+    mem_limit: 1g
+    cpus: 1.0
+    environment: *safe_environment
+    command: [python, -m, shaiwei.research.top30_provenance.fixture]

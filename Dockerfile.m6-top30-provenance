@@ -1,0 +1,17 @@
+ARG BASE_IMAGE=shaiwei:m6-model-attribution-release-v1
+FROM ${BASE_IMAGE}
+
+ARG SHAIWEI_M6_TOP30_PROVENANCE_GIT_HEAD=""
+ARG SHAIWEI_M6_TOP30_PROVENANCE_ROLE=""
+ARG SHAIWEI_M6_TOP30_PROVENANCE_BASE_IMAGE_ID=""
+
+ENV SHAIWEI_M6_TOP30_PROVENANCE_GIT_HEAD=${SHAIWEI_M6_TOP30_PROVENANCE_GIT_HEAD}
+ENV SHAIWEI_M6_TOP30_PROVENANCE_ROLE=${SHAIWEI_M6_TOP30_PROVENANCE_ROLE}
+ENV SHAIWEI_M6_TOP30_PROVENANCE_BASE_IMAGE_ID=${SHAIWEI_M6_TOP30_PROVENANCE_BASE_IMAGE_ID}
+
+COPY src/shaiwei/research/top30_provenance /workspace/src/shaiwei/research/top30_provenance
+COPY Dockerfile.m6-top30-provenance compose.m6-top30-provenance.yaml /workspace/
+RUN python -m shaiwei.research.top30_provenance.image_manifest \
+    --output /opt/shaiwei/m6-top30-provenance/release-manifest.json
+
+CMD ["python", "-m", "shaiwei.research.top30_provenance.fixture"]
