@@ -181,12 +181,15 @@ def run(
     initializer: Callable[[Path], None] = initialize_effect_qlib,
     original_factory: Callable[[Protocol], FrameBacktester] = _original_backtester,
     new_factory: Callable[[Protocol], FrameBacktester] = _new_backtester,
+    protocol_loader: Callable[[Path], Any] = Protocol.load,
+    release_loader: Callable[[Path, Any], Any] = ReleaseScope.load,
+    approval_loader: Callable[[Path, Any], Any] = Approval.load,
 ) -> dict[str, Any]:
     if lane not in {"original", "current"}:
         raise DiagnosticError("Top30 diagnostic lane differs")
-    protocol = Protocol.load(protocol_path)
-    release = ReleaseScope.load(release_path, protocol)
-    approval = Approval.load(approval_path, release)
+    protocol = protocol_loader(protocol_path)
+    release = release_loader(release_path, protocol)
+    approval = approval_loader(approval_path, release)
     runtime = runtime_verifier(release, lane)
     inputs = identity_verifier(
         provider_root, m6_effect_root, failed_effect_root, protocol, release

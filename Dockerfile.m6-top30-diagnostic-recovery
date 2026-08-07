@@ -1,0 +1,17 @@
+ARG BASE_IMAGE=shaiwei:m6-model-attribution-release-v1
+FROM ${BASE_IMAGE}
+
+ARG SHAIWEI_M6_TOP30_RECOVERY_GIT_HEAD=""
+ARG SHAIWEI_M6_TOP30_RECOVERY_ROLE=""
+ARG SHAIWEI_M6_TOP30_RECOVERY_BASE_IMAGE_ID=""
+
+ENV SHAIWEI_M6_TOP30_RECOVERY_GIT_HEAD=${SHAIWEI_M6_TOP30_RECOVERY_GIT_HEAD}
+ENV SHAIWEI_M6_TOP30_RECOVERY_ROLE=${SHAIWEI_M6_TOP30_RECOVERY_ROLE}
+ENV SHAIWEI_M6_TOP30_RECOVERY_BASE_IMAGE_ID=${SHAIWEI_M6_TOP30_RECOVERY_BASE_IMAGE_ID}
+
+COPY src/shaiwei/research/top30_diagnostic /workspace/src/shaiwei/research/top30_diagnostic
+COPY Dockerfile.m6-top30-diagnostic-recovery compose.m6-top30-diagnostic-recovery.yaml /workspace/
+RUN python -m shaiwei.research.top30_diagnostic.recovery_image_manifest \
+    --output /opt/shaiwei/m6-top30-diagnostic-recovery/release-manifest.json
+
+CMD ["python", "-m", "shaiwei.research.top30_diagnostic.recovery_fixture"]

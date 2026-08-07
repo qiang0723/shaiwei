@@ -189,10 +189,13 @@ def audit(
     current_root: Path,
     audit_root: Path,
     runtime_verifier: Any = runtime_identity,
+    protocol_loader: Any = Protocol.load,
+    release_loader: Any = ReleaseScope.load,
+    approval_loader: Any = Approval.load,
 ) -> dict[str, Any]:
-    protocol = Protocol.load(protocol_path)
-    release = ReleaseScope.load(release_path, protocol)
-    approval = Approval.load(approval_path, release)
+    protocol = protocol_loader(protocol_path)
+    release = release_loader(release_path, protocol)
+    approval = approval_loader(approval_path, release)
     runtime = runtime_verifier(release, "current")
     audit_root.mkdir(parents=True, exist_ok=True)
     if any(audit_root.iterdir()):
