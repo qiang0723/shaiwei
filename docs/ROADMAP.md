@@ -54,6 +54,12 @@ Top20效果仍为0，独立audit因runner前置失败未启动；原scope不得�
 Web、D1、config大热点继续受no-growth棘轮约束，不做全盘重写。A1-1须用户先复核清单后另行授权，见
 `docs/A1_CODEBASE_INVENTORY_20260807.md`。
 
+A1-1A前置检查随后确认上述执行内核无法原地无损迁移：M4 v1写死旧executor路径/物理SHA，M4 recovery
+release和P2-2C又分别绑定代码身份。为架构整齐改wrapper或切换import会破坏历史复算，故A1-C01改为
+`DEFERRED_FROZEN_IDENTITY_CONFLICT`并保持唯一债务机器隔离；待版本化successor或归档ADR后再评审。
+下一安全整理包改为A1-1B D1解环，仍须单独继续指令。见
+`docs/A1_STAR50_EXECUTION_MIGRATION_DECISION_20260807.md`。
+
 截至 2026-07-23，P0 三次闭环和验收后通知健壮性复核均已完成：飞书瞬时网络、HTTP 408/425/429/5xx 与响应解码异常采用最多 3 次的有界退避，同一逻辑消息固定 `message_id`，每次尝试追加留痕；通知仍不改变核心任务退出语义。P0.5 已冻结 500,000 RMB 和 `paper-v1`，工程、Docker 接入、四日 BACKFILL 及首个自然 `FORWARD` 验收全部 PASS；完整证据见 `docs/P05_FORWARD_ACCEPTANCE_20260723.md`。
 
 ## R0.5 · 模拟组合与前瞻绩效闭环

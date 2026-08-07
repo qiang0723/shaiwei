@@ -61,6 +61,13 @@ Web / CLI / alert presentation
 直接移动或复制。补充门将这一条精确登记为 grandfathered 债务，禁止新增第二条；A1-0 必须优先裁定
 是把稳定执行内核迁入 `src`、保留复算适配器，还是继续保护到相关历史复算退出。
 
+2026-08-07 的 A1-1A 施工前置检查已完成上述裁定：M4 v1 协议写死旧 executor 路径与物理哈希，M4
+recovery release 又绑定包含 M4 metrics 与旧 executor 的代码 bundle；P2-2C manifest 另行绑定整套纠错
+代码身份。原地 wrapper、复制后切换或改写 v1 release 都会破坏至少一条冻结复算链，因此本债务改为
+`A1_1A_DEFERRED_FROZEN_IDENTITY_CONFLICT`。旧实现保持字节不变并禁止新增消费者；只有版本化 successor
+或显式历史复算归档 ADR 获批后再评审退出。见
+`docs/A1_STAR50_EXECUTION_MIGRATION_DECISION_20260807.md`。
+
 ## 4. 增长棘轮
 
 1. 新生产模块默认不超过 400 行，超过 600 行禁止新增；热点清单只能缩小，不能提额。

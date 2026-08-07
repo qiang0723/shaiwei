@@ -2,7 +2,7 @@
 
 - 审计日期：2026-08-07（UTC+8）
 - 审计代码：`8e2c5d4399e5705c7bd570c1e208f6394f8db668`
-- 状态：`A1_0_COMPLETE_USER_REVIEW_REQUIRED`
+- 状态：`A1_0_COMPLETE_A1_1A_DEFERRED`
 - 权限边界：只读检查代码、Git 入口和依赖；未删除、拆分或修改生产代码，未运行研究、数据或生产任务
 - 上位规则：`docs/ARCHITECTURE_CONSTITUTION.md`、`docs/CODEBASE_CONSOLIDATION_PLAN_20260807.md`
 - 机器清单：`config/codebase_inventory_a1_0_20260807.yaml`
@@ -18,9 +18,9 @@ auditor 和恢复入口，以及少数高中心度模块继续承担过多职责
 项全部是历史 release、CLI 或唯一复算入口；前端唯一不可由 `main.tsx` 到达的 `vite-env.d.ts` 是编译器
 声明。为了减少行数删除它们，会损害复算、失败解释或构建能力。
 
-当前最值得处理的不是批量删代码，而是三项边界修复：
+当前最值得处理的不是批量删代码，而是三项边界裁决：
 
-1. 将科创50纠错执行内核从 `tools` 提升到稳定的 `src` 领域包，消除唯一一处 `src -> tools` 反向依赖；
+1. 科创50纠错执行内核经 A1-1A 前置检查确认被 P2/M4 双重冻结身份锁定，暂缓迁移并继续机器隔离；
 2. 拆开 DeepSeek 传输与 `llm_factor.py` 之间的循环依赖；
 3. 把 M3 发现输入身份移入独立合同模块，拆开 data/release 循环依赖。
 
@@ -108,7 +108,7 @@ auditor 和恢复入口，以及少数高中心度模块继续承担过多职责
 
 | ID | 文件/职责族 | 引用与入口证据 | 动态/历史风险 | 替代目标 | 保护等级 | 收益 | 回滚点 |
 |---|---|---|---|---|---|---|---|
-| A1-C01 | P2-2C corrected execution → M4-1 | M4 `metrics.py:16` 直接导入 tools；P2 run/tests 也直接调用 | 绑定 P2-2C 权威纠错、M4-1 历史复算及产物哈希 | 新建窄 `star50_execution` 领域包；tools 保留兼容 re-export/adapter | `MIGRATE_WITH_CHARACTERIZATION` | 消除唯一反向依赖，执行口径只有一份 | 迁移前提交；旧 import 路径与结果哈希均可恢复 |
+| A1-C01 | P2-2C corrected execution → M4-1 | M4 `metrics.py:16` 直接导入 tools；P2 run/tests 也直接调用 | executor 路径/物理SHA、M4 code bundle和P2纠错身份三重绑定 | v1保持字节不变；未来只在版本化 successor 建新 `src` 内核 | `DEFERRED_FROZEN_IDENTITY_CONFLICT` | 不以架构整齐破坏合法复算；禁止第二处反向依赖 | 现状即回滚点；裁决见A1-1A文档 |
 | A1-C02 | `llm_factor` / `deepseek_client` | transport 从 `llm_factor` 导入 6 个合同/规划符号；fixture 又反向导入 transport | 真实 API、计费、恢复账本与旧 D1 STOP 证据 | 抽出 transport 所需 typed contract/planning seam；原 API re-export | `SPLIT_NO_BEHAVIOR_CHANGE` | 消除循环；缩小 1,254 行热点和 secret 边界 | 独立提交；mock transport、40 响应恢复与语义门 characterization |
 | A1-C03 | M3 data/release | release 导入 `M3DiscoveryIdentity`；data 的 CLI main 反向导入 release | M3-2/M3-3 冻结输入与 release 身份 | 将 identity 移到 `m3_multi_pool_contract` 或独立 identity 模块 | `SPLIT_NO_BEHAVIOR_CHANGE` | 消除循环；data 不再知道 release 实现 | 独立提交；原 CLI 输出和 release SHA 校验回归 |
 | A1-C04 | Web evidence read primitives | `operations.py` 与 `query_evidence.py` 有相同 `_normalize_as_of`、`_read`、JSON 文档逻辑 | 原子 snapshot、mtime/hash 双读和错误码不能漂移 | 下次 Web 查询变化时抽 `web/evidence_reader.py` 窄端口 | `DEFER_UNTIL_TOUCHED` | 避免两套 fail-closed 文件读取语义 | 保留旧函数包装；真实只读 E2E 与 snapshot 哈希 |
@@ -162,14 +162,12 @@ Web / CLI / 告警
 
 以下顺序是建议，不构成自动施工授权。每包必须独立提交、可单独回滚；前一包完成不自动授权后一包。
 
-### A1-1A · 科创50执行内核提升（最高优先级）
+### A1-1A · 科创50执行内核提升（已裁定暂缓）
 
-- 先为 P2-2C executor 的开盘时钟、TopK/n_drop、买卖双向容量、费用、持仓/NAV 和输出 DataFrame
-  建 characterization tests，并锁定既有 P2/M4 fixture 与关键结果哈希。
-- 在 `src/shaiwei/research/star50_execution/` 建立职责小于 400 行的 contract、selection、execution、
-  metrics；不得携带 P2 release、文件路径或 Git 检查。
-- `tools/p2_star50_effect_correction` 保留兼容入口，M4 改为导入稳定内核；不得删除旧证据或改异常语义。
-- 验收：`src -> tools = 0`，P2/M4 结果与哈希一致，全仓与架构门通过。
+- 前置检查确认无法在不破坏冻结执行路径、物理SHA和M4 release bundle的前提下原地迁移。
+- v1旧实现转为历史复算隔离项，保持字节不变；机器门继续要求全仓只有这一处登记债务。
+- 未来另立M4/P2版本化successor时，新版本必须直接建设`src`领域内核；不得让新能力继续消费旧tools。
+- 完整裁决见`docs/A1_STAR50_EXECUTION_MIGRATION_DECISION_20260807.md`。
 
 ### A1-1B · D1 传输依赖解环
 
@@ -200,6 +198,6 @@ Web、数据库和生产。它们继续由热点上限和“触碰即拆一项�
 ## 8. 最终判断
 
 项目不需要“大扫除式重构”，需要的是可验证的架构棘轮。12.1 万行本身不是失败；真正应被压住的是
-反向依赖、循环依赖、热点继续长大和一次性研究框架复制。按 A1-1A/B/C 三个窄包处理后，项目会先获得
-清晰依赖和更小变更半径，再在后续真实功能中逐步拆 Web、D1 与配置热点。这条路线比一次性追求十万行
-以下更稳，也更符合筛微“拿到可信结果”的目标。
+新增反向依赖、循环依赖、热点继续长大和一次性研究框架复制。A1-1A说明有些结构债就是历史证据的一部分，
+不能假装可以无损抹去；下一步应先做A1-1B/C两个解环包，再在后续真实功能中逐步拆Web、D1与配置热点。
+这条路线比一次性追求十万行以下更稳，也更符合筛微“拿到可信结果”的目标。

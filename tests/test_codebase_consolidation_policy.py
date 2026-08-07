@@ -78,4 +78,19 @@ def test_no_new_production_to_tools_dependency_is_hidden():
     assert observed == registered
     for item in policy["grandfathered"]:
         assert item["boundary"].strip()
-        assert item["exit_trigger"].startswith("A1-0")
+        assert item["decision"] == "A1_1A_DEFERRED_FROZEN_IDENTITY_CONFLICT"
+        assert item["exit_trigger"].startswith("only after a versioned")
+        assert (ROOT / item["decision_document"]).is_file()
+
+
+def test_grandfathered_star50_executor_keeps_the_frozen_m4_identity():
+    protocol = yaml.safe_load(
+        (ROOT / "config/m4_star50_residual_effect_v1.yaml").read_text(encoding="utf-8")
+    )
+    upstream = protocol["upstream_contract"]
+    path = ROOT / upstream["corrected_executor_path"]
+    assert path.relative_to(ROOT).as_posix() == "tools/p2_star50_effect_correction/executor.py"
+    assert _sha256(path) == upstream["corrected_executor_sha256"]
+    assert upstream["corrected_executor_sha256"] == (
+        "d8dbdb8bf0706af86757a853602c70dc4e7b5f73a901de1ea8f4045165bc9679"
+    )

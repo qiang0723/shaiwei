@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · A1-1A执行内核迁移因冻结身份冲突暂缓
+
+- 完整施工前置检查确认M4 v1协议写死P2-2C executor路径和物理SHA，当前M4 recovery release又绑定
+  同时包含M4 metrics与旧executor的代码bundle；P2-2C manifest另有独立纠错代码身份。旧文件改
+  wrapper、复制后切换或改写v1 release均会破坏合法历史复算或造成声明/执行不一致。
+- A1-C01由待迁移改为`DEFERRED_FROZEN_IDENTITY_CONFLICT`：旧路径保持字节不变，现有机器门继续保证
+  它是全仓唯一`src -> tools`债务并禁止新增消费者；只有版本化M4/P2 successor或显式复算归档ADR
+  获批后再评审退出。
+- 本节点生产代码/冻结文件修改0，删除0，数据/研究/外网/生产运行0，scheduler未重启；七个自然账本
+  保持未暂存。下一安全包为A1-1B D1 transport/llm_factor解环，须新的继续指令。见
+  `docs/A1_STAR50_EXECUTION_MIGRATION_DECISION_20260807.md`。
+
 ## 2026-08-07 · A1-0代码库只读审计完成，A1-1须用户复核后逐包授权
 
 - 当前Git真身为1,068个跟踪文件、583个代码文件、121,353行已跟踪代码；核心Python 62,747行，

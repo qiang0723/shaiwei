@@ -47,7 +47,9 @@ dependency_debt:
       import: tools.p2_star50_effect_correction.executor
       first_registered: "2026-08-07"
       boundary: P2-2C corrected execution reused by the frozen M4-1 historical replay
-      exit_trigger: A1-0 must decide promotion into a stable src execution kernel before either family changes
+      decision: A1_1A_DEFERRED_FROZEN_IDENTITY_CONFLICT
+      decision_document: docs/A1_STAR50_EXECUTION_MIGRATION_DECISION_20260807.md
+      exit_trigger: only after a versioned M4/P2 successor or explicit historical-replay archive ADR is approved
 
 deletion_gates:
   - static_and_dynamic_entrypoint_reachability_checked
