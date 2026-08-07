@@ -13,9 +13,10 @@ M6-1结果盲工程门已`GO_ENGINEERING_ONLY`；M6-2唯一真实runner与内部
 绑定错误在读结果前停止，M6-2R随后以新scope完成唯一断网auditor-only恢复。独立audit PASS，权威
 归因终态为`PORTFOLIO_CONVERSION_BOTTLENECK_INDICATED`：两个替代臂都改善RankIC，但固定Top30组合
 均未形成更好的扣费后结果；生产授权仍为none。M6-3A已冻结唯一变量`TopK 30→20`，M6-3B纯合成
-工程门已`GO_ENGINEERING_ONLY`并由独立audit复算PASS；M6-3C结果前真实release协议现已冻结，真实
-Top20效果仍为0。下一步只允许结果盲实现、合成验证、不可变镜像和精确scope；完整scope获用户明确
-批准前不得读取效果，不再增加模型；科创三池最多3候选的独立机制批次仍须单独排期。
+工程门已`GO_ENGINEERING_ONLY`并由独立audit复算PASS；M6-3C唯一真实runner获精确批准后，在首个
+W1控制臂Top30重建日报与封存规范日报逐内容比对时失败关闭为`BLOCKED_PRE_EFFECT`。Top20尝试消费0、
+Top20效果仍为0，独立audit因runner前置失败未启动；原scope不得重跑。若继续只能另立结果盲Top30
+兼容诊断/恢复协议，不放宽逐内容门或增加模型；科创三池最多3候选的独立机制批次仍须单独排期。
 完整依据、资源比例和停止条件见
 `docs/PLATFORM_ROUTE_REVIEW_20260806.md`和
 `docs/M6_CSI800_TOPK20_CONVERSION_ENGINEERING_ACCEPTANCE_20260807.md`。
@@ -527,7 +528,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M6-2R | M6独立审计入口恢复 | 唯一断网恢复audit PASS；新增尝试0、effect前后同SHA；权威`PORTFOLIO_CONVERSION_BOTTLENECK_INDICATED`、生产none | 本scope关闭不得重跑；下一批最多预冻结一个组合转换变量，不增加模型且须重新授权 |
 | M6-3A | 中证800 Top20组合转换结果前协议 | 仅冻结`TopK 30→20`；复用三组封存预测，两个组合假设采用NW(10)+Holm差分中的差分；真实Top20效果0、生产none | 协议推送后停止；如继续另立M6-3B合成工程目标，真实效果须新release scope和用户精确授权 |
 | M6-3B | 中证800 Top20组合转换结果盲工程门 | `GO_ENGINEERING_ONLY`；Top30兼容、Top20转换、四终态、15类失败关闭、物理双跑和独立audit均PASS；真实effect/Qlib/拟合/预测/回测0 | 工程scope关闭；真实Top20效果须另立M6-3C精确release scope并由用户明确授权，生产仍为none |
-| M6-3C | 中证800 Top20组合转换真实release | 结果前全调仓日补遗、runner/auditor、正式镜像和精确scope均就绪；scope `ba4d03be...5fd9`，approval不存在，真实effect/Qlib/回测0 | 只有用户逐字批准固定动作并绑定完整scope SHA后，才运行一次runner+一次独立audit；禁止重跑、外网、模型、其他TopK、前瞻或生产 |
+| M6-3C | 中证800 Top20组合转换真实release | 唯一runner在首个W1控制臂Top30规范日报逐内容门失败关闭；`BLOCKED_PRE_EFFECT`，Top20尝试0、Top20回测0、audit未启动、生产none | 原scope永久不得重跑；如继续另立结果盲Top30兼容诊断/恢复协议，先定位差异且不得放宽门或读取Top20，新真实执行须新scope和精确授权 |
 | A1 | 代码架构整理与受控瘦身 | 计划与机器门已冻结，基线约113,500行；当前未删除代码 | M6系列关闭后、下一重大能力前先做A1-0只读清单；用户复核后才可进入A1-1小批施工 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |

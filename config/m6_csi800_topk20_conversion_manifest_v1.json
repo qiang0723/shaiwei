@@ -1,0 +1,77 @@
+{
+  "schema_version": "m6-csi800-topk20-conversion-real-effect-manifest-v1",
+  "research_family": "m6-csi800-topk20-portfolio-conversion-v1",
+  "release_scope_sha256": "ba4d03be675e63fd94211271e5dc6d4812bc12954fbf8f77ef0eea85c5065fd9",
+  "approval_sha256": "374f049c4ff591c4332d78691866b2e4c8307198bd9e007e3a5ea714fb06db09",
+  "runner_invocation_count": 1,
+  "runner_exit_code": 2,
+  "run_outcome": "BLOCKED_PRE_EFFECT",
+  "error_type": "ConversionError",
+  "error_message": "M6-3C Top30 canonical report differs: W1/clean_lgbm_control_v1",
+  "top30_schedule_compatibility_before_failure": "PASS_FOR_W1_CLEAN_CONTROL",
+  "top30_canonical_report_compatibility": "FAIL_AT_W1_CLEAN_CONTROL",
+  "top20_effect_started": false,
+  "portfolio_attempts_consumed": 0,
+  "real_top20_backtest_count": 0,
+  "model_fit_count": 0,
+  "new_prediction_count": 0,
+  "independent_auditor_invocation_count": 0,
+  "independent_audit": "NOT_RUN_RUNNER_PRECONDITION_FAILED",
+  "decision": "BLOCKED_PRE_EFFECT",
+  "strategy_effective": "NOT_EVALUATED_FOR_PRODUCTION",
+  "production_authorization": "none",
+  "formal_artifacts": {
+    "ignored_root": "data/research/m6_csi800_topk20_conversion_v1/effect",
+    "file_count": 2,
+    "byte_count": 896,
+    "tree_sha256": "d2c22e1738eec49294c814355d29bf76e9b6d9e36c5b8db82ced119c34b3615a",
+    "authorization": {
+      "path": "data/research/m6_csi800_topk20_conversion_v1/effect/authorization.json",
+      "sha256": "67a6d98c2b906f3da41008efd71c29aff8b950bff5fef70c3f6792a173edbf02"
+    },
+    "failure": {
+      "path": "data/research/m6_csi800_topk20_conversion_v1/effect/failure.json",
+      "sha256": "0b837144676a3b3dfbd33e4da9835b43439f9a56f6ac2dd8edd26acc1f7d7537"
+    },
+    "top20_effect_started_path_exists": false,
+    "report_path_exists": false,
+    "audit_file_count": 0
+  },
+  "runtime_isolation": {
+    "network_mode": "none",
+    "model_or_prediction_generation_authorized": false,
+    "experiment_ledger_mounted_or_written": false,
+    "production_ledger_mounted": false,
+    "one_shot_containers_remaining": 0
+  },
+  "production_scheduler": {
+    "container_id": "183b8c6c5eddac951d9d9b3cfa58c0d38e351d5b94ee1b1d52b9b8059c23dd3b",
+    "image_id": "sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76",
+    "created_at": "2026-08-03T09:39:34.800579793Z",
+    "final_state": "running",
+    "final_health": "healthy",
+    "restart_count": 0,
+    "restarted": false
+  },
+  "validation": {
+    "full_pytest_passed": 918,
+    "full_pytest_warning_count": 1,
+    "warning_scope": "existing StarletteDeprecationWarning",
+    "m6_specialized_pytest_passed": 28,
+    "architecture_pytest_passed": 10,
+    "ruff": "PASS",
+    "compileall": "PASS",
+    "pip_check": "PASS",
+    "json_parse": "PASS",
+    "diff_check": "PASS",
+    "tracked_secret_hygiene": "PASS"
+  },
+  "stop_condition": {
+    "same_release_retry_authorized": false,
+    "independent_audit_authorized_after_failed_runner": false,
+    "exact_differing_report_cell_persisted": false,
+    "future_diagnosis_requires_new_result_blind_protocol": true,
+    "future_real_execution_requires_new_scope_and_user_authorization": true,
+    "production_authorization": "none"
+  }
+}

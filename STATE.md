@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · M6-3C真实Top20在Top30兼容门前置阻断
+
+- 用户绑定scope`ba4d03be...65fd9`逐字批准后，唯一断网runner于12:11启动一次；输入、运行身份和
+  W1控制臂Top30名单通过，但首个`W1/clean_lgbm_control_v1`重建日报与封存规范日报逐内容不一致，
+  正确失败关闭为`BLOCKED_PRE_EFFECT`。本scope永久不得重跑。
+- `top20_effect_started.json`与report均不存在，Top20尝试消费0、Top20回测0、模型拟合/新预测0；
+  runner成功是独立audit前置条件，故auditor未启动且audit目录为空。策略保持
+  `NOT_EVALUATED_FOR_PRODUCTION`、生产none，不能把阻断解释为Top20有效或无效。
+- effect只含authorization/failure两件，2文件/896字节，整树`d2c22e17...3615a`；失败实现未保存
+  新生成日报或逐单元diff，现有证据不能诚实定位具体日期/列值。scheduler原容器/镜像保持healthy、
+  重启0，7个自然账本改动未暂存。见`docs/M6_CSI800_TOPK20_CONVERSION_ACCEPTANCE_20260807.md`。
+- 若继续只能另立结果盲`M6-3C-R1`兼容诊断/恢复协议：先持久化并解释Top30差异，不读Top20、不放宽
+  逐内容门或加容差；新真实执行仍须新scope和用户精确批准。若不继续M6，则下一重大能力前进入A1-0。
+
 ## 2026-08-07 · M6-3C真实Top20 release已就绪，停在精确批准门前
 
 - 结果盲实现提交`322c599b...14f40`已推送；7个真实release窄模块最大292行。runner先完成21个Top30
