@@ -9,11 +9,13 @@
 阶段复盘裁决为`REORDER`，不是整体暂停：生产和自然前瞻继续；PIT、预注册、独立audit与Docker隔离
 继续；M5历史动态基本面因23/23冲突均无权威历史版本链而暂停，Registry v1和现有控制面冻结。下一阶段
 不再扩候选数量、队列或Worker。Web最新权威只读投影与M6-0中证800模型/组合归因小批协议均已冻结；
-M6-1结果盲工程门已`GO_ENGINEERING_ONLY`；M6-2一次性真实runner、内部双跑、独立auditor、最终镜像
-和精确release scope现已就绪，但执行、真实读取、拟合、预测、回测和账本写入仍未授权，策略
-`NOT_EVALUATED`。下一步只能等待用户对完整scope SHA明确批准，形成权威效果终态后才考虑科创三池
-最多3候选的独立机制批次。完整依据、资源比例和停止条件见
-`docs/PLATFORM_ROUTE_REVIEW_20260806.md`。
+M6-1结果盲工程门已`GO_ENGINEERING_ONLY`；M6-2唯一真实runner与内部双跑完成后，原auditor因CLI
+绑定错误在读结果前停止，M6-2R随后以新scope完成唯一断网auditor-only恢复。独立audit PASS，权威
+归因终态为`PORTFOLIO_CONVERSION_BOTTLENECK_INDICATED`：两个替代臂都改善RankIC，但固定Top30组合
+均未形成更好的扣费后结果；生产授权仍为none。下一批若继续，只能结果前冻结并改变一个组合转换变量，
+不再增加模型；科创三池最多3候选的独立机制批次仍须单独排期。完整依据、资源比例和停止条件见
+`docs/PLATFORM_ROUTE_REVIEW_20260806.md`和
+`docs/M6_CSI800_MODEL_ATTRIBUTION_AUDIT_RECOVERY_ACCEPTANCE_20260807.md`。
 
 ## 依赖顺序
 
@@ -512,8 +514,8 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M5-2B | 动态基本面数据门与R2版本谱系恢复 | v4冲突`BLOCKED_DATA`、旧R2 `STOPPED`均永久保留；行域恢复后新release唯一运行且audit PASS，23/23仅本地观察、历史PIT可恢复0，权威谱系`NO-GO/BLOCKED_DATA`，策略`NOT_EVALUATED` | 路线复盘已裁`PAUSE`且Web v3已同步；本release不得重跑，外网补证须另立有界协议，M5-2C/效果/生产仍禁止 |
 | M6-0 | 中证800模型/组合归因小批协议 | 三臂、六窗、11日purge、Top30/3/10日、三档成本及NW(10)+Holm已结果前冻结；真实结果0 | 已由M6-1工程门和M6-2真实release继承，不得增加第三臂、网格、多seed、新因子或组合变体 |
 | M6-1 | 中证800模型归因结果盲工程门 | `GO_ENGINEERING_ONLY`；五终态、十二失败关闭、Qlib模型工厂、统计裁决和独立audit均PASS；真实拟合/效果0 | 已作为M6-2冻结上游；工程GO不代表策略有效，也不自动授权真实运行 |
-| M6-2 | 中证800模型归因真实release | 唯一runner及内部双跑完成、2次尝试已消费；auditor在函数调用前因CLI关键字错误STOPPED，audit输出0；暂定标签不具权威性 | 原scope不得重跑；只允许按M6-2R另立auditor-only恢复release，独立audit PASS前不披露、不写实验账本 |
-| M6-2R | M6独立审计入口恢复 | 协议已冻结；绑定原scope/approval、199文件effect树和原镜像，只修参数绑定并复用原审计算法 | 先提交推送最小实现、构建薄恢复镜像和精确scope；用户批准新完整SHA前不得执行 |
+| M6-2 | 中证800模型归因真实release | 唯一runner及内部双跑完成、2次尝试已消费；原auditor入口故障永久保留，正式结果已由M6-2R原算法独立恢复审计 | 原runner/scope不得重跑；效果只作M6归因，不写生产授权 |
+| M6-2R | M6独立审计入口恢复 | 唯一断网恢复audit PASS；新增尝试0、effect前后同SHA；权威`PORTFOLIO_CONVERSION_BOTTLENECK_INDICATED`、生产none | 本scope关闭不得重跑；下一批最多预冻结一个组合转换变量，不增加模型且须重新授权 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |
 | G8-1R | 监管主源不可覆盖采集 | 1 条原 Docker 失败永久保留；恢复 54 条主证据、二遍幂等与断网复核 PASS；G8 仍 NOT_READY | 只允许另立 G8-2 管理人 HTTPS 交叉核验与费率有效期谱系协议 |

@@ -2,6 +2,22 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · M6-2R独立审计恢复PASS，权威归因指向组合转换瓶颈
+
+- 用户批准精确恢复scope`30ab35ed...e1ec1`后，唯一断网auditor-only恢复于08:34完成，退出码0；
+  `independent_audit=PASS`、新增尝试0、runner调用0、生产授权none，同scope永久不得重跑。
+- 原独立审计算法在基础镜像和薄镜像中物理SHA相同。auditor从封存产物独立重算成员日、RankIC、成本、
+  主动收益、换手、回撤、NW(10)、Holm和Top30，并确认first_pass/replay bundle完全相同。
+- Ridge与LGBM/Ridge 50/50融合的pooled RankIC增量为+0.008649/+0.008776，分别4/6、5/6窗口为正，
+  均过分数门；但1.0x成本下pooled净超额增量为-33.96%/-37.17%，仅3/6窗口为正，最大回撤
+  27.78%/26.60%，主要检验Holm p均为1.0，组合门均FAIL。
+- 权威终态为`PORTFOLIO_CONVERSION_BOTTLENECK_INDICATED`：分数改善未兑现为固定Top30组合收益；它是
+  归因与资源排序结论，不是策略有效或生产准入。下一批最多改变一个结果前冻结的组合转换变量，不增加
+  模型、seed、网格或第三臂，且必须另立协议和授权。
+- `audit.json`/receipt SHA为`8788bddc...0fd6`/`178f7bd2...3785`；effect前后仍为199文件、
+  84,957,571字节、整树`dfbc0b52...d5cb`。scheduler原容器/镜像保持healthy且未重启。见
+  `docs/M6_CSI800_MODEL_ATTRIBUTION_AUDIT_RECOVERY_ACCEPTANCE_20260807.md`。
+
 ## 2026-08-06 · M6-2真实runner完成，独立audit入口失败并停在恢复前
 
 - 用户批准精确scope`9b609f07...b139`后，唯一断网runner正常完成内部`first_pass/replay`，正式
