@@ -1,0 +1,68 @@
+schema_version: m6-csi800-topk20-conversion-schedule-addendum-v1
+addendum_id: m6-csi800-topk20-conversion-schedule-addendum-v1
+frozen_at: "2026-08-07T11:21:16+08:00"
+stage: RESULT_BLIND_BEFORE_REAL_TOPK20_EFFECT
+
+predecessors:
+  result_protocol:
+    path: config/m6_csi800_topk20_conversion_v1.yaml
+    sha256: c61728582c0c611015fab90221423db678373b115e1d9010ae12d9035590e71b
+  engineering_protocol:
+    path: config/m6_csi800_topk20_conversion_engineering_v1.yaml
+    sha256: 06331ba4fd8780bbc3f418dd23482604d63b674ea227c548b2916b301060f9b4
+  engineering_manifest:
+    path: config/m6_csi800_topk20_conversion_engineering_manifest_v1.json
+    sha256: c62309f278a122c849dc5f679f8768a4c5a9b259e5ad4b2f9ef588a177a19dbc
+  real_release_protocol:
+    path: config/m6_csi800_topk20_conversion_real_release_v1.yaml
+    sha256: 67bd31c47e288a39482abfa96524dc2ecbf64ac2765c258b7cce24db922e67a3
+  preserve_without_rewrite: true
+
+finding:
+  classification: ENGINEERING_SCHEMA_UNDERSPECIFICATION
+  found_before_real_effect_read: true
+  real_m6_effect_semantics_read: false
+  qlib_read: false
+  real_top20_backtest_count: 0
+  description: >-
+    M6-3B 的 scheduled_names 合成 bundle 每个窗口和分数臂只保存一组证券，而冻结组合每10个
+    交易日调仓，会在一个测试窗口形成多组计划名单。若把单组 fixture 直接用于真实分解，不能
+    证明 scheduled_top20_name_overlap 覆盖完整调仓路径。
+
+correction:
+  decision_or_gate_change: false
+  hypothesis_or_attempt_change: false
+  portfolio_parameter_change: false
+  model_or_prediction_change: false
+  required_schedule_shape: topk_then_window_then_arm_then_rebalance_date_then_security_list
+  schedule_dates:
+    source: exact_prediction_trade_dates
+    first_step: 0
+    cadence_trade_days: 10
+    must_match_across_topk_and_arms_within_window: true
+  security_list:
+    exact_length_equals_topk: true
+    unique_within_rebalance_date: true
+    bse_forbidden: true
+  scheduled_top20_overlap_vs_clean_control:
+    per_rebalance_date: cardinality_of_intersection_divided_by_20
+    aggregation: unweighted_arithmetic_mean_across_all_rebalance_dates_in_W1_through_W6
+    role: diagnostic_required_decomposition_not_gate
+  stress_schedule_overlap_required: false
+
+implementation_requirements:
+  primary_metrics_and_independent_audit_both_updated: true
+  synthetic_fixture_must_have_multiple_rebalance_dates_per_window: true
+  legacy_single_list_schedule_must_fail_closed: true
+  exact_release_scope_must_bind_this_addendum_sha256: true
+  no_real_effect_or_qlib_read_before_exact_scope_approval: true
+
+authority:
+  tracked_addendum_test_and_status_write_authorized: true
+  result_blind_implementation_authorized: true
+  synthetic_fixture_authorized: true
+  sealed_effect_semantic_read_authorized: false
+  qlib_read_authorized: false
+  real_top20_backtest_authorized: false
+  production_authorization: none
+
