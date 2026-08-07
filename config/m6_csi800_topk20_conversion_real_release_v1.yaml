@@ -1,0 +1,171 @@
+schema_version: m6-csi800-topk20-conversion-real-release-protocol-v1
+protocol_id: m6-csi800-topk20-conversion-real-release-v1
+frozen_at: "2026-08-07T11:15:44+08:00"
+stage: RESULT_BLIND_REAL_TOPK20_RELEASE_PREPARATION_ONLY
+
+predecessors:
+  result_protocol:
+    path: config/m6_csi800_topk20_conversion_v1.yaml
+    sha256: c61728582c0c611015fab90221423db678373b115e1d9010ae12d9035590e71b
+  engineering_protocol:
+    path: config/m6_csi800_topk20_conversion_engineering_v1.yaml
+    sha256: 06331ba4fd8780bbc3f418dd23482604d63b674ea227c548b2916b301060f9b4
+  engineering_manifest:
+    path: config/m6_csi800_topk20_conversion_engineering_manifest_v1.json
+    sha256: c62309f278a122c849dc5f679f8768a4c5a9b259e5ad4b2f9ef588a177a19dbc
+    engineering_verdict: GO_ENGINEERING_ONLY
+  authoritative_m6_effect:
+    root: data/research/m6_csi800_model_attribution_v1/effect
+    file_count: 199
+    byte_count: 84957571
+    tree_sha256: dfbc0b52f40250b7151d74d9a45f3fdc17a69ca1f7b9c853267c1071b4b0d5cb
+    report_sha256: 65e7b7ae2a8c4844f11d855f978d13c58eb082547f76a92ce92c8d6dc94b29f3
+    first_pass_bundle_sha256: 424e3ff9751522bb11736b4a80ef5dc8225a25ef14475611e6335e6ff0dea27e
+    replay_bundle_sha256: 424e3ff9751522bb11736b4a80ef5dc8225a25ef14475611e6335e6ff0dea27e
+  authoritative_m6_audit:
+    path: data/research/m6_csi800_model_attribution_v1/effect-audit/audit.json
+    sha256: 8788bddc6df2bdd74de489b7efaaf8eb1818c9787424a59a9e59b8ab2c5d0fd6
+    independent_audit: PASS
+  preserve_without_rewrite: true
+
+authority_before_exact_user_approval:
+  result_blind_implementation_authorized: true
+  synthetic_fixture_authorized: true
+  immutable_release_image_build_authorized: true
+  exact_release_scope_generation_authorized: true
+  dependency_build_network_only: true
+  sealed_effect_metadata_identity_read_authorized: true
+  sealed_effect_semantic_read_authorized: false
+  qlib_provider_mount_or_read_authorized: false
+  real_top20_backtest_authorized: false
+  real_model_fit_authorized: false
+  real_prediction_generation_authorized: false
+  formal_effect_output_write_authorized: false
+  experiment_ledger_write_authorized: false
+  forward_signal_authorized: false
+  paper_portfolio_authorized: false
+  external_runtime_network_authorized: false
+  env_or_secret_read_authorized: false
+  scheduler_change_or_restart_authorized: false
+  tushare_calls: 0
+  deepseek_calls: 0
+  production_authorization: none
+
+real_pipeline:
+  existing_score_arms:
+    - clean_lgbm_control_v1
+    - ridge_alpha1_v1
+    - lgbm_ridge_rank_blend_50_50_v1
+  windows: [W1, W2, W3, W4, W5, W6]
+  input_prediction_source: authoritative_m6_first_pass_verified_equal_to_replay
+  new_model_fit_count: 0
+  new_prediction_generation_count: 0
+  changed_variable:
+    path: portfolio.topk
+    control: 30
+    treatment: 20
+  forbidden_topk_values: [10, 15, 25]
+  inherited_portfolio:
+    strategy: BiweeklyTopkDropoutStrategy
+    account_rmb: 100000000
+    n_drop: 3
+    rebalance_trade_days: 10
+    only_tradable: true
+    forbid_all_trade_at_limit: false
+    deal_price: open
+    benchmark: SH000906
+    open_cost: 0.0006
+    close_cost: 0.0016
+    minimum_cost_rmb: 5
+    cost_multipliers: [1.0, 1.5, 2.0]
+    cost_scenario_method: scale_recorded_base_daily_cost_without_rerunning_trades
+
+compatibility_before_top20_result:
+  verify_effect_tree_identity_before_semantic_read: true
+  prediction_member_day_and_values_exact_across_sealed_passes: true
+  reproduce_all_top30_reports_byte_semantically: true
+  top30_mismatch_outcome: BLOCKED_PRE_EFFECT
+  qlib_identity_mismatch_outcome: BLOCKED_PRE_EFFECT
+  bse_or_nonfinite_input_outcome: BLOCKED_PRE_EFFECT
+  no_inner_join_or_tolerance_fallback: true
+
+metric_and_decision_contract:
+  primary_daily_effect: >-
+    (alternative_top20-clean_top20)-(alternative_top30-clean_top30)
+  hypotheses:
+    - ridge_alpha1_v1
+    - lgbm_ridge_rank_blend_50_50_v1
+  hac_lags: 10
+  multiplicity: holm
+  familywise_alpha: 0.05
+  direct_top20_gate_reused_without_change: true
+  terminal_states:
+    - TOPK20_CONVERSION_SUPPORTED
+    - TOPK20_CONVERSION_NOT_SUPPORTED
+    - MIXED_NOT_CONCLUSIVE
+    - BLOCKED
+  strategy_effective_for_every_terminal_state: NOT_EVALUATED_FOR_PRODUCTION
+  production_authorization_for_every_terminal_state: none
+
+execution_counting:
+  runner_invocation_count: 1
+  complete_internal_passes: [first_pass, replay]
+  independent_auditor_invocation_count: 1
+  portfolio_attempt_count_consumed_at_first_top20_effect_read: 2
+  model_attempt_increment: 0
+  factor_g1_attempt_increment: 0
+  same_release_retry_authorized: false
+  no_replacement_or_third_hypothesis: true
+
+release_and_approval:
+  release_scope_kind: TOPK20_REAL_EFFECT_RELEASE_READY_NOT_EXECUTION_APPROVAL
+  approval_action: M6_TOPK20_CONVERSION_EFFECT_ONCE_WITH_INTERNAL_REPLAY_AND_INDEPENDENT_AUDIT
+  approval_must_bind_exact_release_scope_sha256: true
+  scope_drift_invalidates_approval: true
+  prior_authority_inheritance: false
+  approval_record_path: data/control/m6_csi800_topk20_conversion_v1/approval.json
+  approval_record_git_ignored: true
+
+docker:
+  compose_file: compose.m6-topk-conversion-release.yaml
+  image: shaiwei:m6-topk-conversion-release-v1
+  runtime_network_mode: none
+  read_only_root: true
+  run_as_non_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  env_file_mounted: false
+  docker_socket_mounted: false
+  full_project_root_mounted: false
+  production_ledger_mounted: false
+  runner_mounts:
+    - {source: data/qlib_bin, target: /qlib, mode: ro}
+    - {source: data/research/m6_csi800_model_attribution_v1/effect, target: /m6-effect, mode: ro}
+    - {source: data/research/m6_csi800_model_attribution_v1/effect-audit/audit.json, target: /inputs/m6-audit.json, mode: ro}
+    - {source: config/m6_csi800_topk20_conversion_release_scope_v1.json, target: /inputs/release.json, mode: ro}
+    - {source: data/control/m6_csi800_topk20_conversion_v1/approval.json, target: /inputs/approval.json, mode: ro}
+    - {source: data/research/m6_csi800_topk20_conversion_v1/effect, target: /outputs, mode: rw}
+  auditor_mounts:
+    - {source: data/research/m6_csi800_topk20_conversion_v1/effect, target: /outputs, mode: ro}
+    - {source: config/m6_csi800_topk20_conversion_release_scope_v1.json, target: /inputs/release.json, mode: ro}
+    - {source: data/control/m6_csi800_topk20_conversion_v1/approval.json, target: /inputs/approval.json, mode: ro}
+    - {source: data/research/m6_csi800_topk20_conversion_v1/effect-audit, target: /audit, mode: rw}
+  maximum_runner_resources: {cpus: 4, memory: 8g, pids: 192}
+  maximum_auditor_resources: {cpus: 2, memory: 4g, pids: 128}
+  scheduler_protection_window_required: true
+
+artifact_contract:
+  ignored_effect_root: data/research/m6_csi800_topk20_conversion_v1/effect
+  ignored_audit_root: data/research/m6_csi800_topk20_conversion_v1/effect-audit
+  tracked_release_scope: config/m6_csi800_topk20_conversion_release_scope_v1.json
+  tracked_acceptance: docs/M6_CSI800_TOPK20_CONVERSION_EFFECT_ACCEPTANCE_20260807.md
+  write_once: true
+  failed_evidence_preserved: true
+  generated_timestamp_excluded_from_canonical_effect: true
+
+stop_condition:
+  stop_after_exact_release_scope_is_committed_and_pushed: true
+  explicit_user_authorization_of_full_scope_required: true
+  no_real_effect_or_qlib_read_before_approval: true
+  strategy_effective_before_authorized_run: NOT_EVALUATED_FOR_PRODUCTION
+  production_authorization: none

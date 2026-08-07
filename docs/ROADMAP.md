@@ -13,8 +13,9 @@ M6-1结果盲工程门已`GO_ENGINEERING_ONLY`；M6-2唯一真实runner与内部
 绑定错误在读结果前停止，M6-2R随后以新scope完成唯一断网auditor-only恢复。独立audit PASS，权威
 归因终态为`PORTFOLIO_CONVERSION_BOTTLENECK_INDICATED`：两个替代臂都改善RankIC，但固定Top30组合
 均未形成更好的扣费后结果；生产授权仍为none。M6-3A已冻结唯一变量`TopK 30→20`，M6-3B纯合成
-工程门已`GO_ENGINEERING_ONLY`并由独立audit复算PASS；真实Top20效果仍为0。下一批若继续，只能另立
-M6-3C精确release scope并重新授权，不再增加模型；科创三池最多3候选的独立机制批次仍须单独排期。
+工程门已`GO_ENGINEERING_ONLY`并由独立audit复算PASS；M6-3C结果前真实release协议现已冻结，真实
+Top20效果仍为0。下一步只允许结果盲实现、合成验证、不可变镜像和精确scope；完整scope获用户明确
+批准前不得读取效果，不再增加模型；科创三池最多3候选的独立机制批次仍须单独排期。
 完整依据、资源比例和停止条件见
 `docs/PLATFORM_ROUTE_REVIEW_20260806.md`和
 `docs/M6_CSI800_TOPK20_CONVERSION_ENGINEERING_ACCEPTANCE_20260807.md`。

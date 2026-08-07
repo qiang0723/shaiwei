@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-07 · M6-3C Top20真实效果release协议已结果前冻结
+
+- 下一合法节点固定为把M6-3A单变量`TopK 30→20`和M6-3B合成工程GO做成一次性真实效果release；
+  冻结输入只认M6-2封存effect、M6-2R独立audit、M6-3A协议和M6-3B正式manifest，旧证据均不改写。
+- 当前只授权结果盲实现、合成fixture、不可变镜像和精确scope生成；封存effect语义、Qlib、Top20
+  回测、实验账本、前瞻、模拟仓、Web、scheduler和生产均未授权。唯一允许的预执行读取是封存输入的
+  元数据/内容哈希身份，不读取预测、日报或效果语义。
+- 未来正式runner必须先逐内容复现全部Top30，再允许形成Top20；一次调用内含first-pass/replay，首次
+  Top20效果读取消费恰好2个组合尝试，同release不得重跑。独立auditor仍须二次复算。
+- 最终scope必须绑定实现Git、镜像、发布清单、Qlib、封存effect/audit、命令、挂载和资源；完整scope
+  SHA获得用户针对动作`M6_TOPK20_CONVERSION_EFFECT_ONCE_WITH_INTERNAL_REPLAY_AND_INDEPENDENT_AUDIT`
+  明确批准前必须停止。见`docs/M6_CSI800_TOPK20_CONVERSION_RELEASE_PROTOCOL_20260807.md`。
+
 ## 2026-08-07 · M6-3B Top20组合转换结果盲工程门GO
 
 - 严格继承M6-3A且只允许`TopK 30→20`一个变化的portfolio-only执行、差分中的差分、Top20直接门、
