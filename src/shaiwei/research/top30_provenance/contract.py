@@ -113,9 +113,16 @@ class ReleaseScope:
 
 def code_bundle_identity(root: Path | None = None) -> dict[str, Any]:
     base = root or Path(__file__).resolve().parent
+    roots = (base,) if root is not None else (base, base.parent / "top30_diagnostic")
+    prefix = base if root is not None else base.parent
     rows = [
-        {"path": path.name, "sha256": sha256_file(path), "size": path.stat().st_size}
-        for path in sorted(base.glob("*.py"))
+        {
+            "path": path.relative_to(prefix).as_posix(),
+            "sha256": sha256_file(path),
+            "size": path.stat().st_size,
+        }
+        for package_root in roots
+        for path in sorted(package_root.glob("*.py"))
         if path.is_file()
     ]
     if not rows:

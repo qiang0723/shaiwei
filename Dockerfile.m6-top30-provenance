@@ -10,6 +10,7 @@ ENV SHAIWEI_M6_TOP30_PROVENANCE_ROLE=${SHAIWEI_M6_TOP30_PROVENANCE_ROLE}
 ENV SHAIWEI_M6_TOP30_PROVENANCE_BASE_IMAGE_ID=${SHAIWEI_M6_TOP30_PROVENANCE_BASE_IMAGE_ID}
 
 COPY src/shaiwei/research/top30_provenance /workspace/src/shaiwei/research/top30_provenance
+COPY src/shaiwei/research/top30_diagnostic /workspace/src/shaiwei/research/top30_diagnostic
 COPY Dockerfile.m6-top30-provenance compose.m6-top30-provenance.yaml /workspace/
 RUN python -m shaiwei.research.top30_provenance.image_manifest \
     --output /opt/shaiwei/m6-top30-provenance/release-manifest.json
