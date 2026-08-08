@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-08 · M7-0真实键级数据门release就绪，停在精确批准前
+
+- 最终scope`f47100687e...b24e1`绑定已推送Git`2aabf207...ea0d`、代码bundle`fc0a341d...dcf0a`、
+  metadata manifest`8a133388...0e27a`、arm64镜像`893e90f4...c616`、命令/挂载/资源和独立auditor；
+  release scope物理SHA为`31446aff...b6466`。
+- 最终镜像断网非root合成fixture再次PASS；approval、内容寻址输入束、正式runner/auditor输出均不存在，
+  真实证券键/资金流数值读取0，候选/效果/研究尝试0，生产none。
+- 批准入口已绑定SHA`8f1842ab...eb52`，未来会先复算live proposal SQLite完整证据图，校验仍为
+  `REVIEW_REQUIRED`/seq2/head`da38d05a...b1f0a`且未过期；不能用手填字段冒充批准。
+- 只有用户逐字绑定完整scope并批准动作`M7_STAR_CUSTOM_POOL_MONEYFLOW_DATA_GATE_ONCE`，才可物化
+  输入束并唯一运行一次断网真实键级门；同scope不得重跑。见
+  `docs/M7_STAR_CUSTOM_POOL_MONEYFLOW_DATA_GATE_RELEASE_ACCEPTANCE_20260808.md`。
+
 ## 2026-08-08 · M7-0键级数据门工程前置GO，待推送后生成精确release
 
 - metadata-only inventory 已锁定P1完整目录2,563批/10,614,438行和M3成员779,271行；M7选择范围为
