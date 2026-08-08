@@ -1,0 +1,128 @@
+{
+  "approval": {
+    "canonical_sha256": "d5394732c7abaa8702740b9b31e342e5de6baae695ea2d0ad302730da544e0e9",
+    "physical_sha256": "2545ba4e5ef2002275c8a5665d3ff19ca43c079f886dbf149f25af5a2d5b1e76",
+    "proposal_integrity_verified": true
+  },
+  "artifacts": {
+    "audit_report": {
+      "bytes": 1130,
+      "path": "data/control/m7/audits/8a1333888c3abd20d1a4c003018ec81dc22ccf8629372266e6833a8cc750e27a-2aabf20/54529f2c5822c638c8bfd83ce26dd3c475b7eb5c483772ec2e42a487ac3c032d/audit_report.json",
+      "sha256": "d0abc5d1912c7445d25a188cb0398d450c9340504950c463a557daa723bddac7"
+    },
+    "bundle_manifest": {
+      "bytes": 344187,
+      "file_count": 1342,
+      "path": "data/control/m7/input-bundles/8a1333888c3abd20d1a4c003018ec81dc22ccf8629372266e6833a8cc750e27a-2aabf20/bundle_manifest.json",
+      "sha256": "3e49ce0111e920aa52d251ff6aebaba9c8a8894a5dd1a5ae6b3f92550bb05757"
+    },
+    "data_gate_report": {
+      "bytes": 10413,
+      "path": "data/control/m7/outputs/8a1333888c3abd20d1a4c003018ec81dc22ccf8629372266e6833a8cc750e27a-2aabf20/54529f2c5822c638c8bfd83ce26dd3c475b7eb5c483772ec2e42a487ac3c032d/data_gate_report.json",
+      "sha256": "6f16fe9512ece58d81a4381fbae76a27b7bb492fe13c328f50f04edc404f5d07"
+    },
+    "run_manifest": {
+      "bytes": 831,
+      "path": "data/control/m7/outputs/8a1333888c3abd20d1a4c003018ec81dc22ccf8629372266e6833a8cc750e27a-2aabf20/54529f2c5822c638c8bfd83ce26dd3c475b7eb5c483772ec2e42a487ac3c032d/run_manifest.json",
+      "sha256": "dede740b2063f92c59580e92c1080b1d5572c7bdd8f4a5dc5d9d62f7bdd9877b"
+    }
+  },
+  "authority": {
+    "candidate_definition_count": 0,
+    "effect_test_count": 0,
+    "generation_attempt_increment": 0,
+    "numeric_moneyflow_value_columns_read": 0,
+    "production_authorization": "none",
+    "strategy_effective": "NOT_EVALUATED"
+  },
+  "data_quality": {
+    "aggregate_coverage_rate_by_universe": {
+      "star-board-all-pit-v1": 0.996104501367,
+      "star-board-midcap-pit-v1": 0.99710689337,
+      "star-board-smallcap-pit-v1": 0.997324715917
+    },
+    "eligible_feature_date_count_by_universe": 1325,
+    "failed_gate_count": 2,
+    "failed_gates": [
+      {
+        "gate_id": "required_keys_valid",
+        "observed": 3620544,
+        "threshold": 0
+      },
+      {
+        "gate_id": "half_year_member_key_coverage",
+        "observed": 0.985451615961,
+        "threshold": 0.99
+      }
+    ],
+    "failed_half_year_cells": [
+      {
+        "coverage_rate": 0.988451166608,
+        "segment": "2021H2",
+        "universe_id": "star-board-all-pit-v1"
+      },
+      {
+        "coverage_rate": 0.985451615961,
+        "segment": "2022H1",
+        "universe_id": "star-board-all-pit-v1"
+      },
+      {
+        "coverage_rate": 0.987129525177,
+        "segment": "2023H1",
+        "universe_id": "star-board-all-pit-v1"
+      },
+      {
+        "coverage_rate": 0.989970334793,
+        "segment": "2022H1",
+        "universe_id": "star-board-midcap-pit-v1"
+      }
+    ],
+    "feature_date_count": 1328,
+    "membership_row_count": 757636,
+    "passed_gate_count": 12,
+    "quarantined_feature_date_count": 3,
+    "source_key_row_count": 6495149,
+    "source_primary_key_duplicate_row_count": 0,
+    "worst_eligible_feature_date_coverage_by_universe": {
+      "star-board-all-pit-v1": 0.984375,
+      "star-board-midcap-pit-v1": 0.975460122699,
+      "star-board-smallcap-pit-v1": 0.96
+    }
+  },
+  "desensitization": {
+    "absolute_paths_included": false,
+    "credentials_included": false,
+    "raw_or_derived_business_rows_included": false,
+    "security_codes_included": false
+  },
+  "implementation_findings": [
+    {
+      "decision_changing": false,
+      "finding": "SOURCE_VALIDITY_REGEX_ACCEPTS_SH_ONLY_WHILE_FROZEN_SOURCE_CATALOG_IS_ALL_A_SHARE",
+      "impact": "SOURCE_MALFORMED_COUNT_IS_NOT_A_TRUSTWORTHY_DOMAIN_DIAGNOSIS; HALF_YEAR_COVERAGE_FAILS_INDEPENDENTLY_PRESERVE_NO_GO",
+      "required_successor_action": "FIX_WITH_NEW_VERSIONED_SCOPE_ONLY_NO_CURRENT_SCOPE_RERUN",
+      "severity": "HIGH_DIAGNOSTIC_FIDELITY"
+    },
+    {
+      "decision_changing": false,
+      "finding": "SAME_SCOPE_PRE_READ_REPLAY_NOT_MACHINE_BLOCKED",
+      "impact": "WRITE_ONCE_PREVENTS_OUTPUT_REPLACEMENT_BUT_RUNNER_AND_AUDITOR_CAN_REREAD_INPUTS_BEFORE_COLLISION_CHECK",
+      "required_successor_action": "ADD_PRE_READ_CONSUMPTION_GATE_BEFORE_ANY_SUCCESSOR_RELEASE",
+      "severity": "HIGH_EXECUTION_CONTROL"
+    }
+  ],
+  "independent_audit": {
+    "checked_gate_count": 14,
+    "core_sha256": "42fd4de1190fb6fd33b7a5a02fcbb09b59785d439255d502a545e1cd77f0ab31",
+    "status": "PASS"
+  },
+  "input_manifest_sha256": "8a1333888c3abd20d1a4c003018ec81dc22ccf8629372266e6833a8cc750e27a",
+  "production_authorization": "none",
+  "protocol_id": "m7-star-custom-pool-moneyflow-data-compatibility-v1",
+  "protocol_sha256": "b629ba917744c43247d301fa59cc1bb0ef5340587c6947b0d2f737cc023e164e",
+  "release_scope_sha256": "f47100687eabe09959a6a1746e742a274e8e77ba3c9e6e90c58a43542b4b24e1",
+  "run_id": "54529f2c5822c638c8bfd83ce26dd3c475b7eb5c483772ec2e42a487ac3c032d",
+  "schema_version": "m7-moneyflow-data-manifest-v1",
+  "strategy_effective": "NOT_EVALUATED",
+  "verdict": "NO_GO_M7_0_DATA_COMPATIBILITY"
+}

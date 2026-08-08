@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-08 · M7-0真实键级数据门权威NO-GO，scope关闭
+
+- 用户精确批准scope`f4710068...b24e1`后，live proposal完整性复算PASS；21:58后唯一断网runner与
+  独立DuckDB auditor均完成，scope不得重跑。run ID`54529f2c...032d`，audit`d0abc5d1...dac7`。
+- 14个硬门12 PASS/2 FAIL：三池总体覆盖99.6105%/99.7107%/99.7325%，但全池2021H2、2022H1、
+  2023H1及中盘池2022H1共4个半年单元低于99%，最低98.5452%，独立足以裁NO-GO。
+- 同时发现非改判实现缺陷：主/审实现都用SH-only正则检查全A股source，致3,620,544行被标malformed；
+  该计数不是可信数据域诊断，但半年门独立失败，修正也不会改变本次NO-GO。同scope不修不重跑。
+- write-once还不能在语义读取前机器阻止同scope再调用；本次runner/auditor各唯一调用一次，但successor
+  必须先补pre-read consumption gate，并用合成二次调用验证，不得在本scope上重跑测试。
+- 权威`NO_GO_M7_0_DATA_COMPATIBILITY`只阻断当前P1键直接进入M7候选，不是策略REJECT；候选/效果/尝试
+  增量0，`strategy_effective=NOT_EVALUATED`、生产none。M7-0关闭，不进入八候选。若未来继续须另立
+  早期半年缺口谱系恢复协议和新scope。见
+  `docs/M7_STAR_CUSTOM_POOL_MONEYFLOW_DATA_GATE_EXECUTION_ACCEPTANCE_20260808.md`。
+
 ## 2026-08-08 · M7-0真实键级数据门release就绪，停在精确批准前
 
 - 最终scope`f47100687e...b24e1`绑定已推送Git`2aabf207...ea0d`、代码bundle`fc0a341d...dcf0a`、
