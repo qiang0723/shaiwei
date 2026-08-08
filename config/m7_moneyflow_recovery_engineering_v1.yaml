@@ -1,0 +1,107 @@
+protocol_id: m7-moneyflow-recovery-engineering-v1
+frozen_at: "2026-08-08T22:48:34+08:00"
+stage: SYNTHETIC_RECOVERY_ENGINEERING_PROTOCOL_ONLY
+
+predecessor:
+  protocol_id: m7-star-custom-pool-moneyflow-data-compatibility-v1
+  protocol_sha256: b629ba917744c43247d301fa59cc1bb0ef5340587c6947b0d2f737cc023e164e
+  release_scope_sha256: f47100687eabe09959a6a1746e742a274e8e77ba3c9e6e90c58a43542b4b24e1
+  aggregate_manifest_path: config/m7_star_custom_pool_moneyflow_data_manifest_v1.json
+  aggregate_manifest_sha256: 7e8ba16a9209a579bdbdfd370032be6d575e8df941c8aa659f2e790580da0156
+  execution_acceptance_path: docs/M7_STAR_CUSTOM_POOL_MONEYFLOW_DATA_GATE_EXECUTION_ACCEPTANCE_20260808.md
+  execution_acceptance_sha256: cb1c46889c6fe09099d76de304d4449fd3ebdfdb06df7ba8644275c8d660e293
+  authoritative_verdict: NO_GO_M7_0_DATA_COMPATIBILITY
+  authoritative_scope_closed: true
+  same_scope_retry_authorized: false
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+
+known_result_disclosure:
+  result_blind: false
+  failed_gate_count: 2
+  independently_decisive_gate: half_year_member_key_coverage
+  failed_half_year_cell_count: 4
+  minimum_observed_half_year_coverage: 0.985451615961
+  contaminated_diagnostic:
+    field: source_malformed_key_count
+    observed: 3620544
+    cause: SH_ONLY_VALIDATOR_APPLIED_TO_ALL_A_SHARE_SOURCE_CATALOG
+    trustworthy_as_data_domain_diagnosis: false
+  post_result_tuning_forbidden: true
+
+engineering_changes:
+  security_code_domains:
+    membership:
+      semantic_domain: STAR_BOARD_MEMBER
+      accepted_suffixes: [SH]
+      regex: "^[0-9]{6}\\.SH$"
+    source:
+      semantic_domain: ALL_A_SHARE_MONEYFLOW_CATALOG
+      accepted_suffixes: [SH, SZ]
+      regex: "^[0-9]{6}\\.(SH|SZ)$"
+    bse:
+      suffix: BJ
+      accepted: false
+      dedicated_fail_closed_gate_required: true
+  computation:
+    preserve_v1_default_behavior: true
+    successor_main_path: PANDAS
+    successor_audit_path: DUCKDB
+    independent_implementations_required: true
+    synthetic_sh_and_sz_acceptance_required: true
+    synthetic_bj_and_malformed_rejection_required: true
+  pre_read_consumption:
+    claim_before_semantic_input_read: true
+    claim_write_mode: ATOMIC_EXCLUSIVE_CREATE
+    identity_fields:
+      - protocol_sha256
+      - release_scope_sha256
+      - approval_sha256
+      - role
+      - run_id
+    roles: [runner, auditor]
+    consumed_after_claim_even_if_later_failure: true
+    second_call_must_fail_before_loader_invocation: true
+    current_v1_scope_must_not_be_used_for_retry_test: true
+
+frozen_quality_semantics:
+  denominator_changed: false
+  thresholds_changed: false
+  aggregate_member_key_coverage_minimum_by_universe: 0.995
+  half_year_member_key_coverage_minimum_by_universe: 0.99
+  worst_feature_date_member_key_coverage_minimum_by_universe: 0.95
+  minimum_matched_names_changed: false
+  quarantine_semantics_changed: false
+  pit_clock_changed: false
+  universe_identity_changed: false
+
+authority:
+  real_security_key_read_authorized: false
+  numeric_moneyflow_value_read_authorized: false
+  lineage_gap_read_authorized: false
+  candidate_generation_authorized: false
+  label_or_return_read_authorized: false
+  effect_read_authorized: false
+  model_or_backtest_authorized: false
+  external_network_authorized: false
+  forward_or_paper_authorized: false
+  production_authorization: none
+  generation_attempt_increment: 0
+
+completion_gate:
+  protocol_contract_tests_pass: true
+  legacy_v1_fixture_hashes_unchanged: true
+  successor_main_and_audit_key_domain_equal: true
+  duplicate_claim_stops_before_semantic_loader: true
+  full_test_and_architecture_gate_required: true
+
+next_legal_stage:
+  stage: M7_MONEYFLOW_GAP_LINEAGE_RELEASE_ONLY
+  requires_new_protocol: true
+  requires_new_release_scope: true
+  requires_new_exact_user_approval: true
+  may_read_only_missing_key_lineage: true
+  may_read_numeric_moneyflow_values: false
+  may_generate_candidates: false
+  may_change_v1_thresholds: false
+  may_reuse_v1_approval: false
