@@ -51,6 +51,9 @@ def main(argv: list[str] | None = None) -> int:
             auditor_code_sha256=sha256_file(
                 args.project_root / "src/shaiwei/research_gates/m7_moneyflow/auditor.py"
             ),
+            approval_builder_sha256=sha256_file(
+                args.project_root / "tools/m7_moneyflow_approval.py"
+            ),
             image_id=args.image_id,
             repo_digest=args.repo_digest,
             platform=args.platform,

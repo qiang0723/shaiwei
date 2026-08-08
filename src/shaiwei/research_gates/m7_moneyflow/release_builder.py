@@ -22,6 +22,7 @@ def build_release_document(
     dockerfile_sha256: str,
     compose_sha256: str,
     auditor_code_sha256: str,
+    approval_builder_sha256: str,
     image_id: str,
     repo_digest: str,
     platform: str,
@@ -41,6 +42,9 @@ def build_release_document(
             "required_state_at_approval": proposal["required_state_at_release_approval"],
             "required_event_seq_at_approval": proposal["required_event_seq_at_release_approval"],
             "expires_at": proposal["expires_at"],
+            "proposal_database_relative_path": protocol.proposal_export[
+                "source_database_relative_path"
+            ],
         },
         "protocol_scope_sha256": protocol.build_document["protocol_scope_sha256"],
         "protocol_sha256": protocol.sha256,
@@ -56,6 +60,7 @@ def build_release_document(
             "dockerfile_sha256": dockerfile_sha256,
             "compose_sha256": compose_sha256,
             "auditor_code_sha256": auditor_code_sha256,
+            "approval_builder_sha256": approval_builder_sha256,
         },
         "image": {
             "image_id": image_id,

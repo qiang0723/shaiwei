@@ -29,9 +29,9 @@ provisional 合成验证，不得作为真实运行身份。
 Parquet 语义行。生成的本地忽略区 manifest：
 
 - canonical SHA-256：
-  `83f3dd289b5c1bdd4ef369045f77ffe9933a290b2c9b726a32859238813b0bba`；
+  `8a1333888c3abd20d1a4c003018ec81dc22ccf8629372266e6833a8cc750e27a`；
 - physical SHA-256：
-  `736b0487432366f6113391099202d6a6145aafe7c25900cc53080bee87b0b572`；
+  `6522e5802b3d51f16c7ed48aac5afb4f10368716dc38201121a8417a170673ee`；
 - P1 完整目录：2,563 个 latest canonical batch、10,614,438 行，目录 SHA 与冻结审计
   `04ffd1f5...50890`一致；
 - M7 选择范围：2020-12-31—2026-06-29 共 1,328 个源交易日，对应 2021-01-04—2026-06-30
@@ -66,7 +66,8 @@ Parquet 语义行。生成的本地忽略区 manifest：
 - 输入束只能在 exact approval 通过后硬链接物化；物化前再次核验每份文件大小、footer 与 SHA。
 - release envelope 只可声明 `release_ready=true`；执行、真实键读取、网络、候选、效果、模型、回测、
   前瞻、scheduler/Web 变更均保持 false/none。approval 必须绑定 action、完整 scope SHA、proposal 状态、
-  event seq、head SHA 和有效期。
+  event seq、head SHA 和有效期；独立 host-side approval builder 必须先对 live proposal SQLite 做完整
+  证据图复算，并证明当前状态/序号/head 未漂移，不能由手填字段冒充。
 
 ## 6. 验证
 

@@ -110,6 +110,8 @@ release_scope:
   mounts_resources_commands_bound: true
   approval_must_bind_exact_release_scope_sha256: true
   proposal_state_seq_head_and_expiry_rechecked_at_approval: true
+  approval_builder: tools/m7_moneyflow_approval.py
+  live_proposal_database_integrity_required: true
   same_scope_retry_authorized: false
 
 authority:

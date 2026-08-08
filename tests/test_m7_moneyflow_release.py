@@ -49,6 +49,7 @@ def _document(protocol: M7Protocol, manifest: InputManifest) -> dict[str, object
         dockerfile_sha256=SHA,
         compose_sha256=SHA,
         auditor_code_sha256=SHA,
+        approval_builder_sha256=SHA,
         image_id=f"sha256:{SHA}",
         repo_digest=f"shaiwei:m7-moneyflow-data-gate-local@sha256:{SHA}",
         platform="linux/arm64",
@@ -96,7 +97,9 @@ def test_approval_must_bind_exact_release_scope_and_proposal(tmp_path: Path) -> 
         "proposal_event_seq": proposal["required_event_seq_at_approval"],
         "proposal_head_event_sha256": proposal["proposal_head_event_sha256"],
         "approved_at": "2026-08-08T16:05:00+08:00",
-        "approved_by_role": "M7_LOCAL_PROTOCOL_APPROVER",
+        "proposal_database_relative_path": proposal["proposal_database_relative_path"],
+        "proposal_integrity_verified": True,
+        "approval_actor_sha256": "7df97c84a6ddbde116d9b2ec059200349035842d6c88bf55e90880002315b48d",
         "execution_authorized": True,
     }
     approval_path = tmp_path / "approval.json"

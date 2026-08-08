@@ -90,6 +90,7 @@ def _verify_frozen_inputs(build: dict[str, Any], project_root: Path) -> None:
 @dataclass(frozen=True)
 class M7Protocol:
     path: Path
+    project_root: Path
     document: dict[str, Any]
     build_document: dict[str, Any]
     sha256: str
@@ -108,6 +109,13 @@ class M7Protocol:
         if build.get("protocol_scope_sha256") != PROTOCOL_SCOPE_SHA256:
             raise M7GateError("M7 protocol scope identity differs")
         _verify_frozen_inputs(build, project_root)
+        proposal_export_path = project_root / safe_relative(
+            document["source_proposal"]["proposal_export_path"], "proposal export"
+        )
+        if sha256_file(proposal_export_path) != document["source_proposal"][
+            "proposal_export_sha256"
+        ]:
+            raise M7GateError("M7 proposal export identity differs")
         scope = document.get("scope") or {}
         if (
             scope.get("stage") != "DATA_COMPATIBILITY_PROTOCOL_ONLY"
@@ -141,6 +149,7 @@ class M7Protocol:
             raise M7GateError("M7 quality thresholds differ")
         return cls(
             path=path,
+            project_root=project_root,
             document=document,
             build_document=build,
             sha256=sha256_file(path),
@@ -150,6 +159,16 @@ class M7Protocol:
     @property
     def proposal(self) -> dict[str, Any]:
         return self.document["source_proposal"]
+
+    @property
+    def proposal_export(self) -> dict[str, Any]:
+        path = self.project_root / safe_relative(
+            self.proposal["proposal_export_path"], "proposal export"
+        )
+        document = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(document, dict):
+            raise M7GateError("M7 proposal export must be an object")
+        return document
 
     @property
     def quality(self) -> dict[str, Any]:

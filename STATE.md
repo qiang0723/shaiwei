@@ -5,10 +5,11 @@
 ## 2026-08-08 · M7-0键级数据门工程前置GO，待推送后生成精确release
 
 - metadata-only inventory 已锁定P1完整目录2,563批/10,614,438行和M3成员779,271行；M7选择范围为
-  1,328个源日→1,328个feature日，范围内3个隔离源日。manifest canonical SHA为`83f3dd28...b0bba`，
+  1,328个源日→1,328个feature日，范围内3个隔离源日。manifest canonical SHA为`8a133388...0e27a`，
   全程只读账本索引、JSON、文件哈希和Parquet footer，真实证券键/资金流数值行读取仍为0。
 - 新增独立M7包、键级reader、Pandas主计算、DuckDB独立audit、write-once sealing、精确release/
-  approval合同及approval后输入束物化；15模块共2,359行、最大300行，不新增服务/队列/schema/账本。
+  approval合同及approval后输入束物化；host-side批准入口还会复算live proposal证据图并验证状态/序号/
+  head，避免手填批准绕过。15模块共2,359行、最大300行，不新增服务/队列/schema/账本。
 - clean/重复键/稀疏覆盖三类合成门分别正确GO/NO-GO/NO-GO；runner replay与独立audit一致。全仓959
   PASS、架构13 PASS，断网非root provisional镜像fixture PASS；scheduler仍为原容器/原镜像healthy。
 - 本节点裁决仅`GO_ENGINEERING_PREREQUISITES_ONLY`，不是数据GO或策略有效。下一步须先提交推送本

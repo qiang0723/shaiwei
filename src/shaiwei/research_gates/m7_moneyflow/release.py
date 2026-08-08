@@ -13,6 +13,7 @@ from .contract import InputManifest, M7GateError, M7Protocol, canonical_json, sh
 
 
 ACTION = "M7_STAR_CUSTOM_POOL_MONEYFLOW_DATA_GATE_ONCE"
+APPROVER_SHA256 = "7df97c84a6ddbde116d9b2ec059200349035842d6c88bf55e90880002315b48d"
 COMMANDS = {
     "runner": ["python", "-m", "shaiwei.research_gates.m7_moneyflow.runner"],
     "auditor": ["python", "-m", "shaiwei.research_gates.m7_moneyflow.auditor"],
@@ -101,6 +102,9 @@ class DataReleaseScope:
             "required_state_at_approval": proposal["required_state_at_release_approval"],
             "required_event_seq_at_approval": proposal["required_event_seq_at_release_approval"],
             "expires_at": proposal["expires_at"],
+            "proposal_database_relative_path": protocol.proposal_export[
+                "source_database_relative_path"
+            ],
         }
         if scope["source_proposal"] != expected_proposal:
             raise M7GateError("M7 release proposal identity differs")
@@ -119,6 +123,7 @@ class DataReleaseScope:
             "dockerfile_sha256",
             "compose_sha256",
             "auditor_code_sha256",
+            "approval_builder_sha256",
         }
         if (
             set(implementation) != implementation_fields
@@ -205,8 +210,10 @@ class ApprovalEnvelope:
             "proposal_state",
             "proposal_event_seq",
             "proposal_head_event_sha256",
+            "proposal_database_relative_path",
+            "proposal_integrity_verified",
             "approved_at",
-            "approved_by_role",
+            "approval_actor_sha256",
             "execution_authorized",
         }
         proposal = release.scope["source_proposal"]
@@ -221,7 +228,10 @@ class ApprovalEnvelope:
             or document["proposal_state"] != proposal["required_state_at_approval"]
             or document["proposal_event_seq"] != proposal["required_event_seq_at_approval"]
             or document["proposal_head_event_sha256"] != proposal["proposal_head_event_sha256"]
-            or document["approved_by_role"] != "M7_LOCAL_PROTOCOL_APPROVER"
+            or document["proposal_database_relative_path"]
+            != proposal["proposal_database_relative_path"]
+            or document["proposal_integrity_verified"] is not True
+            or document["approval_actor_sha256"] != APPROVER_SHA256
             or document["execution_authorized"] is not True
         ):
             raise M7GateError("M7 approval does not bind the exact release and proposal")
