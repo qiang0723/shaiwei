@@ -1,0 +1,51 @@
+{
+  "schema_version": "m7-moneyflow-gap-lineage-input-summary-v1",
+  "protocol_id": "m7-moneyflow-gap-lineage-v1",
+  "protocol_sha256": "bf5ebac79cb1b81699e5a8f4d1fae13b78dedb35e7ed19672e0c69ea8254ad9e",
+  "created_at": "2026-08-08T16:32:08+00:00",
+  "metadata_cutoff_utc": "2026-08-08T16:07:32+00:00",
+  "full_manifest": {
+    "relative_path": "data/control/m7-lineage/input-manifest-v1.json",
+    "canonical_sha256": "5f3e28088038e423d2f21a1c8b712457b620045749c9052c730cdc777871f9a7",
+    "physical_sha256": "01430f44e2233439763dbefbeb90d060d87f46c9859f1cfceac6e9ab64a151a7",
+    "bytes": 5336316,
+    "tracked": false,
+    "semantic_rows_read": false
+  },
+  "predecessor_bundle": {
+    "input_manifest_sha256": "8a1333888c3abd20d1a4c003018ec81dc22ccf8629372266e6833a8cc750e27a",
+    "bundle_manifest_sha256": "3e49ce0111e920aa52d251ff6aebaba9c8a8894a5dd1a5ae6b3f92550bb05757",
+    "file_count": 1342
+  },
+  "sources": {
+    "tushare.daily": {
+      "projected_columns": ["ts_code", "trade_date"],
+      "selected_batch_count": 8225,
+      "selected_row_count": 10563948,
+      "selected_bytes": 474522846,
+      "catalog_sha256": "e47f2692ab28e1503ae8112393a563f0298221acb72ebce0dc936db3adc85828"
+    },
+    "tushare.suspend_d": {
+      "projected_columns": ["ts_code", "trade_date", "suspend_timing", "suspend_type"],
+      "selected_batch_count": 1328,
+      "selected_row_count": 51997,
+      "selected_bytes": 4027031,
+      "catalog_sha256": "98feecb04364e76ebc2ff150f765a6f43810f50d3f54b1f751ce77ec47c4ba3a"
+    },
+    "baostock.history_k_data_plus": {
+      "projected_columns": ["ts_code", "trade_date", "trade_status"],
+      "selected_batch_count": 16,
+      "selected_row_count": 3755,
+      "selected_bytes": 47139,
+      "catalog_sha256": "25d122852515d264269bae861be868a2dab8afcf333ef0060df7f24a66ae6d6a"
+    }
+  },
+  "authority": {
+    "lineage_execution_authorized": false,
+    "real_security_key_read_authorized": false,
+    "numeric_moneyflow_value_read_authorized": false,
+    "candidate_generation_authorized": false,
+    "effect_read_authorized": false,
+    "production_authorization": "none"
+  }
+}

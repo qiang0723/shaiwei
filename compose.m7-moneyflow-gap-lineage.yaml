@@ -1,0 +1,85 @@
+x-lineage-common: &lineage-common
+  image: shaiwei:m7-moneyflow-gap-lineage-local
+  profiles: ["m7-lineage-release"]
+  network_mode: none
+  read_only: true
+  user: "65532:65532"
+  cap_drop: ["ALL"]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 128
+  init: true
+  tmpfs:
+    - /tmp:size=256m,mode=1777
+
+services:
+  m7-lineage-fixture:
+    <<: *lineage-common
+    profiles: ["m7-lineage-fixture"]
+    build:
+      context: .
+      dockerfile: Dockerfile.m7-moneyflow-gap-lineage
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.m7_moneyflow_lineage.fixture
+      - --project-root
+      - /opt/shaiwei
+    cpus: 1.0
+    mem_limit: 2g
+
+  m7-lineage-runner:
+    <<: *lineage-common
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.m7_moneyflow_lineage.runner
+      - --protocol
+      - /inputs/config/m7_moneyflow_gap_lineage_v1.yaml
+      - --input-manifest
+      - /inputs/config/m7_moneyflow_gap_lineage_input_v1.json
+      - --release-scope
+      - /inputs/config/m7_moneyflow_gap_lineage_release_scope_v1.json
+      - --approval-envelope
+      - /inputs/config/m7_moneyflow_gap_lineage_approval_v1.json
+      - --input-root
+      - /inputs
+      - --output-root
+      - /outputs
+      - --claim-root
+      - /claims
+    cpus: 2.0
+    mem_limit: 4g
+    volumes:
+      - ${M7_LINEAGE_INPUT_BUNDLE:-./data/control/m7-lineage/unreleased/inputs}:/inputs:ro
+      - ${M7_LINEAGE_OUTPUT_ROOT:-./data/control/m7-lineage/unreleased/outputs}:/outputs:rw
+      - ${M7_LINEAGE_CLAIM_ROOT:-./data/control/m7-lineage/unreleased/claims}:/claims:rw
+
+  m7-lineage-auditor:
+    <<: *lineage-common
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.m7_moneyflow_lineage.auditor
+      - --protocol
+      - /inputs/config/m7_moneyflow_gap_lineage_v1.yaml
+      - --input-manifest
+      - /inputs/config/m7_moneyflow_gap_lineage_input_v1.json
+      - --release-scope
+      - /inputs/config/m7_moneyflow_gap_lineage_release_scope_v1.json
+      - --approval-envelope
+      - /inputs/config/m7_moneyflow_gap_lineage_approval_v1.json
+      - --input-root
+      - /inputs
+      - --run-root
+      - /outputs/${M7_LINEAGE_RUN_ID:-NOT_APPROVED}
+      - --audit-root
+      - /audit
+      - --claim-root
+      - /claims
+    cpus: 1.0
+    mem_limit: 2g
+    volumes:
+      - ${M7_LINEAGE_INPUT_BUNDLE:-./data/control/m7-lineage/unreleased/inputs}:/inputs:ro
+      - ${M7_LINEAGE_OUTPUT_ROOT:-./data/control/m7-lineage/unreleased/outputs}:/outputs:ro
+      - ${M7_LINEAGE_AUDIT_ROOT:-./data/control/m7-lineage/unreleased/audits}:/audit:rw
+      - ${M7_LINEAGE_CLAIM_ROOT:-./data/control/m7-lineage/unreleased/claims}:/claims:rw
