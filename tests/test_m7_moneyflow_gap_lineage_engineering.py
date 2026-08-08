@@ -218,6 +218,24 @@ def test_lineage_metadata_summary_matches_untracked_full_manifest() -> None:
     assert re.search(r'"[0-9]{6}\.(?:SH|SZ|BJ)"', full_path.read_text(encoding="utf-8")) is None
 
 
+def test_final_lineage_release_scope_is_exact_and_non_executable() -> None:
+    protocol = _protocol()
+    path = ROOT / "config/m7_moneyflow_gap_lineage_release_scope_v1.json"
+    document = json.loads(path.read_text(encoding="utf-8"))
+    scope = document["scope"]
+    manifest = SimpleNamespace(
+        sha256=scope["input_manifest_sha256"],
+        physical_sha256=scope["input_manifest_physical_sha256"],
+    )
+    release = LineageRelease.load(path, protocol, manifest)
+    assert release.sha256 == "9b5e40ec772df4a179fd3b57449304f32bf45f673a0627b1b2e1787e595c0cae"
+    assert scope["implementation"]["git_commit"] == "6178ba4cc8e528c1e61f7fabb843e145831282fa"
+    assert scope["image"]["image_id"] == (
+        "sha256:3f827cc897ae3f13e89a85cb406d81f8a48b6a46f1daa740f823a7e04824cda6"
+    )
+    assert scope["authority"]["execution_authorized"] is False
+
+
 def test_lineage_modules_stay_below_architecture_soft_limit() -> None:
     package = ROOT / "src/shaiwei/research_gates/m7_moneyflow_lineage"
     assert {path.name: len(path.read_text(encoding="utf-8").splitlines()) for path in package.glob("*.py")}

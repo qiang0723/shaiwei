@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-09 · M7-0R2缺口谱系release就绪，停在精确批准前
+
+- 全域谱系协议以提交`5d83f3e`先行推送；诊断覆盖原M7三池×11半年，不按已知4个失败单元裁剪，
+  不修改PIT、分母或99.5%/99%/95%门，也不输出调整后覆盖率。
+- metadata-only清单绑定daily 8,225批/10,563,948行、suspend_d 1,328批/51,997行、Baostock
+  16批/3,755行和原1,342文件输入束；逐footer/行数/schema/SHA通过，真实证券键/缺口类别读取0。
+- 新独立包把10类缺口做完整互斥分区，Pandas主算/DuckDB独立audit及pre-read一次性入口合成PASS；
+  15模块最大278行。全仓988、架构13 PASS，最终断网fixture SHA`07b61e11...7b2ab`。
+- 最终scope`9b5e40ec...c0cae`绑定已推送实现`6178ba4`、输入manifest`5f3e2808...1f9a7`和
+  arm64镜像`3f827cc8...4cda6`；当前execution=false。原M7权威NO-GO不变、策略NOT_EVALUATED、
+  尝试0、生产none。下一步只等用户绑定完整scope批准一次`M7_MONEYFLOW_GAP_LINEAGE_ONCE`，同scope
+  不得重跑。见`docs/M7_MONEYFLOW_GAP_LINEAGE_RELEASE_ACCEPTANCE_20260809.md`。
+
 ## 2026-08-08 · M7-0R1恢复前工程门GO，停在缺口谱系协议前
 
 - 结果已知的R1协议明确冻结`result_blind=false`，提交`cdcb0c0`先于实现推送；v1权威NO-GO、四个
