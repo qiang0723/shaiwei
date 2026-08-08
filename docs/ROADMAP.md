@@ -66,6 +66,11 @@ A1-1B已于2026-08-07完成：新增纯D1 typed contract/request planning seam�
 data/release解环，必须另收继续指令，不自动施工。见
 `docs/A1_D1_TRANSPORT_CONTRACT_EXTRACTION_ACCEPTANCE_20260807.md`。
 
+A1-1C已于2026-08-08完成：保留具体`M3DiscoveryIdentity`原模块与字段形状，只在内层M3合同增加
+结构端口，使release不再反向依赖data实现；全仓Python循环由1降至0。M3协议、release、输入、CLI和
+研究证据均未改变。至此A1首次整理检查点关闭，唯一`src -> tools`债务继续按A1-1A冻结裁决隔离；
+后续不自动继续无目标重构。见`docs/A1_M3_DISCOVERY_IDENTITY_CONTRACT_ACCEPTANCE_20260808.md`。
+
 截至 2026-07-23，P0 三次闭环和验收后通知健壮性复核均已完成：飞书瞬时网络、HTTP 408/425/429/5xx 与响应解码异常采用最多 3 次的有界退避，同一逻辑消息固定 `message_id`，每次尝试追加留痕；通知仍不改变核心任务退出语义。P0.5 已冻结 500,000 RMB 和 `paper-v1`，工程、Docker 接入、四日 BACKFILL 及首个自然 `FORWARD` 验收全部 PASS；完整证据见 `docs/P05_FORWARD_ACCEPTANCE_20260723.md`。
 
 ## R0.5 · 模拟组合与前瞻绩效闭环

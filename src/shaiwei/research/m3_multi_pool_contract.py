@@ -7,7 +7,7 @@ import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 import duckdb
 import yaml
@@ -250,6 +250,19 @@ class M3InputIdentity:
     discovery_trade_days: int
     discovery_rows: dict[str, int]
     sealed_trade_days: int
+
+
+class M3DiscoveryIdentityContract(Protocol):
+    """Read-only physical discovery identity consumed by an execution release."""
+
+    snapshot_sha256: str
+    source_snapshots: dict[str, str]
+    source_rows: dict[str, int]
+    calendar_start: str
+    calendar_end: str
+    panel_security_count: int
+    discovery_trade_days: int
+    exposure_rows: int
 
 
 def verify_m3_inputs(protocol: M3Protocol, *, project_root: Path = PROJECT_ROOT) -> M3InputIdentity:

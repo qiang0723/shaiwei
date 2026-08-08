@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import fields
 import json
 from pathlib import Path
 
@@ -34,6 +35,23 @@ from shaiwei.research.m3_multi_pool_release import M3ExecutionRelease
 
 PROTOCOL_PATH = PROJECT_ROOT / "config/m3_multi_pool_factor_research_v1.yaml"
 RELEASE_PATH = PROJECT_ROOT / "config/m3_multi_pool_factor_execution_v1.yaml"
+
+
+def test_discovery_identity_public_shape_is_stable_before_cycle_extraction():
+    assert M3DiscoveryIdentity.__module__ == "shaiwei.research.m3_multi_pool_data"
+    assert [field.name for field in fields(M3DiscoveryIdentity)] == [
+        "snapshot_sha256",
+        "source_snapshots",
+        "source_rows",
+        "calendar_start",
+        "calendar_end",
+        "panel_security_count",
+        "discovery_trade_days",
+        "exposure_rows",
+    ]
+    identity = M3DiscoveryIdentity("a" * 64, {}, {}, "20201023", "20221230", 60, 474, 28440)
+    assert identity.snapshot_sha256 == "a" * 64
+    assert identity.exposure_rows == 28440
 
 
 def _proposal(plan, expression: str) -> CandidateProposal:

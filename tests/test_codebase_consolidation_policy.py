@@ -8,6 +8,7 @@ import yaml
 ROOT = Path(__file__).parents[1]
 POLICY_PATH = ROOT / "config/codebase_consolidation_v1.yaml"
 A1_1B_ADDENDUM_PATH = ROOT / "config/architecture_constitution_a1_1b_addendum_v1.yaml"
+A1_1C_ADDENDUM_PATH = ROOT / "config/architecture_constitution_a1_1c_addendum_v1.yaml"
 
 
 def _sha256(path: Path) -> str:
@@ -27,6 +28,90 @@ def _tool_imports(path: Path) -> set[str]:
 
 def _load() -> dict:
     return yaml.safe_load(POLICY_PATH.read_text(encoding="utf-8"))
+
+
+def _project_import_cycles() -> list[tuple[str, ...]]:
+    source_root = ROOT / "src/shaiwei"
+    modules: dict[str, Path] = {}
+    for path in source_root.rglob("*.py"):
+        relative = path.relative_to(ROOT / "src").with_suffix("")
+        module = (
+            ".".join(relative.parts[:-1])
+            if relative.parts[-1] == "__init__"
+            else ".".join(relative.parts)
+        )
+        modules[module] = path
+
+    edges = {module: set() for module in modules}
+    for module, path in modules.items():
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        package = module if path.name == "__init__.py" else module.rpartition(".")[0]
+        for node in ast.walk(tree):
+            targets: list[str] = []
+            if isinstance(node, ast.Import):
+                targets.extend(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom):
+                if node.level:
+                    parts = package.split(".")
+                    prefix = ".".join(parts[: len(parts) - node.level + 1])
+                    base = (
+                        f"{prefix}.{node.module}"
+                        if prefix and node.module
+                        else prefix or node.module or ""
+                    )
+                else:
+                    base = node.module or ""
+                if base:
+                    targets.append(base)
+                targets.extend(
+                    f"{base}.{alias.name}" if base else alias.name
+                    for alias in node.names
+                    if alias.name != "*"
+                )
+            for target in targets:
+                candidate = target
+                while candidate:
+                    if candidate in modules:
+                        if candidate != module:
+                            edges[module].add(candidate)
+                        break
+                    candidate = candidate.rpartition(".")[0]
+
+    index = 0
+    stack: list[str] = []
+    on_stack: set[str] = set()
+    indices: dict[str, int] = {}
+    lowlinks: dict[str, int] = {}
+    cycles: list[tuple[str, ...]] = []
+
+    def visit(module: str) -> None:
+        nonlocal index
+        indices[module] = lowlinks[module] = index
+        index += 1
+        stack.append(module)
+        on_stack.add(module)
+        for dependency in edges[module]:
+            if dependency not in indices:
+                visit(dependency)
+                lowlinks[module] = min(lowlinks[module], lowlinks[dependency])
+            elif dependency in on_stack:
+                lowlinks[module] = min(lowlinks[module], indices[dependency])
+        if lowlinks[module] != indices[module]:
+            return
+        component: list[str] = []
+        while True:
+            dependency = stack.pop()
+            on_stack.remove(dependency)
+            component.append(dependency)
+            if dependency == module:
+                break
+        if len(component) > 1:
+            cycles.append(tuple(sorted(component)))
+
+    for module in sorted(modules):
+        if module not in indices:
+            visit(module)
+    return sorted(cycles)
 
 
 def test_consolidation_policy_binds_frozen_parent_without_rewriting_it():
@@ -117,3 +202,38 @@ def test_a1_1b_addendum_ratchets_d1_modules_without_rewriting_frozen_parent():
         "src/shaiwei/research/deepseek_client.py": 808,
     }
     assert all(observed[path] <= limits[path] for path in observed)
+
+
+def test_a1_1c_addendum_ratchets_m3_modules_and_all_import_cycles_to_zero():
+    addendum = yaml.safe_load(A1_1C_ADDENDUM_PATH.read_text(encoding="utf-8"))
+    assert addendum["status"] == "ACTIVE"
+    parent = addendum["parent_authority"]
+    assert _sha256(ROOT / parent["path"]) == parent["sha256"]
+    assert addendum["scope"]["frozen_parent_rewritten"] is False
+
+    observed = {
+        item["path"]: len((ROOT / item["path"]).read_text(encoding="utf-8").splitlines())
+        for item in addendum["module_size_ratchets"]
+    }
+    limits = {
+        item["path"]: item["max_lines"] for item in addendum["module_size_ratchets"]
+    }
+    assert observed == {
+        "src/shaiwei/research/m3_multi_pool_contract.py": 376,
+        "src/shaiwei/research/m3_multi_pool_data.py": 295,
+        "src/shaiwei/research/m3_multi_pool_release.py": 257,
+    }
+    assert all(observed[path] <= limits[path] for path in observed)
+    assert addendum["dependency_ratchets"]["expected_python_import_cycle_count"] == 0
+    release_tree = ast.parse(
+        (ROOT / "src/shaiwei/research/m3_multi_pool_release.py").read_text(encoding="utf-8")
+    )
+    release_imports = {
+        node.module
+        for node in ast.walk(release_tree)
+        if isinstance(node, ast.ImportFrom) and node.module
+    }
+    assert set(addendum["dependency_ratchets"]["release_forbidden_imports"]).isdisjoint(
+        release_imports
+    )
+    assert _project_import_cycles() == []

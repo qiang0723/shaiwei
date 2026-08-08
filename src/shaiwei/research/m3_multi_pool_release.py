@@ -13,8 +13,7 @@ import yaml
 from shaiwei.config import PROJECT_ROOT
 from shaiwei.ledger import sha256_file
 from shaiwei.research.llm_factor import D1ControlError
-from shaiwei.research.m3_multi_pool_contract import M3Protocol
-from shaiwei.research.m3_multi_pool_data import M3DiscoveryIdentity
+from shaiwei.research.m3_multi_pool_contract import M3DiscoveryIdentityContract, M3Protocol
 
 
 RELEASE_SCHEMA = "m3-multi-pool-factor-execution-release-v1"
@@ -242,7 +241,7 @@ class M3ExecutionRelease:
         }:
             raise D1ControlError("M3-2 recovery contract differs")
 
-    def verify_input(self, identity: M3DiscoveryIdentity) -> None:
+    def verify_input(self, identity: M3DiscoveryIdentityContract) -> None:
         inputs = self.document["input_contract"]
         if (
             inputs["discovery_input_snapshot_sha256"] != identity.snapshot_sha256

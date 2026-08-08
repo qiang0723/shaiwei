@@ -1,0 +1,41 @@
+policy_id: architecture-constitution-a1-1c-addendum-v1
+version: 1
+status: ACTIVE
+effective_date: "2026-08-08"
+parent_authority:
+  path: config/architecture_constitution_a1_1b_addendum_v1.yaml
+  sha256: 0cc1b404602281ff7c065064e0e71d1a6e38586720d44d77560531681d1251ac
+
+scope:
+  package: A1-1C
+  objective: break_m3_data_release_cycle_without_behavior_change
+  frozen_parent_rewritten: false
+
+module_size_ratchets:
+  - path: src/shaiwei/research/m3_multi_pool_contract.py
+    max_lines: 376
+    boundary: M3 protocol input and structural discovery identity contracts
+  - path: src/shaiwei/research/m3_multi_pool_data.py
+    max_lines: 295
+    boundary: immutable M3 discovery input construction and CLI projection
+  - path: src/shaiwei/research/m3_multi_pool_release.py
+    max_lines: 257
+    boundary: result-before M3 execution authorization and physical input verification
+
+dependency_ratchets:
+  release_forbidden_imports:
+    - shaiwei.research.m3_multi_pool_data
+  expected_python_import_cycle_count: 0
+
+compatibility:
+  concrete_identity_module: shaiwei.research.m3_multi_pool_data
+  structural_contract_module: shaiwei.research.m3_multi_pool_contract
+  identity_fields:
+    - snapshot_sha256
+    - source_snapshots
+    - source_rows
+    - calendar_start
+    - calendar_end
+    - panel_security_count
+    - discovery_trade_days
+    - exposure_rows

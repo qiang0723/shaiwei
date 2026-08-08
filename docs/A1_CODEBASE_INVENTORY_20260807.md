@@ -2,7 +2,7 @@
 
 - 审计日期：2026-08-07（UTC+8）
 - 审计代码：`8e2c5d4399e5705c7bd570c1e208f6394f8db668`
-- 状态：`A1_1B_COMPLETE_A1_1C_REVIEW_REQUIRED`
+- 状态：`A1_1_CHECKPOINT_COMPLETE_WITH_FROZEN_DEBT`
 - 权限边界：只读检查代码、Git 入口和依赖；未删除、拆分或修改生产代码，未运行研究、数据或生产任务
 - 上位规则：`docs/ARCHITECTURE_CONSTITUTION.md`、`docs/CODEBASE_CONSOLIDATION_PLAN_20260807.md`
 - 机器清单：`config/codebase_inventory_a1_0_20260807.yaml`
@@ -22,7 +22,7 @@ auditor 和恢复入口，以及少数高中心度模块继续承担过多职责
 
 1. 科创50纠错执行内核经 A1-1A 前置检查确认被 P2/M4 双重冻结身份锁定，暂缓迁移并继续机器隔离；
 2. DeepSeek 传输与 `llm_factor.py` 之间的循环依赖已由A1-1B拆开；
-3. 把 M3 发现输入身份移入独立合同模块，拆开 data/release 循环依赖。
+3. M3 release已改为依赖结构化发现身份合同，data/release循环已由A1-1C拆开。
 
 三项必须分别施工、分别回滚。它们不改变模型、因子、执行参数、研究结论或生产授权，也不以净减行数
 作为完成条件。完成后再按“下一次真实需求触碰哪个热点，就先抽离哪个职责”的棘轮方式治理 Web 与 D1，
@@ -94,8 +94,8 @@ auditor 和恢复入口，以及少数高中心度模块继续承担过多职责
 - 该 executor 又导入 `tools.p2_star50_effect.metrics` 和
   `tools.p2_star50_effect_correction.contract`，因此不能只改一行 import；必须把执行类型、开盘/容量语义和
   最小收益计算作为一个稳定领域内核迁移，并让历史工具反向成为兼容适配器。
-- A1-1B前AST图存在两个强连通分量；D1循环已消除，当前只剩
-  `m3_multi_pool_data <-> m3_multi_pool_release`一个强连通分量。
+- A1-1B前AST图存在两个强连通分量；A1-1B消除D1循环，A1-1C继续消除M3
+  `data/release`循环，当前全仓Python强连通分量为0。
 - 未发现核心领域反向依赖 Web 的新增违规；现有 `make architecture-check` 仍是最终机器门。
 
 ### 3.3 前端可达性
@@ -110,7 +110,7 @@ auditor 和恢复入口，以及少数高中心度模块继续承担过多职责
 |---|---|---|---|---|---|---|---|
 | A1-C01 | P2-2C corrected execution → M4-1 | M4 `metrics.py:16` 直接导入 tools；P2 run/tests 也直接调用 | executor 路径/物理SHA、M4 code bundle和P2纠错身份三重绑定 | v1保持字节不变；未来只在版本化 successor 建新 `src` 内核 | `DEFERRED_FROZEN_IDENTITY_CONFLICT` | 不以架构整齐破坏合法复算；禁止第二处反向依赖 | 现状即回滚点；裁决见A1-1A文档 |
 | A1-C02 | `llm_factor` / `deepseek_client` | transport原先从`llm_factor`导入合同；fixture反向导入transport | 真实 API、计费、恢复账本与旧 D1 STOP 证据 | 已抽出357行`llm_factor_contract.py`；原 API 同对象re-export | `COMPLETED_NO_BEHAVIOR_CHANGE` | 循环2→1；热点1,254→944行，transport保持808行 | A1-1B独立提交；请求SHA和D1专项回归通过 |
-| A1-C03 | M3 data/release | release 导入 `M3DiscoveryIdentity`；data 的 CLI main 反向导入 release | M3-2/M3-3 冻结输入与 release 身份 | 将 identity 移到 `m3_multi_pool_contract` 或独立 identity 模块 | `SPLIT_NO_BEHAVIOR_CHANGE` | 消除循环；data 不再知道 release 实现 | 独立提交；原 CLI 输出和 release SHA 校验回归 |
+| A1-C03 | M3 data/release | release原先导入具体identity；data CLI反向加载release | M3-2/M3-3冻结输入与release身份 | 已在M3合同新增8属性结构端口；具体类原地不动 | `COMPLETED_NO_BEHAVIOR_CHANGE` | 循环1→0；类模块/字段/校验保持 | A1-1C独立提交；M3专项与全仓回归 |
 | A1-C04 | Web evidence read primitives | `operations.py` 与 `query_evidence.py` 有相同 `_normalize_as_of`、`_read`、JSON 文档逻辑 | 原子 snapshot、mtime/hash 双读和错误码不能漂移 | 下次 Web 查询变化时抽 `web/evidence_reader.py` 窄端口 | `DEFER_UNTIL_TOUCHED` | 避免两套 fail-closed 文件读取语义 | 保留旧函数包装；真实只读 E2E 与 snapshot 哈希 |
 | A1-C05 | 两套 SQLite schema fingerprint | 两个 `schema_descriptor` 物理跨度 42/43 行且主体相同 | fingerprint 常量、错误类型和迁移域不同 | 下次 schema 变化时抽无状态 descriptor，领域层保留 fingerprint/error | `DEFER_UNTIL_SCHEMA_CHANGE` | 减少迁移审计重复 | 两套 schema fixture 和旧 fingerprint 精确不变 |
 | A1-C06 | Top30 三个 release 生成入口 | 静态业务入边 0；均有 `__main__`，来自 R1/R2/R3 独立提交 | 失败 scope、恢复 scope、镜像与数值谱系复现 | 无当前替代；未来仅可经 archive ADR 固化命令/镜像后退出 | `HISTORICAL_REPLAY_PROTECTED` | 现在删除收益小、审计损失大 | 保留原 Git 提交和路径 |
@@ -178,11 +178,14 @@ Web / CLI / 告警
 - 结果：新增纯合同模块357行，`llm_factor.py`降至944行，原公共导入保持同一对象；未调用LLM、未读
   `.env`、未运行研究，完整验收见`docs/A1_D1_TRANSPORT_CONTRACT_EXTRACTION_ACCEPTANCE_20260807.md`。
 
-### A1-1C · M3 输入身份依赖解环
+### A1-1C · M3 输入身份依赖解环（已完成）
 
 - 将 `M3DiscoveryIdentity` 移到既有 contract 或独立 identity 模块；data 和 release 只共同依赖该合同。
 - 不改 discovery 数据读取、release 内容、候选、费用、已封存结果或 CLI 输出。
 - 验收：循环依赖为 0；M3 input snapshot、release 校验和相关测试不变。
+- 结果：采用结构化`Protocol`而不搬移具体dataclass，保留旧模块身份和8字段顺序；release不再导入
+  data实现，全仓循环归零。完整验收见
+  `docs/A1_M3_DISCOVERY_IDENTITY_CONTRACT_ACCEPTANCE_20260808.md`。
 
 Web projection、`types.ts`、SQLite descriptor 和大函数拆分暂不进入首批，避免一次整理同时影响研究、
 Web、数据库和生产。它们继续由热点上限和“触碰即拆一项职责”约束。
@@ -201,6 +204,6 @@ Web、数据库和生产。它们继续由热点上限和“触碰即拆一项�
 
 项目不需要“大扫除式重构”，需要的是可验证的架构棘轮。12.1 万行本身不是失败；真正应被压住的是
 新增反向依赖、循环依赖、热点继续长大和一次性研究框架复制。A1-1A说明有些结构债就是历史证据的一部分，
-不能假装可以无损抹去；A1-1B已安全完成，下一步只建议在单独继续指令后做A1-1C，再在后续真实功能中
-逐步拆Web、D1与配置热点。
+不能假装可以无损抹去；A1-1B/C均已安全完成，两个循环已经归零。A1首次检查点到此关闭，后续只在
+真实需求触碰时逐步拆Web、D1与配置热点；被冻结的唯一`src -> tools`债务等待版本化successor处理。
 这条路线比一次性追求十万行以下更稳，也更符合筛微“拿到可信结果”的目标。

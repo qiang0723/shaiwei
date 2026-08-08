@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-08 · A1-1C M3身份合同解环完成，A1首次检查点关闭
+
+- `M3DiscoveryIdentity`具体dataclass继续留在原data模块，公开模块身份、8字段顺序和位置参数构造不变；
+  M3合同新增只读结构端口，release只依赖该端口，不再反向导入data实现。
+- 全仓Python循环由1降至0；contract/data/release分别为376/295/257行，全部低于400行软上限，并由
+  A1-1C版本化架构增补和机器测试锁定。
+- M3协议、release配置、输入snapshot、CLI、候选、费用、24次历史响应、研究结果和账本均未修改；
+  未读取`.env`、未调用DeepSeek、未运行数据/研究/生产、未重启scheduler，七个自然账本保持未暂存。
+- A1-1B/C完成，A1首次整理检查点到此关闭；A1-1A唯一`src -> tools`债务因冻结历史复算继续隔离，
+  等版本化successor再处理。见`docs/A1_M3_DISCOVERY_IDENTITY_CONTRACT_ACCEPTANCE_20260808.md`。
+
 ## 2026-08-07 · A1-1B D1传输合同解环完成，停在A1-1C前
 
 - 新增纯合同模块`llm_factor_contract.py`，承载D1协议、候选schema、attempt/request规划和transport
