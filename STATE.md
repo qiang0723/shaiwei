@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-08 · M7-0三自建科创池资金流键级兼容协议已结果前冻结
+
+- 只冻结`moneyflow`源键与M3三池成员PIT的兼容性数据门：主池为科创板全市场自建PIT池，迁移池为
+  中盘/小盘自建PIT池；三者均不得包装为官方科创指数。本批候选、评价单元、效果和研究尝试增量均为0。
+- 锁定2021-01-04—2026-06-30 feature域、前一SSE交易日可用时钟、P1整日隔离不填充及三池总体/
+  半年/逐日覆盖门；未来只允许`GO_M7_0_DATA_COMPATIBILITY_ONLY`或`NO_GO_M7_0_DATA_COMPATIBILITY`，
+  禁止partial-pool GO和结果后放宽阈值。
+- 机器合同`config/m7_star_custom_pool_moneyflow_data_v1.yaml` SHA为`b629ba91...e164e`；proposal
+  export物理SHA为`99368c40...cf582`，规范proposal SHA按控制面算法复核为`67e16748...faeb8`。
+- 本节点只投影并核验既有元数据，没有读取资金流证券键或数值、标签、收益、候选、模型、回测、外网或
+  生产。下一合法动作是在本协议推送后施工metadata-only inventory、窄runner/auditor、合成fixture、
+  一次性Docker镜像和精确release scope；真实证券键仍须用户绑定该scope另行批准。
+
 ## 2026-08-08 · M5-1B三自建科创池资金流提案已提交人工复核
 
 - 通过既有本机M5控制面建立提案`4d3007db221e9d63e9d0be742f3e64493085dac48c7a9c5ca37de7bd6d589a65`：

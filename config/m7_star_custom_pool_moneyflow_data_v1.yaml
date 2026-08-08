@@ -1,0 +1,207 @@
+schema_version: m7-star-custom-pool-moneyflow-data-compatibility-v1
+protocol_id: m7-star-custom-pool-moneyflow-data-compatibility-v1
+frozen_at: "2026-08-08T12:20:03+08:00"
+timezone: Asia/Shanghai
+
+source_proposal:
+  proposal_export_path: config/m7_star_custom_pool_moneyflow_proposal_export_v1.json
+  proposal_export_sha256: 99368c40d5dcbb9888659a2fb84445aec31eaafc957ad000dcd8630aeb9cf582
+  proposal_id: 4d3007db221e9d63e9d0be742f3e64493085dac48c7a9c5ca37de7bd6d589a65
+  proposal_request_sha256: 05caa719c15a7d60030aca650078827aa82821fa2b61cfd04de98ef65beba88c
+  canonical_proposal_sha256: 67e1674835f2077a0d59e8ec6968ded2729f48bde7c296e11ea8519bb42faeb8
+  required_state_at_release_approval: REVIEW_REQUIRED
+  required_event_seq_at_release_approval: 2
+  required_head_event_sha256: da38d05ae213eca5a7b27a766989a64b57598412257ce72fb5e0542f978b1f0a
+  created_at: "2026-08-08T04:05:02+00:00"
+  expires_at: "2026-08-15T04:05:02+00:00"
+  expiry_policy: PROTOCOL_AND_REAL_DATA_RELEASE_APPROVAL_MUST_COMPLETE_BEFORE_EXPIRY
+
+governance:
+  architecture_constitution_path: docs/ARCHITECTURE_CONSTITUTION.md
+  architecture_constitution_sha256: d312dd6389dde45528e8360bbb213456bde8c2522f786892a599421821e1804e
+  m5_governance_path: docs/M5_MULTI_POOL_RESEARCH_GOVERNANCE_20260805.md
+  m5_governance_sha256: 802a7a0eacadb3a84275a3a7c1c15f6e64a7108b8814180625176427f3402350
+  existing_gate_registry_adr_path: docs/ADR_0002_M5_2_GATE_REGISTRY.md
+  existing_gate_registry_adr_sha256: 5887eb4506b13f0c2e09b4a9cac9d9f3300a7976db9db1dd0e209ac130a24762
+  new_service_authorized: false
+  new_queue_authorized: false
+  m5_1_schema_or_api_change_authorized: false
+  web_change_authorized: false
+
+scope:
+  stage: DATA_COMPATIBILITY_PROTOCOL_ONLY
+  family_id: moneyflow
+  hypothesis_id: incremental-flow-information-v1
+  evaluation_level: FACTOR_INPUT_DATA_COMPATIBILITY
+  home_universe_id: star-board-all-pit-v1
+  transfer_universe_ids:
+    - star-board-midcap-pit-v1
+    - star-board-smallcap-pit-v1
+  universe_count: 3
+  candidate_definition_count: 0
+  evaluation_unit_count: 0
+  effect_test_count: 0
+  generation_attempt_increment: 0
+  prior_moneyflow_family_attempt_count: 18
+  proposal_planned_attempt_cap: 8
+  proposal_planned_after_count: 26
+  custom_universes_must_not_be_presented_as_official_indices: true
+
+membership_input:
+  protocol_path: config/m3_star_custom_pit_v1.yaml
+  protocol_sha256: e400f6f1f0792fb7c9a46e83028c4c472e2beeb19137fd5e245729c052ddd058
+  manifest_path: config/m3_star_custom_pit_manifest_v1.json
+  manifest_sha256: cf8cb88eb13e4f6619812ff0f4f854586de1b036c5b6e89a171e2d20c69c2638
+  quality_report_path: data/research/m3/star-custom-pit-v1/quality_report.json
+  quality_report_sha256: f25d8e604b6fb758bca48afd4e12b0e7827a6a5ef3b496fae54a955ddfbace02
+  daily_membership_path: data/research/m3/star-custom-pit-v1/daily_members.parquet
+  daily_membership_sha256: 1983169ef42489e544ce9c71e55e64ba853d27491a723024102b5699ae475101
+  daily_membership_row_count: 779271
+  primary_key: [trade_date, universe_id, ts_code]
+  required_columns: [trade_date, formation_date, universe_id, ts_code, segment]
+  required_upstream_verdict: GO_CUSTOM_PIT_DATA_RULE_GATE_ONLY
+  required_strategy_effective: NOT_EVALUATED
+  universe_ids:
+    - star-board-all-pit-v1
+    - star-board-midcap-pit-v1
+    - star-board-smallcap-pit-v1
+
+moneyflow_input:
+  source_api: tushare.moneyflow
+  data_spec_path: docs/MONEYFLOW_DATA_SPEC.md
+  data_spec_sha256: 91f42a3f8a8304948d2411b3b2aa463fba1b0e8ef77c0ee7959c8feda166f25a
+  feature_acceptance_path: docs/P1_MONEYFLOW_FEATURE_ACCEPTANCE_20260724.md
+  feature_acceptance_sha256: 79dfccf8aebedb562b03c071885f09132c166b982b9aa8e5a4cb2f524ce31568
+  effect_acceptance_path: docs/P1_MONEYFLOW_EXPERIMENT_ACCEPTANCE_20260724.md
+  effect_acceptance_sha256: 5256ed734d856683208f23d869ec52480112e688179783f08e1cbeef41edc80a
+  full_quality_report_path: logs/moneyflow/p1_full_quality_post_refresh_20160104_20260723_20260724.json
+  full_quality_report_sha256: f451cc8d00cc191607a2ee9f60c6be36acd23063bdd670702190f20c7ab9e4b5
+  failed_date_refresh_report_path: logs/moneyflow/p1_failed_dates_refresh_20260724.json
+  failed_date_refresh_report_sha256: 403937bfb898df97c6588cc8e0ed50b8783a022bcad5324996bb7d06b8fae883
+  quarantine_report_path: logs/moneyflow/p1_quarantine_v2_20160104_20260723_20260724.json
+  quarantine_report_sha256: e841f81365ff246f47126164285e2a7b3a34e45ae3ef0bf9ef048f60cade4d24
+  audited_catalog_sha256: 04ffd1f5e761efdeb73c97d4735a524ef215a020003e8564623a30f5b5650890
+  audited_start_date: "20160104"
+  audited_end_date: "20260723"
+  audited_trade_date_count: 2563
+  audited_row_count: 10614438
+  quarantined_source_date_count: 46
+  revision_observed_count: 0
+  saturated_response_count: 0
+  quarantine_policy_version: moneyflow-quality-v2
+  quarantine_policy_sha256: 33e9263dc59b7f60f4a9a82e7c03928728bde8e6d88bae5619840d692c4554aa
+  projected_columns_only: [ts_code, trade_date]
+  numeric_moneyflow_value_read_authorized: false
+  exact_code_join_only: true
+  code_alias_or_name_inference_authorized: false
+
+point_in_time:
+  feature_start_date: "20210104"
+  feature_end_date: "20260630"
+  source_start_date: "20201231"
+  source_end_date: "20260629"
+  calendar: SSE_OFFICIAL_OPEN_DATES_FROM_FROZEN_P1_QUALITY_REPORT
+  source_to_feature_mapping: NEXT_OFFICIAL_SSE_OPEN_DATE
+  feature_available_lag_trade_days: 1
+  same_day_use_forbidden: true
+  future_source_use_forbidden: true
+  quarantined_source_day_treatment: QUARANTINE_WHOLE_MAPPED_FEATURE_DATE_NO_FILL
+  missing_security_treatment: LEAVE_MISSING_NO_ALIAS_NO_FILL
+  current_or_future_membership_backfill_forbidden: true
+
+quality_gate:
+  exact_membership_primary_key_duplicate_count: 0
+  exact_moneyflow_source_key_duplicate_count: 0
+  null_or_malformed_key_count: 0
+  bse_row_count: 0
+  unknown_universe_row_count: 0
+  feature_date_without_exactly_one_prior_source_date_count: 0
+  same_day_or_future_source_join_count: 0
+  source_revision_count: 0
+  source_saturation_count: 0
+  source_day_eligible_feature_date_rate_minimum: 0.95
+  aggregate_member_key_coverage_minimum_by_universe: 0.995
+  half_year_member_key_coverage_minimum_by_universe: 0.99
+  worst_feature_date_member_key_coverage_minimum_by_universe: 0.95
+  maximum_consecutive_quarantined_source_dates: 10
+  minimum_matched_names_by_feature_date:
+    star-board-all-pit-v1: 60
+    star-board-midcap-pit-v1: 20
+    star-board-smallcap-pit-v1: 20
+  complete_half_year_segments:
+    - {name: 2021H1, start: "20210104", end: "20210630"}
+    - {name: 2021H2, start: "20210701", end: "20211231"}
+    - {name: 2022H1, start: "20220104", end: "20220630"}
+    - {name: 2022H2, start: "20220701", end: "20221230"}
+    - {name: 2023H1, start: "20230103", end: "20230630"}
+    - {name: 2023H2, start: "20230703", end: "20231229"}
+    - {name: 2024H1, start: "20240102", end: "20240628"}
+    - {name: 2024H2, start: "20240701", end: "20241231"}
+    - {name: 2025H1, start: "20250102", end: "20250630"}
+    - {name: 2025H2, start: "20250701", end: "20251231"}
+    - {name: 2026H1, start: "20260105", end: "20260630"}
+  aggregate_denominator: ALL_MEMBERSHIP_ROWS_WITH_A_FROZEN_PRIOR_SOURCE_DATE
+  coverage_numerator: EXACT_TS_CODE_MATCHES_ON_NON_QUARANTINED_PRIOR_SOURCE_DATES
+  quarantined_rows_must_be_reported_separately: true
+  per_universe_and_half_year_rates_required: true
+  per_feature_date_minimum_and_quantiles_required: true
+  raw_security_lists_in_tracked_report_forbidden: true
+
+output_contract:
+  report_schema_version: m7-moneyflow-data-compatibility-report-v1
+  audit_schema_version: m7-moneyflow-data-compatibility-audit-v1
+  input_manifest_schema_version: m7-moneyflow-data-input-manifest-v1
+  result_root: data/research/m7/m7-star-custom-pool-moneyflow-data-v1
+  tracked_manifest_path: config/m7_star_custom_pool_moneyflow_data_manifest_v1.json
+  write_once: true
+  deterministic_internal_replay_required: true
+  independent_audit_required: true
+  aggregate_only_tracked_evidence: true
+  report_required_sections:
+    - input_identity
+    - dataset_and_grain
+    - pit_mapping
+    - completeness
+    - uniqueness
+    - validity
+    - integrity
+    - temporal_segments
+    - gates
+    - authority
+
+execution_boundary:
+  protocol_freeze_authorized: true
+  metadata_inventory_authorized_after_protocol_push: true
+  implementation_and_synthetic_fixture_authorized_after_protocol_push: true
+  real_data_read_authorized: false
+  real_data_release_execution_authorized: false
+  network_authorized: false
+  external_calls_authorized: false
+  deepseek_authorized: false
+  data_collection_authorized: false
+  numeric_moneyflow_value_read_authorized: false
+  candidate_generation_authorized: false
+  label_or_return_read_authorized: false
+  effect_read_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  paper_or_forward_authorized: false
+  production_authorization: none
+  scheduler_mutation_authorized: false
+  worker_network_mode: none
+  worker_run_as_non_root: true
+  worker_read_only_root: true
+  worker_max_cpus: 2.0
+  worker_max_memory: 4g
+  avoid_scheduler_window_utc8: "15:45-20:00"
+
+verdict:
+  go: GO_M7_0_DATA_COMPATIBILITY_ONLY
+  no_go: NO_GO_M7_0_DATA_COMPATIBILITY
+  go_requires_all_quality_gates: true
+  strategy_effective_on_go: NOT_EVALUATED
+  candidate_protocol_authorized_on_go: FREEZE_BOUNDED_CANDIDATE_PROTOCOL_ONLY
+  production_authorization: none
+  no_partial_pool_go: true
+  no_threshold_relaxation_after_read: true
+  no_candidate_or_formula_selection_from_data_gate: true

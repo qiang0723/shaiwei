@@ -1,0 +1,140 @@
+{
+  "schema_version": "m5-proposal-export-v1",
+  "exported_at": "2026-08-08T12:20:03+08:00",
+  "export_mode": "LOCAL_CONTROL_API_INTEGRITY_VERIFIED_READ_ONLY",
+  "source_database_relative_path": "data/control/m5/runtime/research_control.sqlite3",
+  "proposal_id": "4d3007db221e9d63e9d0be742f3e64493085dac48c7a9c5ca37de7bd6d589a65",
+  "proposal_request_sha256": "05caa719c15a7d60030aca650078827aa82821fa2b61cfd04de98ef65beba88c",
+  "canonical_proposal_sha256": "67e1674835f2077a0d59e8ec6968ded2729f48bde7c296e11ea8519bb42faeb8",
+  "proposal_state_at_export": "REVIEW_REQUIRED",
+  "proposal_event_seq_at_export": 2,
+  "proposal_head_event": {
+    "event_id": "2901b0378fe9d1d657f226c95119d608fcece29a66ca35598114aef2addbdf66",
+    "event_sha256": "da38d05ae213eca5a7b27a766989a64b57598412257ce72fb5e0542f978b1f0a",
+    "prev_event_sha256": "c41ccbe0113939569699c7547ebb411dc316e5a4bd13686da8dfd960784e1936",
+    "payload_sha256": "769f1a8fc27aa028fe7e5e31581d293f303618fd41339b96282d28115bf0509a",
+    "recorded_at": "2026-08-08T04:05:57+00:00"
+  },
+  "created_at": "2026-08-08T04:05:02+00:00",
+  "expires_at": "2026-08-15T04:05:02+00:00",
+  "source_identity": {
+    "authority_bundle_sha256": "f501707488988e4f28ad768d60cd94c6f8d26cdd05cb79a7bb9a7e13268ba8ab",
+    "config_sha256": "4113323415bcc512a6eeae6e3f00f823a114d63b604fdb16c85fe4aa94cd94c5",
+    "strategy_factory_snapshot_id": "fae1c53c410213e58bd10d938a5854afdd2cce1e3f4c9acd7affb73624c94a6b",
+    "strategy_factory_snapshot_sha256": "36f750639f5643a67ac0c2f9eb7505949542a9404edad9ff3d7fb970f7bd6f2b"
+  },
+  "canonical_proposal": {
+    "authority": {
+      "approval_authorized": false,
+      "authoritative_outcome": "NOT_EVALUATED",
+      "authority_status": "NON_AUTHORITATIVE_PROPOSAL",
+      "backtest_authorized": false,
+      "data_collection_authorized": false,
+      "deepseek_authorized": false,
+      "docker_write_authorized": false,
+      "evidence_tier": "PROPOSAL_ONLY",
+      "execution_release_authorized": false,
+      "external_call_authorized": false,
+      "forward_authorized": false,
+      "git_write_authorized": false,
+      "label_read_authorized": false,
+      "model_training_authorized": false,
+      "paper_authorized": false,
+      "production_authorization": "none",
+      "production_authorized": false,
+      "protocol_freeze_authorized": false,
+      "provider_spend_authorized": false,
+      "real_data_read_authorized": false,
+      "scheduler_mutation_authorized": false,
+      "sealed_effect_read_authorized": false,
+      "worker_dispatch_authorized": false
+    },
+    "created_at": "2026-08-08T04:05:02+00:00",
+    "created_by_actor_sha256": "94a70db193a4d68cd0c994a857e7bd18866d0950b4e21e5c0f34799b41bd8277",
+    "derived": {
+      "evaluation_level": "FACTOR_DISCOVERY_PROPOSAL",
+      "evaluation_unit_cap": 24,
+      "factor_definition_state": "TO_BE_GENERATED_WITHIN_BOUNDED_BATCH",
+      "home_universe_id": "star-board-all-pit-v1",
+      "model_identity": "NONE_NOT_AUTHORIZED",
+      "multiplicity_context": {
+        "actual_research_attempt_increment": 0,
+        "planned_increment_policy": "GENERATION_ATTEMPT_CAP_COUNTS_ONCE",
+        "primary": {
+          "evidence_path": "docs/P1_MONEYFLOW_EXPERIMENT_ACCEPTANCE_20260724.md",
+          "evidence_sha256": "5256ed734d856683208f23d869ec52480112e688179783f08e1cbeef41edc80a",
+          "primary_planned_after": 26,
+          "prior_attempt_count": 18,
+          "scope_id": "moneyflow_family"
+        },
+        "sensitivity": null
+      },
+      "no_budget_carryover": true,
+      "planned_generation_attempt_count": 8,
+      "portfolio_identity": "NONE_NOT_AUTHORIZED",
+      "research_stage": "DISCOVERY_PROPOSAL",
+      "stop_on_terminal": true,
+      "transfer_universe_ids": [
+        "star-board-midcap-pit-v1",
+        "star-board-smallcap-pit-v1"
+      ],
+      "universe_count": 3
+    },
+    "expires_at": "2026-08-15T04:05:02+00:00",
+    "proposal_id": "4d3007db221e9d63e9d0be742f3e64493085dac48c7a9c5ca37de7bd6d589a65",
+    "proposal_request_sha256": "05caa719c15a7d60030aca650078827aa82821fa2b61cfd04de98ef65beba88c",
+    "request": {
+      "authority": {
+        "approval_authorized": false,
+        "authoritative_outcome": "NOT_EVALUATED",
+        "authority_status": "NON_AUTHORITATIVE_PROPOSAL",
+        "backtest_authorized": false,
+        "data_collection_authorized": false,
+        "deepseek_authorized": false,
+        "docker_write_authorized": false,
+        "evidence_tier": "PROPOSAL_ONLY",
+        "execution_release_authorized": false,
+        "external_call_authorized": false,
+        "forward_authorized": false,
+        "git_write_authorized": false,
+        "label_read_authorized": false,
+        "model_training_authorized": false,
+        "paper_authorized": false,
+        "production_authorization": "none",
+        "production_authorized": false,
+        "protocol_freeze_authorized": false,
+        "provider_spend_authorized": false,
+        "real_data_read_authorized": false,
+        "scheduler_mutation_authorized": false,
+        "sealed_effect_read_authorized": false,
+        "worker_dispatch_authorized": false
+      },
+      "candidate_cap": 8,
+      "completed_response_target": 0,
+      "falsification_rule_id": "frozen-gates-reject-v1",
+      "family_id": "moneyflow",
+      "generation_attempt_cap": 8,
+      "generation_mode": "DETERMINISTIC_CODE",
+      "home_universe_id": "star-board-all-pit-v1",
+      "hypothesis_id": "incremental-flow-information-v1",
+      "provider_budget_usd": "0.00",
+      "provider_call_intent_count": 0,
+      "provider_identity": "NONE_NOT_APPLICABLE",
+      "template_id": "bounded-research-proposal-v1",
+      "template_version": 2,
+      "universe_ids": [
+        "star-board-all-pit-v1",
+        "star-board-midcap-pit-v1",
+        "star-board-smallcap-pit-v1"
+      ],
+      "valid_days": 7
+    },
+    "schema_version": "m5-research-proposal-v1",
+    "source_identity": {
+      "authority_bundle_sha256": "f501707488988e4f28ad768d60cd94c6f8d26cdd05cb79a7bb9a7e13268ba8ab",
+      "config_sha256": "4113323415bcc512a6eeae6e3f00f823a114d63b604fdb16c85fe4aa94cd94c5",
+      "strategy_factory_snapshot_id": "fae1c53c410213e58bd10d938a5854afdd2cce1e3f4c9acd7affb73624c94a6b",
+      "strategy_factory_snapshot_sha256": "36f750639f5643a67ac0c2f9eb7505949542a9404edad9ff3d7fb970f7bd6f2b"
+    }
+  }
+}
