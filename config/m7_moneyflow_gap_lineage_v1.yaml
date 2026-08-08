@@ -1,0 +1,202 @@
+schema_version: m7-moneyflow-gap-lineage-protocol-v1
+protocol_id: m7-moneyflow-gap-lineage-v1
+frozen_at: "2026-08-09T00:07:32+08:00"
+stage: GAP_LINEAGE_PROTOCOL_ONLY
+
+known_result_disclosure:
+  predecessor_result_known: true
+  lineage_category_results_inspected: false
+  predecessor_failed_half_year_cell_count: 4
+  predecessor_minimum_half_year_coverage: 0.985451615961
+  diagnosis_domain_selected_from_failed_cells_only: false
+  post_result_threshold_or_denominator_change_authorized: false
+
+predecessor:
+  data_protocol_id: m7-star-custom-pool-moneyflow-data-compatibility-v1
+  data_protocol_sha256: b629ba917744c43247d301fa59cc1bb0ef5340587c6947b0d2f737cc023e164e
+  release_scope_sha256: f47100687eabe09959a6a1746e742a274e8e77ba3c9e6e90c58a43542b4b24e1
+  run_id: 54529f2c5822c638c8bfd83ce26dd3c475b7eb5c483772ec2e42a487ac3c032d
+  authoritative_verdict: NO_GO_M7_0_DATA_COMPATIBILITY
+  aggregate_manifest_path: config/m7_star_custom_pool_moneyflow_data_manifest_v1.json
+  aggregate_manifest_sha256: 7e8ba16a9209a579bdbdfd370032be6d575e8df941c8aa659f2e790580da0156
+  execution_acceptance_path: docs/M7_STAR_CUSTOM_POOL_MONEYFLOW_DATA_GATE_EXECUTION_ACCEPTANCE_20260808.md
+  execution_acceptance_sha256: cb1c46889c6fe09099d76de304d4449fd3ebdfdb06df7ba8644275c8d660e293
+  input_manifest_sha256: 8a1333888c3abd20d1a4c003018ec81dc22ccf8629372266e6833a8cc750e27a
+  input_bundle_manifest_sha256: 3e49ce0111e920aa52d251ff6aebaba9c8a8894a5dd1a5ae6b3f92550bb05757
+  scope_closed: true
+  retry_authorized: false
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+
+engineering_predecessor:
+  protocol_id: m7-moneyflow-recovery-engineering-v1
+  protocol_path: config/m7_moneyflow_recovery_engineering_v1.yaml
+  protocol_sha256: bad3ea9907eaf23258ed54b4b144cab0e86d8b0b1a8c10b0f3afeab9588788e4
+  acceptance_path: docs/M7_MONEYFLOW_RECOVERY_ENGINEERING_ACCEPTANCE_20260808.md
+  acceptance_sha256: 4fa72d7420fe43e11cff654144ad3f70d16dfc13a199bfba3d5249b531c65b1f
+  implementation_commit: b1e7a5262f620c700af4f24e012acf10106b3dda
+  legacy_v1_behavior_preserved: true
+  all_a_source_domain_ready: true
+  pre_read_consumption_primitive_ready: true
+
+scope:
+  grain: feature_date_x_universe_id_x_ts_code
+  feature_date_start: "20210104"
+  feature_date_end: "20260630"
+  source_date_start: "20201231"
+  source_date_end: "20260629"
+  universe_ids:
+    - star-board-all-pit-v1
+    - star-board-midcap-pit-v1
+    - star-board-smallcap-pit-v1
+  complete_half_year_segments:
+    - {name: 2021H1, start: "20210104", end: "20210630"}
+    - {name: 2021H2, start: "20210701", end: "20211231"}
+    - {name: 2022H1, start: "20220104", end: "20220630"}
+    - {name: 2022H2, start: "20220701", end: "20221230"}
+    - {name: 2023H1, start: "20230103", end: "20230630"}
+    - {name: 2023H2, start: "20230703", end: "20231229"}
+    - {name: 2024H1, start: "20240102", end: "20240628"}
+    - {name: 2024H2, start: "20240701", end: "20241231"}
+    - {name: 2025H1, start: "20250102", end: "20250630"}
+    - {name: 2025H2, start: "20250701", end: "20251231"}
+    - {name: 2026H1, start: "20260105", end: "20260630"}
+  failed_cells_are_report_focus_not_input_filter: true
+  full_domain_missing_pairs_must_be_classified: true
+
+input_contract:
+  metadata_inventory_cutoff_utc: "2026-08-08T16:07:32+00:00"
+  immutable_ledger_path: ledger/ingest_batches.csv
+  latest_exact_canonical_request_at_or_before_cutoff: true
+  verify_regular_file_no_symlink_row_count_schema_sha256: true
+  predecessor_bundle:
+    path: data/control/m7/input-bundles/8a1333888c3abd20d1a4c003018ec81dc22ccf8629372266e6833a8cc750e27a-2aabf20
+    projected_moneyflow_columns: [ts_code, trade_date]
+    projected_membership_columns: [trade_date, formation_date, universe_id, ts_code, segment]
+    numeric_moneyflow_value_columns_read: 0
+  additional_sources:
+    tushare.daily:
+      projected_columns: [ts_code, trade_date]
+      request_period_overlap_required: true
+      duplicate_physical_routes_are_distinct_key_presence_only: true
+      numeric_columns_read: 0
+    tushare.suspend_d:
+      projected_columns: [ts_code, trade_date, suspend_timing, suspend_type]
+      exact_source_date_requests_only: true
+      empty_suspend_timing_means_primary_full_day_evidence: true
+      nonempty_suspend_timing_is_not_full_day_explanation: true
+    baostock.history_k_data_plus:
+      projected_columns: [ts_code, trade_date, trade_status]
+      available_catalog_is_partial_and_must_not_be_imputed: true
+      trade_status_zero_means_independent_nontrading: true
+      trade_status_one_means_independent_trading: true
+  external_network_authorized: false
+  raw_or_numeric_business_values_authorized: false
+
+key_domain:
+  membership_regex: "^[0-9]{6}\\.SH$"
+  all_a_source_regex: "^[0-9]{6}\\.(SH|SZ)$"
+  bse_suffix: .BJ
+  bse_allowed: false
+  alias_or_fuzzy_mapping_authorized: false
+
+lineage_classification:
+  classification_unit: missing_feature_member_row
+  priority:
+    - QUARANTINED_SOURCE_DATE
+    - CONFLICTING_INDEPENDENT_TRADE_STATUS
+    - CONFLICT_DAILY_PRESENT_INDEPENDENT_NONTRADING
+    - CONFIRMED_MONEYFLOW_GAP_DAILY_PRESENT
+    - CONFLICT_DAILY_ABSENT_INDEPENDENT_TRADING
+    - CONFIRMED_NONTRADING_INDEPENDENT
+    - CONFLICTING_PRIMARY_SUSPENSION_ROWS
+    - PRIMARY_FULL_DAY_SUSPENSION_ONLY_UNRESOLVED
+    - INTRADAY_SUSPENSION_NOT_EXPLANATION
+    - UNRESOLVED_NO_TRADE_EVIDENCE
+  high_confidence_explained_categories:
+    - QUARANTINED_SOURCE_DATE
+    - CONFIRMED_MONEYFLOW_GAP_DAILY_PRESENT
+    - CONFIRMED_NONTRADING_INDEPENDENT
+  conflict_categories:
+    - CONFLICTING_INDEPENDENT_TRADE_STATUS
+    - CONFLICT_DAILY_PRESENT_INDEPENDENT_NONTRADING
+    - CONFLICT_DAILY_ABSENT_INDEPENDENT_TRADING
+    - CONFLICTING_PRIMARY_SUSPENSION_ROWS
+  unresolved_categories:
+    - PRIMARY_FULL_DAY_SUSPENSION_ONLY_UNRESOLVED
+    - INTRADAY_SUSPENSION_NOT_EXPLANATION
+    - UNRESOLVED_NO_TRADE_EVIDENCE
+  each_missing_row_exactly_one_category_required: true
+  aggregate_by_universe_and_half_year_required: true
+  individual_security_rows_in_report_forbidden: true
+
+decision:
+  go: GO_M7_GAP_LINEAGE_COMPLETE_ONLY
+  no_go: NO_GO_M7_GAP_LINEAGE_INCOMPLETE
+  go_requires:
+    - input_identity_pass
+    - pit_mapping_pass
+    - key_domain_pass
+    - missing_row_partition_pass
+    - conflict_row_count_zero
+    - unresolved_row_count_zero
+    - main_audit_exact_match
+  go_does_not_change_predecessor_no_go: true
+  go_does_not_authorize_denominator_change: true
+  go_does_not_authorize_data_recovery_or_candidate_generation: true
+  no_go_is_not_strategy_reject: true
+
+output_contract:
+  report_schema: m7-moneyflow-gap-lineage-report-v1
+  audit_schema: m7-moneyflow-gap-lineage-audit-v1
+  aggregate_only: true
+  include_counts_and_rates: true
+  include_all_universe_half_year_cells: true
+  adjusted_or_counterfactual_coverage_forbidden: true
+  security_codes_forbidden: true
+  absolute_paths_forbidden: true
+  canonical_json: true
+  write_once: true
+  internal_replay_required: true
+  independent_duckdb_audit_required: true
+
+execution_contract:
+  action: M7_MONEYFLOW_GAP_LINEAGE_ONCE
+  runner_invocation_count: 1
+  auditor_invocation_count: 1
+  same_scope_retry_authorized: false
+  pre_read_consumption_roles: [runner, auditor]
+  second_invocation_must_stop_before_semantic_loader: true
+  network_mode: none
+  run_as_non_root: true
+  read_only_root: true
+  project_root_mount_forbidden: true
+  env_file_mount_forbidden: true
+  docker_socket_mount_forbidden: true
+  production_ledger_mount_forbidden: true
+  runner_resources: {cpus: "2.0", memory: 4g}
+  auditor_resources: {cpus: "1.0", memory: 2g}
+
+construction_authority:
+  protocol_freeze_authorized: true
+  metadata_only_inventory_authorized: true
+  synthetic_fixture_authorized: true
+  docker_image_build_authorized: true
+  exact_release_scope_generation_authorized: true
+  real_security_key_read_authorized: false
+  lineage_execution_authorized: false
+  numeric_moneyflow_value_read_authorized: false
+  candidate_generation_authorized: false
+  label_or_return_read_authorized: false
+  effect_or_model_or_backtest_authorized: false
+  external_network_authorized: false
+  forward_or_paper_authorized: false
+  scheduler_or_web_change_authorized: false
+  production_authorization: none
+  research_attempt_increment: 0
+
+next_stop:
+  exact_release_scope_required: true
+  exact_user_approval_required: true
+  prior_approval_reuse_forbidden: true
+  execution_before_approval_forbidden: true
