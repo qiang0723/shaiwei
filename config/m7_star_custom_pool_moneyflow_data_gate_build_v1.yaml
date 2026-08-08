@@ -1,0 +1,130 @@
+schema_version: m7-moneyflow-data-gate-build-v1
+build_protocol_id: m7-star-custom-pool-moneyflow-data-gate-build-v1
+protocol_scope_sha256: 3b137d0b84e557c4fa38ea5072fe22241802f7a714f5890fc365705f2b71d59b
+
+frozen_inputs:
+  research_protocol:
+    path: docs/M7_STAR_CUSTOM_POOL_MONEYFLOW_DATA_COMPATIBILITY_PROTOCOL_20260808.md
+    sha256: 41d85163318c9ae91f8395ce22d236c8577ee12fb139f3a57a3b3a735d4ca08f
+  research_config:
+    path: config/m7_star_custom_pool_moneyflow_data_v1.yaml
+    sha256: b629ba917744c43247d301fa59cc1bb0ef5340587c6947b0d2f737cc023e164e
+  protocol_scope:
+    path: config/m7_star_custom_pool_moneyflow_protocol_scope_v1.json
+    sha256: 157231297ee10eacfab1d056f3204d6fc759fafcc32c508e25c851424db73f78
+  proposal_export:
+    path: config/m7_star_custom_pool_moneyflow_proposal_export_v1.json
+    sha256: 99368c40d5dcbb9888659a2fb84445aec31eaafc957ad000dcd8630aeb9cf582
+  freeze_acceptance:
+    path: docs/M7_STAR_CUSTOM_POOL_MONEYFLOW_PROTOCOL_FREEZE_ACCEPTANCE_20260808.md
+    sha256: ae69b2350cd1e7fba9a603fd2342ba19cc41899c07ba882704ecf71409ca165d
+  m3_protocol:
+    path: config/m3_star_custom_pit_v1.yaml
+    sha256: e400f6f1f0792fb7c9a46e83028c4c472e2beeb19137fd5e245729c052ddd058
+  m3_manifest:
+    path: config/m3_star_custom_pit_manifest_v1.json
+    sha256: cf8cb88eb13e4f6619812ff0f4f854586de1b036c5b6e89a171e2d20c69c2638
+
+construction:
+  target_state: RELEASE_READY_NOT_APPROVED
+  package_root: src/shaiwei/research_gates/m7_moneyflow
+  maximum_new_module_lines: 400
+  new_service_or_queue_authorized: false
+  public_registry_schema_change_authorized: false
+  production_or_web_module_change_authorized: false
+  ingest_ledger_write_authorized: false
+  real_security_key_read_authorized: false
+  numeric_moneyflow_value_read_authorized: false
+  metadata_only_inventory_authorized: true
+  synthetic_fixture_authorized: true
+
+inventory_contract:
+  ledger_source_api: tushare.moneyflow
+  ledger_selection: latest_committed_exact_canonical_request
+  full_catalog_sha256_must_match_frozen_p1: true
+  full_catalog_batch_count: 2563
+  full_catalog_row_count: 10614438
+  selected_source_period: ["20201231", "20260629"]
+  selected_file_verification: [regular_file, no_symlink, project_relative, row_count, schema, sha256]
+  parquet_footer_only: true
+  semantic_rows_read: false
+  tracked_security_list_forbidden: true
+
+coverage_operationalization:
+  aggregate_and_half_year_denominator: all_membership_rows_with_frozen_prior_source_date
+  aggregate_and_half_year_numerator: exact_key_match_on_non_quarantined_prior_source_date
+  eligible_feature_date_gate_domain: non_quarantined_prior_source_dates_only
+  quarantined_feature_dates: reported_separately_and_governed_by_source_day_rate_and_streak
+  securities_missing_on_eligible_dates: no_fill_no_alias
+  ratios_rounded_decimal_places: 12
+
+modules:
+  - contract
+  - inventory
+  - reader
+  - compute
+  - audit_compute
+  - sealing
+  - runner
+  - auditor
+  - release
+  - release_builder
+  - input_bundle
+  - fixture
+
+outputs:
+  input_manifest_schema: m7-moneyflow-data-input-manifest-v1
+  report_schema: m7-moneyflow-data-compatibility-report-v1
+  audit_schema: m7-moneyflow-data-compatibility-audit-v1
+  runner_files: [data_gate_report.json, run_manifest.json]
+  auditor_files: [audit_report.json]
+  write_once: true
+  canonical_json: true
+  aggregate_only: true
+  raw_security_lists_forbidden: true
+  internal_replay_required: true
+  independent_audit_required: true
+
+container:
+  dockerfile: Dockerfile.m7-moneyflow-data-gate
+  compose_file: compose.m7-moneyflow-gate.yaml
+  requirements_lock: requirements.m5-data-gate.lock
+  base_image: python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93
+  network_mode: none
+  user: "65532:65532"
+  read_only_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  pids_limit: 128
+  project_root_mount_forbidden: true
+  docker_socket_mount_forbidden: true
+  env_file_mount_forbidden: true
+  runner: {cpus: "2.0", memory: 4g}
+  auditor: {cpus: "1.0", memory: 2g}
+
+release_scope:
+  action: M7_STAR_CUSTOM_POOL_MONEYFLOW_DATA_GATE_ONCE
+  implementation_commit_must_be_pushed_first: true
+  image_identity_required: true
+  input_manifest_metadata_only_before_approval: true
+  mounts_resources_commands_bound: true
+  approval_must_bind_exact_release_scope_sha256: true
+  proposal_state_seq_head_and_expiry_rechecked_at_approval: true
+  same_scope_retry_authorized: false
+
+authority:
+  release_ready: false
+  release_approval_recorded: false
+  execution_authorized: false
+  real_security_key_read_authorized: false
+  numeric_moneyflow_value_read_authorized: false
+  network_authorized: false
+  candidate_generation_authorized: false
+  label_or_return_read_authorized: false
+  effect_read_authorized: false
+  model_training_authorized: false
+  backtest_authorized: false
+  paper_or_forward_authorized: false
+  production_authorization: none
+  scheduler_mutation_authorized: false
+  web_change_authorized: false

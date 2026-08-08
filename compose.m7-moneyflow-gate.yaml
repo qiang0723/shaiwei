@@ -1,0 +1,83 @@
+x-m7-common: &m7-common
+  image: shaiwei:m7-moneyflow-data-gate-local
+  profiles: ["m7-moneyflow-release"]
+  network_mode: none
+  read_only: true
+  user: "65532:65532"
+  cap_drop: ["ALL"]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 128
+  init: true
+  tmpfs:
+    - /tmp:size=256m,mode=1777
+
+services:
+  m7-moneyflow-fixture:
+    <<: *m7-common
+    profiles: ["m7-moneyflow-fixture"]
+    build:
+      context: .
+      dockerfile: Dockerfile.m7-moneyflow-data-gate
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.m7_moneyflow.fixture
+      - --project-root
+      - /opt/shaiwei
+    cpus: 1.0
+    mem_limit: 2g
+
+  m7-moneyflow-runner:
+    <<: *m7-common
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.m7_moneyflow.runner
+      - --protocol
+      - /inputs/config/m7_star_custom_pool_moneyflow_data_v1.yaml
+      - --build-contract
+      - /inputs/config/m7_star_custom_pool_moneyflow_data_gate_build_v1.yaml
+      - --input-manifest
+      - /inputs/config/m7_star_custom_pool_moneyflow_data_input_v1.json
+      - --release-scope
+      - /inputs/config/m7_star_custom_pool_moneyflow_data_gate_release_scope_v1.json
+      - --approval-envelope
+      - /inputs/config/m7_star_custom_pool_moneyflow_data_gate_approval_v1.json
+      - --input-root
+      - /inputs
+      - --output-root
+      - /outputs
+    cpus: 2.0
+    mem_limit: 4g
+    volumes:
+      - ${M7_INPUT_BUNDLE:-./data/control/m7/unreleased/inputs}:/inputs:ro
+      - ${M7_OUTPUT_ROOT:-./data/control/m7/unreleased/outputs}:/outputs:rw
+
+  m7-moneyflow-auditor:
+    <<: *m7-common
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.m7_moneyflow.auditor
+      - --protocol
+      - /inputs/config/m7_star_custom_pool_moneyflow_data_v1.yaml
+      - --build-contract
+      - /inputs/config/m7_star_custom_pool_moneyflow_data_gate_build_v1.yaml
+      - --input-manifest
+      - /inputs/config/m7_star_custom_pool_moneyflow_data_input_v1.json
+      - --release-scope
+      - /inputs/config/m7_star_custom_pool_moneyflow_data_gate_release_scope_v1.json
+      - --approval-envelope
+      - /inputs/config/m7_star_custom_pool_moneyflow_data_gate_approval_v1.json
+      - --input-root
+      - /inputs
+      - --run-root
+      - /outputs/${M7_RUN_ID:-NOT_APPROVED}
+      - --audit-root
+      - /audit
+    cpus: 1.0
+    mem_limit: 2g
+    volumes:
+      - ${M7_INPUT_BUNDLE:-./data/control/m7/unreleased/inputs}:/inputs:ro
+      - ${M7_OUTPUT_ROOT:-./data/control/m7/unreleased/outputs}:/outputs:ro
+      - ${M7_AUDIT_ROOT:-./data/control/m7/unreleased/audits}:/audit:rw
