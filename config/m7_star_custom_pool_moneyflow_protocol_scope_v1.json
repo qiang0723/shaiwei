@@ -1,0 +1,98 @@
+{
+  "schema_version": "m7-protocol-scope-envelope-v1",
+  "scope_created_at": "2026-08-08T12:34:17+08:00",
+  "protocol_scope_sha256": "3b137d0b84e557c4fa38ea5072fe22241802f7a714f5890fc365705f2b71d59b",
+  "scope": {
+    "scope_id": "m7-star-custom-pool-moneyflow-protocol-scope-v1",
+    "scope_kind": "PROTOCOL_FROZEN_NOT_REAL_DATA_RELEASE",
+    "source_proposal": {
+      "proposal_id": "4d3007db221e9d63e9d0be742f3e64493085dac48c7a9c5ca37de7bd6d589a65",
+      "proposal_request_sha256": "05caa719c15a7d60030aca650078827aa82821fa2b61cfd04de98ef65beba88c",
+      "canonical_proposal_sha256": "67e1674835f2077a0d59e8ec6968ded2729f48bde7c296e11ea8519bb42faeb8",
+      "proposal_head_event_sha256": "da38d05ae213eca5a7b27a766989a64b57598412257ce72fb5e0542f978b1f0a",
+      "proposal_export_sha256": "99368c40d5dcbb9888659a2fb84445aec31eaafc957ad000dcd8630aeb9cf582",
+      "required_state_at_real_data_release_approval": "REVIEW_REQUIRED",
+      "required_event_seq_at_real_data_release_approval": 2,
+      "expires_at": "2026-08-15T04:05:02+00:00"
+    },
+    "git_freeze": {
+      "repository": "qiang0723/shaiwei",
+      "branch": "main",
+      "protocol_commit": "0ec4725d830346a74d0edcef17d00bc11cda0398",
+      "protocol_parent_commit": "c1cb3b169641a129378870454f11b2077e607dfa",
+      "protocol_tree": "995b5b9995aa86e5e490171e75fd2b5bf1da1251",
+      "local_origin_main_at_scope_creation": "0ec4725d830346a74d0edcef17d00bc11cda0398",
+      "protocol_commit_pushed_before_scope_creation": true
+    },
+    "frozen_files": [
+      {
+        "path": "docs/M7_STAR_CUSTOM_POOL_MONEYFLOW_DATA_COMPATIBILITY_PROTOCOL_20260808.md",
+        "sha256": "41d85163318c9ae91f8395ce22d236c8577ee12fb139f3a57a3b3a735d4ca08f"
+      },
+      {
+        "path": "config/m7_star_custom_pool_moneyflow_data_v1.yaml",
+        "sha256": "b629ba917744c43247d301fa59cc1bb0ef5340587c6947b0d2f737cc023e164e"
+      },
+      {
+        "path": "config/m7_star_custom_pool_moneyflow_proposal_export_v1.json",
+        "sha256": "99368c40d5dcbb9888659a2fb84445aec31eaafc957ad000dcd8630aeb9cf582"
+      },
+      {
+        "path": "tests/test_m7_moneyflow_data_protocol.py",
+        "sha256": "ae9c8c96b887c1412f6ac55dd6c0b2c540192332c36968ef9705f1997b8ce363"
+      },
+      {
+        "path": "docs/ARCHITECTURE_CONSTITUTION.md",
+        "sha256": "d312dd6389dde45528e8360bbb213456bde8c2522f786892a599421821e1804e"
+      },
+      {
+        "path": "docs/M5_MULTI_POOL_RESEARCH_GOVERNANCE_20260805.md",
+        "sha256": "802a7a0eacadb3a84275a3a7c1c15f6e64a7108b8814180625176427f3402350"
+      }
+    ],
+    "research_identity": {
+      "family_id": "moneyflow",
+      "home_universe_id": "star-board-all-pit-v1",
+      "transfer_universe_ids": [
+        "star-board-midcap-pit-v1",
+        "star-board-smallcap-pit-v1"
+      ],
+      "candidate_definition_count": 0,
+      "evaluation_unit_count": 0,
+      "effect_test_count": 0,
+      "generation_attempt_increment": 0,
+      "prior_moneyflow_family_attempt_count": 18,
+      "proposal_planned_attempt_cap": 8
+    },
+    "permitted_next_construction": {
+      "metadata_only_inventory": true,
+      "key_only_runner_and_independent_auditor": true,
+      "synthetic_fixture": true,
+      "isolated_one_shot_image": true,
+      "exact_real_data_release_scope": true,
+      "real_data_gate_execution": false
+    },
+    "authority": {
+      "real_data_release_scope_created": false,
+      "real_data_release_approval_recorded": false,
+      "provider_call_count": 0,
+      "provider_budget_usd": "0.00",
+      "deepseek_authorized": false,
+      "external_call_authorized": false,
+      "network_authorized": false,
+      "data_collection_authorized": false,
+      "real_security_key_read_authorized": false,
+      "numeric_moneyflow_value_read_authorized": false,
+      "candidate_generation_authorized": false,
+      "label_or_return_read_authorized": false,
+      "sealed_effect_read_authorized": false,
+      "model_training_authorized": false,
+      "backtest_authorized": false,
+      "paper_authorized": false,
+      "forward_authorized": false,
+      "production_authorization": "none",
+      "scheduler_mutation_authorized": false,
+      "web_change_authorized": false
+    }
+  }
+}

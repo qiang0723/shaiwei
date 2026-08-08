@@ -14,6 +14,8 @@
 - 本节点只投影并核验既有元数据，没有读取资金流证券键或数值、标签、收益、候选、模型、回测、外网或
   生产。下一合法动作是在本协议推送后施工metadata-only inventory、窄runner/auditor、合成fixture、
   一次性Docker镜像和精确release scope；真实证券键仍须用户绑定该scope另行批准。
+- 协议冻结提交`0ec4725d...a0398`已先推送；protocol scope canonical SHA为`3b137d0b...d59b`，
+  envelope物理SHA为`15723129...3f78`。scope只开放下一阶段零真实数据施工，真实数据门执行仍为false。
 
 ## 2026-08-08 · M5-1B三自建科创池资金流提案已提交人工复核
 
