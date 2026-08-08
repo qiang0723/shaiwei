@@ -159,7 +159,12 @@ def _coverage(protocol: M7Protocol, daily: pd.DataFrame) -> dict[str, Any]:
     }
 
 
-def recompute_quality_core(protocol: M7Protocol, inputs: KeyInputs) -> dict[str, Any]:
+def _recompute_quality_core(
+    protocol: M7Protocol,
+    inputs: KeyInputs,
+    *,
+    source_code_pattern: str,
+) -> dict[str, Any]:
     membership = inputs.membership.copy()
     source = inputs.source_keys.copy()
     connection = duckdb.connect(":memory:")
@@ -185,7 +190,13 @@ def recompute_quality_core(protocol: M7Protocol, inputs: KeyInputs) -> dict[str,
         membership_null = _scalar(connection, "SELECT count(*) FROM audit_membership WHERE trade_date IS NULL OR formation_date IS NULL OR universe_id IS NULL OR ts_code IS NULL", [])
         source_null = _scalar(connection, "SELECT count(*) FROM audit_source WHERE trade_date IS NULL OR ts_code IS NULL OR request_trade_date IS NULL", [])
         membership_malformed = _scalar(connection, "SELECT sum((NOT regexp_full_match(coalesce(CAST(trade_date AS VARCHAR),''),'[0-9]{8}'))::INT + (NOT regexp_full_match(coalesce(CAST(formation_date AS VARCHAR),''),'[0-9]{8}'))::INT + (NOT regexp_full_match(coalesce(CAST(ts_code AS VARCHAR),''),'[0-9]{6}\\.SH'))::INT) FROM audit_membership", [])
-        source_malformed = _scalar(connection, "SELECT sum((NOT regexp_full_match(coalesce(CAST(trade_date AS VARCHAR),''),'[0-9]{8}'))::INT + (NOT regexp_full_match(coalesce(CAST(request_trade_date AS VARCHAR),''),'[0-9]{8}'))::INT + (NOT regexp_full_match(coalesce(CAST(ts_code AS VARCHAR),''),'[0-9]{6}\\.SH'))::INT) FROM audit_source", [])
+        source_malformed = _scalar(
+            connection,
+            "SELECT sum((NOT regexp_full_match(coalesce(CAST(trade_date AS VARCHAR),''),'[0-9]{8}'))::INT + "
+            "(NOT regexp_full_match(coalesce(CAST(request_trade_date AS VARCHAR),''),'[0-9]{8}'))::INT + "
+            "(NOT regexp_full_match(coalesce(CAST(ts_code AS VARCHAR),''),?))::INT) FROM audit_source",
+            [source_code_pattern],
+        )
         unknown = _scalar(connection, f"SELECT count(*) FROM audit_membership WHERE {member_where} AND CAST(universe_id AS VARCHAR) NOT IN (?,?,?)", [*feature, *UNIVERSE_IDS])
         bse = _scalar(connection, "SELECT count(*) FROM audit_membership WHERE ends_with(CAST(ts_code AS VARCHAR),'.BJ')", []) + _scalar(connection, "SELECT count(*) FROM audit_source WHERE ends_with(CAST(ts_code AS VARCHAR),'.BJ')", [])
         future_formation = _scalar(connection, f"SELECT count(*) FROM audit_membership WHERE {member_where} AND CAST(formation_date AS VARCHAR)>CAST(trade_date AS VARCHAR)", feature)
@@ -241,3 +252,26 @@ def recompute_quality_core(protocol: M7Protocol, inputs: KeyInputs) -> dict[str,
         "authority": {"candidate_definition_count": 0, "effect_test_count": 0, "generation_attempt_increment": 0, "strategy_effective": "NOT_EVALUATED", "production_authorization": "none"},
         "verdict": verdict,
     }
+
+
+def recompute_quality_core(protocol: M7Protocol, inputs: KeyInputs) -> dict[str, Any]:
+    """Independently reproduce the frozen v1 SH-only source-domain behavior."""
+
+    return _recompute_quality_core(
+        protocol,
+        inputs,
+        source_code_pattern=r"[0-9]{6}\.SH",
+    )
+
+
+def recompute_quality_core_all_a_source(
+    protocol: M7Protocol,
+    inputs: KeyInputs,
+) -> dict[str, Any]:
+    """Independently evaluate a successor SH/SZ source catalog."""
+
+    return _recompute_quality_core(
+        protocol,
+        inputs,
+        source_code_pattern=r"[0-9]{6}\.(SH|SZ)",
+    )

@@ -13,6 +13,7 @@ from .reader import KeyInputs
 
 DATE_RE = re.compile(r"^[0-9]{8}$")
 CODE_RE = re.compile(r"^[0-9]{6}\.SH$")
+ALL_A_SOURCE_CODE_RE = re.compile(r"^[0-9]{6}\.(?:SH|SZ)$")
 
 
 def _ratio(numerator: int, denominator: int) -> float:
@@ -36,7 +37,12 @@ def _gate(gate_id: str, passed: bool, observed: Any, threshold: Any) -> dict[str
     }
 
 
-def _normalize(inputs: KeyInputs, protocol: M7Protocol) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, int]]:
+def _normalize(
+    inputs: KeyInputs,
+    protocol: M7Protocol,
+    *,
+    source_code_re: re.Pattern[str],
+) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, int]]:
     membership = inputs.membership.copy()
     source = inputs.source_keys.copy()
     for frame, columns in (
@@ -55,7 +61,7 @@ def _normalize(inputs: KeyInputs, protocol: M7Protocol) -> tuple[pd.DataFrame, p
     source_malformed = int(
         (~source["trade_date"].fillna("").str.fullmatch(DATE_RE)).sum()
         + (~source["request_trade_date"].fillna("").str.fullmatch(DATE_RE)).sum()
-        + (~source["ts_code"].fillna("").str.fullmatch(CODE_RE)).sum()
+        + (~source["ts_code"].fillna("").str.fullmatch(source_code_re)).sum()
     )
     feature_start = protocol.pit["feature_start_date"]
     feature_end = protocol.pit["feature_end_date"]
@@ -184,8 +190,17 @@ def _coverage_report(protocol: M7Protocol, joined: pd.DataFrame, daily: pd.DataF
     }
 
 
-def compute_quality_core(protocol: M7Protocol, inputs: KeyInputs) -> dict[str, Any]:
-    membership, source, malformed = _normalize(inputs, protocol)
+def _compute_quality_core(
+    protocol: M7Protocol,
+    inputs: KeyInputs,
+    *,
+    source_code_re: re.Pattern[str],
+) -> dict[str, Any]:
+    membership, source, malformed = _normalize(
+        inputs,
+        protocol,
+        source_code_re=source_code_re,
+    )
     mapping = _pit_mapping(protocol, inputs.official_dates)
     membership_duplicates = int(membership.duplicated(["trade_date", "universe_id", "ts_code"], keep=False).sum())
     source_duplicates = int(source.duplicated(["trade_date", "ts_code"], keep=False).sum())
@@ -279,3 +294,22 @@ def compute_quality_core(protocol: M7Protocol, inputs: KeyInputs) -> dict[str, A
         },
         "verdict": verdict,
     }
+
+
+def compute_quality_core(protocol: M7Protocol, inputs: KeyInputs) -> dict[str, Any]:
+    """Reproduce the frozen v1 SH-only source-domain behavior."""
+
+    return _compute_quality_core(protocol, inputs, source_code_re=CODE_RE)
+
+
+def compute_quality_core_all_a_source(
+    protocol: M7Protocol,
+    inputs: KeyInputs,
+) -> dict[str, Any]:
+    """Evaluate a successor source catalog that legitimately spans SH and SZ."""
+
+    return _compute_quality_core(
+        protocol,
+        inputs,
+        source_code_re=ALL_A_SOURCE_CODE_RE,
+    )

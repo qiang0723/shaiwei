@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-08 · M7-0R1恢复前工程门GO，停在缺口谱系协议前
+
+- 结果已知的R1协议明确冻结`result_blind=false`，提交`cdcb0c0`先于实现推送；v1权威NO-GO、四个
+  半年失败、旧scope和99.5%/99%/95%门槛全部原样保留，同scope未重跑。
+- successor主路径允许全A资金流源`.SH/.SZ`，独立DuckDB复算一致；M3成员仍只收`.SH`，`.BJ`和非法
+  格式失败关闭。v1三组fixture规范SHA逐字不变，历史默认入口未改判。
+- 新pre-read consumption原语以五字段身份原子独占消费runner/auditor角色；合成测试证明第二次调用及
+  首次loader失败后的再次调用都在语义loader前停止。真实successor入口尚未施工，不夸大为release GO。
+- 专项20、全仓974、架构13 PASS，Ruff/compileall/pip check/diff-check通过；真实键/数值/缺口读取0，
+  候选/效果/尝试0，生产none，scheduler未重启。下一步须另立M7缺口谱系协议、release和新精确批准，
+  不得复用v1 approval。见`docs/M7_MONEYFLOW_RECOVERY_ENGINEERING_ACCEPTANCE_20260808.md`。
+
 ## 2026-08-08 · M7-0真实键级数据门权威NO-GO，scope关闭
 
 - 用户精确批准scope`f4710068...b24e1`后，live proposal完整性复算PASS；21:58后唯一断网runner与
