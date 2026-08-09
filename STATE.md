@@ -2163,3 +2163,13 @@
 
 ## 作废记录
 - 2026-07-15：作废“京东方A（000725.SZ）2023-04-29 为 S5 永久更正样本”。真实定向查询显示该期间 type 5 为 0 行，默认返回仅有同一 f_ann_date 的 type 1/update_flag 0 与 1，无法构造时点区间；官方口径说明 type 5 才是调整前保留值。全市场 20221231 扫描找到 136 组公告日可分隔且数值变化的沪深配对，改用 `688502.SH/20221231`（旧 2023-02-16 type 5/update 0，新 2023-03-08 type 1/update 1）。此改判修复失效数据样本，不修改 G0-G9/C0 判据。
+# 2026-08-09 · M7-0R3-P2精确网络恢复release协议冻结，停在离线请求计划前
+
+- 冻结 `m7-moneyflow-evidence-recovery-network-release-v1`，只授权离线读取P1封存的527/541去重
+  源键、生成不可变请求计划、实现四角色隔离执行壳、构建镜像与生成精确release scope。
+- 当前外网、provider、`.env`/token读取、资金流数值、调整覆盖率、候选、效果、模型、回测、前瞻、
+  模拟仓和生产均未授权；最终scope必须另获逐字批准。
+- 旧恢复协议原样保留；其predecessor core的`d915...`转录错误由本协议显式纠正为已由P1执行确认的
+  `df5de3990428...eeca`，不改旧文件或原M7/R2 NO-GO。
+- 协议SHA为`3b487b9a58ae7a376cc640899277885897372cac643118290ab59057cf0cf9d3`；见
+  `docs/M7_MONEYFLOW_EVIDENCE_RECOVERY_NETWORK_RELEASE_PROTOCOL_20260809.md`。

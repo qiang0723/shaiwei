@@ -1,0 +1,219 @@
+schema_version: m7-moneyflow-evidence-recovery-network-release-protocol-v1
+protocol_id: m7-moneyflow-evidence-recovery-network-release-v1
+frozen_at: "2026-08-09T15:41:08+08:00"
+stage: EXACT_NETWORK_RELEASE_CONSTRUCTION_ONLY
+future_action: M7_MONEYFLOW_EVIDENCE_RECOVERY_ONCE
+
+known_result_disclosure:
+  result_blind: false
+  predecessor_results_inspected: true
+  track_a_member_rows: 908
+  track_a_unique_source_keys: 527
+  track_b_member_rows: 541
+  track_b_unique_source_keys: 541
+  adjusted_coverage_not_computed: true
+  recovery_result_not_known: true
+  thresholds_or_denominators_changed_after_result: false
+
+supersession:
+  preserves_protocol_id: m7-moneyflow-evidence-recovery-v1
+  preserved_protocol_sha256: 93a774d8939d443dd5d925e61a7f4727ff9464a969171dcaca58322f9b2b5d53
+  preserved_protocol_modified: false
+  correction_kind: frozen_predecessor_core_identity_transcription
+  incorrect_preserved_core_sha256: df5de399d915ac2cba8533b07a958b5ef06cf7c14a0654c60dc1213cb0d8eeca
+  authoritative_core_sha256: df5de3990428e630eb2f56380601f3bee12fee2d2220a99c48c286e3701beeca
+  correction_source_protocol: m7-moneyflow-recovery-target-projection-v2
+  correction_source_protocol_sha256: 345316477d789b255aeb259adcf3411a5f8c7889ed4eecd6f0a34d7e33dac1fd
+  recovery_semantics_changed: false
+
+authorization_basis:
+  user_instruction: continue_the_next_step
+  authorized_goal: build_exact_offline_network_release_then_stop_for_scope_bound_approval
+  current_instruction_is_not_provider_execution_approval: true
+  current_instruction_is_not_network_or_secret_approval: true
+
+frozen_predecessors:
+  recovery_protocol:
+    path: config/m7_moneyflow_evidence_recovery_v1.yaml
+    sha256: 93a774d8939d443dd5d925e61a7f4727ff9464a969171dcaca58322f9b2b5d53
+  release_build_contract:
+    path: config/m7_moneyflow_recovery_release_build_v1.yaml
+    sha256: af04ba7353e4d3f6249ad603657d722643b83ef675e30aaf062afc6db15fdc28
+  target_projection_protocol:
+    path: config/m7_moneyflow_recovery_target_projection_v2.yaml
+    sha256: 345316477d789b255aeb259adcf3411a5f8c7889ed4eecd6f0a34d7e33dac1fd
+  target_projection_execution_manifest:
+    path: config/m7_moneyflow_recovery_target_projection_execution_manifest_v1.json
+    sha256: 7abf0889a9dd94364f68df08bb99d9e090e0f5b982000e604fbca50fc686ed5d
+  target_projection_acceptance:
+    path: docs/M7_MONEYFLOW_RECOVERY_TARGET_PROJECTION_EXECUTION_ACCEPTANCE_20260809.md
+    sha256: ec0367fb350973988d4715dea68b4a4bb03917796cdf92dddace852c0752edd3
+  target_projection_commit: 23f06b2479ac6f394fbc8599cff4d98dd6ee55ce
+  target_projection_archive_commit: 706a0f0dd979f6fb411c10a0a5719caf710744a0
+  target_projection_run_id: 9a7cba4ec6d3a2da809d8a2475a426857131ba2bcfc5f633d86f91f7d870ffab
+  target_projection_root: data/control/m7-recovery/target-projections/345316477d78-23f06b2/9a7cba4ec6d3a2da809d8a2475a426857131ba2bcfc5f633d86f91f7d870ffab
+  track_a_target:
+    file: track_a_targets.parquet
+    member_rows: 908
+    unique_source_keys: 527
+    physical_sha256: 71aded70452d4837b6beb0979b03b750db17aaec1208edb6e08cc4497f0a1237
+    logical_sha256: f9aa12c8b21ac45a9f52542911432ca3e40703a5244d4d81fde0087954e09bf8
+  track_b_target:
+    file: track_b_targets.parquet
+    member_rows: 541
+    unique_source_keys: 541
+    physical_sha256: fbf2f704c9f5c6d5958f7356953ac34675fd39895eae4dd77b435097376f5dc8
+    logical_sha256: 1e579885863c8e4d522672430d0fc50d9ad2cec7adbdbd8da3ce2b95153e2331
+  authoritative_lineage_core_sha256: df5de3990428e630eb2f56380601f3bee12fee2d2220a99c48c286e3701beeca
+
+request_plan_contract:
+  input_read_mode: offline_read_only
+  source_columns_allowed: [source_date, ts_code]
+  feature_date_and_membership_columns_must_not_enter_provider_requests: true
+  query_grain: source_date_x_ts_code
+  rename_source_date_to_provider_trade_date: true
+  exact_projected_keys_only: true
+  deduplicate_before_planning: true
+  extra_key_count_must_equal_zero: true
+  missing_key_count_must_equal_zero: true
+  bse_key_count_must_equal_zero: true
+  security_codes_may_exist_only_in_git_ignored_control_outputs: true
+  tracked_manifest_must_be_aggregate_only: true
+  plan_files_write_once: true
+  plan_receipts_require_physical_logical_and_request_identity_sha256: true
+  track_a:
+    provider: baostock
+    source_api: baostock.history_k_data_plus
+    fields: [date, code, tradestatus]
+    expected_unique_keys: 527
+    group_by_ts_code_and_consecutive_official_trade_dates: true
+    bounded_window_start_and_end_must_be_target_dates: true
+    each_required_key_covered_exactly_once: true
+    nonrequired_rows_may_be_returned_but_must_not_affect_verdict: true
+    maximum_provider_requests: 527
+  track_b:
+    provider: tushare
+    source_api: tushare.moneyflow
+    expected_unique_keys: 541
+    request_shapes:
+      - full_market_by_trade_date
+      - one_security_one_date
+    full_market_request_count_equals_unique_source_dates: true
+    targeted_request_count_equals_unique_source_keys: true
+    both_request_shapes_required_for_every_key: true
+    maximum_full_market_requests: 541
+    maximum_targeted_requests: 541
+    maximum_provider_requests: 1082
+    maximum_rows_per_response: 6000
+
+collection_contract:
+  current_collection_authorized: false
+  sequential_only: true
+  immutable_claim_before_provider_call: true
+  maximum_transport_attempts_per_claimed_request: 3
+  semantic_empty_response_retry_authorized: false
+  claimed_failure_retry_in_same_release_authorized: false
+  same_release_rerun_authorized: false
+  partial_resume_only_for_never_claimed_requests: true
+  append_only_parquet_and_canonical_receipt: true
+  response_schema_row_count_and_content_sha256_required: true
+  response_at_row_limit_must_fail_closed: true
+  duplicate_required_key_rows_must_fail_closed: true
+  missing_or_extra_fields_must_fail_closed: true
+  nonfinite_moneyflow_values_must_fail_closed: true
+  provider_error_details_must_not_print_security_codes_or_secret: true
+  provider_cost_usd_cap: 0
+
+role_isolation:
+  immutable_single_image_for_all_roles: true
+  non_root_read_only_root_cap_drop_all_and_no_new_privileges: true
+  docker_socket_mount_forbidden: true
+  project_worktree_mount_forbidden: true
+  production_data_raw_ledger_logs_mounts_forbidden: true
+  status_collector:
+    network_required_only_after_exact_approval: true
+    secret_mounts: []
+    reads: [sealed_status_request_plan, exact_approval_envelope]
+    writes: [isolated_status_batches, isolated_status_claims]
+  moneyflow_collector:
+    network_required_only_after_exact_approval: true
+    secret_mounts: [tushare_token_file]
+    dotenv_mount_forbidden: true
+    reads: [sealed_moneyflow_request_plan, exact_approval_envelope]
+    writes: [isolated_moneyflow_batches, isolated_moneyflow_claims]
+  evaluator:
+    network_mode: none
+    reads: [sealed_target_plan, isolated_status_batches, isolated_moneyflow_batches]
+    writes: [sealed_recovery_report, sealed_run_manifest, evaluator_claim]
+  auditor:
+    network_mode: none
+    reads: [sealed_target_plan, isolated_batches, sealed_recovery_report]
+    writes: [sealed_audit_report, auditor_claim]
+  collectors_share_no_writable_mounts: true
+  evaluator_output_read_only_for_auditor: true
+
+release_scope_contract:
+  scope_kind: RECOVERY_NETWORK_RELEASE_NOT_EXECUTION_APPROVAL
+  exact_scope_must_bind:
+    - pushed_git_commit
+    - code_bundle_sha256
+    - immutable_image_id_and_platform
+    - predecessor_and_target_hashes
+    - exact_status_request_count_and_identity_bundle_sha256
+    - exact_moneyflow_request_counts_and_identity_bundle_sha256
+    - commands_mounts_resources_network_and_secret_roles
+    - provider_call_ceiling_and_transport_attempt_policy
+  approval_envelope_must_bind_exact_scope_sha256: true
+  prior_approval_reuse_forbidden: true
+  release_scope_is_not_execution_approval: true
+
+quality_gates:
+  intended_grain: source_date_x_ts_code
+  required:
+    - predecessor_identity_and_core_correction_pass
+    - target_parquet_physical_and_logical_identity_pass
+    - exact_key_projection_completeness_uniqueness_and_validity_pass
+    - request_plan_complete_no_extra_and_deterministic_pass
+    - immutable_plan_and_receipt_pass
+    - collector_claim_before_provider_pass
+    - three_attempt_transport_and_no_semantic_retry_pass
+    - isolated_batch_write_once_and_hash_pass
+    - evaluator_internal_replay_pass
+    - independent_auditor_exact_match_pass
+    - four_role_mount_network_and_secret_isolation_pass
+    - no_real_provider_call_in_construction_pass
+    - aggregate_only_tracked_manifest_and_credential_scan_pass
+    - architecture_and_full_test_pass
+    - scheduler_identity_unchanged_pass
+  verdict_if_all_pass: GO_M7_RECOVERY_EXACT_NETWORK_RELEASE_READY_ONLY
+  any_failure: BLOCKED_M7_RECOVERY_EXACT_NETWORK_RELEASE
+
+construction_authority:
+  protocol_freeze_authorized: true
+  offline_real_target_key_read_authorized: true
+  exact_request_plan_generation_authorized: true
+  live_role_engineering_authorized: true
+  mock_provider_fixture_authorized: true
+  docker_image_build_authorized: true
+  exact_release_scope_generation_authorized: true
+  external_network_authorized: false
+  live_provider_call_authorized: false
+  secret_read_authorized: false
+  approval_envelope_generation_authorized: false
+  recovery_execution_authorized: false
+  adjusted_coverage_authorized: false
+  candidate_label_return_effect_model_backtest_authorized: false
+  forward_paper_scheduler_web_authorized: false
+  production_data_or_ledger_write_authorized: false
+  research_attempt_increment: 0
+  production_authorization: none
+
+next_stop:
+  protocol_must_be_committed_and_pushed_before_request_plan_or_implementation: true
+  implementation_must_be_committed_and_pushed_before_release_scope: true
+  release_scope_must_be_generated_from_final_pushed_code_and_image: true
+  user_must_approve_exact_scope_before_network_secret_or_provider_use: true
+  approved_sentence_must_name_action_and_scope_sha256: true
+  same_scope_may_run_at_most_once: true
+  release_ready_is_not_data_gate_go: true
+  recovery_go_would_require_separate_successor_adjusted_coverage_protocol: true
