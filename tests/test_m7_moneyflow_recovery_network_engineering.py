@@ -85,6 +85,8 @@ def test_network_fixture_uses_only_mock_clients_and_stops_duplicate() -> None:
 
 def test_exact_release_has_four_narrow_roles_and_no_authority_before_approval() -> None:
     scope = _document()["scope"]
+    plan_id = str(scope["request_plan"]["plan_id"])
+    expected_plan_root = f"/plans/{plan_id}"
     assert set(scope["roles"]) == {
         "status_collector",
         "moneyflow_collector",
@@ -102,6 +104,19 @@ def test_exact_release_has_four_narrow_roles_and_no_authority_before_approval() 
         if item["mode"] == "rw"
     ]
     assert len(writable) == len(set(writable))
+    for role in scope["roles"].values():
+        command = role["command"]
+        assert command[command.index("--plan-root") + 1] == expected_plan_root
+        plan_mounts = [
+            item for item in role["mounts"] if item["source"].endswith(plan_id)
+        ]
+        assert plan_mounts == [
+            {
+                "source": scope["request_plan"]["plan_root_relative_path"],
+                "target": expected_plan_root,
+                "mode": "ro",
+            }
+        ]
     serialized = canonical_json(scope)
     assert "/run/secrets/tushare_token" in canonical_json(
         scope["roles"]["moneyflow_collector"]

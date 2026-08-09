@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
+import json
 import re
 from pathlib import Path
 
@@ -31,6 +33,12 @@ from shaiwei.research_gates.m7_moneyflow_recovery.projection_sealing import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
+TRACKED_MANIFEST = (
+    ROOT / "config/m7_moneyflow_evidence_recovery_request_plan_manifest_v1.json"
+)
+EXECUTION_MANIFEST = (
+    ROOT / "config/m7_moneyflow_evidence_recovery_request_plan_execution_manifest_v1.json"
+)
 
 
 def _network() -> NetworkReleaseProtocol:
@@ -237,3 +245,35 @@ def test_independent_request_plan_auditor_rebuilds_exact_coverage(
     assert audit["targeted"]["request_count"] == 541
     assert audit["exact_key_coverage"] is True
     assert audit["provider_call_count"] == 0
+
+
+def test_tracked_real_request_plan_manifest_is_aggregate_and_content_addressed() -> None:
+    serialized = TRACKED_MANIFEST.read_text(encoding="utf-8")
+    manifest = json.loads(serialized)
+    assert (
+        hashlib.sha256(TRACKED_MANIFEST.read_bytes()).hexdigest()
+        == "dcc2a78d8d399321bbd042acba009e9e39b428beb6640756c605e2498859bf43"
+    )
+    assert manifest["request_summary"]["status"]["request_count"] == 75
+    assert manifest["request_summary"]["status"]["required_key_count"] == 527
+    assert manifest["request_summary"]["full_market"]["request_count"] == 541
+    assert manifest["request_summary"]["targeted"]["request_count"] == 541
+    assert manifest["provider_call_count"] == 0
+    assert manifest["external_network_used"] is False
+    assert re.search(r"[0-9]{6}\.(?:SH|SZ|BJ)", serialized) is None
+
+
+def test_real_request_plan_execution_manifest_preserves_failure_and_recovery() -> None:
+    serialized = EXECUTION_MANIFEST.read_text(encoding="utf-8")
+    manifest = json.loads(serialized)
+    assert manifest["original_audit_failure"]["preserved"] is True
+    assert manifest["original_audit_failure"]["audit_output_created"] is False
+    assert manifest["audit"]["status"] == "PASS"
+    assert manifest["audit"]["audit_sha256"] == (
+        "4f63bfe8ccaee68195f37f82c57db038cf948311695ad9c74a2c973364bb7dd5"
+    )
+    assert manifest["audit"]["provider_call_count"] == 0
+    assert manifest["authority"]["external_network_authorized"] is False
+    assert manifest["authority"]["secret_read_authorized"] is False
+    assert manifest["authority"]["research_attempt_increment"] == 0
+    assert re.search(r"[0-9]{6}\.(?:SH|SZ|BJ)", serialized) is None

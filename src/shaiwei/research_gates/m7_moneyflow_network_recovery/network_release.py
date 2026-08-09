@@ -71,7 +71,12 @@ def code_bundle_sha256(project_root: Path) -> str:
     return sha256_json(inventory)
 
 
-def _command(module: str, role_paths: list[tuple[str, str]]) -> list[str]:
+def _command(
+    module: str,
+    role_paths: list[tuple[str, str]],
+    *,
+    plan_root: str,
+) -> list[str]:
     command = [
         "python",
         "-m",
@@ -79,7 +84,7 @@ def _command(module: str, role_paths: list[tuple[str, str]]) -> list[str]:
         "--project-root",
         "/opt/shaiwei",
         "--plan-root",
-        "/plans",
+        plan_root,
         "--release-scope",
         "/authorization/release.json",
         "--approval-envelope",
@@ -99,25 +104,26 @@ def _mounts(
     base = f"data/control/m7-recovery/network-runs/{suffix}"
     authorization = f"data/control/m7-recovery/network-authorizations/{suffix}"
     plans = str(plan_manifest["plan_root_relative_path"])
+    plan_target = f"/plans/{plan_manifest['plan_id']}"
     targets = protocol.target_projection_root
     secret = "data/control/m7-recovery/secrets/tushare_token"
     return {
         "status_collector": [
             {"source": authorization, "target": "/authorization", "mode": "ro"},
-            {"source": plans, "target": "/plans", "mode": "ro"},
+            {"source": plans, "target": plan_target, "mode": "ro"},
             {"source": f"{base}/status-batches", "target": "/batches", "mode": "rw"},
             {"source": f"{base}/status-claims", "target": "/claims", "mode": "rw"},
         ],
         "moneyflow_collector": [
             {"source": authorization, "target": "/authorization", "mode": "ro"},
-            {"source": plans, "target": "/plans", "mode": "ro"},
+            {"source": plans, "target": plan_target, "mode": "ro"},
             {"source": secret, "target": "/run/secrets/tushare_token", "mode": "ro"},
             {"source": f"{base}/moneyflow-batches", "target": "/batches", "mode": "rw"},
             {"source": f"{base}/moneyflow-claims", "target": "/claims", "mode": "rw"},
         ],
         "evaluator": [
             {"source": authorization, "target": "/authorization", "mode": "ro"},
-            {"source": plans, "target": "/plans", "mode": "ro"},
+            {"source": plans, "target": plan_target, "mode": "ro"},
             {"source": targets, "target": "/targets", "mode": "ro"},
             {"source": f"{base}/status-batches", "target": "/status", "mode": "ro"},
             {"source": f"{base}/moneyflow-batches", "target": "/moneyflow", "mode": "ro"},
@@ -126,7 +132,7 @@ def _mounts(
         ],
         "auditor": [
             {"source": authorization, "target": "/authorization", "mode": "ro"},
-            {"source": plans, "target": "/plans", "mode": "ro"},
+            {"source": plans, "target": plan_target, "mode": "ro"},
             {"source": targets, "target": "/targets", "mode": "ro"},
             {"source": f"{base}/status-batches", "target": "/status", "mode": "ro"},
             {"source": f"{base}/moneyflow-batches", "target": "/moneyflow", "mode": "ro"},
@@ -143,11 +149,13 @@ def _roles(
     git_commit: str,
 ) -> dict[str, Any]:
     mounts = _mounts(protocol, plan_manifest, git_commit)
+    plan_root = f"/plans/{plan_manifest['plan_id']}"
     return {
         "status_collector": {
             "command": _command(
                 "network_status_collector",
                 [("--batch-root", "/batches"), ("--claim-root", "/claims")],
+                plan_root=plan_root,
             ),
             "network_mode": "bridge",
             "mounts": mounts["status_collector"],
@@ -161,6 +169,7 @@ def _roles(
                     ("--claim-root", "/claims"),
                     ("--secret-file", "/run/secrets/tushare_token"),
                 ],
+                plan_root=plan_root,
             ),
             "network_mode": "bridge",
             "mounts": mounts["moneyflow_collector"],
@@ -176,6 +185,7 @@ def _roles(
                     ("--output-root", "/run"),
                     ("--claim-root", "/claims"),
                 ],
+                plan_root=plan_root,
             ),
             "network_mode": "none",
             "mounts": mounts["evaluator"],
@@ -192,6 +202,7 @@ def _roles(
                     ("--audit-root", "/audit"),
                     ("--claim-root", "/claims"),
                 ],
+                plan_root=plan_root,
             ),
             "network_mode": "none",
             "mounts": mounts["auditor"],
