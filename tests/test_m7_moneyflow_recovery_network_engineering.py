@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
@@ -179,6 +180,41 @@ def test_release_rejects_nonexact_counts() -> None:
             image_id="sha256:" + "c" * 64,
             platform="linux/arm64",
         )
+
+
+def test_tracked_real_network_release_is_exact_and_not_authorized() -> None:
+    manifest = json.loads(
+        (
+            ROOT / "config/m7_moneyflow_evidence_recovery_request_plan_manifest_v1.json"
+        ).read_text(encoding="utf-8")
+    )
+    release = NetworkRecoveryRelease.load(
+        ROOT / "config/m7_moneyflow_evidence_recovery_network_release_scope_v1.json",
+        _protocol(),
+        plan_manifest=manifest,
+        plan_manifest_sha256=(
+            "dcc2a78d8d399321bbd042acba009e9e39b428beb6640756c605e2498859bf43"
+        ),
+    )
+    assert release.sha256 == (
+        "a701e9ceb9bb77634a4feaa62fc640c3447555ef089bc7448577d48e5d68cb73"
+    )
+    assert release.scope["implementation"]["git_commit"] == (
+        "2741a09e26242bd339b3296370fd35290b991a6e"
+    )
+    assert release.scope["implementation"]["code_bundle_sha256"] == (
+        "a65cb9fabeceb31d6b9fc88f71dc15b16f1bbd0794567ff0006d8160be969a24"
+    )
+    assert release.scope["image"]["image_id"] == (
+        "sha256:5b15e23f78f3a71e60390b50a8e3f2a74da8b4247c19fade88137002f030b3da"
+    )
+    assert release.scope["provider_limits"]["exact_provider_request_count"] == 1157
+    assert release.scope["provider_limits"]["maximum_transport_attempt_count"] == 3471
+    assert release.scope["authority"]["approval_recorded"] is False
+    assert release.scope["authority"]["execution_authorized"] is False
+    assert release.scope["authority"]["network_authorized"] is False
+    assert release.scope["authority"]["provider_call_authorized"] is False
+    assert release.scope["authority"]["secret_read_authorized"] is False
 
 
 def test_network_docker_fixture_is_offline_read_only_and_unmounted() -> None:

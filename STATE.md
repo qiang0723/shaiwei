@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-09 · M7-0R3-P2最终网络release就绪，停在精确批准前
+
+- 最终scope`a701e9ce...cb73`绑定Git`2741a09`、代码束`a65cb9fa...9a24`、arm64镜像
+  `5b15e23f...b3da`、计划manifest`dcc2a78d...f43`及四角色内容寻址挂载；最终断网mock fixture PASS。
+- 精确上限为75次状态窗口、541次全市场moneyflow、541次单票单日moneyflow，共1,157个provider请求，
+  最坏3,471次传输尝试；语义空响应不重试、已claim失败不重试、同scope不得重跑。
+- 当前`approval_recorded/execution/network/provider/secret=false`，批准envelope和专用token文件未创建，
+  真实调用仍为0；scheduler原容器/镜像healthy且未重启，七个自然账本未暂存。
+- 只有用户绑定完整scope并批准动作`M7_MONEYFLOW_EVIDENCE_RECOVERY_ONCE`后才可执行；不得复用历史批准。
+  见`docs/M7_MONEYFLOW_EVIDENCE_RECOVERY_NETWORK_RELEASE_ACCEPTANCE_20260809.md`。
+
 ## 2026-08-09 · M7-0R3-P2精确请求计划及独立审计GO，待最终网络scope
 
 - 用户绑定恢复scope`3a5d201b...9592f`后，唯一断网auditor恢复PASS：75个状态窗口精确覆盖527键，
