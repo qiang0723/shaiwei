@@ -17,8 +17,10 @@ COPY src/shaiwei/research_gates/m7_moneyflow ./src/shaiwei/research_gates/m7_mon
 COPY src/shaiwei/research_gates/m7_moneyflow_recovery ./src/shaiwei/research_gates/m7_moneyflow_recovery
 COPY config/m7_moneyflow_evidence_recovery_v1.yaml ./config/
 COPY config/m7_moneyflow_evidence_recovery_engineering_v1.yaml ./config/
+COPY config/m7_moneyflow_recovery_release_build_v1.yaml ./config/
 COPY config/m7_moneyflow_gap_lineage_execution_manifest_v1.json ./config/
 COPY docs/M7_MONEYFLOW_GAP_LINEAGE_EXECUTION_ACCEPTANCE_20260809.md ./docs/
+COPY docs/M7_MONEYFLOW_EVIDENCE_RECOVERY_ENGINEERING_ACCEPTANCE_20260809.md ./docs/
 
 RUN groupadd --gid 65532 recovery \
     && useradd --uid 65532 --gid 65532 --no-create-home --shell /usr/sbin/nologin recovery \

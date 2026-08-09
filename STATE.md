@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-09 · M7-0R3真实恢复release前置工程GO，停在离线目标投影前
+
+- 结果前构建合同提交`e43bee4`已先推送；新增目标投影、依赖注入provider、隔离批次、读取校验、断网
+  evaluator、独立auditor、四角色release、封存与fixture九个窄模块，最大201行，不改冻结主审实现。
+- 合成真实规模投影908/541，批次绑定release/request/schema/行数/内容哈希；重复request在provider前
+  停止、批次重复写和篡改失败关闭，evaluator内部双跑与DuckDB独立审计完全一致。
+- 不可执行synthetic scope`cac367d0...421d`，断网只读Docker报告`87abea55...0d12`、审计
+  `faea8b8f...2878`；全仓1,026、架构13 PASS，scheduler原容器/镜像healthy且未重启。
+- 权威只裁`GO_M7_RECOVERY_RELEASE_ENGINEERING_ONLY`；真实键/数值/provider/凭据/外网/生产均为0，
+  原M7/R2 NO-GO不变。下一步须新批准一次断网key-only目标投影，之后才可生成并另批精确网络scope。
+  见`docs/M7_MONEYFLOW_RECOVERY_RELEASE_ENGINEERING_ACCEPTANCE_20260809.md`。
+
 ## 2026-08-09 · M7-0R3双轨恢复synthetic工程门GO，停在真实release前
 
 - synthetic工程合同提交`48a9a0a`先于实现推送；新增8个窄职责模块，最大文件低于400行，未修改

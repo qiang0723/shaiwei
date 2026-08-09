@@ -553,7 +553,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M7-0 | 三自建科创池资金流键级兼容门 | 权威`NO_GO_M7_0_DATA_COMPATIBILITY`：14门12 PASS/2 FAIL，4个早期池×半年覆盖低于99%；另有SH-only源正则共享缺陷但不改NO-GO；独立audit PASS | scope关闭不得重跑，不进入八候选；策略仍NOT_EVALUATED。未来若继续须另立早期半年缺口谱系恢复协议和新scope，不得降门槛或复用本approval |
 | M7-0R1 | M7资金流恢复前工程门 | `GO_ENGINEERING_PREREQUISITES_ONLY`；全A源`.SH/.SZ`与科创成员`.SH`域已分离，pre-read一次性消费原语合成对抗PASS，v1三组哈希不变 | 尚未形成真实successor入口或数据release；下一步另立缺口谱系协议/新scope，保持旧门槛，精确批准前真实键和缺口读取0 |
 | M7-0R2 | M7资金流早期缺口谱系 | 权威`NO_GO_M7_GAP_LINEAGE_INCOMPLETE`：2,615条缺口完整分区、冲突0，但908条只有主源全天停牌而缺独立确认；另有541条daily存在但moneyflow缺键；独立audit PASS | scope关闭不得重跑，原M7 NO-GO不变且不进入候选；未来若继续须新协议补独立交易状态证据并处理已确认交易缺键，不得算调整覆盖率或复用本approval |
-| M7-0R3 | M7资金流双轨证据恢复 | synthetic工程GO：908/541规模、13类正常/对抗场景、Pandas主算/DuckDB独立审计、请求claim/重试及断网Docker均PASS；真实调用/键/数值0，原门槛/分母/NO-GO不变 | 停在真实release前；须另立真实输入适配与release目标、实现先推送、生成新精确scope并获用户批准，才可联网或读真实键/数值；仍不计算调整覆盖率或进入候选 |
+| M7-0R3 | M7资金流双轨证据恢复 | synthetic领域工程及真实release前置工程均GO：四角色隔离、目标投影/provider适配/不可变批次/evaluator/auditor已实现，真实调用/键/数值0，原门槛/分母/NO-GO不变 | 停在断网key-only真实目标投影前；须新批准投影并先形成908/541目标manifest，之后才能生成另一个精确网络scope再获批准；仍不计算调整覆盖率或进入候选 |
 | M6-0 | 中证800模型/组合归因小批协议 | 三臂、六窗、11日purge、Top30/3/10日、三档成本及NW(10)+Holm已结果前冻结；真实结果0 | 已由M6-1工程门和M6-2真实release继承，不得增加第三臂、网格、多seed、新因子或组合变体 |
 | M6-1 | 中证800模型归因结果盲工程门 | `GO_ENGINEERING_ONLY`；五终态、十二失败关闭、Qlib模型工厂、统计裁决和独立audit均PASS；真实拟合/效果0 | 已作为M6-2冻结上游；工程GO不代表策略有效，也不自动授权真实运行 |
 | M6-2 | 中证800模型归因真实release | 唯一runner及内部双跑完成、2次尝试已消费；原auditor入口故障永久保留，正式结果已由M6-2R原算法独立恢复审计 | 原runner/scope不得重跑；效果只作M6归因，不写生产授权 |
