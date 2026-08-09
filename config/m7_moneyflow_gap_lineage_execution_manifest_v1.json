@@ -1,0 +1,120 @@
+{
+  "approval": {
+    "canonical_sha256": "46863131c056bbdc4b77538c7bda24d2f097bea75ab260d29062d89e1fe50e03",
+    "physical_sha256": "c3ab54c87ea1e39a3bf089e54eaf5295beb35a49e6c2cf9b5c526c30bd113565",
+    "proposal_integrity_verified": true
+  },
+  "artifacts": {
+    "audit_report": {
+      "bytes": 1841,
+      "path": "data/control/m7-lineage/audits/5f3e28088038e423d2f21a1c8b712457b620045749c9052c730cdc777871f9a7-6178ba4/1e78e7c61760ea9dd3d8f5b2747d483a67d292420ecfa6efae20d60092154ea4/audit_report.json",
+      "sha256": "2c088db6ba24ec5cd6ca18e6f9ec498d405bce9d94b72f6a0a6c9df20f5c6afe"
+    },
+    "auditor_claim": {
+      "bytes": 606,
+      "path": "data/control/m7-lineage/claims/5f3e28088038e423d2f21a1c8b712457b620045749c9052c730cdc777871f9a7-6178ba4/1e78e7c61760ea9dd3d8f5b2747d483a67d292420ecfa6efae20d60092154ea4.auditor.json",
+      "sha256": "48b531296f111443c3802c5aa069152d15ba5eb0fe387a8e679d70397d356eaa"
+    },
+    "bundle_manifest": {
+      "bytes": 1765434,
+      "file_count": 10927,
+      "path": "data/control/m7-lineage/input-bundles/5f3e28088038e423d2f21a1c8b712457b620045749c9052c730cdc777871f9a7-6178ba4/bundle_manifest.json",
+      "sha256": "3f4a6cc371186c3864d8ec857c4641e49b66fa38d9e8083c6b2e0a38d9a005eb"
+    },
+    "lineage_report": {
+      "bytes": 36412,
+      "path": "data/control/m7-lineage/outputs/5f3e28088038e423d2f21a1c8b712457b620045749c9052c730cdc777871f9a7-6178ba4/1e78e7c61760ea9dd3d8f5b2747d483a67d292420ecfa6efae20d60092154ea4/lineage_report.json",
+      "sha256": "223b23ffcc0b3fd331f27be3a13fd46ce3173507c6ac9dd85a29c70816077e3b"
+    },
+    "run_manifest": {
+      "bytes": 704,
+      "path": "data/control/m7-lineage/outputs/5f3e28088038e423d2f21a1c8b712457b620045749c9052c730cdc777871f9a7-6178ba4/1e78e7c61760ea9dd3d8f5b2747d483a67d292420ecfa6efae20d60092154ea4/run_manifest.json",
+      "sha256": "43e5600d35a98208b06cb6af79e30ab50f13da1bb7b05431795f92d6035c4731"
+    },
+    "runner_claim": {
+      "bytes": 605,
+      "path": "data/control/m7-lineage/claims/5f3e28088038e423d2f21a1c8b712457b620045749c9052c730cdc777871f9a7-6178ba4/1e78e7c61760ea9dd3d8f5b2747d483a67d292420ecfa6efae20d60092154ea4.runner.json",
+      "sha256": "bdb4a4937b960624a9e949c431af66e3ac5bf5b79ee1f5e5dc16514aa346563f"
+    }
+  },
+  "authority": {
+    "adjusted_or_counterfactual_coverage_computed": false,
+    "candidate_definition_count": 0,
+    "effect_test_count": 0,
+    "generation_attempt_increment": 0,
+    "numeric_daily_value_columns_read": 0,
+    "numeric_moneyflow_value_columns_read": 0,
+    "production_authorization": "none",
+    "strategy_effective": "NOT_EVALUATED"
+  },
+  "data_quality": {
+    "category_counts": {
+      "CONFIRMED_MONEYFLOW_GAP_DAILY_PRESENT": 541,
+      "CONFIRMED_NONTRADING_INDEPENDENT": 9,
+      "CONFLICTING_INDEPENDENT_TRADE_STATUS": 0,
+      "CONFLICTING_PRIMARY_SUSPENSION_ROWS": 0,
+      "CONFLICT_DAILY_ABSENT_INDEPENDENT_TRADING": 0,
+      "CONFLICT_DAILY_PRESENT_INDEPENDENT_NONTRADING": 0,
+      "INTRADAY_SUSPENSION_NOT_EXPLANATION": 0,
+      "PRIMARY_FULL_DAY_SUSPENSION_ONLY_UNRESOLVED": 908,
+      "QUARANTINED_SOURCE_DATE": 1157,
+      "UNRESOLVED_NO_TRADE_EVIDENCE": 0
+    },
+    "category_rates_within_missing": {
+      "CONFIRMED_MONEYFLOW_GAP_DAILY_PRESENT": 0.206883365201,
+      "CONFIRMED_NONTRADING_INDEPENDENT": 0.0034416826,
+      "PRIMARY_FULL_DAY_SUSPENSION_ONLY_UNRESOLVED": 0.347227533461,
+      "QUARANTINED_SOURCE_DATE": 0.442447418738
+    },
+    "cell_count": 33,
+    "conflict_row_count": 0,
+    "failed_gate_count": 1,
+    "failed_gates": [
+      {
+        "gate_id": "unresolved_row_count_zero",
+        "observed": 908,
+        "threshold": 0
+      }
+    ],
+    "grain": "feature_date_x_universe_id_x_ts_code",
+    "half_year_segment_count": 11,
+    "membership_row_count": 757636,
+    "missing_row_count": 2615,
+    "partition_delta": 0,
+    "passed_gate_count": 5,
+    "universe_count": 3,
+    "unresolved_row_count": 908,
+    "validity_error_row_count": 0
+  },
+  "desensitization": {
+    "absolute_paths_included": false,
+    "credentials_included": false,
+    "raw_or_derived_business_rows_included": false,
+    "security_codes_included": false
+  },
+  "execution_controls": {
+    "auditor_role_consumed_once": true,
+    "exact_claim_count": 2,
+    "input_bundle_semantic_rows_read_during_materialization": false,
+    "network_mode": "none",
+    "runner_internal_replay_pass": true,
+    "runner_role_consumed_once": true,
+    "same_identity_retry_authorized": false
+  },
+  "independent_audit": {
+    "checked_gate_count": 6,
+    "independent_recomputed_core_sha256": "df5de3990428e630eb2f56380601f3bee12fee2d2220a99c48c286e3701beeca",
+    "reported_core_sha256": "df5de3990428e630eb2f56380601f3bee12fee2d2220a99c48c286e3701beeca",
+    "status": "PASS"
+  },
+  "input_manifest_physical_sha256": "01430f44e2233439763dbefbeb90d060d87f46c9859f1cfceac6e9ab64a151a7",
+  "input_manifest_sha256": "5f3e28088038e423d2f21a1c8b712457b620045749c9052c730cdc777871f9a7",
+  "production_authorization": "none",
+  "protocol_id": "m7-moneyflow-gap-lineage-v1",
+  "protocol_sha256": "bf5ebac79cb1b81699e5a8f4d1fae13b78dedb35e7ed19672e0c69ea8254ad9e",
+  "release_scope_sha256": "9b5e40ec772df4a179fd3b57449304f32bf45f673a0627b1b2e1787e595c0cae",
+  "run_id": "1e78e7c61760ea9dd3d8f5b2747d483a67d292420ecfa6efae20d60092154ea4",
+  "schema_version": "m7-moneyflow-gap-lineage-execution-manifest-v1",
+  "strategy_effective": "NOT_EVALUATED",
+  "verdict": "NO_GO_M7_GAP_LINEAGE_INCOMPLETE"
+}

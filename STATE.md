@@ -2,18 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-08-09 · M7-0R2缺口谱系release就绪，停在精确批准前
+## 2026-08-09 · M7-0R2真实缺口谱系权威NO-GO，scope关闭
 
-- 全域谱系协议以提交`5d83f3e`先行推送；诊断覆盖原M7三池×11半年，不按已知4个失败单元裁剪，
-  不修改PIT、分母或99.5%/99%/95%门，也不输出调整后覆盖率。
-- metadata-only清单绑定daily 8,225批/10,563,948行、suspend_d 1,328批/51,997行、Baostock
-  16批/3,755行和原1,342文件输入束；逐footer/行数/schema/SHA通过，真实证券键/缺口类别读取0。
-- 新独立包把10类缺口做完整互斥分区，Pandas主算/DuckDB独立audit及pre-read一次性入口合成PASS；
-  15模块最大278行。全仓988、架构13 PASS，最终断网fixture SHA`07b61e11...7b2ab`。
-- 最终scope`9b5e40ec...c0cae`绑定已推送实现`6178ba4`、输入manifest`5f3e2808...1f9a7`和
-  arm64镜像`3f827cc8...4cda6`；当前execution=false。原M7权威NO-GO不变、策略NOT_EVALUATED、
-  尝试0、生产none。下一步只等用户绑定完整scope批准一次`M7_MONEYFLOW_GAP_LINEAGE_ONCE`，同scope
-  不得重跑。见`docs/M7_MONEYFLOW_GAP_LINEAGE_RELEASE_ACCEPTANCE_20260809.md`。
+- 用户精确批准scope`9b5e40ec...c0cae`后，live proposal完整性复算PASS；断网runner和独立DuckDB
+  auditor各唯一执行一次，恰留两个pre-read claim，同身份重试为false。run ID`1e78e7c...54ea4`。
+- 原M7 757,636成员行中的2,615条缺口完整落入10类：1,157条隔离日、541条daily存在但moneyflow
+  缺键、9条独立确认未交易、908条只有主源全天停牌而缺独立确认；分区差0、冲突0，但未决908。
+- 六门5 PASS/1 FAIL，`unresolved_row_count_zero`独立失败；Pandas内部回放和DuckDB独立复算core均为
+  `df5de399...eeca`，audit PASS。权威裁决`NO_GO_M7_GAP_LINEAGE_INCOMPLETE`。
+- 资金流/daily数值列读取0，未计算调整覆盖率，候选/效果/尝试0，策略NOT_EVALUATED、生产none；原M7
+  `NO_GO_M7_0_DATA_COMPATIBILITY`不变。scope关闭，不进入候选。未来若继续须以新协议补独立交易状态
+  证据并处理541条已确认交易缺键，不得重跑或复用本approval。见
+  `docs/M7_MONEYFLOW_GAP_LINEAGE_EXECUTION_ACCEPTANCE_20260809.md`。
 
 ## 2026-08-08 · M7-0R1恢复前工程门GO，停在缺口谱系协议前
 
