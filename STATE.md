@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-09 · A1-3A M7本地归档恢复PASS，远端耐久性未就绪
+
+- M7终局annotated tag `m7-moneyflow-recovery-final-20260809`已推送到`origin`，精确指向
+  `49e9d740...98c7`，建立可远端恢复的代码锚点且禁止移动tag。
+- 冻结arm64镜像`5b15e23f...b3da`已导出到项目内Git忽略只读tar，SHA-256为
+  `d4f8e1e7...546d`；当前Docker引擎load回同一image ID，断网/只读/零项目挂载synthetic fixture PASS，
+  外网和真实密钥读取0。
+- M7终局真实执行证据复核为3,480文件/237,604,601 bytes，报告、manifest、audit哈希均与终局验收一致；
+  未重跑provider/evaluator/auditor，未读取效果或生成新研究尝试。
+- 裁决`LOCAL_ARCHIVE_REHEARSAL_PASS_REMOTE_DURABILITY_NOT_READY`：镜像和Git忽略证据仍无异机副本，也未
+  在全新Docker引擎或另一台主机恢复，故不是灾备完成；`SAFE_DELETE_NOW=[]`、A1-3B未授权、删除0。
+- scheduler保持`183b8c6c5edd`/`722f63de...13b76`/healthy且未重启；七个自然账本未暂存。下一步等待
+  用户指定远程服务器或私有registry，再做异机恢复门；见`docs/ADR_A1_3A_M7_ARCHIVE_READINESS_20260809.md`。
+
 ## 2026-08-09 · A1-2活跃/归档/删除候选只读复核完成
 
 - 当前tracked code 683文件/136,013行，核心Python 354文件/73,711行；较A1-0增长14,660行，但新增

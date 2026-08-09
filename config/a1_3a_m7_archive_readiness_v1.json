@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-09T21:31:40+08:00",
+  "scope": "A1-3A_M7_ARCHIVE_READINESS_DELETE_ZERO",
+  "verdict": "LOCAL_ARCHIVE_REHEARSAL_PASS_REMOTE_DURABILITY_NOT_READY",
+  "terminal_m7_authority_preserved": {
+    "verdict": "NO_GO_M7_EVIDENCE_RECOVERY_INCOMPLETE",
+    "strategy_effective": "NOT_EVALUATED",
+    "production_authorization": "none"
+  },
+  "code_archive": {
+    "annotated_tag": "m7-moneyflow-recovery-final-20260809",
+    "tag_object_sha": "f51f189ae0130898cfd382c3f3b5f39cb771a078",
+    "target_commit_sha": "49e9d740e3ed44121e14047c338212913b7798c7",
+    "remote": "origin",
+    "pushed": true,
+    "tag_move_allowed": false
+  },
+  "frozen_image": {
+    "local_tag": "shaiwei:m7-moneyflow-recovery-network-local",
+    "image_id": "sha256:5b15e23f78f3a71e60390b50a8e3f2a74da8b4247c19fade88137002f030b3da",
+    "os": "linux",
+    "architecture": "arm64",
+    "image_size_bytes": 165893779,
+    "archive_path": "data/archive/m7-moneyflow-recovery-final-20260809/images/m7-moneyflow-recovery-network-arm64.tar",
+    "archive_sha256": "d4f8e1e7913a557ad6d68fdc5862fd4b1d2b2dcfd7591ce817310e1e5ae2546d",
+    "archive_size_bytes": 165929984,
+    "archive_mode": "0444",
+    "git_ignored": true,
+    "remote_registry_copy_verified": false,
+    "off_host_copy_verified": false
+  },
+  "local_restore_rehearsal": {
+    "docker_load_from_archive_pass": true,
+    "loaded_image_id": "sha256:5b15e23f78f3a71e60390b50a8e3f2a74da8b4247c19fade88137002f030b3da",
+    "fresh_daemon_or_other_host_restore_verified": false,
+    "fixture_network": "none",
+    "fixture_root_filesystem": "read_only",
+    "fixture_project_mount_count": 0,
+    "fixture_capabilities_dropped": "ALL",
+    "fixture_no_new_privileges": true,
+    "fixture_status": "PASS",
+    "fixture_stdout_sha256": "24910b0fd02d21a8ccc2ece63b49e8795494190732681ab75ace96e066a2bb23",
+    "fixture_external_network_used": false,
+    "fixture_secret_read": false,
+    "fixture_real_security_key_read": false,
+    "fixture_production_authorization": "none"
+  },
+  "sealed_execution_evidence": {
+    "run_root": "data/control/m7-recovery/network-runs/406f083f09cc-2741a09",
+    "run_id": "532e76d98c1bef1b57aded4b079db202042c38a79ff39fb0a9c0d0bb7573dec1",
+    "file_count": 3480,
+    "total_bytes": 237604601,
+    "aggregate_file_hash_listing_sha256": "da6897ee526605911afa4384174d2a973e08f095b7ce0d69b38da6cc98064ff4",
+    "status_collection_manifest_sha256": "44f1eb4bb774819c648590c0c4d0238ca3f76e89c0d92f0b3c017366a4db45cc",
+    "moneyflow_collection_manifest_sha256": "24c18fc9da90133b9ab30e01fc6eab8dd73f980cccbf57bd57fb33e049e03ddb",
+    "evaluation_report_sha256": "94a3b09346c27f5d358e52bccd408826af0b72553991519de08730ce1da47e3a",
+    "evaluation_manifest_sha256": "161c4c65e7250a6ff763b03daa5a61e073a89ce9fd40c1bd667e53a743992c5f",
+    "independent_audit_sha256": "f870534a7ac035d14d763b5e4405525e44f3fee85c8c542aea82b02810896604",
+    "tracked_execution_manifest_sha256": "573e52f754c0d62cc5670bd7200767c006e28eb3567903f4314d3d38de8569da",
+    "off_host_backup_verified": false
+  },
+  "production_scheduler": {
+    "container_id": "183b8c6c5edd",
+    "image": "shaiwei:scheduler-current",
+    "image_id": "sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76",
+    "health": "healthy",
+    "restarted": false,
+    "identity_unchanged": true
+  },
+  "archive_limits": {
+    "remote_image_retrievability_verified": false,
+    "off_host_execution_evidence_verified": false,
+    "disaster_recovery_verified": false,
+    "local_disk_loss_tolerated": false
+  },
+  "cleanup_authority": {
+    "safe_delete_now": [],
+    "files_deleted": 0,
+    "lines_deleted": 0,
+    "a1_3b_authorized": false,
+    "reason": "Code is remotely tagged and local restore passed, but image and ignored execution evidence have no verified off-host copy and no clean-daemon or other-host restore proof."
+  },
+  "hygiene": {
+    "raw_or_derived_business_data_added_to_git": false,
+    "credentials_added_to_git": false,
+    "natural_ledgers_staged": false
+  }
+}
