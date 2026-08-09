@@ -1,0 +1,125 @@
+schema_version: 1
+protocol_id: r2-1-forward-checkpoint-v1
+frozen_at: 2026-08-09T22:34:00+08:00
+status: FROZEN_DESCRIPTIVE_ONLY
+authority:
+  strategy_effect_gate: NOT_DEFINED
+  production_switch_authorized: false
+  new_research_attempt_count: 0
+  current_partial_results_already_known: true
+  confirmatory_or_blind_test_allowed: false
+
+accounts:
+  control:
+    account_id: model_baseline
+    execution_policy_version: paper-v1
+    policy_sha256: eaa341b5a3eee94347c7a8453a3e52f1986e3707abfbb6bb69a6d9298c320cc8
+  comparison:
+    account_id: model_top20
+    execution_policy_version: paper-top20-v1
+    policy_sha256: d11d773bd79719641dc1bbc35976d4899fddb730d0f3673094cb6f20cc7840c8
+  initial_capital_rmb_each: 500000
+  benchmark: 000906.SH
+
+evidence_strata:
+  protocol_forward:
+    definition: both_account_artifacts_have_mode_FORWARD_and_PASS
+    current_observation_count: 10
+    current_rebalance_count: 1
+    current_execution_range: 20260727-20260807
+    primary_checkpoint_eligible: false
+  controlled_catchup_forward:
+    definition: at_least_one_account_started_local_date_is_after_execution_trade_date
+    current_observation_count: 5
+    current_rebalance_count: 1
+    current_execution_range: 20260727-20260731
+    primary_checkpoint_eligible: false
+  live_dual_forward:
+    definition: both_accounts_started_on_execution_trade_date_in_Asia_Shanghai
+    current_observation_count: 5
+    current_rebalance_count: 0
+    current_execution_range: 20260803-20260807
+    primary_checkpoint_eligible: true
+
+primary_checkpoint:
+  observation_start_execution_date: '20260803'
+  state_anchor_execution_date: '20260731'
+  anchor_is_observation: false
+  minimum_live_dual_forward_days: 20
+  minimum_live_dual_rebalance_cycles: 2
+  required_official_trade_date_coverage: 1.0
+  expected_first_live_rebalance_execution_date: '20260814'
+  expected_first_due_execution_date: '20260828'
+  dates_are_planning_only: true
+  natural_day_predicates:
+    - both_rows_status_PASS
+    - both_artifacts_mode_FORWARD
+    - both_operators_equal_docker_scheduler
+    - both_started_at_local_date_equal_execution_trade_date
+    - account_ids_and_policy_sha256_match_frozen_accounts
+    - signal_trade_date_execution_trade_date_signal_sha256_reconciliation_sha256_match
+    - data_snapshot_sha256_and_code_snapshot_sha256_match_between_accounts
+    - every_official_SSE_open_day_from_start_is_present_once_per_account
+    - replay_accounting_freshness_and_bse_zero_pass_for_both_accounts
+  rebalance_cycle_predicate:
+    - matched_shadow_signal_rebalance_due_true
+    - both_account_days_complete_and_PASS
+    - order_and_fill_counts_reported_even_when_zero
+  fail_closed_on_any_missing_or_mismatch: true
+
+anchor_identity:
+  shared_signal_sha256: d68cc8f0aeae715f014408aa69b4fd353c87a87df73e75fab8d9ffbcfb316d69
+  control_run_id: 1ce067a20af4e771da57
+  control_artifact_sha256: 9a0c2c6ce48571dc688a68c9d88314885a814b74eabb80cc9fe0b81f1fef10a1
+  comparison_run_id: 8a6c1f87e16f1630eb27
+  comparison_artifact_sha256: a7ae574465117b9287dc3ef94c6519883a3d2eaa7ec14314d6e9445175ad03a3
+  note: comparison_anchor_is_controlled_catchup_state_that_seeded_first_live_day
+
+descriptive_outputs:
+  per_account:
+    - anchored_portfolio_nav
+    - anchored_benchmark_nav
+    - anchored_net_excess
+    - maximum_drawdown
+    - cumulative_turnover
+    - checkpoint_fees
+    - latest_and_mean_cash_ratio
+    - latest_position_count
+  paired:
+    - top20_minus_top30_anchored_portfolio_nav
+    - top20_minus_top30_anchored_net_excess
+    - rebalance_order_fill_and_rejection_comparison
+    - execution_coverage_and_freshness_comparison
+
+formulae:
+  anchored_portfolio_nav: normalized_nav_t / normalized_nav_at_common_anchor
+  anchored_benchmark_nav: benchmark_nav_t / benchmark_nav_at_common_anchor
+  anchored_net_excess: anchored_portfolio_nav - anchored_benchmark_nav
+  paired_nav_delta: top20_anchored_portfolio_nav - top30_anchored_portfolio_nav
+  checkpoint_fees: cumulative_fees_t - cumulative_fees_at_common_anchor
+  maximum_drawdown: min(anchored_portfolio_nav_t / running_max_anchored_portfolio_nav_t - 1)
+
+terminal_states:
+  NOT_DUE: live_day_or_rebalance_minimum_not_met
+  BLOCKED_EVIDENCE: any_identity_coverage_replay_accounting_freshness_or_bse_gate_fails
+  OBSERVED_WITH_EXECUTION_WARN: evidence_complete_but_nonfatal_execution_or_notification_warning_exists
+  CHECKPOINT_OBSERVED: evidence_complete_and_no_warning
+
+prohibited_outputs:
+  - winner_or_loser_label
+  - strategy_effective_or_ineffective
+  - production_switch_recommendation
+  - annualized_return
+  - annualized_volatility
+  - sharpe_ratio
+  - information_ratio
+  - p_value_or_significance_claim
+  - pooling_controlled_catchup_with_live_dual_primary_series
+  - silently_dropping_missing_trade_dates
+  - changing_model_topk_rebalance_cost_or_capital
+
+freeze_input_identity:
+  paper_runs_ledger_sha256: f4ee66eaf52de42d989c969bc9814db2208ee28b9ee1ac8da41b670904881ac0
+  shadow_runs_ledger_sha256: ccccc96ba8041a7c714f1b9129484a1a64deab26e4f7cd3b241395484f2f8f7a
+  shadow_reconciliations_ledger_sha256: 50ab63962087756ea1e65e01c07c67480b9b53cdb5c5a1ee02bf999ac55f57ac
+  sse_trade_calendar_sha256: 69a93256b20db6f99538fb6a23da1981f3285e9d099fbed86c7919150aad56df
