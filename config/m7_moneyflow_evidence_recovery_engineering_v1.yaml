@@ -1,0 +1,130 @@
+schema_version: m7-moneyflow-evidence-recovery-engineering-v1
+build_protocol_id: m7-moneyflow-evidence-recovery-engineering-v1
+frozen_at: "2026-08-09T10:47:00+08:00"
+stage: SYNTHETIC_ENGINEERING_ONLY
+authorization_basis: explicit_new_goal_after_protocol_freeze
+
+frozen_predecessor:
+  protocol_id: m7-moneyflow-evidence-recovery-v1
+  protocol_path: config/m7_moneyflow_evidence_recovery_v1.yaml
+  protocol_sha256: 93a774d8939d443dd5d925e61a7f4727ff9464a969171dcaca58322f9b2b5d53
+  protocol_commit: efb1f6c49257eb25f20edcced5345d5f160f4b5d
+  protocol_commit_pushed_before_engineering: true
+  protocol_acceptance_path: docs/M7_MONEYFLOW_EVIDENCE_RECOVERY_PROTOCOL_20260809.md
+  original_m7_verdict: NO_GO_M7_0_DATA_COMPATIBILITY
+  lineage_verdict: NO_GO_M7_GAP_LINEAGE_INCOMPLETE
+  predecessor_scopes_closed: true
+
+result_and_scope_disclosure:
+  result_blind: false
+  track_a_known_member_rows: 908
+  track_b_known_member_rows: 541
+  recovery_result_inspected: false
+  actual_provider_request_count: 0
+  actual_research_attempt_increment: 0
+
+implementation_boundary:
+  package: src/shaiwei/research_gates/m7_moneyflow_recovery
+  responsibilities:
+    - frozen_contract_loading
+    - exact_target_request_planning
+    - request_level_pre_read_claims
+    - pandas_quality_computation
+    - independent_duckdb_audit
+    - synthetic_fixture
+  existing_files_that_must_not_change:
+    - src/shaiwei/transform/availability.py
+    - src/shaiwei/ingest/baostock.py
+    - tools/p1_moneyflow/contract.py
+    - src/shaiwei/research_gates/m7_moneyflow_lineage/compute.py
+    - src/shaiwei/research_gates/m7_moneyflow_lineage/audit_compute.py
+  public_runtime_service_added: false
+  new_external_dependency_added: false
+  public_schema_or_ledger_changed: false
+  adr_required: false
+  module_soft_limit_lines: 400
+  unbounded_utils_or_helpers_forbidden: true
+
+synthetic_fixture_contract:
+  track_a_member_rows: 908
+  track_b_member_rows: 541
+  provider_calls_are_mocks: true
+  real_security_codes_read: false
+  real_moneyflow_values_read: false
+  fixture_scenarios:
+    - complete_go
+    - status_trading_conflict
+    - status_missing_unresolved
+    - moneyflow_one_shape_missing
+    - moneyflow_both_shapes_missing
+    - moneyflow_content_conflict
+    - duplicate_target_key
+    - invalid_or_bj_key
+    - saturated_response
+    - immutable_batch_failure
+    - duplicate_claim_before_loader
+    - retryable_transport_three_attempt_cap
+    - semantic_failure_no_retry
+  main_and_independent_audit_exact_match_required: true
+  canonical_double_run_required: true
+  tracked_output_must_not_contain_security_codes: true
+
+container_contract:
+  one_shot_fixture_only: true
+  network_mode: none
+  read_only_root: true
+  run_as_non_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  env_file_mount_forbidden: true
+  project_root_mount_forbidden: true
+  docker_socket_mount_forbidden: true
+  production_data_ledger_log_mounts_forbidden: true
+  cpus: "1.0"
+  memory: 2g
+
+acceptance_gates:
+  required:
+    - frozen_protocol_identity_pass
+    - exact_target_planners_pass
+    - track_a_state_evidence_fail_closed_pass
+    - track_b_same_semantic_dual_shape_fail_closed_pass
+    - request_claim_and_retry_contract_pass
+    - main_audit_exact_match_pass
+    - double_run_determinism_pass
+    - aggregate_only_output_pass
+    - docker_offline_fixture_pass
+    - legacy_m7_and_lineage_regression_pass
+    - architecture_check_pass
+    - full_test_pass
+    - ruff_and_diff_check_pass
+    - secret_and_business_row_hygiene_pass
+    - scheduler_identity_unchanged_pass
+  verdict_if_all_pass: GO_M7_EVIDENCE_RECOVERY_ENGINEERING_ONLY
+  any_failure: BLOCKED_M7_EVIDENCE_RECOVERY_ENGINEERING
+
+authority:
+  synthetic_engineering_authorized: true
+  synthetic_fixture_authorized: true
+  docker_image_build_authorized: true
+  exact_release_scope_generation_authorized: false
+  real_security_key_read_authorized: false
+  moneyflow_numeric_value_read_authorized: false
+  tushare_or_baostock_live_call_authorized: false
+  secret_read_authorized: false
+  external_network_authorized: false
+  actual_recovery_authorized: false
+  adjusted_coverage_authorized: false
+  candidate_generation_authorized: false
+  label_return_model_backtest_authorized: false
+  forward_paper_production_authorized: false
+  scheduler_or_web_change_authorized: false
+  production_authorization: none
+  research_attempt_increment: 0
+
+next_stop:
+  implementation_must_be_committed_and_pushed: true
+  engineering_go_is_not_data_go: true
+  real_recovery_requires_separate_release_scope: true
+  exact_user_approval_required_before_real_recovery: true
+  prior_approval_reuse_forbidden: true
