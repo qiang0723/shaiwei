@@ -13,7 +13,7 @@ from shaiwei.research_gates.m7_moneyflow.contract import canonical_json
 from .contract import RecoveryError
 
 
-ROLE_NAMES = frozenset({"evaluator", "auditor"})
+ROLE_NAMES = frozenset({"evaluator", "auditor", "target_projector", "target_auditor"})
 
 
 def sha256_file(path: Path) -> str:

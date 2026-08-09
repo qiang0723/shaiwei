@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-09 · M7-0R3-P1目标投影工程GO，待生成精确release
+
+- v1在零真实读取的工程测试中发现R2 core身份转录错误；原文永久保留且从未执行。v2只把core纠正为
+  report/audit/execution manifest一致的`df5de3990428...eeca`，已先于实现独立推送。
+- key-only projector、独立DuckDB auditor、双日期PIT口径、write-once Parquet/manifest/audit、双角色
+  pre-read claim和精确release/approval合同已完成；6个新增模块最大259行，不引入新依赖或服务。
+- 真实规模合成轨A 908/轨B 541逐集合一致，重复调用在loader前停止；专用断网只读非root容器PASS。
+  专项17、架构13、全仓1,037 PASS，Ruff/compileall/pip/Compose/脱敏门均PASS；scheduler未重启。
+- 权威仅`GO_M7_RECOVERY_TARGET_PROJECTION_ENGINEERING_ONLY`；真实证券键/数值/provider/网络/尝试仍为0。
+  下一步必须先推送实现、重建镜像并生成精确scope，再等用户绑定SHA批准；不得直接运行真实投影。见
+  `docs/M7_MONEYFLOW_RECOVERY_TARGET_PROJECTION_ENGINEERING_ACCEPTANCE_20260809.md`。
+
 ## 2026-08-09 · M7-0R3真实恢复release前置工程GO，停在离线目标投影前
 
 - 结果前构建合同提交`e43bee4`已先推送；新增目标投影、依赖注入provider、隔离批次、读取校验、断网

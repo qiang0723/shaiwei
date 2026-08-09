@@ -14,15 +14,13 @@ PROTOCOL_V2_SHA256 = "345316477d789b255aeb259adcf3411a5f8c7889ed4eecd6f0a34d7e33
 
 
 def _document() -> dict[str, object]:
-    value = yaml.safe_load(PROTOCOL.read_text(encoding="utf-8"))
+    value = yaml.safe_load(PROTOCOL_V2.read_text(encoding="utf-8"))
     assert isinstance(value, dict)
     return value
 
 
 def _document_v2() -> dict[str, object]:
-    value = yaml.safe_load(PROTOCOL_V2.read_text(encoding="utf-8"))
-    assert isinstance(value, dict)
-    return value
+    return _document()
 
 
 def test_projection_protocol_identity_is_frozen() -> None:

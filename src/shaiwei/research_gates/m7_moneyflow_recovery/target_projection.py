@@ -13,7 +13,7 @@ from shaiwei.research_gates.m7_moneyflow_lineage.compute import (
 from shaiwei.research_gates.m7_moneyflow_lineage.contract import LineageProtocol
 from shaiwei.research_gates.m7_moneyflow_lineage.reader import LineageInputs
 
-from .contract import RecoveryError, RecoveryProtocol
+from .contract import RecoveryError, RecoveryProtocol, TARGET_COLUMNS
 
 
 TRACK_A = "PRIMARY_FULL_DAY_SUSPENSION_ONLY_UNRESOLVED"
@@ -23,11 +23,18 @@ OUTPUT_COLUMNS = ("trade_date", "source_date", "universe_id", "ts_code", "segmen
 
 def _project(missing: pd.DataFrame, category: str) -> pd.DataFrame:
     selected = missing.loc[missing["category"].eq(category)].copy()
-    # Recovery request planners operate on source-date keys.  Preserve the
-    # explicit source_date column so the PIT mapping remains auditable.
-    selected["trade_date"] = selected["source_date"].astype("string")
     result = selected.loc[:, OUTPUT_COLUMNS].astype("string")
     return result.sort_values(list(OUTPUT_COLUMNS)).reset_index(drop=True)
+
+
+def recovery_request_targets(projected: pd.DataFrame) -> pd.DataFrame:
+    """Derive the provider request view without destroying the feature date."""
+
+    if not set(OUTPUT_COLUMNS) <= set(projected.columns):
+        raise RecoveryError("recovery target projection columns differ")
+    result = projected.loc[:, ["source_date", "universe_id", "ts_code", "segment"]].copy()
+    result = result.rename(columns={"source_date": "trade_date"})
+    return result.loc[:, TARGET_COLUMNS].astype("string")
 
 
 def project_recovery_targets(
@@ -61,9 +68,9 @@ def project_recovery_targets(
         "schema_version": "m7-moneyflow-recovery-target-summary-v1",
         "lineage_core_sha256": core_sha256,
         "track_a_member_rows": len(track_a),
-        "track_a_unique_source_keys": len(track_a.drop_duplicates(["ts_code", "trade_date"])),
+        "track_a_unique_source_keys": len(track_a.drop_duplicates(["ts_code", "source_date"])),
         "track_b_member_rows": len(track_b),
-        "track_b_unique_source_keys": len(track_b.drop_duplicates(["ts_code", "trade_date"])),
+        "track_b_unique_source_keys": len(track_b.drop_duplicates(["ts_code", "source_date"])),
         "numeric_moneyflow_value_columns_read": 0,
         "security_codes_in_summary": False,
         "production_authorization": "none",

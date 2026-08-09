@@ -1,0 +1,24 @@
+services:
+  m7-target-projection-fixture:
+    image: shaiwei:m7-moneyflow-target-projection-local
+    profiles: ["m7-target-projection-fixture"]
+    build:
+      context: .
+      dockerfile: Dockerfile.m7-moneyflow-target-projection
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.m7_moneyflow_recovery.projection_fixture
+      - --project-root
+      - /opt/shaiwei
+    network_mode: none
+    read_only: true
+    user: "65532:65532"
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 128
+    init: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    cpus: 1.0
+    mem_limit: 2g

@@ -34,6 +34,7 @@ from shaiwei.research_gates.m7_moneyflow_recovery.release_fixture import (
 )
 from shaiwei.research_gates.m7_moneyflow_recovery.target_projection import (
     project_recovery_targets,
+    recovery_request_targets,
 )
 
 
@@ -106,8 +107,13 @@ def test_exact_target_projection_reuses_lineage_and_is_aggregate_only() -> None:
     )
     assert len(track_a) == 908
     assert len(track_b) == 541
-    assert set(track_a["trade_date"]) == {"20201231"}
-    assert set(track_b["trade_date"]) == {"20201231"}
+    assert set(track_a["trade_date"]) == {"20210104"}
+    assert set(track_b["trade_date"]) == {"20210104"}
+    assert set(track_a["source_date"]) == {"20201231"}
+    assert set(track_b["source_date"]) == {"20201231"}
+    request_a = recovery_request_targets(track_a)
+    assert set(request_a["trade_date"]) == {"20201231"}
+    assert set(track_a["trade_date"]) == {"20210104"}
     assert summary["numeric_moneyflow_value_columns_read"] == 0
     assert re.search(r"[0-9]{6}\.(?:SH|SZ|BJ)", canonical_json(summary)) is None
 
