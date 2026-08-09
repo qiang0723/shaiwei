@@ -1,0 +1,229 @@
+schema_version: m7-moneyflow-evidence-recovery-protocol-v1
+protocol_id: m7-moneyflow-evidence-recovery-v1
+frozen_at: "2026-08-09T10:20:48+08:00"
+stage: RESULT_KNOWN_DUAL_TRACK_RECOVERY_PROTOCOL_ONLY
+
+known_result_disclosure:
+  result_blind: false
+  predecessor_results_inspected: true
+  unresolved_primary_full_day_suspension_rows: 908
+  confirmed_moneyflow_gap_daily_present_rows: 541
+  quarantined_source_date_rows: 1157
+  confirmed_nontrading_independent_rows: 9
+  conflict_rows: 0
+  predecessor_total_missing_rows: 2615
+  predecessor_total_membership_rows: 757636
+  thresholds_or_denominators_changed_after_result: false
+
+predecessor:
+  protocol_id: m7-moneyflow-gap-lineage-v1
+  protocol_path: config/m7_moneyflow_gap_lineage_v1.yaml
+  protocol_sha256: bf5ebac79cb1b81699e5a8f4d1fae13b78dedb35e7ed19672e0c69ea8254ad9e
+  release_scope_sha256: 9b5e40ec772df4a179fd3b57449304f32bf45f673a0627b1b2e1787e595c0cae
+  execution_manifest_path: config/m7_moneyflow_gap_lineage_execution_manifest_v1.json
+  execution_manifest_sha256: 03ef40e7008e1f0e0a2b80031ea5ec5f6183473008c1b6b2f5a996384a3b0de8
+  execution_acceptance_path: docs/M7_MONEYFLOW_GAP_LINEAGE_EXECUTION_ACCEPTANCE_20260809.md
+  execution_acceptance_sha256: 16906211ace75f60dab56f49063eeb284d9d65747b8ebd2035c362ad6483cab5
+  report_core_sha256: df5de399d915ac2cba8533b07a958b5ef06cf7c14a0654c60dc1213cb0d8eeca
+  authoritative_verdict: NO_GO_M7_GAP_LINEAGE_INCOMPLETE
+  scope_closed: true
+  same_scope_retry_authorized: false
+  original_m7_verdict_unchanged: NO_GO_M7_0_DATA_COMPATIBILITY
+
+objective:
+  statement: >-
+    Close only the two recoverable evidence gaps identified by M7-0R2 without
+    changing the original M7 universe, PIT clock, quarantine policy,
+    denominator, threshold, factor semantics, or research-attempt count.
+  track_a: independently verify the 908 primary-only full-day suspension rows
+  track_b: recover the 541 daily-present primary moneyflow gaps from the same API semantics
+  collection_success_is_not_successor_data_gate_go: true
+
+frozen_domain:
+  grain: feature_date_x_universe_id_x_ts_code
+  feature_date_start: "20210104"
+  feature_date_end: "20260630"
+  source_date_start: "20201231"
+  source_date_end: "20260629"
+  universe_ids:
+    - star-board-all-pit-v1
+    - star-board-midcap-pit-v1
+    - star-board-smallcap-pit-v1
+  track_a_input_category: PRIMARY_FULL_DAY_SUSPENSION_ONLY_UNRESOLVED
+  track_a_expected_member_row_count: 908
+  track_b_input_category: CONFIRMED_MONEYFLOW_GAP_DAILY_PRESENT
+  track_b_expected_member_row_count: 541
+  exact_predecessor_partition_only: true
+  add_or_drop_keys_authorized: false
+  security_codes_in_tracked_outputs_forbidden: true
+
+track_a_independent_trade_status:
+  provider: baostock
+  source_api: baostock.history_k_data_plus
+  source_role: SECONDARY_INDEPENDENT_TRADE_STATUS
+  request_planner: RECOVERY_SPECIFIC_EXACT_TARGET_KEYS
+  general_s1_status_planner_must_remain_unchanged: true
+  projected_fields: [date, code, tradestatus]
+  normalized_fields: [ts_code, trade_date, trade_status]
+  numeric_price_or_volume_fields_read: 0
+  exact_target_keys_only: true
+  group_requests_by_ts_code_and_bounded_date_window: true
+  required_dates_must_equal_target_dates: true
+  maximum_unique_target_keys: 908
+  maximum_provider_requests: 908
+  accepted_status_values: ["0", "1"]
+  close_rules:
+    trade_status_0_and_daily_absent: CONFIRMED_NONTRADING_INDEPENDENT
+    trade_status_1: CONFLICT_DAILY_ABSENT_INDEPENDENT_TRADING
+    missing_or_invalid_status: PRIMARY_FULL_DAY_SUSPENSION_ONLY_UNRESOLVED
+  forward_fill_forbidden: true
+  backward_fill_forbidden: true
+  adjacent_date_inference_forbidden: true
+  primary_suspend_d_evidence_alone_still_insufficient: true
+  conflict_or_absence_must_fail_closed: true
+
+track_b_same_semantic_moneyflow:
+  provider: tushare
+  source_api: tushare.moneyflow
+  source_role: PRIMARY_MONEYFLOW_RECOVERY
+  canonical_fields:
+    - ts_code
+    - trade_date
+    - buy_sm_vol
+    - buy_sm_amount
+    - sell_sm_vol
+    - sell_sm_amount
+    - buy_md_vol
+    - buy_md_amount
+    - sell_md_vol
+    - sell_md_amount
+    - buy_lg_vol
+    - buy_lg_amount
+    - sell_lg_vol
+    - sell_lg_amount
+    - buy_elg_vol
+    - buy_elg_amount
+    - sell_elg_vol
+    - sell_elg_amount
+    - net_mf_vol
+    - net_mf_amount
+  exact_target_keys_only: true
+  unique_source_keys_must_be_deduplicated_from_541_member_rows: true
+  request_shapes:
+    - name: full_market_by_trade_date
+      parameters: [trade_date]
+    - name: one_security_one_date
+      parameters: [ts_code, start_date, end_date]
+      start_date_must_equal_end_date: true
+  both_request_shapes_required_per_unique_key: true
+  canonical_row_sha256_must_match_across_shapes: true
+  one_shape_missing: REQUEST_SHAPE_PRESENCE_CONFLICT
+  both_shapes_missing: PERSISTENT_PRIMARY_SOURCE_GAP
+  row_content_mismatch: REQUEST_SHAPE_CONTENT_CONFLICT
+  maximum_unique_target_keys: 541
+  maximum_full_market_requests: 541
+  maximum_targeted_requests: 541
+  maximum_provider_requests: 1082
+  maximum_rows_per_response: 6000
+  response_at_limit_must_fail_closed: true
+  duplicate_key_rows_must_fail_closed: true
+  missing_or_extra_fields_must_fail_closed: true
+  nonfinite_numeric_values_must_fail_closed: true
+  alternate_sources_forbidden:
+    - tushare.moneyflow_ths
+    - tushare.moneyflow_dc
+  zero_fill_forbidden: true
+  reconstruction_from_daily_amount_or_volume_forbidden: true
+  latest_or_majority_conflict_resolution_forbidden: true
+
+request_execution_contract:
+  current_protocol_authorizes_execution: false
+  sequential_only: true
+  maximum_total_provider_requests: 1990
+  transport_attempts_per_claimed_request: 3
+  semantic_empty_response_retry_authorized: false
+  immutable_request_claim_before_first_attempt: true
+  append_only_raw_batches: true
+  content_sha256_and_row_count_required: true
+  partial_release_resume_only_for_never_claimed_requests: true
+  claimed_failed_request_retry_in_same_release_forbidden: true
+  same_release_semantic_rerun_forbidden: true
+  provider_cost_usd_cap: 0
+  secret_in_command_log_report_or_git_forbidden: true
+
+quality_gates:
+  intended_grain: source_date_x_ts_code_with_member_row_projection
+  required:
+    - predecessor_identity_pass
+    - exact_partition_domain_pass
+    - key_uniqueness_pass
+    - key_validity_and_bj_zero_pass
+    - request_plan_complete_and_no_extra_keys_pass
+    - track_a_all_908_terminal_pass
+    - track_a_conflict_and_unresolved_zero_pass
+    - track_b_all_unique_keys_recovered_pass
+    - track_b_request_shape_presence_and_content_agreement_pass
+    - immutable_batch_integrity_pass
+    - internal_replay_exact_match_pass
+    - independent_audit_exact_match_pass
+  segment_results_by_universe_and_half_year: true
+  conflict_and_unresolved_counts_must_be_separate: true
+  all_required_gates_must_pass: true
+
+decision:
+  go: GO_M7_EVIDENCE_RECOVERY_DATA_ONLY
+  no_go: NO_GO_M7_EVIDENCE_RECOVERY_INCOMPLETE
+  partial_go_for_one_track_forbidden: true
+  go_does_not_change_predecessor_verdicts: true
+  go_does_not_recompute_original_coverage: true
+  go_does_not_authorize_candidates_or_effects: true
+  no_go_is_not_strategy_reject: true
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+  research_attempt_increment: 0
+
+successor_boundary:
+  original_m7_coverage_thresholds_preserved:
+    overall_min: 0.995
+    every_complete_half_year_min: 0.99
+    every_trade_day_min: 0.95
+  original_pit_and_quarantine_policy_preserved: true
+  original_denominator_preserved: true
+  recovery_data_must_pass_a_separate_successor_m7_data_gate: true
+  adjusted_or_counterfactual_coverage_in_this_stage_forbidden: true
+
+deferred_source_boundary:
+  direct_sse_suspension_archive_runtime_source_authorized: false
+  rationale: >-
+    Existing Baostock support has not yet been exercised for the 908 exact keys;
+    adding a new SSE archive parser and external-source contract before that
+    bounded test would exceed the smallest-remediation principle.
+  if_track_a_remains_incomplete: >-
+    Stop and freeze a separate source-adapter protocol and ADR before collecting
+    any direct SSE archive evidence.
+
+construction_authority:
+  protocol_freeze_authorized: true
+  synthetic_fixture_and_machine_contract_authorized: true
+  narrow_engineering_build_authorized: false
+  exact_release_scope_generation_authorized: false
+  external_network_authorized: false
+  tushare_token_read_authorized: false
+  real_security_key_read_authorized: false
+  moneyflow_numeric_value_read_authorized: false
+  data_recovery_execution_authorized: false
+  adjusted_coverage_authorized: false
+  candidate_generation_authorized: false
+  label_or_return_read_authorized: false
+  model_or_backtest_authorized: false
+  forward_or_paper_authorized: false
+  scheduler_or_web_change_authorized: false
+  production_authorization: none
+
+next_stop:
+  protocol_must_be_committed_and_pushed_before_engineering: true
+  engineering_requires_a_new_goal: true
+  engineering_must_use_synthetic_fixture_only: true
+  real_collection_requires_pushed_implementation_and_exact_release_scope: true
+  exact_user_approval_required_before_real_collection: true
+  prior_m7_or_lineage_approval_reuse_forbidden: true
