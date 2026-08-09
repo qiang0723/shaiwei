@@ -1,0 +1,146 @@
+{
+  "approval": {
+    "action": "M7_MONEYFLOW_EVIDENCE_RECOVERY_ONCE",
+    "canonical_sha256": "99811b25e79951a7fb18146db89cdf9b089c1b25bd6c927e8803e2b2c5534b80",
+    "physical_sha256": "45cf767cf2c5f74a8495a3cfe449974f6b84ae8a3bf4b83186f9086ec41480c0",
+    "same_scope_rerun_authorized": false
+  },
+  "artifacts": {
+    "audit_report": {
+      "bytes": 761,
+      "path": "data/control/m7-recovery/network-runs/406f083f09cc-2741a09/audit/532e76d98c1bef1b57aded4b079db202042c38a79ff39fb0a9c0d0bb7573dec1/audit.json",
+      "sha256": "f870534a7ac035d14d763b5e4405525e44f3fee85c8c542aea82b02810896604"
+    },
+    "evaluation_manifest": {
+      "bytes": 709,
+      "path": "data/control/m7-recovery/network-runs/406f083f09cc-2741a09/evaluation/532e76d98c1bef1b57aded4b079db202042c38a79ff39fb0a9c0d0bb7573dec1/evaluation_manifest.json",
+      "sha256": "161c4c65e7250a6ff763b03daa5a61e073a89ce9fd40c1bd667e53a743992c5f"
+    },
+    "evaluation_report": {
+      "bytes": 5606,
+      "path": "data/control/m7-recovery/network-runs/406f083f09cc-2741a09/evaluation/532e76d98c1bef1b57aded4b079db202042c38a79ff39fb0a9c0d0bb7573dec1/report.json",
+      "sha256": "94a3b09346c27f5d358e52bccd408826af0b72553991519de08730ce1da47e3a"
+    },
+    "moneyflow_collection_manifest": {
+      "bytes": 599,
+      "path": "data/control/m7-recovery/network-runs/406f083f09cc-2741a09/moneyflow-batches/collection_manifest.json",
+      "sha256": "24c18fc9da90133b9ab30e01fc6eab8dd73f980cccbf57bd57fb33e049e03ddb"
+    },
+    "status_collection_manifest": {
+      "bytes": 592,
+      "path": "data/control/m7-recovery/network-runs/406f083f09cc-2741a09/status-batches/collection_manifest.json",
+      "sha256": "44f1eb4bb774819c648590c0c4d0238ca3f76e89c0d92f0b3c017366a4db45cc"
+    }
+  },
+  "authority": {
+    "adjusted_or_counterfactual_coverage_computed": false,
+    "candidate_definition_count": 0,
+    "effect_test_count": 0,
+    "production_authorization": "none",
+    "research_attempt_increment": 0,
+    "strategy_effective": "NOT_EVALUATED"
+  },
+  "collection": {
+    "batch_manifest_sha256": "2e2f42efbffd1e2c854c6f045e4e24e334b40a27240b42033dee9307c13f3f4a",
+    "moneyflow": {
+      "full_market_response_row_count": 2621361,
+      "full_market_response_row_count_max": 5166,
+      "full_market_response_row_count_min": 4517,
+      "full_market_request_count": 541,
+      "request_count": 1082,
+      "semantic_retry_count": 0,
+      "targeted_nonempty_response_count": 0,
+      "targeted_request_count": 541,
+      "total_transport_attempt_count": 1082
+    },
+    "provider_call_count": 1157,
+    "sealed_receipt_count": 1157,
+    "sequential_only": true,
+    "status": {
+      "request_count": 75,
+      "response_row_count": 527,
+      "semantic_retry_count": 0,
+      "total_transport_attempt_count": 75
+    }
+  },
+  "data_quality": {
+    "content_mismatch_key_count": 0,
+    "failed_gates": [
+      {
+        "gate_id": "key_validity_and_bj_zero_pass",
+        "observed": 1449,
+        "threshold": 0
+      },
+      {
+        "gate_id": "track_b_all_unique_keys_recovered_pass",
+        "observed": 1082,
+        "threshold": 0
+      },
+      {
+        "gate_id": "track_b_request_shape_presence_and_content_agreement_pass",
+        "observed": 1082,
+        "threshold": 0
+      }
+    ],
+    "immutable_batch_integrity_failures": 0,
+    "moneyflow_numeric_invalid_cells": 0,
+    "saturated_response_count": 0,
+    "target_bse_rows": 0,
+    "track_a_confirmed_nontrading_unique_keys": 527,
+    "track_a_conflict_unique_keys": 0,
+    "track_a_member_rows": 908,
+    "track_a_unresolved_unique_keys": 0,
+    "track_a_unique_keys": 527,
+    "track_b_full_market_missing_keys": 541,
+    "track_b_member_rows": 541,
+    "track_b_recovered_unique_keys": 0,
+    "track_b_targeted_missing_keys": 541,
+    "track_b_unique_keys": 541
+  },
+  "desensitization": {
+    "absolute_paths_included": false,
+    "credentials_included": false,
+    "raw_or_derived_business_rows_included": false,
+    "security_codes_included": false,
+    "temporary_token_copy_deleted_after_collection": true
+  },
+  "diagnostic_finding": {
+    "decision_effect": "NONE_TRACK_B_INDEPENDENTLY_FAILS_TWO_HARD_GATES",
+    "finding": "TARGET_SEGMENT_VALIDATOR_EXPECTS_HALFYEAR_LABELS_BUT_PROJECTION_USES_SIZE_SEGMENTS",
+    "observed_invalid_row_count": 1449,
+    "same_scope_rerun_or_reclassification_authorized": false
+  },
+  "execution_controls": {
+    "auditor_claim_count": 1,
+    "evaluator_claim_count": 1,
+    "moneyflow_claim_file_count_including_role": 1083,
+    "network_roles_consumed_once": true,
+    "output_file_count": 3480,
+    "output_total_bytes": 237604601,
+    "same_scope_rerun_authorized": false,
+    "status_claim_file_count_including_role": 76
+  },
+  "finished_at": "2026-08-09T20:41:29+08:00",
+  "image": {
+    "image_id": "sha256:5b15e23f78f3a71e60390b50a8e3f2a74da8b4247c19fade88137002f030b3da",
+    "platform": "linux/arm64"
+  },
+  "independent_audit": {
+    "checked_gate_count": 10,
+    "independent_audit_vector_sha256": "7d71abfbec28456137b15298d12b34f390e926588a0e35593260ab7b8de998a1",
+    "reported_core_sha256": "56afd43a0f28f914b215697d35535ec1f4741ac24ec4834658eea43d4ce9d8ff",
+    "status": "PASS"
+  },
+  "production_isolation": {
+    "scheduler_container_id": "183b8c6c5eddac951d9d9b3cfa58c0d38e351d5b94ee1b1d52b9b8059c23dd3b",
+    "scheduler_health": "healthy",
+    "scheduler_image_id": "sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76",
+    "scheduler_restarted": false
+  },
+  "release_scope_physical_sha256": "8d3e237c1f4126e17adb005db158680bb9971b76033c88720ecdbbe45ce8f1af",
+  "release_scope_sha256": "a701e9ceb9bb77634a4feaa62fc640c3447555ef089bc7448577d48e5d68cb73",
+  "request_plan_manifest_sha256": "dcc2a78d8d399321bbd042acba009e9e39b428beb6640756c605e2498859bf43",
+  "run_id": "532e76d98c1bef1b57aded4b079db202042c38a79ff39fb0a9c0d0bb7573dec1",
+  "schema_version": "m7-moneyflow-evidence-recovery-network-execution-manifest-v1",
+  "verdict": "NO_GO_M7_EVIDENCE_RECOVERY_INCOMPLETE"
+}

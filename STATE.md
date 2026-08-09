@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-09 · M7-0R3-P2真实网络恢复权威NO-GO，M7停止在候选前
+
+- 用户精确批准scope`a701e9ce...cb73`后，四角色各唯一运行一次：75次Baostock状态、541次Tushare
+  全市场moneyflow、541次单票单日moneyflow，共1,157次provider调用/传输尝试/不可变receipt，语义
+  重试0；专用token副本使用后立即删除，`.env`未挂载、未修改或输出。
+- 轨A的527个唯一状态键全部被独立确认未交易，908成员行闭合、冲突0、未决0；轨B的541个键在全市场
+  262.1万行响应中仍全部缺失，541次单票单日响应也全部为空，恢复0、内容冲突0。
+- 断网evaluator内部双算和独立auditor均PASS，权威`NO_GO_M7_EVIDENCE_RECOVERY_INCOMPLETE`；候选/效果/
+  尝试0，策略`NOT_EVALUATED`、生产none。报告`94a3b093...7e3a`、audit`f870534a...6604`。
+- 发现旧半年度segment校验与真实规模标签不一致，附加误报1,449行；轨B两项独立硬门仍失败，故不影响
+  NO-GO，按同scope禁重跑规则仅留档、不改写报告或重算。
+- 本scope关闭；按路线复盘硬停止规则不立M7 R4/R5、不算调整覆盖率、不进入八候选。下一主线为只读
+  A1-2活跃/归档/删除候选清单，实际删除/重构仍须新目标和用户复核。scheduler原身份healthy且未重启。
+  见`docs/M7_MONEYFLOW_EVIDENCE_RECOVERY_NETWORK_EXECUTION_ACCEPTANCE_20260809.md`。
+
 ## 2026-08-09 · M7-0R3-P2最终网络release就绪，停在精确批准前
 
 - 最终scope`a701e9ce...cb73`绑定Git`2741a09`、代码束`a65cb9fa...9a24`、arm64镜像
