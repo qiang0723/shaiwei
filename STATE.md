@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-09 · M7-0R3双轨恢复synthetic工程门GO，停在真实release前
+
+- synthetic工程合同提交`48a9a0a`先于实现推送；新增8个窄职责模块，最大文件低于400行，未修改
+  通用S1/Baostock/P1资金流合同或R2主审实现，未新增常驻服务、外部依赖、账本或公共schema。
+- 908/541真实规模合成输入完成主Pandas与独立DuckDB逐项复算；13场景覆盖完整GO、状态冲突/缺失、
+  双形态缺失/冲突、重复/`.BJ`、6000行饱和、批次损坏、重复claim、3次传输上限和语义不重试。
+  clean core`8250b211...cf25f`，场景bundle`8915a9e0...64ca50`。
+- 一次性Docker fixture断网、非root、只读根、无项目/.env/data/ledger/logs/socket挂载并PASS；真实provider
+  调用0、真实证券键/资金流数值读取0、调整覆盖率/候选/效果/尝试0，策略NOT_EVALUATED、生产none。
+- 权威工程裁决`GO_M7_EVIDENCE_RECOVERY_ENGINEERING_ONLY`，原M7/R2 NO-GO不变。下一步若继续须另立
+  真实recovery release目标；真实输入适配实现推送并生成精确scope、用户新批准前不得联网或读真实键/
+  数值。见`docs/M7_MONEYFLOW_EVIDENCE_RECOVERY_ENGINEERING_ACCEPTANCE_20260809.md`。
+
 ## 2026-08-09 · M7-0R3双轨证据恢复协议冻结，停在工程施工前
 
 - 结果已知：R2 的908条“主源全天停牌但无独立确认”和541条“daily存在但主moneyflow缺键”逐字写入

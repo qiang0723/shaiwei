@@ -1,0 +1,24 @@
+services:
+  m7-evidence-recovery-fixture:
+    image: shaiwei:m7-moneyflow-evidence-recovery-local
+    profiles: ["m7-evidence-recovery-fixture"]
+    build:
+      context: .
+      dockerfile: Dockerfile.m7-moneyflow-evidence-recovery
+    command:
+      - python
+      - -m
+      - shaiwei.research_gates.m7_moneyflow_recovery.fixture
+      - --project-root
+      - /opt/shaiwei
+    network_mode: none
+    read_only: true
+    user: "65532:65532"
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 128
+    init: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    cpus: 1.0
+    mem_limit: 2g
