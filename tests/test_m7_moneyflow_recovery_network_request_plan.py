@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import re
 from pathlib import Path
 
@@ -14,12 +15,18 @@ from shaiwei.research_gates.m7_moneyflow_recovery.contract import (
 from shaiwei.research_gates.m7_moneyflow_network_recovery.network_contract import (
     NetworkReleaseProtocol,
 )
+from shaiwei.research_gates.m7_moneyflow_network_recovery.request_plan_auditor import (
+    audit_request_plan,
+)
 from shaiwei.research_gates.m7_moneyflow_network_recovery.request_plan import (
     build_request_plan,
 )
 from shaiwei.research_gates.m7_moneyflow_network_recovery.request_plan_store import (
     read_request_plan,
     write_request_plan_once,
+)
+from shaiwei.research_gates.m7_moneyflow_recovery.projection_sealing import (
+    write_target_once,
 )
 
 
@@ -164,3 +171,69 @@ def test_request_plan_rejects_bj_and_wrong_unique_count() -> None:
             projected_track_b=track_b,
             official_dates=("20210104",),
         )
+
+
+def test_independent_request_plan_auditor_rebuilds_exact_coverage(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    track_a, track_b = _projected_targets()
+    target_root = tmp_path / "targets"
+    target_root.mkdir()
+    a_item = write_target_once(target_root / "track_a_targets.parquet", track_a)
+    b_item = write_target_once(target_root / "track_b_targets.parquet", track_b)
+    target_identity = {
+        "track_a": {
+            "member_rows": len(track_a),
+            "unique_source_keys": len(track_a.drop_duplicates(["ts_code", "source_date"])),
+            "physical_sha256": a_item["parquet_sha256"],
+            "logical_sha256": a_item["logical_content_sha256"],
+        },
+        "track_b": {
+            "member_rows": len(track_b),
+            "unique_source_keys": len(track_b.drop_duplicates(["ts_code", "source_date"])),
+            "physical_sha256": b_item["parquet_sha256"],
+            "logical_sha256": b_item["logical_content_sha256"],
+        },
+    }
+    dates = ("20201231", "20210104", "20210105")
+    plan = build_request_plan(
+        _network(),
+        _recovery(),
+        projected_track_a=track_a,
+        projected_track_b=track_b,
+        official_dates=dates,
+    )
+    plan_root, _, _ = write_request_plan_once(
+        tmp_path / "plans",
+        plan,
+        protocol_sha256=_network().sha256,
+        tracked_root_relative="data/control/m7-recovery/request-plans",
+        target_identity=target_identity,
+        calendar_identity={"lineage_bundle_manifest_sha256": "e" * 64},
+    )
+    real_network = _network()
+    document = deepcopy(real_network.document)
+    document["frozen_predecessors"]["track_a_target"].update(target_identity["track_a"])
+    document["frozen_predecessors"]["track_b_target"].update(target_identity["track_b"])
+    synthetic_network = NetworkReleaseProtocol(
+        real_network.project_root,
+        document,
+        real_network.sha256,
+    )
+    monkeypatch.setattr(
+        NetworkReleaseProtocol,
+        "load",
+        classmethod(lambda cls, path, project_root: synthetic_network),
+    )
+    audit = audit_request_plan(
+        ROOT,
+        target_root=target_root,
+        plan_root=plan_root,
+    )
+    assert audit["audit_status"] == "PASS"
+    assert audit["status_requests"]["required_key_count"] == 527
+    assert audit["full_market"]["request_count"] == 1
+    assert audit["targeted"]["request_count"] == 541
+    assert audit["exact_key_coverage"] is True
+    assert audit["provider_call_count"] == 0
