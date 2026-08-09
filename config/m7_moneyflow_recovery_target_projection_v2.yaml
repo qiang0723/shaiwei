@@ -1,0 +1,149 @@
+schema_version: m7-moneyflow-recovery-target-projection-protocol-v2
+protocol_id: m7-moneyflow-recovery-target-projection-v2
+frozen_at: "2026-08-09T15:16:00+08:00"
+stage: REAL_KEY_PROJECTION_RELEASE_PROTOCOL_ONLY
+action: M7_MONEYFLOW_RECOVERY_TARGET_PROJECTION_ONCE
+
+supersession:
+  supersedes_protocol_id: m7-moneyflow-recovery-target-projection-v1
+  superseded_protocol_sha256: 0f7f1a604dd5b767dbb4811ddb0c5bd4a776a30d086d8995eab735110c0a910a
+  v1_execution_authorized: false
+  v1_execution_occurred: false
+  correction_kind: frozen_predecessor_core_identity_transcription
+  incorrect_v1_core_sha256: df5de399d915ac2cba8533b07a958b5ef06cf7c14a0654c60dc1213cb0d8eeca
+  authoritative_v2_core_sha256: df5de3990428e630eb2f56380601f3bee12fee2d2220a99c48c286e3701beeca
+
+authorization_basis:
+  user_instruction: continue_the_next_task
+  authorized_goal: build_exact_offline_projection_release_then_require_scope_bound_approval
+  current_instruction_is_not_scope_bound_execution_approval: true
+
+frozen_predecessors:
+  recovery_protocol:
+    path: config/m7_moneyflow_evidence_recovery_v1.yaml
+    sha256: 93a774d8939d443dd5d925e61a7f4727ff9464a969171dcaca58322f9b2b5d53
+  release_build_contract:
+    path: config/m7_moneyflow_recovery_release_build_v1.yaml
+    sha256: af04ba7353e4d3f6249ad603657d722643b83ef675e30aaf062afc6db15fdc28
+  release_engineering_acceptance:
+    path: docs/M7_MONEYFLOW_RECOVERY_RELEASE_ENGINEERING_ACCEPTANCE_20260809.md
+    sha256: 721063efc033ba54e6772ddc1d9359cbf485ffa79e90602a85b70328fabb0a13
+  release_engineering_commit: 9c3f5d6fd99758a1cf2fb5a0d7114300562038b0
+  release_engineering_commit_pushed: true
+  lineage_protocol:
+    path: config/m7_moneyflow_gap_lineage_v1.yaml
+    sha256: bf5ebac79cb1b81699e5a8f4d1fae13b78dedb35e7ed19672e0c69ea8254ad9e
+  lineage_input_manifest:
+    path: config/m7_moneyflow_gap_lineage_input_manifest_v1.json
+    canonical_sha256: 5f3e28088038e423d2f21a1c8b712457b620045749c9052c730cdc777871f9a7
+    physical_sha256: 701b76dfa31a1ffc62541cb637300ef2d4eed8f3136e250e50a818aad79659da
+  lineage_execution_manifest:
+    path: config/m7_moneyflow_gap_lineage_execution_manifest_v1.json
+    sha256: 03ef40e7008e1f0e0a2b80031ea5ec5f6183473008c1b6b2f5a996384a3b0de8
+  lineage_input_bundle:
+    relative_path: data/control/m7-lineage/input-bundles/5f3e28088038e423d2f21a1c8b712457b620045749c9052c730cdc777871f9a7-6178ba4
+    bundle_manifest_sha256: 3f4a6cc371186c3864d8ec857c4641e49b66fa38d9e8083c6b2e0a38d9a005eb
+    file_count: 10927
+  lineage_report:
+    relative_path: data/control/m7-lineage/outputs/5f3e28088038e423d2f21a1c8b712457b620045749c9052c730cdc777871f9a7-6178ba4/1e78e7c61760ea9dd3d8f5b2747d483a67d292420ecfa6efae20d60092154ea4/lineage_report.json
+    sha256: 223b23ffcc0b3fd331f27be3a13fd46ce3173507c6ac9dd85a29c70816077e3b
+    core_sha256: df5de3990428e630eb2f56380601f3bee12fee2d2220a99c48c286e3701beeca
+  lineage_audit:
+    relative_path: data/control/m7-lineage/audits/5f3e28088038e423d2f21a1c8b712457b620045749c9052c730cdc777871f9a7-6178ba4/1e78e7c61760ea9dd3d8f5b2747d483a67d292420ecfa6efae20d60092154ea4/audit_report.json
+    sha256: 2c088db6ba24ec5cd6ca18e6f9ec498d405bce9d94b72f6a0a6c9df20f5c6afe
+    independent_core_sha256: df5de3990428e630eb2f56380601f3bee12fee2d2220a99c48c286e3701beeca
+
+projection_contract:
+  intended_grain: feature_trade_date_x_universe_id_x_ts_code
+  query_grain: source_date_x_ts_code
+  preserve_feature_and_source_dates_separately: true
+  tracked_columns: [trade_date, source_date, universe_id, ts_code, segment]
+  recovery_request_projection:
+    rename_source_date_to_trade_date: true
+    columns: [trade_date, universe_id, ts_code, segment]
+  track_a:
+    category: PRIMARY_FULL_DAY_SUSPENSION_ONLY_UNRESOLVED
+    expected_member_rows: 908
+  track_b:
+    category: CONFIRMED_MONEYFLOW_GAP_DAILY_PRESENT
+    expected_member_rows: 541
+  exact_r2_partition_only: true
+  main_classifier: frozen_pandas_r2
+  independent_auditor: frozen_duckdb_r2_classified_relation
+  main_and_auditor_target_hashes_must_match: true
+  duplicate_member_rows_allowed: false
+  bse_rows_allowed: false
+
+execution_contract:
+  current_execution_authorized: false
+  exact_release_scope_required: true
+  exact_scope_approval_required: true
+  previous_approval_reuse_forbidden: true
+  same_scope_retry_authorized: false
+  projector_invocation_count: 1
+  auditor_invocation_count: 1
+  pre_read_claim_before_semantic_rows: true
+  internal_replay_required: true
+  network_mode: none
+  provider_call_count: 0
+  moneyflow_numeric_value_columns_read: 0
+  daily_numeric_value_columns_read: 0
+  security_keys_may_exist_only_in_git_ignored_output: true
+  tracked_output_must_be_aggregate_only: true
+
+output_contract:
+  root: data/control/m7-recovery/target-projections
+  target_a_file: track_a_targets.parquet
+  target_b_file: track_b_targets.parquet
+  report_file: target_projection_report.json
+  manifest_file: target_projection_manifest.json
+  audit_file: target_projection_audit.json
+  claim_root: data/control/m7-recovery/target-projection-claims
+  write_once: true
+  canonical_json: true
+  parquet_hash_row_count_schema_required: true
+  absolute_paths_forbidden: true
+  credentials_forbidden: true
+  security_codes_in_tracked_manifest_forbidden: true
+
+quality_gates:
+  required:
+    - predecessor_files_and_core_identity_pass
+    - pit_feature_to_source_mapping_pass
+    - exact_category_member_counts_pass
+    - intended_grain_uniqueness_pass
+    - source_key_domain_and_bj_zero_pass
+    - main_internal_replay_pass
+    - independent_projection_exact_match_pass
+    - immutable_output_hash_and_schema_pass
+    - second_invocation_stops_before_semantic_read_pass
+    - tracked_manifest_aggregate_only_pass
+  verdict_if_all_pass: GO_M7_RECOVERY_TARGET_PROJECTION_ONLY
+  any_failure: NO_GO_M7_RECOVERY_TARGET_PROJECTION
+
+construction_authority:
+  protocol_freeze_authorized: true
+  metadata_identity_verification_authorized: true
+  projector_auditor_and_release_engineering_authorized: true
+  synthetic_fixture_authorized: true
+  docker_image_build_authorized: true
+  exact_release_scope_generation_authorized: true
+  real_security_key_read_authorized: false
+  real_projection_execution_authorized: false
+  moneyflow_numeric_value_read_authorized: false
+  live_provider_call_authorized: false
+  secret_read_authorized: false
+  external_network_authorized: false
+  production_data_or_ledger_write_authorized: false
+  adjusted_coverage_authorized: false
+  candidate_effect_model_backtest_authorized: false
+  forward_paper_scheduler_web_authorized: false
+  research_attempt_increment: 0
+  production_authorization: none
+
+next_stop:
+  protocol_must_be_pushed_before_implementation: true
+  implementation_must_be_pushed_before_release_scope: true
+  release_scope_must_bind_image_code_input_commands_mounts_and_resources: true
+  user_must_approve_exact_release_scope_before_real_projection: true
+  projection_go_does_not_authorize_provider_collection: true

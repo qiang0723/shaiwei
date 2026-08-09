@@ -9,6 +9,8 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT / "config/m7_moneyflow_recovery_target_projection_v1.yaml"
 PROTOCOL_SHA256 = "0f7f1a604dd5b767dbb4811ddb0c5bd4a776a30d086d8995eab735110c0a910a"
+PROTOCOL_V2 = ROOT / "config/m7_moneyflow_recovery_target_projection_v2.yaml"
+PROTOCOL_V2_SHA256 = "345316477d789b255aeb259adcf3411a5f8c7889ed4eecd6f0a34d7e33dac1fd"
 
 
 def _document() -> dict[str, object]:
@@ -17,8 +19,27 @@ def _document() -> dict[str, object]:
     return value
 
 
+def _document_v2() -> dict[str, object]:
+    value = yaml.safe_load(PROTOCOL_V2.read_text(encoding="utf-8"))
+    assert isinstance(value, dict)
+    return value
+
+
 def test_projection_protocol_identity_is_frozen() -> None:
     assert hashlib.sha256(PROTOCOL.read_bytes()).hexdigest() == PROTOCOL_SHA256
+
+
+def test_projection_protocol_v2_corrects_only_predecessor_identity() -> None:
+    assert hashlib.sha256(PROTOCOL_V2.read_bytes()).hexdigest() == PROTOCOL_V2_SHA256
+    document = _document_v2()
+    supersession = document["supersession"]
+    assert supersession["superseded_protocol_sha256"] == PROTOCOL_SHA256
+    assert supersession["v1_execution_authorized"] is False
+    assert supersession["v1_execution_occurred"] is False
+    assert (
+        document["frozen_predecessors"]["lineage_report"]["core_sha256"]
+        == "df5de3990428e630eb2f56380601f3bee12fee2d2220a99c48c286e3701beeca"
+    )
 
 
 def test_projection_protocol_preserves_feature_and_source_date() -> None:
