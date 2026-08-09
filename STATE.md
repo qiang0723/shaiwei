@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-09 · M7-0R3-P1真实key-only投影GO，scope关闭
+
+- 用户精确批准scope`9aca0457...81614`后，断网projector唯一完成：冻结lineage core
+  `df5de3990428...eeca`匹配，轨A 908成员行/527去重源键，轨B 541/541；重复、PIT逆序、`.BJ`和两轨
+  intended-grain交集均为0，内部replay PASS。
+- 独立DuckDB auditor唯一完成，两轨内容哈希与主算逐项相同；report/manifest/audit分别为
+  `a029072b...eac4`/`d8dba2e...6fa6`/`8356c5b3...d6f2`，双角色claim已封存且禁止重试。
+- 用户明确“同scope不得重跑”，故没有启动第二个真实容器；不可重入由真实claim、loader前原子claim和
+  同镜像真实规模合成二次调用门证明。一次探针请求在容器创建前被权限审查拒绝，产物哈希零变化。
+- 数值读取/provider/网络/调整覆盖率/候选/效果/尝试均为0；聚合manifest脱敏，scheduler原身份healthy，
+  七个自然账本未挂载未写；专项23、架构13、全仓1,043 PASS。权威仅
+  `GO_M7_RECOVERY_TARGET_PROJECTION_ONLY`，原M7/R2 NO-GO不变。
+  下一步如继续须基于527/541去重键另立精确网络release并再次批准；见
+  `docs/M7_MONEYFLOW_RECOVERY_TARGET_PROJECTION_EXECUTION_ACCEPTANCE_20260809.md`。
+
 ## 2026-08-09 · M7-0R3-P1精确release就绪，停在scope批准前
 
 - 已推送实现`23f06b2`，最终代码束`17997e65...26d0`和arm64镜像`ea77e171...d007`完成断网合成
