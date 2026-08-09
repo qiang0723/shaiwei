@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from shaiwei.research_gates.m7_moneyflow.contract import canonical_json, sha256_json
+from shaiwei.research_gates.m7_moneyflow.contract import canonical_json, sha256_file, sha256_json
 
 from .contract import RecoveryError
 from .projection_contract import ACTION, TargetProjectionProtocol
@@ -55,6 +55,55 @@ COMMANDS = {
     ],
 }
 SHA_RE = re.compile(r"^[0-9a-f]{64}$")
+CODE_BUNDLE_ROOTS = (
+    ".dockerignore",
+    "Dockerfile.m7-moneyflow-target-projection",
+    "compose.m7-moneyflow-target-projection.yaml",
+    "requirements.m5-data-gate.lock",
+    "config/m7_star_custom_pool_moneyflow_data_v1.yaml",
+    "config/m7_star_custom_pool_moneyflow_proposal_export_v1.json",
+    "config/m7_moneyflow_gap_lineage_v1.yaml",
+    "config/m7_moneyflow_gap_lineage_input_manifest_v1.json",
+    "config/m7_moneyflow_gap_lineage_execution_manifest_v1.json",
+    "config/m7_moneyflow_recovery_engineering_v1.yaml",
+    "config/m7_moneyflow_evidence_recovery_v1.yaml",
+    "config/m7_moneyflow_evidence_recovery_engineering_v1.yaml",
+    "config/m7_moneyflow_recovery_release_build_v1.yaml",
+    "config/m7_moneyflow_recovery_target_projection_v2.yaml",
+    "src/shaiwei/research_gates/m7_moneyflow",
+    "src/shaiwei/research_gates/m7_moneyflow_lineage",
+    "src/shaiwei/research_gates/m7_moneyflow_recovery",
+)
+
+
+def code_bundle_sha256(project_root: Path) -> str:
+    root = project_root.resolve(strict=True)
+    files: set[Path] = set()
+    for relative in CODE_BUNDLE_ROOTS:
+        unresolved = root / relative
+        if unresolved.is_symlink():
+            raise RecoveryError("recovery target code root cannot be a symlink")
+        candidate = unresolved.resolve(strict=True)
+        try:
+            candidate.relative_to(root)
+        except ValueError as error:
+            raise RecoveryError("recovery target code root is outside project") from error
+        members = tuple(candidate.rglob("*")) if candidate.is_dir() else (candidate,)
+        if any(member.is_symlink() for member in members):
+            raise RecoveryError("recovery target code bundle cannot contain symlinks")
+        files.update(members)
+    inventory = [
+        {
+            "path": path.relative_to(root).as_posix(),
+            "bytes": path.stat().st_size,
+            "sha256": sha256_file(path),
+        }
+        for path in sorted(files)
+        if path.is_file() and not path.is_symlink()
+    ]
+    if not inventory:
+        raise RecoveryError("recovery target code bundle is empty")
+    return sha256_json(inventory)
 
 
 def _mounts(protocol: TargetProjectionProtocol, git_commit: str) -> list[dict[str, str]]:
@@ -120,6 +169,7 @@ class TargetProjectionRelease:
             or implementation.get("origin_main_commit") != implementation.get("git_commit")
             or implementation.get("commit_pushed_before_scope") is not True
             or SHA_RE.fullmatch(str(implementation.get("code_bundle_sha256", ""))) is None
+            or implementation.get("code_bundle_roots") != list(CODE_BUNDLE_ROOTS)
             or re.fullmatch(r"sha256:[0-9a-f]{64}", str(scope.get("image", {}).get("image_id", "")))
             is None
         ):
@@ -204,6 +254,7 @@ def build_release_document(
             "origin_main_commit": git_commit,
             "commit_pushed_before_scope": True,
             "code_bundle_sha256": code_bundle_sha256,
+            "code_bundle_roots": list(CODE_BUNDLE_ROOTS),
         },
         "image": {"image_id": image_id, "platform": platform},
         "commands": COMMANDS,

@@ -17,9 +17,11 @@ from shaiwei.research_gates.m7_moneyflow_recovery.projection_fixture import (
 )
 from shaiwei.research_gates.m7_moneyflow_recovery.projection_release import (
     APPROVER_SHA256,
+    CODE_BUNDLE_ROOTS,
     TargetProjectionApproval,
     TargetProjectionRelease,
     build_release_document,
+    code_bundle_sha256,
 )
 
 
@@ -74,8 +76,17 @@ def test_release_scope_is_content_addressed_offline_and_non_executable(tmp_path:
     assert scope["authority"]["numeric_moneyflow_value_read_authorized"] is False
     assert scope["authority"]["provider_call_authorized"] is False
     assert scope["authority"]["production_authorization"] == "none"
+    assert scope["implementation"]["code_bundle_roots"] == list(CODE_BUNDLE_ROOTS)
     serialized = path.read_text(encoding="utf-8")
     assert all(token not in serialized for token in (".env", "docker.sock", '"/workspace"'))
+
+
+def test_code_bundle_is_deterministic_narrow_and_nonempty() -> None:
+    first = code_bundle_sha256(ROOT)
+    second = code_bundle_sha256(ROOT)
+    assert first == second
+    assert len(first) == 64
+    assert all(not root.startswith(("data", "ledger", "logs")) for root in CODE_BUNDLE_ROOTS)
 
 
 def test_approval_is_exactly_bound_and_wrong_scope_is_rejected(tmp_path: Path) -> None:
