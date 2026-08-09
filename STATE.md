@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-09 · M7-0R3-P2网络恢复release工程GO，停在真实请求计划前
+
+- P2新能力已拆入独立`m7_moneyflow_network_recovery`扩展包，冻结旧包逐字不变；旧P1代码束回归哈希
+  `17997e655...26d0`继续成立，避免新施工污染历史release。
+- 已实现离线精确计划、四角色窄挂载、单独token文件、claim-before-provider、三次传输上限、write-once
+  batch、离线evaluator/auditor与精确scope/approval契约；最大模块377行。
+- 断网Docker fixture GO，全仓1,059、架构13及Ruff/compileall/pip/Compose/脱敏门PASS；scheduler
+  healthy且未重启，7个自然账本未暂存。
+- 真实键请求计划、provider、网络、`.env`/token、资金流数值仍为0；实现先推送，之后才允许一次断网
+  真实请求计划，并在最终scope生成后停下等批准。见
+  `docs/M7_MONEYFLOW_EVIDENCE_RECOVERY_NETWORK_ENGINEERING_ACCEPTANCE_20260809.md`。
+
 ## 2026-08-09 · M7-0R3-P1真实key-only投影GO，scope关闭
 
 - 用户精确批准scope`9aca0457...81614`后，断网projector唯一完成：冻结lineage core

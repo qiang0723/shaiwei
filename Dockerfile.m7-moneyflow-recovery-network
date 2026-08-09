@@ -1,0 +1,42 @@
+FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/opt/shaiwei/src
+
+WORKDIR /opt/shaiwei
+
+COPY requirements.m7-moneyflow-recovery-network.lock ./
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
+    python -m pip install --no-deps -r requirements.m7-moneyflow-recovery-network.lock \
+    && python -m pip check
+
+COPY src/shaiwei/__init__.py ./src/shaiwei/__init__.py
+COPY src/shaiwei/research_gates/__init__.py ./src/shaiwei/research_gates/__init__.py
+COPY src/shaiwei/research_gates/m7_moneyflow ./src/shaiwei/research_gates/m7_moneyflow
+COPY src/shaiwei/research_gates/m7_moneyflow_lineage ./src/shaiwei/research_gates/m7_moneyflow_lineage
+COPY src/shaiwei/research_gates/m7_moneyflow_recovery ./src/shaiwei/research_gates/m7_moneyflow_recovery
+COPY src/shaiwei/research_gates/m7_moneyflow_network_recovery ./src/shaiwei/research_gates/m7_moneyflow_network_recovery
+COPY config/m7_star_custom_pool_moneyflow_data_v1.yaml ./config/
+COPY config/m7_star_custom_pool_moneyflow_proposal_export_v1.json ./config/
+COPY config/m7_moneyflow_gap_lineage_v1.yaml ./config/
+COPY config/m7_moneyflow_gap_lineage_input_manifest_v1.json ./config/
+COPY config/m7_moneyflow_gap_lineage_execution_manifest_v1.json ./config/
+COPY config/m7_moneyflow_recovery_engineering_v1.yaml ./config/
+COPY config/m7_moneyflow_evidence_recovery_v1.yaml ./config/
+COPY config/m7_moneyflow_evidence_recovery_engineering_v1.yaml ./config/
+COPY config/m7_moneyflow_recovery_release_build_v1.yaml ./config/
+COPY config/m7_moneyflow_recovery_target_projection_v2.yaml ./config/
+COPY config/m7_moneyflow_recovery_target_projection_execution_manifest_v1.json ./config/
+COPY config/m7_moneyflow_evidence_recovery_network_release_v1.yaml ./config/
+COPY docs/M7_MONEYFLOW_GAP_LINEAGE_EXECUTION_ACCEPTANCE_20260809.md ./docs/
+COPY docs/M7_MONEYFLOW_RECOVERY_TARGET_PROJECTION_EXECUTION_ACCEPTANCE_20260809.md ./docs/
+
+RUN groupadd --gid 65532 recovery \
+    && useradd --uid 65532 --gid 65532 --no-create-home --shell /usr/sbin/nologin recovery \
+    && python -m compileall -q src
+
+USER 65532:65532
+
+CMD ["python", "-m", "shaiwei.research_gates.m7_moneyflow_network_recovery.network_fixture", "--project-root", "/opt/shaiwei"]
