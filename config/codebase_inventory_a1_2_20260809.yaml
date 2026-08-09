@@ -1,0 +1,189 @@
+inventory_id: codebase-inventory-a1-2-20260809
+version: 1
+status: REVIEW_COMPLETE_NO_SAFE_DELETE
+measured_at: "2026-08-09T21:10:53+08:00"
+measured_git: 49e9d740e3ed44121e14047c338212913b7798c7
+document: docs/A1_2_ACTIVE_ARCHIVE_DELETE_INVENTORY_20260809.md
+
+parent_policy:
+  path: config/codebase_consolidation_v1.yaml
+  sha256: 8cf7b1f5f438f76bdf70211d1acfbd57fa3b82a0ec96e1219ab7baad5b43f2c8
+parent_inventory:
+  path: config/codebase_inventory_a1_0_20260807.yaml
+  sha256: 40abfcf090af552f9fa6edfe379d6c538aae41f8515778d31742f12f1e7d9cb7
+  measured_git: 8e2c5d4399e5705c7bd570c1e208f6394f8db668
+
+scope:
+  production_code_modified: false
+  files_deleted: 0
+  files_moved: 0
+  data_or_research_run: false
+  external_provider_call_count: 0
+  production_run: false
+  automatic_cleanup_authorized: false
+
+current_scale:
+  tracked_files: 1233
+  code_files: 683
+  tracked_code_physical_lines: 136013
+  core_python:
+    files: 354
+    physical_lines: 73711
+    files_over_400_lines: 26
+    files_over_600_lines: 12
+  web_ui_src:
+    files: 64
+    physical_lines: 14860
+    production_files_over_400_lines: 11
+    production_files_over_600_lines: 1
+  tools_python:
+    files: 89
+    physical_lines: 17487
+    files_over_600_lines: 5
+  tests_python:
+    files: 150
+    physical_lines: 26787
+  dockerfiles:
+    files: 17
+    physical_lines: 494
+  compose:
+    files: 17
+    physical_lines: 3484
+
+growth_since_a1_0:
+  commit: 8e2c5d4399e5705c7bd570c1e208f6394f8db668
+  added_files: 165
+  deleted_files: 0
+  modified_files: 12
+  added_lines_all_tracked_text: 20711
+  deleted_lines_all_tracked_text: 332
+  net_lines_all_tracked_text: 20379
+  tracked_code_net_lines: 14660
+  core_python_net_lines: 10964
+  tests_python_net_lines: 3133
+  tools_python_net_lines: 350
+  web_ui_net_lines: 0
+  trigger_reason: MAJOR_M7_PHASE_CLOSED
+
+architecture_health:
+  new_files_over_400_lines_since_a1_0: 0
+  core_files_over_400_change: 0
+  core_files_over_600_change: 0
+  python_import_cycle_count: 0
+  src_imports_tools_count: 1
+  src_imports_tools_changed_since_a1_0: false
+  grandfathered_dependency_debt:
+    source: src/shaiwei/research/star50_residual_effect/metrics.py
+    target: tools.p2_star50_effect_correction.executor
+    decision: A1_1A_DEFERRED_FROZEN_IDENTITY_CONFLICT
+  exact_m7_duplicate_function_groups_min_12_lines: 0
+
+responsibility_islands:
+  m5_dynamic:
+    disposition: FROZEN_NO_GROWTH_RESTART_POSSIBLE
+    source_files: 43
+    source_lines: 7949
+    reason: M5_DATA_BLOCKED_BUT_CONTROL_AND_FUTURE_EXPLICIT_RESTART_REMAIN
+  m6_closed_research:
+    disposition: HISTORICAL_REPLAY_PROTECTED
+    source_files: 63
+    source_lines: 10520
+    test_files: 15
+    test_lines: 2968
+    build_files: 11
+    build_lines: 859
+    prospective_current_branch_retirement_files: 89
+    prospective_current_branch_retirement_lines: 14347
+  m7_closed_research:
+    disposition: HISTORICAL_REPLAY_PROTECTED_ARCHIVE_NOT_READY
+    source_files: 70
+    source_lines: 10905
+    test_files: 21
+    test_lines: 2905
+    build_files: 12
+    build_lines: 500
+    approval_tool_files: 2
+    approval_tool_lines: 350
+    config_files: 24
+    config_lines: 2466
+    document_files: 26
+    document_lines: 1856
+    prospective_current_branch_retirement_files: 105
+    prospective_current_branch_retirement_lines: 14660
+    production_importers_outside_m7: 0
+    main_entrypoint_modules: 24
+    modules_over_400_lines: 0
+    git_tag_present: false
+    immutable_image_id: sha256:5b15e23f78f3a71e60390b50a8e3f2a74da8b4247c19fade88137002f030b3da
+    remote_registry_restore_rehearsed: false
+
+known_frozen_findings:
+  - id: A1-2F01
+    family: m7_target_segment_validation
+    finding: validator_expects_halfyear_labels_while_projection_uses_size_segments
+    observed_false_invalid_rows: 1449
+    historical_verdict_effect: NONE
+    disposition: PRESERVE_EXECUTED_V1_BYTES_FIX_ONLY_IN_VERSIONED_SUCCESSOR
+
+candidate_groups:
+  safe_delete: []
+  active_keep:
+    - production_scheduler_release_and_rollback
+    - ingest_and_data_quality
+    - paper_forward_and_readonly_queries
+    - web_readonly_truth_projection
+    - research_proposal_control_v1
+  frozen_no_growth:
+    - m5_dynamic
+    - m6_model_and_portfolio_attribution
+    - m7_moneyflow_data_lineage_and_network_recovery
+  permanently_protected:
+    - frozen_protocols_and_release_scopes
+    - aggregate_execution_manifests
+    - acceptance_failure_reject_stop_and_no_go_documents
+    - immutable_data_ledgers_receipts_and_audits
+  archive_not_ready:
+    - id: A1-2C01
+      family: m7_closed_research_runtime_build_and_tests
+      blockers:
+        - no_dedicated_m7_git_tag
+        - remote_image_retrievability_not_documented_or_rehearsed
+        - unique_historical_runner_auditor_and_approval_builder_responsibilities
+        - exact_current_branch_retirement_file_list_not_frozen
+    - id: A1-2C02
+      family: m6_closed_research_runtime_build_and_tests
+      blockers:
+        - prior_a1_historical_replay_protection_still_applies
+        - archive_and_restore_adr_not_frozen
+        - exact_current_branch_retirement_file_list_not_frozen
+
+recommended_next_packages:
+  - id: A1-3A
+    action: M7_ARCHIVE_READINESS_ADR_TAG_AND_RESTORE_REHEARSAL
+    files_deleted: 0
+    user_approval_required: true
+  - id: A1-3B
+    action: M7_CURRENT_BRANCH_RETIREMENT_REVIEW
+    prerequisite: A1-3A_PASS_AND_USER_FILE_LIST_APPROVAL
+    automatic_execution_authorized: false
+  - id: A1-3C
+    action: M6_ARCHIVE_READINESS_REVIEW_AFTER_M7
+    prerequisite: A1-3B_TERMINAL
+    automatic_execution_authorized: false
+
+review_gate:
+  user_review_required_before_archive_or_deletion: true
+  one_responsibility_family_per_commit: true
+  exact_file_list_required_before_deletion: true
+  mandatory_line_reduction_target: null
+
+validation:
+  independent_inventory_recomputation: PASS
+  architecture_tests_passed: 13
+  full_tests_passed: 1066
+  full_test_warning_count: 17
+  ruff: PASS
+  git_diff_check: PASS
+  scheduler_container_id: 183b8c6c5edd
+  scheduler_image_id: sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76
+  scheduler_restarted: false
