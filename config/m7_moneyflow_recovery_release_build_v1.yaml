@@ -1,0 +1,169 @@
+schema_version: m7-moneyflow-recovery-release-build-v1
+build_protocol_id: m7-moneyflow-recovery-release-build-v1
+frozen_at: "2026-08-09T13:14:17+08:00"
+stage: REAL_RELEASE_IMPLEMENTATION_SYNTHETIC_ONLY
+authorization_basis: explicit_next_goal_after_synthetic_engineering_go
+
+frozen_predecessors:
+  recovery_protocol:
+    path: config/m7_moneyflow_evidence_recovery_v1.yaml
+    sha256: 93a774d8939d443dd5d925e61a7f4727ff9464a969171dcaca58322f9b2b5d53
+  synthetic_engineering_contract:
+    path: config/m7_moneyflow_evidence_recovery_engineering_v1.yaml
+    sha256: 873491b0f3b6b908e4a54c4579c35def3c322ce9adbe033f4f20fdf194a106dd
+  synthetic_engineering_acceptance:
+    path: docs/M7_MONEYFLOW_EVIDENCE_RECOVERY_ENGINEERING_ACCEPTANCE_20260809.md
+    sha256: ebbe9edf27664cf2bf60f85f74a33748ea95f87a310babfaa391961a762a600b
+  implementation_commit: 4cac77df0bc8a242db1ff70e8314d854e26dded5
+  implementation_commit_pushed_before_release_build: true
+  original_m7_verdict: NO_GO_M7_0_DATA_COMPATIBILITY
+  lineage_verdict: NO_GO_M7_GAP_LINEAGE_INCOMPLETE
+
+architecture:
+  roles:
+    status_collector:
+      network_required_only_after_exact_approval: true
+      reads: [sealed_target_plan]
+      writes: [isolated_status_batches, request_claims]
+    moneyflow_collector:
+      network_required_only_after_exact_approval: true
+      reads: [sealed_target_plan]
+      writes: [isolated_full_market_batches, isolated_targeted_batches, request_claims]
+    evaluator:
+      network_mode: none
+      reads: [sealed_target_plan, isolated_recovery_batches]
+      writes: [sealed_recovery_report, sealed_run_manifest, role_claim]
+    auditor:
+      network_mode: none
+      reads: [sealed_target_plan, isolated_recovery_batches, sealed_recovery_report]
+      writes: [sealed_audit_report, role_claim]
+  collector_and_verdict_process_must_be_separate: true
+  production_ingest_ledger_write_authorized: false
+  production_data_promotion_authorized: false
+  no_shared_writable_mount_between_collectors: true
+  evaluator_output_read_only_for_auditor: true
+
+implementation_boundary:
+  package: src/shaiwei/research_gates/m7_moneyflow_recovery
+  new_modules:
+    - target_projection.py
+    - providers.py
+    - batch_store.py
+    - batch_reader.py
+    - evaluator.py
+    - auditor.py
+    - release.py
+    - sealing.py
+    - release_fixture.py
+  existing_domain_modules_are_reused: true
+  existing_hot_or_frozen_files_must_not_change:
+    - src/shaiwei/transform/availability.py
+    - src/shaiwei/ingest/baostock.py
+    - tools/p1_moneyflow/contract.py
+    - src/shaiwei/research_gates/m7_moneyflow_lineage/compute.py
+    - src/shaiwei/research_gates/m7_moneyflow_lineage/audit_compute.py
+    - src/shaiwei/research_gates/m7_moneyflow_recovery/compute.py
+    - src/shaiwei/research_gates/m7_moneyflow_recovery/audit_compute.py
+  module_soft_limit_lines: 400
+  live_cli_or_env_loader_authorized: false
+  new_external_dependency_or_service_added: false
+  public_schema_or_ledger_changed: false
+  adr_required: false
+
+target_projection_contract:
+  input: sealed_m7_0r2_bundle
+  source_core_sha256: df5de399d915ac2cba8533b07a958b5ef06cf7c14a0654c60dc1213cb0d8eeca
+  track_a_category: PRIMARY_FULL_DAY_SUSPENSION_ONLY_UNRESOLVED
+  track_a_member_rows: 908
+  track_b_category: CONFIRMED_MONEYFLOW_GAP_DAILY_PRESENT
+  track_b_member_rows: 541
+  output_columns: [trade_date, source_date, universe_id, ts_code, segment]
+  tracked_output_security_codes_forbidden: true
+  real_projection_execution_authorized: false
+
+provider_adapter_contract:
+  clients_must_be_dependency_injected: true
+  project_config_or_env_import_forbidden: true
+  status_source_api: baostock.history_k_data_plus
+  status_fields: [date, code, tradestatus]
+  moneyflow_source_api: tushare.moneyflow
+  moneyflow_fields_from_frozen_protocol: true
+  alternate_moneyflow_sources_forbidden: [tushare.moneyflow_ths, tushare.moneyflow_dc]
+  sequential_only: true
+  request_claim_before_provider_call: true
+  maximum_transport_attempts: 3
+  semantic_empty_retry_authorized: false
+  provider_calls_in_this_stage: 0
+
+isolated_batch_contract:
+  root: data/control/m7-recovery
+  format: parquet_plus_canonical_receipt_json
+  append_only_write_once: true
+  request_sha256_partition: true
+  response_row_count_and_content_sha256_required: true
+  production_data_raw_write_authorized: false
+  production_ledger_write_authorized: false
+  security_codes_in_git_forbidden: true
+
+release_contract:
+  action: M7_MONEYFLOW_EVIDENCE_RECOVERY_ONCE
+  scope_kind: RECOVERY_RELEASE_NOT_EXECUTION_APPROVAL
+  build_synthetic_scope_only: true
+  real_scope_generation_authorized: false
+  exact_scope_must_bind:
+    - pushed_git_commit
+    - code_bundle_sha256
+    - immutable_image_identity
+    - target_plan_manifest_sha256
+    - exact_request_identity_bundles
+    - commands_mounts_resources_and_network_roles
+    - prior_proposal_identity_and_expiry
+  exact_approval_must_bind_release_scope_sha256: true
+  prior_approval_reuse_forbidden: true
+
+acceptance_gates:
+  required:
+    - predecessor_identity_and_closure_pass
+    - exact_category_projection_pass
+    - provider_mock_contract_pass
+    - isolated_batch_write_once_and_hash_pass
+    - duplicate_request_claim_stops_before_provider_pass
+    - evaluator_internal_replay_pass
+    - independent_auditor_exact_match_pass
+    - synthetic_non_executable_release_pass
+    - four_role_mount_and_network_isolation_pass
+    - aggregate_only_tracked_output_pass
+    - legacy_hash_regression_pass
+    - architecture_and_full_test_pass
+    - scheduler_identity_unchanged_pass
+  verdict_if_all_pass: GO_M7_RECOVERY_RELEASE_ENGINEERING_ONLY
+  any_failure: BLOCKED_M7_RECOVERY_RELEASE_ENGINEERING
+
+authority:
+  release_engineering_authorized: true
+  synthetic_fixture_authorized: true
+  docker_image_build_authorized: true
+  mock_provider_calls_authorized: true
+  real_target_projection_authorized: false
+  real_security_key_read_authorized: false
+  real_moneyflow_numeric_value_read_authorized: false
+  live_provider_call_authorized: false
+  secret_read_authorized: false
+  external_network_authorized: false
+  real_scope_generation_authorized: false
+  approval_envelope_generation_authorized: false
+  recovery_execution_authorized: false
+  production_data_or_ledger_write_authorized: false
+  adjusted_coverage_authorized: false
+  candidate_effect_model_backtest_authorized: false
+  forward_paper_scheduler_web_authorized: false
+  production_authorization: none
+  research_attempt_increment: 0
+
+next_stop:
+  implementation_must_be_committed_and_pushed: true
+  real_target_projection_requires_new_exact_authorization: true
+  target_projection_is_offline_and_key_only: true
+  exact_network_release_requires_projection_manifest_first: true
+  exact_user_approval_required_before_any_live_provider_call: true
+  engineering_go_is_not_release_or_data_go: true
