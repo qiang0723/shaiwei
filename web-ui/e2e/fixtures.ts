@@ -12,6 +12,37 @@ const meta = {
   evidence_hashes: { paper_run_rows_sha256: B }
 };
 
+export const pairedCheckpoint = {
+  schema_version: "web-forward-checkpoint-v1",
+  status: "NOT_DUE",
+  as_of: "2026-07-24",
+  protocol_forward_count: 0,
+  protocol_forward_rebalance_count: 0,
+  controlled_catchup_count: 0,
+  controlled_catchup_rebalance_count: 0,
+  live_dual_count: 0,
+  live_dual_rebalance_count: 0,
+  minimum_live_dual_days: 20,
+  minimum_live_dual_rebalances: 2,
+  coverage_status: "PASS",
+  coverage_ratio: null,
+  expected_open_day_count: 0,
+  missing_open_dates: [],
+  unexpected_live_dates: [],
+  blocked_reasons: [],
+  anchor_trade_date: "2026-07-31",
+  live_dual_start_trade_date: "2026-08-03",
+  comparison_anchor_source: "CONTROLLED_CATCHUP_FORWARD",
+  next_official_open_date: "2026-08-03",
+  expected_first_live_rebalance_execution_date: "2026-08-14",
+  expected_first_due_execution_date: "2026-08-28",
+  dates_are_planning_only: true,
+  series: [],
+  source_refs: ["config/web_forward_checkpoint_v1.yaml"],
+  evidence_hashes: { contract_sha256: A },
+  prohibited_outputs: ["winner_or_loser_label"]
+};
+
 export const overview = {
   schema_version: "web-v1",
   snapshot_id: A,
@@ -61,6 +92,7 @@ export const overview = {
       artifact_sha256: C,
       cash_ratio: "0.3826800578",
       daily_fees: "0",
+      evidence_stratum: "SAME_DAY_FORWARD",
       forward_benchmark_nav: "0.9818987628",
       forward_drawdown: "-0.0235929342",
       forward_net_excess: "-0.0054916969",
@@ -69,6 +101,7 @@ export const overview = {
       turnover: "0"
     }
   },
+  paired_checkpoint: pairedCheckpoint,
   runtime: {
     attempt_count: 2,
     failed_attempt_count: 1,
@@ -146,9 +179,9 @@ export const nav = {
   freshness_status: "PASS",
   observation_count: 3,
   series: [
-    { artifact_sha256: A, benchmark_nav: "1.0035", cash_ratio: "0.3736", daily_fees: "113.22", drawdown: "-0.0335", freshness_status: "PASS", mode: "BACKFILL", net_excess: "-0.0371", normalized_nav: "0.9664", trade_date: "2026-07-22", turnover: "0.63" },
-    { artifact_sha256: B, benchmark_nav: "1.0046", cash_ratio: "0.3771", daily_fees: "0", drawdown: "-0.0424", freshness_status: "PASS", mode: "FORWARD", net_excess: "-0.0471", normalized_nav: "0.9575", trade_date: "2026-07-23", turnover: "0" },
-    { artifact_sha256: C, benchmark_nav: "0.9854", cash_ratio: "0.3827", daily_fees: "0", drawdown: "-0.0564", freshness_status: "PASS", mode: "FORWARD", net_excess: "-0.0418", normalized_nav: "0.9436", trade_date: "2026-07-24", turnover: "0" }
+    { artifact_sha256: A, benchmark_nav: "1.0035", cash_ratio: "0.3736", daily_fees: "113.22", drawdown: "-0.0335", evidence_stratum: "BACKFILL", freshness_status: "PASS", mode: "BACKFILL", net_excess: "-0.0371", normalized_nav: "0.9664", trade_date: "2026-07-22", turnover: "0.63" },
+    { artifact_sha256: B, benchmark_nav: "1.0046", cash_ratio: "0.3771", daily_fees: "0", drawdown: "-0.0424", evidence_stratum: "SAME_DAY_FORWARD", freshness_status: "PASS", mode: "FORWARD", net_excess: "-0.0471", normalized_nav: "0.9575", trade_date: "2026-07-23", turnover: "0" },
+    { artifact_sha256: C, benchmark_nav: "0.9854", cash_ratio: "0.3827", daily_fees: "0", drawdown: "-0.0564", evidence_stratum: "SAME_DAY_FORWARD", freshness_status: "PASS", mode: "FORWARD", net_excess: "-0.0418", normalized_nav: "0.9436", trade_date: "2026-07-24", turnover: "0" }
   ]
 };
 
@@ -170,11 +203,12 @@ export const forward = {
   latest: overview.forward.latest,
   performance_maturity: "OBSERVING",
   series: [
-    { artifact_sha256: B, cash_ratio: "0.3771", daily_fees: "0", forward_benchmark_nav: "1.0011", forward_drawdown: "-0.0092", forward_net_excess: "-0.0103", forward_portfolio_nav: "0.9908", trade_date: "2026-07-23", turnover: "0" },
-    overview.forward.latest
+    { artifact_sha256: B, cash_ratio: "0.3771", daily_fees: "0", evidence_stratum: "SAME_DAY_FORWARD", forward_benchmark_nav: "1.0011", forward_drawdown: "-0.0092", forward_net_excess: "-0.0103", forward_portfolio_nav: "0.9908", trade_date: "2026-07-23", turnover: "0" },
+    { ...overview.forward.latest, evidence_stratum: "SAME_DAY_FORWARD" }
   ],
   status: "PASS",
-  suppressed_metrics: ["forward_annualized_return", "forward_sharpe"]
+  suppressed_metrics: ["forward_annualized_return", "forward_sharpe"],
+  paired_checkpoint: pairedCheckpoint
 };
 
 export const replay = {
@@ -209,7 +243,7 @@ export const top20Nav = {
   execution_policy_version: "paper-top20-v1",
   forward_observation_count: 0,
   forward_status: "NOT_READY",
-  series: nav.series.map((point) => ({ ...point, mode: "BACKFILL" }))
+  series: nav.series.map((point) => ({ ...point, mode: "BACKFILL", evidence_stratum: "BACKFILL" }))
 };
 
 export const top20Forward = {

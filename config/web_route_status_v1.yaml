@@ -1,0 +1,46 @@
+schema_version: web-route-status-v1
+route_id: platform-route-review-20260809
+published_at: '2026-08-09T23:23:47+08:00'
+status: COURSE_CORRECTION_AND_OBSERVE
+headline: 暂停新增研究；当前只积累双账户自然前瞻证据
+summary: M7 数据恢复后证据仍不完整，候选和效果均未进入；当前主线转为 R2-1 自然前瞻检查点。
+primary_goal:
+  goal_id: R2-1_FORWARD_EVIDENCE_CHECKPOINT
+  state: NOT_DUE
+  live_dual_days_at_freeze: 5
+  minimum_live_dual_days: 20
+  live_dual_rebalances_at_freeze: 0
+  minimum_live_dual_rebalances: 2
+  expected_first_live_rebalance_execution_date: '20260814'
+  expected_first_due_execution_date: '20260828'
+  dates_are_planning_only: true
+m7:
+  verdict: NO_GO_M7_EVIDENCE_RECOVERY_INCOMPLETE
+  strategy_effective: NOT_EVALUATED
+  candidate_count: 0
+  effect_read_count: 0
+  production_authorization: none
+  next_action: 当前 M7 路线停止；不再建立 R4/R5，不放宽数据门。
+paused_work:
+  - 新股票池
+  - 新因子批次
+  - LLM 研究批次
+  - 通用控制面
+  - 无目标重构
+capability_note: 5个股票池具备数据与PIT研究条件，但当前路线暂停，不代表已授权开工。
+active_authorized_task_count: 0
+production_authorization: none
+evidence:
+  - path: docs/PLATFORM_ROUTE_REVIEW_20260809.md
+    sha256: 9dc2020ee9491a7529d74f66be3528eb932c8cc3a3890b5d86a8a937efb27a44
+  - path: docs/M7_MONEYFLOW_EVIDENCE_RECOVERY_NETWORK_EXECUTION_ACCEPTANCE_20260809.md
+    sha256: 4b3253e1471590b34f337b590cf5678647d22a08ecacc84b2ebd61db2cfa2c8f
+  - path: docs/R2_1_FORWARD_CHECKPOINT_PROTOCOL_20260809.md
+    sha256: 0c2a05c15d7a585836119a07c6394c0ea779e9648807917190e9fd3b171196c1
+  - path: docs/WEB_1_1_2_TRUTH_CORRECTION_PROTOCOL_20260809.md
+    sha256: 9f4790d1be21d893b5e1f299cb1d5bae288d07204046e252a2056e94c9705c6d
+base_strategy_factory:
+  pointer_path: data/web/research_snapshots/strategy_factory_v3/latest.json
+  pointer_sha256: 063f987f649a5345e7ddd5294cd18a4c4da4a66b1d1cff1a86a57849534dcf02
+  snapshot_path: data/web/research_snapshots/strategy_factory_v3/snapshots/80498300f2b2c0933eed163fe214115c59babae0f3a609b12191d11d54340840.json
+  snapshot_sha256: 8cf59d2a7326fd85cf9927a50305336f03d307fa36e4fa8341dae2775e16c640

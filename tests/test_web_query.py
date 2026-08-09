@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
+import shutil
 
 from fastapi.testclient import TestClient
 import pytest
@@ -375,6 +376,16 @@ def _paper_day(
 
 
 def _fixture(root: Path) -> str:
+    project_root = Path(__file__).parents[1]
+    for relative in (
+        "config/web_forward_checkpoint_v1.yaml",
+        "config/r2_1_forward_checkpoint_v1.yaml",
+        "docs/R2_1_FORWARD_CHECKPOINT_PROTOCOL_20260809.md",
+        "docs/WEB_1_1_2_TRUTH_CORRECTION_PROTOCOL_20260809.md",
+    ):
+        target = root / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(project_root / relative, target)
     for relative in (
         "data/shadow/signals",
         "data/shadow/reconciliations",
@@ -1129,7 +1140,12 @@ def test_web_compose_is_default_off_and_has_no_production_write_surface():
         "/workspace/logs/releases",
         "/workspace/logs/scheduler",
         "/workspace/logs/sentinels",
+        "/workspace/docs/R2_1_FORWARD_CHECKPOINT_PROTOCOL_20260809.md",
+        "/workspace/docs/WEB_1_1_2_TRUTH_CORRECTION_PROTOCOL_20260809.md",
+        "/workspace/docs/PLATFORM_ROUTE_REVIEW_20260809.md",
+        "/workspace/docs/M7_MONEYFLOW_EVIDENCE_RECOVERY_NETWORK_EXECUTION_ACCEPTANCE_20260809.md",
     }
+    assert all(value["read_only"] is True for value in query["volumes"])
     assert all(value["read_only"] is True for value in query["volumes"])
     assert all(value["target"] != "/workspace" for value in query["volumes"])
     dockerfile = (root / "Dockerfile.web").read_text(encoding="utf-8")

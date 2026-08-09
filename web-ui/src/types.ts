@@ -1,3 +1,4 @@
+import type { EvidenceStratum, ForwardCheckpointData } from "./forwardCheckpointTypes";
 export type DomainStatus =
   | "PASS"
   | "WARN"
@@ -9,9 +10,7 @@ export type DomainStatus =
   | "OBSERVING"
   | "NOT_DUE"
   | "NOT_EVALUATED";
-
 export type PaperAccountId = "model_baseline" | "model_top20";
-
 export interface ApiMeta {
   as_of: string;
   generated_at: string;
@@ -21,14 +20,12 @@ export interface ApiMeta {
   source_refs: string[];
   evidence_hashes: Record<string, string>;
 }
-
 export interface ApiEnvelope<T> {
   schema_version: "web-v1";
   request_id: string;
   data: T;
   meta: ApiMeta;
 }
-
 export interface ApiErrorEnvelope {
   schema_version?: string;
   request_id?: string;
@@ -38,7 +35,6 @@ export interface ApiErrorEnvelope {
     retryable?: boolean;
   };
 }
-
 export interface OverviewData {
   schema_version: "web-v1";
   snapshot_id: string;
@@ -86,6 +82,7 @@ export interface OverviewData {
     suppressed_metrics: string[];
     latest: ForwardPoint | null;
   };
+  paired_checkpoint: ForwardCheckpointData;
   runtime: {
     attempt_count: number;
     failed_attempt_count: number;
@@ -175,6 +172,7 @@ export interface NavPoint {
   drawdown: string;
   freshness_status: DomainStatus;
   mode: "BACKFILL" | "FORWARD";
+  evidence_stratum: EvidenceStratum;
   net_excess: string;
   normalized_nav: string;
   trade_date: string;
@@ -202,6 +200,7 @@ export interface ForwardPoint {
   forward_portfolio_nav: string;
   trade_date: string;
   turnover: string;
+  evidence_stratum: EvidenceStratum;
 }
 
 export interface ForwardData {
@@ -224,6 +223,7 @@ export interface ForwardData {
   series: ForwardPoint[];
   status: DomainStatus;
   suppressed_metrics: string[];
+  paired_checkpoint: ForwardCheckpointData;
 }
 
 export interface ReplayData {

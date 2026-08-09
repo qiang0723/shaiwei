@@ -13,6 +13,7 @@ from pydantic import ValidationError
 
 from shaiwei.web.query import WebQueryError
 from shaiwei.web.strategy_factory_contract import StrategyFactoryPointer
+from shaiwei.web.strategy_factory_route import load_strategy_route
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -52,6 +53,8 @@ class StrategyFactoryBundle:
     data: dict[str, Any]
     document_sha256: str
     source_identity: dict[str, Any]
+    route_source_refs: tuple[str, ...] = ()
+    route_evidence_hashes: dict[str, str] | None = None
 
     @property
     def meta(self) -> dict[str, object]:
@@ -61,7 +64,7 @@ class StrategyFactoryBundle:
             "timezone": "Asia/Shanghai",
             "freshness_status": "PASS",
             "snapshot_id": self.snapshot_id,
-            "source_refs": [f"strategy_factory:{self.snapshot_id}"],
+            "source_refs": [f"strategy_factory:{self.snapshot_id}", *self.route_source_refs],
             "evidence_hashes": {
                 "strategy_factory_snapshot": self.document_sha256,
                 "strategy_factory_catalog": str(self.source_identity["catalog_sha256"]),
@@ -72,6 +75,7 @@ class StrategyFactoryBundle:
                     self.source_identity["truth_projection_addendum_sha256"]
                 ),
                 "strategy_factory_builder": str(self.source_identity["builder_sha256"]),
+                **(self.route_evidence_hashes or {}),
             },
             "protocol_id": self.protocol_id,
             "catalog_id": self.catalog_id,
@@ -101,7 +105,8 @@ def load_strategy_factory(
     *,
     output_root: Path | None = None,
 ) -> StrategyFactoryBundle:
-    output = _projection_root(project_root, output_root)
+    root = (project_root or PROJECT_ROOT).resolve()
+    output = _projection_root(root, output_root)
     pointer_path = output / "latest.json"
     if pointer_path.is_symlink() or not pointer_path.is_file():
         raise WebQueryError("NOT_READY", "策略工厂指针尚未构建", status_code=503)
@@ -230,12 +235,38 @@ def load_strategy_factory(
     ]
     if decision.get("universe_ids") != expected_universes:
         raise WebQueryError("EVIDENCE_MISMATCH", "策略工厂权威数据门股票池漂移")
+    route, route_sha256, route_refs, route_hashes = load_strategy_route(
+        root,
+        pointer_payload=pointer_path.read_bytes(),
+        snapshot_payload=payload,
+    )
+    data = dict(data)
+    data["summary"] = {
+        **dict(data["summary"]),
+        "decision": route["headline"],
+        "active_authorized_task_count": route["active_authorized_task_count"],
+    }
+    data["route_decision"] = route
+    overlay_id = _sha256(
+        _canonical(
+            {
+                "base_snapshot_id": pointer.snapshot_id,
+                "route_sha256": route_sha256,
+                "route": route,
+            }
+        )
+    )
     return StrategyFactoryBundle(
-        snapshot_id=pointer.snapshot_id,
-        generated_at=str(document["generated_at"]),
+        snapshot_id=overlay_id,
+        generated_at=str(route["published_at"]),
         protocol_id=str(document["protocol_id"]),
         catalog_id=str(document["catalog_id"]),
         data=data,
         document_sha256=pointer.snapshot_sha256,
         source_identity=dict(source_identity),
+        route_source_refs=route_refs,
+        route_evidence_hashes={
+            f"strategy_route_source_{index:02d}": digest
+            for index, digest in enumerate(route_hashes.values(), start=1)
+        },
     )

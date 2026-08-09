@@ -272,7 +272,8 @@ test("strategy factory persists only a non-authoritative proposal and stops at h
   await mockApi(page, requests);
   await page.goto("/strategy-factory");
   await expect(page.getByRole("heading", { name: "策略工厂" })).toBeVisible();
-  await expect(page.getByText("5个股票池具备研究草案条件；最新M5动态基本面批次因历史来源谱系不足被阻断，未进入效果评价。")).toBeVisible();
+  await expect(page.getByText("暂停新增研究；当前只积累双账户自然前瞻证据", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "暂停新增研究；当前只积累双账户自然前瞻证据" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "动态基本面跨池研究：数据证据阻断，未评价策略效果" })).toBeVisible();
   await expect(page.getByText("仅当前观察版本")).toBeVisible();
   await expect(page.getByText("历史版本链可恢复")).toBeVisible();
@@ -306,8 +307,8 @@ test("paper separates forward performance from full-account audit and exposes da
   await mockApi(page);
   await page.goto("/paper");
   await expect(page.getByRole("heading", { name: "模拟组合" })).toBeVisible();
-  await expect(page.getByText("前瞻观察", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("样本不足，不绘制趋势")).toBeVisible();
+  await expect(page.getByText("同日自然前瞻", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("样本或分层条件不足，不绘制趋势")).toBeVisible();
   await expect(page.getByRole("region", { name: "前瞻观察精确值" }).getByRole("row")).toHaveCount(3);
   await expect(page.getByRole("img", { name: "前瞻模拟组合与中证800归一化净值折线图" })).toHaveCount(0);
   await captureVisual(page, testInfo, "paper");
@@ -323,9 +324,9 @@ test("paper separates forward performance from full-account audit and exposes da
   await expectNoPageOverflow(page);
 
   await page.getByText("比较账户 · Top20", { exact: true }).click();
-  await expect(page.getByText("Top20 当前只完成工程回放，不能与 Top30 比较策略优劣")).toBeVisible();
-  await expect(page.getByText("尚无自然前瞻账户日", { exact: true })).toBeVisible();
-  await expect(page.getByText(/自然前瞻 0 日/)).toBeVisible();
+  await expect(page.getByText("Top20 当前没有协议 FORWARD，不能与 Top30 比较策略优劣")).toBeVisible();
+  await expect(page.getByText("尚无协议 FORWARD 账户日", { exact: true })).toBeVisible();
+  await expect(page.getByText(/协议 FORWARD 0 日/).first()).toBeVisible();
   await expect(page.getByRole("region", { name: "前瞻观察精确值" })).toHaveCount(0);
   await expect(page.getByRole("img", { name: "前瞻模拟组合与中证800归一化净值折线图" })).toHaveCount(0);
   await expectNoPageOverflow(page);

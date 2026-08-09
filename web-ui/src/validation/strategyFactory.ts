@@ -273,6 +273,49 @@ function validateGateDecisions(
   return decisionId;
 }
 
+function validateCurrentRoute(value: unknown): void {
+  const route = record(value, "strategyFactory.route_decision");
+  if (
+    route.route_id !== "platform-route-review-20260809"
+    || route.status !== "COURSE_CORRECTION_AND_OBSERVE"
+    || route.active_authorized_task_count !== 0
+    || route.production_authorization !== "none"
+  ) throw new Error("策略工厂当前路线漂移");
+  text(route.headline, "strategyFactory.route.headline");
+  text(route.summary, "strategyFactory.route.summary");
+  const primary = record(route.primary_goal, "strategyFactory.route.primary_goal");
+  const primaryExact: Record<string, unknown> = {
+    goal_id: "R2-1_FORWARD_EVIDENCE_CHECKPOINT",
+    state: "NOT_DUE",
+    live_dual_days_at_freeze: 5,
+    minimum_live_dual_days: 20,
+    live_dual_rebalances_at_freeze: 0,
+    minimum_live_dual_rebalances: 2,
+    expected_first_live_rebalance_execution_date: "20260814",
+    expected_first_due_execution_date: "20260828",
+    dates_are_planning_only: true
+  };
+  Object.entries(primaryExact).forEach(([key, expected]) => {
+    if (primary[key] !== expected) throw new Error(`策略工厂当前目标 ${key} 漂移`);
+  });
+  const m7 = record(route.m7, "strategyFactory.route.m7");
+  const m7Exact: Record<string, unknown> = {
+    verdict: "NO_GO_M7_EVIDENCE_RECOVERY_INCOMPLETE",
+    strategy_effective: "NOT_EVALUATED",
+    candidate_count: 0,
+    effect_read_count: 0,
+    production_authorization: "none"
+  };
+  Object.entries(m7Exact).forEach(([key, expected]) => {
+    if (m7[key] !== expected) throw new Error(`策略工厂M7当前事实 ${key} 漂移`);
+  });
+  text(m7.next_action, "strategyFactory.route.m7.next_action");
+  if (stringArray(route.paused_work, "strategyFactory.route.paused_work").length !== 5) {
+    throw new Error("策略工厂暂停工作集合漂移");
+  }
+  text(route.capability_note, "strategyFactory.route.capability_note");
+}
+
 export function assertStrategyFactory(value: unknown): asserts value is StrategyFactoryData {
   noBse(value);
   const root = record(value, "strategyFactory");
@@ -285,6 +328,7 @@ export function assertStrategyFactory(value: unknown): asserts value is Strategy
     throw new Error("策略工厂权威投影版本无效");
   }
   const gateDecisionId = validateGateDecisions(root.recent_gate_decisions, universes, families);
+  validateCurrentRoute(root.route_decision);
   const attention = record(root.attention, "strategyFactory.attention");
   stringArray(attention.blocked_universe_ids, "attention.blocked_universe_ids");
   stringArray(attention.rejected_program_ids, "attention.rejected_program_ids");

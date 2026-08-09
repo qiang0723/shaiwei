@@ -1,0 +1,110 @@
+schema_version: web-forward-checkpoint-contract-v1
+contract_id: r2-1-web-forward-checkpoint-v1
+published_at: '2026-08-09T23:40:00+08:00'
+timezone: Asia/Shanghai
+base_protocol:
+  path: config/r2_1_forward_checkpoint_v1.yaml
+  sha256: 4b78cad26baed27fefdec2b290c7df5d2cb5e5042adb9334e678f3a15ac0a29f
+evidence:
+  - path: docs/R2_1_FORWARD_CHECKPOINT_PROTOCOL_20260809.md
+    sha256: 0c2a05c15d7a585836119a07c6394c0ea779e9648807917190e9fd3b171196c1
+  - path: docs/WEB_1_1_2_TRUTH_CORRECTION_PROTOCOL_20260809.md
+    sha256: 9f4790d1be21d893b5e1f299cb1d5bae288d07204046e252a2056e94c9705c6d
+accounts:
+  control:
+    account_id: model_baseline
+    execution_policy_version: paper-v1
+    policy_sha256: eaa341b5a3eee94347c7a8453a3e52f1986e3707abfbb6bb69a6d9298c320cc8
+  comparison:
+    account_id: model_top20
+    execution_policy_version: paper-top20-v1
+    policy_sha256: d11d773bd79719641dc1bbc35976d4899fddb730d0f3673094cb6f20cc7840c8
+benchmark: 000906.SH
+initial_capital_rmb_each: 500000
+protocol_forward_start_execution_date: '20260727'
+live_dual_start_execution_date: '20260803'
+anchor:
+  execution_trade_date: '20260731'
+  control_run_id: 1ce067a20af4e771da57
+  control_artifact_sha256: 9a0c2c6ce48571dc688a68c9d88314885a814b74eabb80cc9fe0b81f1fef10a1
+  comparison_run_id: 8a6c1f87e16f1630eb27
+  comparison_artifact_sha256: a7ae574465117b9287dc3ef94c6519883a3d2eaa7ec14314d6e9445175ad03a3
+minimums:
+  live_dual_days: 20
+  live_dual_rebalance_cycles: 2
+planning_dates:
+  expected_first_live_rebalance_execution_date: '20260814'
+  expected_first_due_execution_date: '20260828'
+  dates_are_planning_only: true
+calendar:
+  source_api: tushare.trade_cal
+  source_batch_sha256: 69a93256b20db6f99538fb6a23da1981f3285e9d099fbed86c7919150aad56df
+  exchange: SSE
+  coverage_start: '20260803'
+  coverage_end: '20261030'
+  open_dates:
+    - '20260803'
+    - '20260804'
+    - '20260805'
+    - '20260806'
+    - '20260807'
+    - '20260810'
+    - '20260811'
+    - '20260812'
+    - '20260813'
+    - '20260814'
+    - '20260817'
+    - '20260818'
+    - '20260819'
+    - '20260820'
+    - '20260821'
+    - '20260824'
+    - '20260825'
+    - '20260826'
+    - '20260827'
+    - '20260828'
+    - '20260831'
+    - '20260901'
+    - '20260902'
+    - '20260903'
+    - '20260904'
+    - '20260907'
+    - '20260908'
+    - '20260909'
+    - '20260910'
+    - '20260911'
+    - '20260914'
+    - '20260915'
+    - '20260916'
+    - '20260917'
+    - '20260918'
+    - '20260921'
+    - '20260922'
+    - '20260923'
+    - '20260924'
+    - '20260928'
+    - '20260929'
+    - '20260930'
+    - '20261008'
+    - '20261009'
+    - '20261012'
+    - '20261013'
+    - '20261014'
+    - '20261015'
+    - '20261016'
+    - '20261019'
+    - '20261020'
+    - '20261021'
+    - '20261022'
+    - '20261023'
+    - '20261026'
+    - '20261027'
+    - '20261028'
+    - '20261029'
+    - '20261030'
+prohibited_outputs:
+  - winner_or_loser_label
+  - strategy_effectiveness
+  - production_switch_recommendation
+  - annualized_metrics
+  - significance_claim

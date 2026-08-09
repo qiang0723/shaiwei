@@ -117,6 +117,37 @@ export interface StrategyFactoryGateDecision {
   evidence_ids: string[];
 }
 
+export interface StrategyFactoryRouteDecision {
+  route_id: "platform-route-review-20260809";
+  published_at: string;
+  status: "COURSE_CORRECTION_AND_OBSERVE";
+  headline: string;
+  summary: string;
+  primary_goal: {
+    goal_id: "R2-1_FORWARD_EVIDENCE_CHECKPOINT";
+    state: "NOT_DUE";
+    live_dual_days_at_freeze: 5;
+    minimum_live_dual_days: 20;
+    live_dual_rebalances_at_freeze: 0;
+    minimum_live_dual_rebalances: 2;
+    expected_first_live_rebalance_execution_date: "20260814";
+    expected_first_due_execution_date: "20260828";
+    dates_are_planning_only: true;
+  };
+  m7: {
+    verdict: "NO_GO_M7_EVIDENCE_RECOVERY_INCOMPLETE";
+    strategy_effective: "NOT_EVALUATED";
+    candidate_count: 0;
+    effect_read_count: 0;
+    production_authorization: "none";
+    next_action: string;
+  };
+  paused_work: string[];
+  capability_note: string;
+  active_authorized_task_count: 0;
+  production_authorization: "none";
+}
+
 export interface StrategyFactoryData {
   summary: StrategyFactorySummary;
   attention: {
@@ -133,6 +164,7 @@ export interface StrategyFactoryData {
   active_tasks: never[];
   authority_projection_version: "m5-strategy-factory-authority-projection-v1";
   recent_gate_decisions: StrategyFactoryGateDecision[];
+  route_decision: StrategyFactoryRouteDecision;
   draft_template: StrategyFactoryDraftTemplate;
   invariants: {
     source_backed: true;

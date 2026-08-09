@@ -14,10 +14,13 @@ def test_web_modularization_ratchet():
         "src/shaiwei/web/query_evidence.py",
         "src/shaiwei/web/query_paper.py",
         "src/shaiwei/web/query_signal.py",
+        "src/shaiwei/web/forward_checkpoint.py",
+        "src/shaiwei/web/forward_checkpoint_query.py",
         "src/shaiwei/web/strategy_factory.py",
         "src/shaiwei/web/strategy_factory_contract.py",
         "src/shaiwei/web/strategy_factory_gate_authority.py",
         "src/shaiwei/web/strategy_factory_projection.py",
+        "src/shaiwei/web/strategy_factory_route.py",
         "web-ui/src/validation.ts",
         "web-ui/src/validation/core.ts",
         "web-ui/src/validation/paper.ts",
@@ -25,6 +28,7 @@ def test_web_modularization_ratchet():
         "web-ui/src/validation/factors.ts",
         "web-ui/src/validation/experiments.ts",
         "web-ui/src/validation/strategyFactory.ts",
+        "web-ui/src/validation/forwardCheckpoint.ts",
         "web-ui/src/styles.css",
         "web-ui/src/styles/00-foundation-shell.css",
         "web-ui/src/styles/10-components-paper.css",
@@ -51,6 +55,9 @@ def test_web_modularization_ratchet():
         "web-ui/src/pages/StrategyFactoryPage.tsx",
         "web-ui/src/pages/strategy-factory/presentation.tsx",
         "web-ui/src/pages/strategy-factory/GateDecisionPanel.tsx",
+        "web-ui/src/pages/strategy-factory/RouteDecisionPanel.tsx",
+        "web-ui/src/pages/overview/PairedCheckpointSummary.tsx",
+        "web-ui/src/pages/paper/ForwardCheckpointPanel.tsx",
     )
     oversized = {path: _lines(path) for path in bounded_modules if _lines(path) > 600}
     assert oversized == {}

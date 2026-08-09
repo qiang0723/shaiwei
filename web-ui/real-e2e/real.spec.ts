@@ -56,6 +56,11 @@ interface RealStrategyFactory {
       active_authorized_task_count: number;
     };
     authority_projection_version: string;
+    route_decision: {
+      status: string;
+      primary_goal: { live_dual_days_at_freeze: number; minimum_live_dual_days: number };
+      m7: { candidate_count: number; effect_read_count: number; strategy_effective: string };
+    };
     recent_gate_decisions: Array<{
       terminal_state: string;
       evidence_tier: string;
@@ -164,6 +169,11 @@ test("deployed read-only UI serves real evidence under strict CSP", async ({ pag
         active_authorized_task_count: 0
       });
       expect(factory.data.active_tasks).toEqual([]);
+      expect(factory.data.route_decision).toMatchObject({
+        status: "COURSE_CORRECTION_AND_OBSERVE",
+        primary_goal: { live_dual_days_at_freeze: 5, minimum_live_dual_days: 20 },
+        m7: { candidate_count: 0, effect_read_count: 0, strategy_effective: "NOT_EVALUATED" }
+      });
       expect(factory.data.authority_projection_version).toBe(
         "m5-strategy-factory-authority-projection-v1"
       );
@@ -229,7 +239,12 @@ test("real paper page follows the isolated Top20 evidence state without overclai
     data: { account_id: string; mode: string };
   };
   const forwardPayload = await forwardResponse.json() as {
-    data: { status: string; forward_observation_count: number; series: unknown[] };
+    data: {
+      status: string;
+      forward_observation_count: number;
+      series: unknown[];
+      paired_checkpoint: { controlled_catchup_count: number; live_dual_count: number };
+    };
   };
   expect(portfolioPayload.data.account_id).toBe("model_top20");
   expect(forwardPayload.data.series).toHaveLength(forwardPayload.data.forward_observation_count);
@@ -247,12 +262,15 @@ test("real paper page follows the isolated Top20 evidence state without overclai
   const count = forwardPayload.data.forward_observation_count;
   await expect(page.getByText(
     count === 0
-      ? "Top20 当前只完成工程回放，不能与 Top30 比较策略优劣"
-      : "Top20 已开始自然前瞻，但样本仍不足以与 Top30 比较策略优劣"
+      ? "Top20 当前没有协议 FORWARD，不能与 Top30 比较策略优劣"
+      : "Top20 的协议 FORWARD 包含受控补跑，不能全部称为自然前瞻"
   )).toBeVisible();
-  await expect(page.getByText(new RegExp(`自然前瞻 ${count} 日`)).first()).toBeVisible();
+  const checkpoint = forwardPayload.data.paired_checkpoint;
+  await expect(page.getByText(new RegExp(
+    `协议 FORWARD ${count} 日 · 受控补跑 ${checkpoint.controlled_catchup_count} 日 · 同日自然 ${checkpoint.live_dual_count} 日`
+  )).first()).toBeVisible();
   if (count === 0) {
-    await expect(page.getByText("尚无自然前瞻账户日", { exact: true })).toBeVisible();
+    await expect(page.getByText("尚无协议 FORWARD 账户日", { exact: true })).toBeVisible();
     await expect(page.getByText("前瞻锚点未形成", { exact: true })).toBeVisible();
   }
   await expect(page.getByText("年化收益")).toHaveCount(0);

@@ -32,6 +32,8 @@ FIXED_LEDGER_PATHS = (
     "ledger/paper_runs.csv",
 )
 ARTIFACT_PREFIXES = (
+    "config/",
+    "docs/",
     "data/shadow/signals/",
     "data/shadow/reconciliations/",
     "data/paper/",

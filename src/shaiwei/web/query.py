@@ -34,6 +34,7 @@ from shaiwei.web.query_paper import (
     _paper_projection,
     _paper_replay,
 )
+from shaiwei.web.forward_checkpoint_query import paired_forward_projection
 from shaiwei.web.query_signal import (
     _notification_projection,
     _reconciliation_projection,
@@ -112,6 +113,17 @@ def _build_from_cut(
         as_of=actual_as_of,
         account_id=account_id,
     )
+    paired_checkpoint, paired_source_refs, paired_evidence_hashes = (
+        paired_forward_projection(
+            cut,
+            actual_as_of=actual_as_of,
+            paper_account_rows=paper_account_rows,
+            paper_event_rows=paper_event_rows,
+            paper_ledger_rows=paper_ledger_rows,
+            passed_signals=passed_signals,
+        )
+    )
+    paper_forward["paired_checkpoint"] = paired_checkpoint
 
     latest_signal = _signal_projection(
         signal_row,
@@ -238,6 +250,7 @@ def _build_from_cut(
         "latest_paper_artifact_sha256": paper_rows[-1]["artifact_sha256"],
         "security_name_pointer_sha256": cut.sources[name_pointer_ref].sha256,
         "security_name_bundle_sha256": name_bundle_sha256,
+        **paired_evidence_hashes,
         **notification_hashes,
     }
     if previous_signal_row is not None:
@@ -277,6 +290,7 @@ def _build_from_cut(
                 *(row["artifact_path"] for row in paper_rows),
                 name_pointer_ref,
                 name_bundle_ref,
+                *paired_source_refs,
                 *(
                     row["artifact_path"]
                     for row in reconciliation_rows
@@ -349,6 +363,7 @@ def _build_from_cut(
                 "suppressed_metrics",
             )
         },
+        "paired_checkpoint": paired_checkpoint,
         "runtime": {
             "task_status": latest_terminal["status"],
             "on_time": latest_terminal.get("on_time") == "true",

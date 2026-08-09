@@ -90,7 +90,7 @@ const matrix = strategyFactoryFamilies.flatMap((family) => strategyFactoryUniver
 export const strategyFactoryData: StrategyFactoryData = {
   summary: {
     overall_status: "WARN",
-    decision: "5个股票池具备研究草案条件；最新M5动态基本面批次因历史来源谱系不足被阻断，未进入效果评价。",
+    decision: "暂停新增研究；当前只积累双账户自然前瞻证据",
     registered_universe_count: 8,
     research_eligible_universe_count: 5,
     blocked_universe_count: 3,
@@ -144,6 +144,36 @@ export const strategyFactoryData: StrategyFactoryData = {
     active_task: false,
     evidence_ids: ["lineage_release_scope", "lineage_real_run_acceptance", "platform_route_review"]
   }],
+  route_decision: {
+    route_id: "platform-route-review-20260809",
+    published_at: "2026-08-09T23:23:47+08:00",
+    status: "COURSE_CORRECTION_AND_OBSERVE",
+    headline: "暂停新增研究；当前只积累双账户自然前瞻证据",
+    summary: "M7 数据恢复后证据仍不完整，候选和效果均未进入；当前主线转为 R2-1 自然前瞻检查点。",
+    primary_goal: {
+      goal_id: "R2-1_FORWARD_EVIDENCE_CHECKPOINT",
+      state: "NOT_DUE",
+      live_dual_days_at_freeze: 5,
+      minimum_live_dual_days: 20,
+      live_dual_rebalances_at_freeze: 0,
+      minimum_live_dual_rebalances: 2,
+      expected_first_live_rebalance_execution_date: "20260814",
+      expected_first_due_execution_date: "20260828",
+      dates_are_planning_only: true
+    },
+    m7: {
+      verdict: "NO_GO_M7_EVIDENCE_RECOVERY_INCOMPLETE",
+      strategy_effective: "NOT_EVALUATED",
+      candidate_count: 0,
+      effect_read_count: 0,
+      production_authorization: "none",
+      next_action: "当前 M7 路线停止；不再建立 R4/R5，不放宽数据门。"
+    },
+    paused_work: ["新股票池", "新因子批次", "LLM 研究批次", "通用控制面", "无目标重构"],
+    capability_note: "5个股票池具备数据与PIT研究条件，但当前路线暂停，不代表已授权开工。",
+    active_authorized_task_count: 0,
+    production_authorization: "none"
+  },
   draft_template: {
     template_id: "bounded-research-draft-v1",
     display_name: "有界多股票池研究草案",

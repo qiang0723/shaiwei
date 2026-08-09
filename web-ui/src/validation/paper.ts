@@ -23,6 +23,13 @@ import {
   text,
   timestamp
 } from "./core";
+import { assertForwardCheckpoint } from "./forwardCheckpoint";
+
+function evidenceStratum(value: unknown, name: string): void {
+  if (!["BACKFILL", "SAME_DAY_FORWARD", "CONTROLLED_CATCHUP_FORWARD"].includes(String(value))) {
+    throw new Error(`${name} 无效`);
+  }
+}
 
 export function assertOverview(value: unknown): asserts value is OverviewData {
   const root = record(value, "总览");
@@ -54,6 +61,7 @@ export function assertOverview(value: unknown): asserts value is OverviewData {
   status(forward.performance_maturity, "总览 performance_maturity");
   status(forward.coverage_status, "总览 coverage_status");
   integer(forward.forward_observation_count, "总览 forward_observation_count");
+  assertForwardCheckpoint(root.paired_checkpoint);
   if (forward.latest !== null) {
     const latest = record(forward.latest, "总览 forward.latest");
     numberLike(latest.forward_portfolio_nav, "总览 forward_portfolio_nav");
@@ -151,6 +159,7 @@ export function assertNav(value: unknown): asserts value is NavData {
     const point = record(item, `净值 point[${index}]`);
     date(point.trade_date, `净值 point[${index}].trade_date`);
     if (point.mode !== "BACKFILL" && point.mode !== "FORWARD") throw new Error("净值 mode 无效");
+    evidenceStratum(point.evidence_stratum, `净值 point[${index}].evidence_stratum`);
     status(point.freshness_status, `净值 point[${index}].freshness_status`);
     ["normalized_nav", "benchmark_nav", "net_excess", "drawdown", "turnover", "cash_ratio", "daily_fees"].forEach(
       (name) => numberLike(point[name], `净值 point[${index}].${name}`)
@@ -172,6 +181,7 @@ export function assertForward(value: unknown): asserts value is ForwardData {
   text(root.execution_policy_version, "前瞻 execution_policy_version");
   text(root.coverage_reason, "前瞻 coverage_reason");
   stringArray(root.suppressed_metrics, "前瞻 suppressed_metrics");
+  assertForwardCheckpoint(root.paired_checkpoint);
   if (root.forward_observation_count === 0) {
     if (root.status !== "NOT_READY" || root.performance_maturity !== "NOT_READY") {
       throw new Error("零前瞻观察必须保持 NOT_READY");
@@ -198,6 +208,7 @@ export function assertForward(value: unknown): asserts value is ForwardData {
   root.series.forEach((item, index) => {
     const point = record(item, `前瞻 point[${index}]`);
     date(point.trade_date, `前瞻 point[${index}].trade_date`);
+    evidenceStratum(point.evidence_stratum, `前瞻 point[${index}].evidence_stratum`);
     ["forward_portfolio_nav", "forward_benchmark_nav", "forward_net_excess", "forward_drawdown"].forEach(
       (name) => numberLike(point[name], `前瞻 point[${index}].${name}`)
     );

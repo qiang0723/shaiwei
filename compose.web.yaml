@@ -99,6 +99,26 @@ services:
         read_only: true
         bind:
           create_host_path: false
+      - type: bind
+        source: ./docs/R2_1_FORWARD_CHECKPOINT_PROTOCOL_20260809.md
+        target: /workspace/docs/R2_1_FORWARD_CHECKPOINT_PROTOCOL_20260809.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/WEB_1_1_2_TRUTH_CORRECTION_PROTOCOL_20260809.md
+        target: /workspace/docs/WEB_1_1_2_TRUTH_CORRECTION_PROTOCOL_20260809.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/PLATFORM_ROUTE_REVIEW_20260809.md
+        target: /workspace/docs/PLATFORM_ROUTE_REVIEW_20260809.md
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/M7_MONEYFLOW_EVIDENCE_RECOVERY_NETWORK_EXECUTION_ACCEPTANCE_20260809.md
+        target: /workspace/docs/M7_MONEYFLOW_EVIDENCE_RECOVERY_NETWORK_EXECUTION_ACCEPTANCE_20260809.md
+        read_only: true
+        bind: {create_host_path: false}
     networks: [web-internal]
     healthcheck:
       test:

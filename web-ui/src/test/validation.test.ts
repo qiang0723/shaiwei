@@ -27,6 +27,7 @@ import {
   factorDetail,
   factorHistory,
   notification,
+  pairedCheckpoint,
   systemRuns,
   VERSION_A,
   VERSION_B
@@ -103,6 +104,7 @@ const nav = {
       cash_ratio: "0.1",
       daily_fees: "0",
       drawdown: "0",
+      evidence_stratum: "SAME_DAY_FORWARD",
       freshness_status: "PASS",
       mode: "FORWARD",
       net_excess: "0",
@@ -135,6 +137,7 @@ const forward = {
       artifact_sha256: HASH,
       cash_ratio: "0.1",
       daily_fees: "0",
+      evidence_stratum: "SAME_DAY_FORWARD",
       forward_benchmark_nav: "1",
       forward_drawdown: "0",
       forward_net_excess: "0",
@@ -144,7 +147,8 @@ const forward = {
     }
   ],
   status: "PASS",
-  suppressed_metrics: ["forward_sharpe"]
+  suppressed_metrics: ["forward_sharpe"],
+  paired_checkpoint: pairedCheckpoint
 };
 
 const replay = {

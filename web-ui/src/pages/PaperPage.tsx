@@ -33,6 +33,13 @@ import type {
   PaperAccountId,
   Position
 } from "../types";
+import { ForwardCheckpointPanel } from "./paper/ForwardCheckpointPanel";
+
+function stratumLabel(value: ForwardPoint["evidence_stratum"] | NavPoint["evidence_stratum"]) {
+  if (value === "SAME_DAY_FORWARD") return "同日自然前瞻";
+  if (value === "CONTROLLED_CATCHUP_FORWARD") return "受控补跑前瞻";
+  return "工程回放";
+}
 
 const PAPER_ACCOUNTS: Record<
   PaperAccountId,
@@ -56,15 +63,16 @@ function ForwardEvidenceTable({ series }: { series: ForwardPoint[] }) {
   return (
     <div className="short-series-evidence">
       <div className="short-series-message" role="status">
-        <strong>{series.length ? "样本不足，不绘制趋势" : "尚无自然前瞻账户日"}</strong>
-        <span>{series.length ? "连续趋势至少需要 8 个可比前瞻账户日；当前展示精确值，不扩大短样本确定性。" : "工程回放只用于核验持仓、现金与账务，不作为前瞻表现。"}</span>
+        <strong>{series.length ? "样本或分层条件不足，不绘制趋势" : "尚无协议 FORWARD 账户日"}</strong>
+        <span>{series.length ? "受控补跑与同日自然运行不混画；当前展示逐日精确值，不扩大短样本确定性。" : "工程回放只用于核验持仓、现金与账务，不作为前瞻表现。"}</span>
       </div>
       {series.length ? <div className="compact-value-table" role="region" aria-label="前瞻观察精确值" tabIndex={0}>
         <table>
-          <thead><tr><th>日期</th><th>组合净值</th><th>中证800</th><th>净值差</th><th>回撤</th></tr></thead>
+          <thead><tr><th>日期</th><th>证据层</th><th>组合净值</th><th>中证800</th><th>净值差</th><th>回撤</th></tr></thead>
           <tbody>{series.map((point) => (
             <tr key={point.trade_date}>
               <td>{displayDate(point.trade_date)}</td>
+              <td>{stratumLabel(point.evidence_stratum)}</td>
               <td>{formatNav(point.forward_portfolio_nav)}</td>
               <td>{formatNav(point.forward_benchmark_nav)}</td>
               <td className={numericTone(point.forward_net_excess)}>{formatPercentagePoints(point.forward_net_excess)}</td>
@@ -93,6 +101,7 @@ export default function PaperPage() {
 
   const bundle = query.data;
   const { portfolio, nav, forward, replay, meta } = bundle;
+  const checkpoint = forward.paired_checkpoint;
   const account = PAPER_ACCOUNTS[accountId];
   const evidence: EvidencePayload = {
     title: "模拟组合证据",
@@ -112,7 +121,9 @@ export default function PaperPage() {
     ]
   };
 
-  const forwardChart = forward.series.flatMap((point) => [
+  const naturalForwardSeries = forward.series.filter((point) => point.evidence_stratum === "SAME_DAY_FORWARD");
+  const canChartForward = naturalForwardSeries.length >= 8 && checkpoint.controlled_catchup_count === 0;
+  const forwardChart = naturalForwardSeries.flatMap((point) => [
     { date: point.trade_date, series: "模拟组合 · 前瞻", value: Number(point.forward_portfolio_nav) },
     { date: point.trade_date, series: "中证800 · 前瞻", value: Number(point.forward_benchmark_nav) }
   ]);
@@ -221,7 +232,7 @@ export default function PaperPage() {
         </Button>
       )
     },
-    { title: "观察类型", dataIndex: "mode", key: "mode", render: (value: string) => <span className={`mode-label mode-${value.toLowerCase()}`} title={value}>{value === "FORWARD" ? "前瞻观察" : "工程回放"}</span> },
+    { title: "证据层", dataIndex: "evidence_stratum", key: "evidence_stratum", render: (value: NavPoint["evidence_stratum"]) => stratumLabel(value) },
     { title: "组合净值", dataIndex: "normalized_nav", key: "normalized_nav", align: "right", render: formatNav },
     { title: "中证800", dataIndex: "benchmark_nav", key: "benchmark_nav", align: "right", render: formatNav },
     { title: "净值差", dataIndex: "net_excess", key: "net_excess", align: "right", render: (value: string) => <span className={numericTone(value)}>{formatPercentagePoints(value)}</span> },
@@ -282,16 +293,18 @@ export default function PaperPage() {
         />
       </section>
 
+      <ForwardCheckpointPanel checkpoint={checkpoint} />
+
       {accountId === "model_top20" ? (
         <div className="account-boundary-notice" role="status">
           <SafetyCertificateOutlined aria-hidden="true" />
           <div>
             <strong>
               {forward.forward_observation_count === 0
-                ? "Top20 当前只完成工程回放，不能与 Top30 比较策略优劣"
-                : "Top20 已开始自然前瞻，但样本仍不足以与 Top30 比较策略优劣"}
+                ? "Top20 当前没有协议 FORWARD，不能与 Top30 比较策略优劣"
+                : "Top20 的协议 FORWARD 包含受控补跑，不能全部称为自然前瞻"}
             </strong>
-            <span>自然前瞻 {forward.forward_observation_count} 日 · {account.automation}；本页只展示可重放的持仓、现金和账户日证据。</span>
+            <span>协议 FORWARD {forward.forward_observation_count} 日 · 受控补跑 {checkpoint.controlled_catchup_count} 日 · 同日自然 {checkpoint.live_dual_count} 日；{account.automation}。</span>
           </div>
         </div>
       ) : null}
@@ -319,7 +332,7 @@ export default function PaperPage() {
           <MetricCard
             label="最新前瞻净值差"
             value={forward.latest ? formatPercentagePoints(forward.latest.forward_net_excess) : "未就绪"}
-            detail={`${forward.forward_observation_count} 个 FORWARD 账户日`}
+            detail={`${forward.forward_observation_count} 个协议 FORWARD 账户日`}
             tone={forward.latest && Number(forward.latest.forward_net_excess) < 0 ? "negative" : "default"}
           />
           <MetricCard
@@ -330,7 +343,7 @@ export default function PaperPage() {
           />
           <MetricCard label="覆盖率" value={<StatusBadge status={forward.coverage_status} compact />} detail={forward.coverage_reason} />
         </div>
-        {forward.series.length >= 8 ? (
+        {canChartForward ? (
           <>
             <div className="chart-canvas" role="img" aria-label="前瞻模拟组合与中证800归一化净值折线图">
               <Line {...chartConfig} data={forwardChart} />
@@ -347,7 +360,7 @@ export default function PaperPage() {
           </>
         ) : <ForwardEvidenceTable series={forward.series} />}
         <div className="chart-footnote">
-          <span>账户：{account.name}</span><span>观察类型：仅自然前瞻</span><span>基准：000906.SH</span><span>费用：实际成交费用</span><span title={portfolio.execution_policy_version}>策略：固定模拟规则</span>
+          <span>账户：{account.name}</span><span>观察类型：协议 FORWARD 分层展示</span><span>基准：000906.SH</span><span>费用：实际成交费用</span><span title={portfolio.execution_policy_version}>策略：固定模拟规则</span>
         </div>
       </section>
 
@@ -370,7 +383,7 @@ export default function PaperPage() {
           <div><span className="section-kicker">AUDIT HISTORY</span><h2 id="audit-heading">全账户审计历史</h2></div>
           <Segmented options={["前瞻专属", "全账户"]} value={historyMode} onChange={(value) => setHistoryMode(String(value))} />
         </div>
-        {historyMode === "前瞻专属" && forward.series.length >= 8 ? (
+        {historyMode === "前瞻专属" && canChartForward ? (
           <div className="split-charts">
             <div>
               <h3>锚定净值</h3>
@@ -397,8 +410,8 @@ export default function PaperPage() {
             <div>
               {historyMode === "前瞻专属" ? (
                 <>
-                  <strong>前瞻序列共 {forward.series.length} 个账户日，不绘制趋势</strong>
-                  <p>仅陈述锚点后的自然观察，工程回放不进入本范围；精确值见上方前瞻表及下方账户日证据。</p>
+                  <strong>协议 FORWARD 共 {forward.series.length} 个账户日，不绘制混合趋势</strong>
+                  <p>受控补跑与同日自然运行分层保留；权威双账户自然检查点见上方，逐日精确值见账户日证据。</p>
                 </>
               ) : (
                 <>
@@ -409,7 +422,7 @@ export default function PaperPage() {
             </div>
           </div>
         )}
-        <div className="chart-footnote"><span>全账户最大回撤 {formatPercent(maxDrawdown)}</span><span>工程回放 {replay.mode_counts.BACKFILL ?? 0} 日</span><span>前瞻观察 {replay.mode_counts.FORWARD ?? 0} 日</span></div>
+        <div className="chart-footnote"><span>全账户最大回撤 {formatPercent(maxDrawdown)}</span><span>工程回放 {replay.mode_counts.BACKFILL ?? 0} 日</span><span>协议 FORWARD {replay.mode_counts.FORWARD ?? 0} 日</span></div>
       </section>
 
       <section className="table-surface" aria-labelledby="positions-heading">
@@ -462,7 +475,7 @@ export default function PaperPage() {
       >
         {selectedDay ? (
           <><Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="观察类型"><span className={`mode-label mode-${selectedDay.mode.toLowerCase()}`} title={selectedDay.mode}>{selectedDay.mode === "FORWARD" ? "前瞻观察" : "工程回放"}</span></Descriptions.Item>
+            <Descriptions.Item label="证据层">{stratumLabel(selectedDay.evidence_stratum)}</Descriptions.Item>
             <Descriptions.Item label="组合净值">{formatNav(selectedDay.normalized_nav)}</Descriptions.Item>
             <Descriptions.Item label="中证800">{formatNav(selectedDay.benchmark_nav)}</Descriptions.Item>
             <Descriptions.Item label="全账户净值差">{formatPercentagePoints(selectedDay.net_excess)}</Descriptions.Item>

@@ -31,6 +31,7 @@ import {
 } from "../format";
 import type { EvidencePayload } from "../types";
 import { RouterLink } from "../routing";
+import { PairedCheckpointSummary } from "./overview/PairedCheckpointSummary";
 
 function route(path: string, asOf?: string) {
   return `${path}${asOf ? `?as_of=${encodeURIComponent(asOf)}` : ""}`;
@@ -104,7 +105,7 @@ export default function OverviewPage() {
             <div>
               <div className="eyebrow">当前判断</div>
               <h2>{decisionTitle}</h2>
-              <p>{actionSentence} 前瞻仅 {d.forward.forward_observation_count} 个自然账户日，继续观察。</p>
+              <p>{actionSentence} Top30 单账户自然前瞻 {d.forward.forward_observation_count} 日；双账户同日检查点 {d.paired_checkpoint.live_dual_count} / {d.paired_checkpoint.minimum_live_dual_days} 日。</p>
             </div>
           </div>
           <div className="status-reasons" aria-label="需关注原因">
@@ -161,7 +162,7 @@ export default function OverviewPage() {
               </div>
               <p className="forward-caption">
                 最后工程回放日 {displayDate(d.forward.forward_anchor_trade_date)} 重新锚定；
-                当前仅 {d.forward.forward_observation_count} 个自然前瞻账户日。
+                当前为 Top30 单账户 {d.forward.forward_observation_count} 个自然前瞻账户日；不等同于双账户检查点。
               </p>
               <div className="nav-comparison" aria-label="组合与中证800净值比较">
                 <div>
@@ -193,6 +194,8 @@ export default function OverviewPage() {
           </RouterLink>
         </article>
       </section>
+
+      <PairedCheckpointSummary checkpoint={d.paired_checkpoint} />
 
       <section aria-labelledby="diagnostics-heading">
         <div className="section-heading">

@@ -19,6 +19,7 @@ import {
 } from "./strategy-factory/presentation";
 import { GateDecisionPanel } from "./strategy-factory/GateDecisionPanel";
 import { ProposalWorkbench } from "./strategy-factory/ProposalWorkbench";
+import { RouteDecisionPanel } from "./strategy-factory/RouteDecisionPanel";
 
 export default function StrategyFactoryPage() {
   const query = useQuery({
@@ -73,16 +74,19 @@ export default function StrategyFactoryPage() {
       <section className="factory-command" aria-labelledby="factory-decision">
         <div>
           <span className="section-kicker">CURRENT DECISION</span>
-          <h2 id="factory-decision">{summary.decision}</h2>
-          <p>这次阻断不是策略拒绝。正式因子库仍为0，其他已就绪股票池继续按有界协议研究。</p>
+          <h2 id="factory-decision">当前路线：纠偏观察</h2>
+          <p>{summary.decision}。{data.route_decision.summary} 正式因子库仍为0，已就绪股票池只代表能力，不代表当前授权。</p>
         </div>
         <div className="factory-command-state">
-          <span>M5历史支线</span>
-          <strong>暂停</strong>
-          <small>等待权威历史版本与生效链</small>
+          <span>当前主线</span>
+          <strong>观察</strong>
+          <small>R2-1 双账户自然前瞻</small>
         </div>
       </section>
 
+      <RouteDecisionPanel route={data.route_decision} />
+
+      <div className="section-heading"><div><span className="section-kicker">HISTORICAL BRANCH</span><h2>M5 历史数据门</h2></div><span className="section-note">保留旧裁决，不代表当前路线</span></div>
       <GateDecisionPanel decision={latestGateDecision} universes={data.universes} />
 
       <div className="metric-grid five-up factory-metrics">

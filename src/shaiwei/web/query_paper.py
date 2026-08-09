@@ -15,6 +15,7 @@ from shaiwei.web.query_evidence import (
     _money,
     _sha256,
 )
+from shaiwei.web.forward_checkpoint import account_evidence_stratum
 
 
 def _paper_projection(
@@ -133,6 +134,7 @@ def _paper_nav(
             {
                 "trade_date": _display_date(str(document["execution_trade_date"])),
                 "mode": str(document["mode"]),
+                "evidence_stratum": account_evidence_stratum(row, document),
                 "normalized_nav": str(nav["normalized_nav"]),
                 "benchmark_nav": str(nav["benchmark_nav"]),
                 "net_excess": str(nav["net_excess"]),
@@ -229,6 +231,7 @@ def _forward_projection(
         series.append(
             {
                 "trade_date": _display_date(str(document["execution_trade_date"])),
+                "evidence_stratum": account_evidence_stratum(row, document),
                 "forward_portfolio_nav": _decimal_text(portfolio),
                 "forward_benchmark_nav": _decimal_text(benchmark),
                 "forward_net_excess": _decimal_text(portfolio - benchmark),

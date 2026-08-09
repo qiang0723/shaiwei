@@ -19,6 +19,7 @@ ROOT = Path(__file__).parents[1]
 CONFIG = Path("config/m5_strategy_factory_v1.yaml")
 ADDENDUM = Path("config/m5_strategy_factory_authority_addendum_v2.yaml")
 TRUTH_ADDENDUM = Path("config/m5_strategy_factory_truth_projection_v3.yaml")
+ROUTE = Path("config/web_route_status_v1.yaml")
 OUTPUT = Path("data/web/research_snapshots/strategy_factory_v3")
 
 
@@ -26,12 +27,14 @@ def _fixture_root(tmp_path: Path) -> Path:
     document = yaml.safe_load((ROOT / CONFIG).read_text(encoding="utf-8"))
     addendum = yaml.safe_load((ROOT / ADDENDUM).read_text(encoding="utf-8"))
     truth = yaml.safe_load((ROOT / TRUTH_ADDENDUM).read_text(encoding="utf-8"))
-    relative_paths = {CONFIG, ADDENDUM, TRUTH_ADDENDUM, Path(document["protocol"]["path"])}
+    route = yaml.safe_load((ROOT / ROUTE).read_text(encoding="utf-8"))
+    relative_paths = {CONFIG, ADDENDUM, TRUTH_ADDENDUM, ROUTE, Path(document["protocol"]["path"])}
     relative_paths.update(Path(item["path"]) for item in document["evidence_sources"])
     relative_paths.add(Path(addendum["protocol"]["path"]))
     relative_paths.update(Path(item["path"]) for item in addendum["corrections"][0]["evidence"])
     relative_paths.add(Path(truth["protocol"]["path"]))
     relative_paths.update(Path(item["path"]) for item in truth["evidence"])
+    relative_paths.update(Path(item["path"]) for item in route["evidence"])
     for relative in relative_paths:
         target = tmp_path / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -92,7 +95,9 @@ def test_projection_is_source_backed_deterministic_and_read_only(tmp_path: Path)
     assert m3["evaluation_unit_count"] == 72
     assert m3["effect_test_count"] == 0
     assert bundle.data["active_tasks"] == []
-    assert bundle.generated_at == "2026-08-06T17:30:40+08:00"
+    assert bundle.generated_at == "2026-08-09T23:23:47+08:00"
+    assert bundle.data["route_decision"]["status"] == "COURSE_CORRECTION_AND_OBSERVE"
+    assert bundle.data["route_decision"]["m7"]["candidate_count"] == 0
     assert (
         bundle.data["authority_projection_version"]
         == "m5-strategy-factory-authority-projection-v1"
@@ -197,7 +202,7 @@ def test_strategy_factory_api_is_atomic_and_get_head_only(tmp_path: Path) -> Non
     assert payload["data"]["draft_template"]["status"] == "DRAFT_NOT_SUBMITTED"
     assert payload["data"]["recent_gate_decisions"][0]["terminal_state"] == "BLOCKED_DATA"
     assert payload["data"]["recent_gate_decisions"][0]["strategy_effective"] == "NOT_EVALUATED"
-    assert payload["meta"]["as_of"] == "2026-08-06"
+    assert payload["meta"]["as_of"] == "2026-08-09"
     assert response.headers["etag"] == f'"{payload["meta"]["snapshot_id"]}"'
 
     head = client.head("/api/v1/strategy-factory")
