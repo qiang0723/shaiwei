@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-09 · M7-0R3-P2请求计划审计首次FAIL，挂载恢复scope待批准
+
+- 真实请求计划已唯一生成且provider/网络/secret/资金流数值读取均为0；独立auditor首次调用因计划目录
+  被挂成`/plans`、不满足内容寻址basename等于plan ID的自校验而fail-closed，未生成审计PASS产物。
+- 只读分段诊断确认manifest、日历、plan ID、两轨目标身份、三份计划文件物理/逻辑身份及527/541键
+  覆盖均PASS；故障属于执行挂载合同，不是数据或计划裁决，首次FAIL永久保留。
+- 已冻结一次性挂载恢复scope：只把plan挂载改为保留内容寻址basename，Git/镜像/输入/算法/阈值不变，
+  `network=none`且不挂载secret/生产目录；当前`execution_authorized=false`。提交推送并给出scope SHA后须
+  用户绑定动作`M7_REQUEST_PLAN_INDEPENDENT_AUDIT_MOUNT_RECOVERY_ONCE`批准，若再失败则永久关闭。
+  见`docs/M7_MONEYFLOW_REQUEST_PLAN_AUDIT_MOUNT_RECOVERY_20260809.md`。
+
 ## 2026-08-09 · M7-0R3-P2网络恢复release工程GO，停在真实请求计划前
 
 - P2新能力已拆入独立`m7_moneyflow_network_recovery`扩展包，冻结旧包逐字不变；旧P1代码束回归哈希

@@ -1,0 +1,92 @@
+schema_version: m7-moneyflow-request-plan-audit-mount-recovery-scope-v1
+recovery_id: m7-moneyflow-request-plan-audit-mount-recovery-v1
+status: READY_NOT_EXECUTION_AUTHORIZED
+recorded_at: "2026-08-09T16:38:10+08:00"
+approval_action: M7_REQUEST_PLAN_INDEPENDENT_AUDIT_MOUNT_RECOVERY_ONCE
+
+preserved_failure:
+  original_auditor_invocation_count: 1
+  original_result: FAIL
+  original_error_class: RecoveryError
+  original_plan_mount_target: /plans
+  expected_plan_mount_basename: 406f083f09cc8e41517ff9b38a4e109606a44b3da923710e4f745e34932b0470
+  root_cause: PLAN_MOUNT_BASENAME_IDENTITY_MISMATCH
+  request_plan_audit_output_created: false
+  original_invocation_must_not_be_relabelled_or_overwritten: true
+  provider_call_count: 0
+  external_network_used: false
+  secret_read_count: 0
+  moneyflow_numeric_value_columns_read: 0
+
+frozen_identity:
+  git_commit: dd175fbc88da186535cb52f202a6d3276aaa34fc
+  origin_main_commit: dd175fbc88da186535cb52f202a6d3276aaa34fc
+  image_reference: shaiwei:m7-moneyflow-recovery-network-local
+  image_id: sha256:7262c8456b10201cd3814ddee17ff351069efc745bccbe8f801e1166fb32ae40
+  platform: linux/arm64
+  network_protocol_sha256: 3b487b9a58ae7a376cc640899277885897372cac643118290ab59057cf0cf9d3
+  plan_id: 406f083f09cc8e41517ff9b38a4e109606a44b3da923710e4f745e34932b0470
+  plan_manifest_sha256: dcc2a78d8d399321bbd042acba009e9e39b428beb6640756c605e2498859bf43
+  target_projection_run_id: 9a7cba4ec6d3a2da809d8a2475a426857131ba2bcfc5f633d86f91f7d870ffab
+
+recovery_execution:
+  semantic_calculation_changed: false
+  source_inputs_changed: false
+  code_or_image_changed: false
+  threshold_or_denominator_changed: false
+  auditor_invocation_count: 1
+  same_recovery_retry_authorized: false
+  plan_mount:
+    source: data/control/m7-recovery/request-plans/406f083f09cc8e41517ff9b38a4e109606a44b3da923710e4f745e34932b0470
+    target: /plans/406f083f09cc8e41517ff9b38a4e109606a44b3da923710e4f745e34932b0470
+    mode: ro
+  target_mount:
+    source: data/control/m7-recovery/target-projections/345316477d78-23f06b2/9a7cba4ec6d3a2da809d8a2475a426857131ba2bcfc5f633d86f91f7d870ffab
+    target: /targets
+    mode: ro
+  output_mount:
+    source: data/control/m7-recovery/request-plan-audit-recoveries/v1
+    target: /audit-recovery
+    mode: rw
+  command:
+    - python
+    - -m
+    - shaiwei.research_gates.m7_moneyflow_network_recovery.request_plan_auditor
+    - --project-root
+    - /opt/shaiwei
+    - --target-root
+    - /targets
+    - --plan-root
+    - /plans/406f083f09cc8e41517ff9b38a4e109606a44b3da923710e4f745e34932b0470
+    - --audit-root
+    - /audit-recovery
+  network_mode: none
+  read_only_root: true
+  run_as_non_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  pids_limit: 128
+  cpus: 1
+  memory: 2g
+  docker_socket_mounted: false
+  full_project_root_mounted: false
+  dotenv_or_secret_mounted: false
+  production_data_raw_ledger_logs_mounted: false
+
+authority:
+  execution_authorized: false
+  user_scope_bound_approval_required: true
+  external_network_authorized: false
+  provider_call_authorized: false
+  secret_read_authorized: false
+  moneyflow_numeric_value_read_authorized: false
+  adjusted_coverage_authorized: false
+  candidate_effect_model_backtest_authorized: false
+  forward_paper_scheduler_production_authorized: false
+  research_attempt_increment: 0
+  production_authorization: none
+
+next_stop:
+  exact_scope_sha256_must_be_bound_by_user: true
+  recovery_pass_does_not_authorize_network_release_execution: true
+  recovery_failure_closes_this_scope_permanently: true
