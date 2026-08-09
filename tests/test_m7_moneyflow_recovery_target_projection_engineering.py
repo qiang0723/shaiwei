@@ -26,6 +26,8 @@ from shaiwei.research_gates.m7_moneyflow_recovery.projection_release import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
+TRACKED_RELEASE = ROOT / "config/m7_moneyflow_recovery_target_projection_release_scope_v1.json"
+TRACKED_RELEASE_SHA256 = "9aca04576362455af66c5426bd0b4b6211d7edecc8b141de5ecee96ae5781614"
 
 
 def _protocol() -> TargetProjectionProtocol:
@@ -87,6 +89,19 @@ def test_code_bundle_is_deterministic_narrow_and_nonempty() -> None:
     assert first == second
     assert len(first) == 64
     assert all(not root.startswith(("data", "ledger", "logs")) for root in CODE_BUNDLE_ROOTS)
+
+
+def test_tracked_release_binds_pushed_implementation_and_current_code_bundle() -> None:
+    release = TargetProjectionRelease.load(TRACKED_RELEASE, _protocol())
+    implementation = release.scope["implementation"]
+    assert release.sha256 == TRACKED_RELEASE_SHA256
+    assert implementation["git_commit"] == "23f06b2479ac6f394fbc8599cff4d98dd6ee55ce"
+    assert implementation["origin_main_commit"] == implementation["git_commit"]
+    assert implementation["code_bundle_sha256"] == code_bundle_sha256(ROOT)
+    assert release.scope["image"]["image_id"] == (
+        "sha256:ea77e1716ae14774f2eb98e33fcab58136b62aa8be3fd567155fcbddf82ed007"
+    )
+    assert release.scope["authority"]["execution_authorized"] is False
 
 
 def test_approval_is_exactly_bound_and_wrong_scope_is_rejected(tmp_path: Path) -> None:

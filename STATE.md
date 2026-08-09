@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-09 · M7-0R3-P1精确release就绪，停在scope批准前
+
+- 已推送实现`23f06b2`，最终代码束`17997e65...26d0`和arm64镜像`ea77e171...d007`完成断网合成
+  复验；release精确绑定v2协议、R2输入束/core、代码根、命令、挂载和资源。
+- scope`9aca04576362455af66c5426bd0b4b6211d7edecc8b141de5ecee96ae5781614`当前明确
+  `execution_authorized=false`；approval、真实目标、projector/auditor claim均不存在。
+- 真实证券键/资金流数值/provider/外网/候选/效果/尝试仍为0，scheduler原容器和镜像healthy且未重启。
+  只有用户绑定完整scope和动作另行批准后，才允许projector/auditor各唯一运行一次；见
+  `docs/M7_MONEYFLOW_RECOVERY_TARGET_PROJECTION_RELEASE_ACCEPTANCE_20260809.md`。
+
 ## 2026-08-09 · M7-0R3-P1目标投影工程GO，待生成精确release
 
 - v1在零真实读取的工程测试中发现R2 core身份转录错误；原文永久保留且从未执行。v2只把core纠正为
@@ -9,7 +19,7 @@
 - key-only projector、独立DuckDB auditor、双日期PIT口径、write-once Parquet/manifest/audit、双角色
   pre-read claim和精确release/approval合同已完成；6个新增模块最大259行，不引入新依赖或服务。
 - 真实规模合成轨A 908/轨B 541逐集合一致，重复调用在loader前停止；专用断网只读非root容器PASS。
-  专项17、架构13、全仓1,037 PASS，Ruff/compileall/pip/Compose/脱敏门均PASS；scheduler未重启。
+  专项终版19、架构13、全仓1,039 PASS，Ruff/compileall/pip/Compose/脱敏门均PASS；scheduler未重启。
 - 权威仅`GO_M7_RECOVERY_TARGET_PROJECTION_ENGINEERING_ONLY`；真实证券键/数值/provider/网络/尝试仍为0。
   下一步必须先推送实现、重建镜像并生成精确scope，再等用户绑定SHA批准；不得直接运行真实投影。见
   `docs/M7_MONEYFLOW_RECOVERY_TARGET_PROJECTION_ENGINEERING_ACCEPTANCE_20260809.md`。

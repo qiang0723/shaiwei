@@ -41,10 +41,10 @@ auditor、sealing 和 fixture，最大文件 259 行，低于 400 行软上限�
 
 - M7 投影/兼容专项：17 PASS；
 - 架构宪法：13 PASS；
-- 全仓：1,037 PASS；
+- 全仓终版：1,039 PASS；
 - Ruff、compileall、pip check、Compose config、diff-check、仓库凭据门：PASS；
 - 仅有既存 Starlette 弃用提示和冻结 lineage Pandas downcast future warning，不影响裁决；
-- 合成镜像内容 ID：`sha256:b5d421e9219947000d5922e5c19ff83d594aa15155f090725ccba5ef495bb88b`；
+- 最终合成镜像内容 ID：`sha256:ea77e1716ae14774f2eb98e33fcab58136b62aa8be3fd567155fcbddf82ed007`；
 - scheduler 仍为容器 `183b8c6c5edd`、镜像 `sha256:722f63de...13b76`、创建时间
   `2026-08-03 17:39:34 +0800`，healthy，未重启。
 
