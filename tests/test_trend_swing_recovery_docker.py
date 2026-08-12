@@ -15,6 +15,8 @@ def test_recovery_compose_separates_network_profile_and_auditor():
         "ts-recovery-auditor",
         "ts-r4-profile",
         "ts-r4-auditor",
+        "ts-v4-density-profile",
+        "ts-v4-density-auditor",
     }
     network = services["ts-recovery-network"]
     assert set(network["environment"]) >= {
@@ -50,5 +52,27 @@ def test_r4_services_are_offline_read_only_and_separate_from_scheduler():
         assert service["restart"] == "no"
         assert service["image"] == "shaiwei:ts-v3-pullback-r4"
         assert all(".env" not in volume["source"] for volume in service["volumes"])
+    assert profile["command"][-1] == "profile"
+    assert auditor["command"][-1] == "audit"
+
+
+def test_v4_density_services_only_write_the_dedicated_offline_scope():
+    document = yaml.safe_load((ROOT / "compose.ts-recovery.yaml").read_text(encoding="utf-8"))
+    profile = document["services"]["ts-v4-density-profile"]
+    auditor = document["services"]["ts-v4-density-auditor"]
+
+    for service in (profile, auditor):
+        assert service["profiles"] == ["ts-v4-density-offline"]
+        assert service["network_mode"] == "none"
+        assert service["read_only"] is True
+        assert service["restart"] == "no"
+        assert service["image"] == "shaiwei:ts-v4-density-preflight"
+        assert all(".env" not in volume["source"] for volume in service["volumes"])
+        assert service["volumes"][0]["source"] == "./data"
+        assert service["volumes"][0]["read_only"] is True
+        assert service["volumes"][1]["source"] == (
+            "./data/research/trend_swing/ts-v4-density-preflight-v1"
+        )
+        assert service["volumes"][1]["read_only"] is False
     assert profile["command"][-1] == "profile"
     assert auditor["command"][-1] == "audit"

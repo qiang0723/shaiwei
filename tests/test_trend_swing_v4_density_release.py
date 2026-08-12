@@ -66,6 +66,9 @@ def test_v4_density_release_freezes_gate_and_purge() -> None:
     assert gate["alpha158_event_key_coverage_required"] == 1.0
     assert gate["minimum_passing_adjacent_pair_count"] == 1
     assert gate["threshold_change_after_profile"] == "forbidden"
+    official_days = [f"D{index:02d}" for index in range(20)]
+    # OFFSET 16 keeps the seventeenth day from the end, so exactly 16 end days are purged.
+    assert official_days[::-1][inputs["final_signal_date_purge_count"]] == "D03"
 
 
 def test_v4_density_release_is_result_blind_and_one_shot() -> None:
