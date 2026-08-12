@@ -1,0 +1,170 @@
+protocol_id: ts-v3-pullback-state-preflight-v1
+protocol_date_utc8: 2026-08-12
+strategy_version: ts-v3-direction-20260812
+stage: RESULT_BLIND_PULLBACK_STATE_AND_BENCHMARK_PREFLIGHT
+
+predecessor:
+  review_id: ts-v3-effect-prefreeze-review-v1
+  review_sha256: 148db9476e793b2b99abc4d2fae961ca01e692b7b5bb332cb3ed1ade3bc83771
+  verdict: STOP_BEFORE_FREEZE
+  immutable_and_not_rewritten: true
+  r3_release_scope_sha256: 380503cb57169032627703103c034d997f6c51afb759fc315b0c56426f697256
+  r3_input_manifest_file_sha256: c2206a6fddc83500293ee7e7d8fd399cdc8df3709579f92f16a228bc16494a63
+  r3_profile_report_sha256: 633346e7df4f1e0fc091273c7aa98a9eb826d38859dcac50c89be31ba3359e98
+  r3_independent_audit_sha256: 3832ccc972b2c6b65e7de9dcdfd23b5f76795076ac73b89ae28fa0ccf86e6e70
+
+authorization:
+  offline_engineering_and_fixture: true
+  read_price_and_reference_fields_through_candidate_next_open: true
+  read_post_entry_return: false
+  read_mae_mfe: false
+  read_alpha158_prediction_values: false
+  rank_candidates: false
+  model_training_or_prediction: false
+  strategy_backtest_or_effect: false
+  external_network: false
+  env_or_secret_read: false
+  paper_account: false
+  web_or_production_change: false
+
+scope:
+  profile_start_date: "20160101"
+  profile_end_date: "20260811"
+  evaluability_start_date: "20190101"
+  evaluability_end_date: "20241231"
+  universe_id: csi800-pit-v1
+  bse_included: false
+  st_allowed: false
+  maximum_one_confirmation_per_security_and_plan_week: true
+
+weekly_plan:
+  plan_identity: ts-v3-weekly-structure-v1
+  generated_before_first_official_open_of_week: true
+  uses_only_previous_complete_week_and_earlier_stock_periods: true
+  anchor: previous_complete_week_vwap_adjusted
+  pullback_line: previous_complete_week_vwap_adjusted_times_0_96
+  initial_structure_stop: previous_complete_week_low_adjusted_times_0_98
+  monthly_high_rule: last_two_complete_month_highs_strictly_increase_using_three_months
+  monthly_low_floor: latest_complete_month_low_gte_previous_complete_month_low_times_0_95
+  weekly_low_rule: last_three_complete_week_lows_non_decreasing
+  weekly_close_rule: latest_complete_week_close_at_or_above_week_midpoint
+  latest_and_prior_complete_week_annualized_realized_volatility:
+    minimum_inclusive: 0.20
+    maximum_inclusive: 1.20
+  latest_and_prior_complete_week_high_low_range:
+    maximum_inclusive: 0.30
+  minimum_total_market_cap_rmb: 20000000000
+  minimum_previous_complete_week_amount_rmb: 5000000000
+  daily_amount_3bn_rmb_role: explanation_only_not_gate_rank_or_effect_stratum
+
+daily_state_machine:
+  touch_eligibility: static_weekly_plan_and_same_day_market_segment_sector_gates_pass
+  pullback_touched: adjusted_low_lte_frozen_pullback_line
+  same_completed_day_touch_and_recovery_allowed: true
+  recovery_confirmation:
+    - adjusted_close_gt_immediately_previous_valid_security_bar_high
+    - adjusted_close_gt_adjusted_open
+    - same_day_market_segment_sector_gates_pass
+  invalidation_before_confirmation: adjusted_close_lte_frozen_initial_structure_stop
+  invalidation_is_absorbing_for_plan_week: true
+  plan_expires_after_week: true
+  first_confirmation_only: true
+  failed_next_open_is_not_retried: true
+
+next_open_preflight:
+  next_official_security_bar_required: true
+  signal_and_next_open_adjustment_factor_must_match: true
+  factor_change_without_separate_corporate_action_lineage: BLOCKED_CORPORATE_ACTION_MAPPING
+  adjusted_equivalent_legal_range:
+    lower_exclusive: frozen_initial_structure_stop
+    upper_inclusive: frozen_weekly_anchor
+  structure_stop_distance:
+    minimum_exclusive: 0.0
+    maximum_exclusive: 0.15
+  raw_open_positive_and_ohlc_valid: true
+  no_forward_substitute_if_missing_or_suspended: true
+
+market_and_sector:
+  broad_market: 000906.SH
+  listing_segment_mapping:
+    main: 000906.SH
+    chinext: 399006.SZ
+    star: 000688.SH
+  daily_market_and_segment_gate: close_above_sma20_and_latest_complete_week_low_non_decreasing
+  hotspot_sector: PIT_SW_L1_equal_weight_CSI800_member_basket
+  hotspot_selection: top_3_by_20d_excess_after_sma20_20d_60d_and_weekly_low_gates
+  missing_segment_or_sector_lineage: NOT_EVALUABLE_NO_FALLBACK
+
+alpha158_key_only:
+  source: frozen_oos_prediction_cache
+  allowed_columns: [ts_code, trade_date]
+  expected_cache_span: ["20190102", "20241231"]
+  required_true_event_key_coverage: 1.0
+  prediction_values_or_ranks: forbidden
+  current_model_backfill: forbidden
+
+result_blind_evaluability_gate:
+  true_legal_entry_event_count_minimum: 60
+  distinct_true_legal_entry_day_count_minimum: 40
+  each_calendar_year_true_legal_entry_event_count_minimum: 3
+  calendar_years_with_at_least_8_true_legal_entry_events_minimum: 4
+  required_calendar_years: [2019, 2020, 2021, 2022, 2023, 2024]
+  threshold_change_after_profile: forbidden
+
+benchmark_preflight:
+  primary_logical_identifier: CSI_H00906_TOTAL_RETURN
+  display_name: 中证800全收益指数
+  official_or_auditable_licensed_source_required: true
+  required_span: ["20190101", "20241231"]
+  price_index_000906_substitution: forbidden
+  locally_derived_proxy: forbidden
+  external_network: forbidden
+  absent_or_unbound_verdict: BLOCKED_BENCHMARK_DATA
+
+future_exit_contract_for_synthetic_only:
+  initial_risk: first_batch_fill_minus_frozen_initial_structure_stop
+  risk_must_be_positive: true
+  weekly_stop_ratchet: max_current_stop_and_latest_complete_week_low_times_0_98
+  ratchet_effective: next_official_trade_day_after_complete_week
+  take_profit: min_first_fill_plus_1_5_initial_risk_and_first_fill_times_1_20
+  second_batch_resets_stop_profit_or_clock: false
+  maximum_holding_official_trade_days_after_first_fill: 15
+  t_plus_one_and_real_open_exit: required
+
+profile_outputs:
+  allowed:
+    - aggregate_state_transition_counts
+    - aggregate_rejection_reason_counts
+    - anonymous_counts_by_calendar_year
+    - anonymous_distinct_event_days
+    - alpha158_true_event_key_coverage
+    - benchmark_lineage_presence_or_absence
+    - source_and_artifact_hashes
+  forbidden:
+    - security_code_or_name_in_report
+    - alpha158_prediction_value_or_rank
+    - return_after_candidate_entry
+    - pnl
+    - win_rate
+    - excess_return
+    - mae
+    - mfe
+    - sharpe
+    - drawdown
+    - parameter_profit_comparison
+
+attempt_and_change_control:
+  result_blind_profile_attempt_count: 1
+  independent_audit_attempt_count: 1
+  strategy_effect_attempt_count: 0
+  parameter_grid: forbidden
+  same_scope_profile_rerun: forbidden
+  result_based_relaxation: forbidden
+
+verdicts:
+  go: GO_TS_V3_EFFECT_PROTOCOL_FREEZE
+  stop_insufficient_events: STOP_INSUFFICIENT_TRUE_EVENTS
+  blocked_benchmark: BLOCKED_BENCHMARK_DATA
+  blocked_data_or_identity: BLOCKED_DATA_OR_IDENTITY
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
