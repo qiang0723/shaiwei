@@ -1,0 +1,127 @@
+schema_version: 1
+release_id: ts-v4-density-preflight-release-v1
+release_date_utc8: 2026-08-12
+stage: RESULT_BLIND_DENSITY_PREFLIGHT_AUTHORIZED_ONCE
+
+predecessor:
+  protocol_id: ts-v4-pullback-depth-parameter-research-v1
+  protocol_path: config/ts_v4_parameter_research_v1.yaml
+  protocol_sha256: f000e0a6c2749cb514819381cb56b42bc4a11c4d6c413f168238d5639237e076
+  immutable_and_not_rewritten: true
+
+decision_use: >-
+  Decide only whether at least one adjacent pair of the four frozen pullback-depth arms has
+  enough discovery-period legal events, signal-day spread, calendar-year coverage and complete
+  Alpha158 event keys to justify a separately authorized effect study.
+
+authorization:
+  offline_engineering_and_fixture: true
+  one_result_blind_density_profile: true
+  one_independent_audit: true
+  read_price_and_reference_fields_through_candidate_next_open: true
+  alpha158_event_key_only: true
+  post_entry_outcome_read: false
+  alpha158_score_or_rank_read: false
+  benchmark_value_read: false
+  strategy_effect_or_backtest: false
+  provider_or_external_network: false
+  env_or_secret_read: false
+  model_training_or_prediction: false
+  paper_account_or_forward: false
+  web_or_production_change: false
+
+bound_inputs:
+  r3_manifest_path: data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json
+  r3_manifest_sha256: c2206a6fddc83500293ee7e7d8fd399cdc8df3709579f92f16a228bc16494a63
+  alpha158_path: data/research/moneyflow/residuals/p1-moneyflow-alpha158-predictions-v1-46a24aad0c21e2df.parquet
+  alpha158_sha256: 46a24aad0c21e2df054b2f4ba9d58ffebbadaf8bf9a811318fedd836663cc38a
+  alpha158_allowed_columns: [ts_code, trade_date]
+  source_context_start: "20160101"
+  discovery_start: "20190102"
+  discovery_end: "20211231"
+  final_signal_date_purge_count: 16
+  mature_signal_end: sixteenth_prior_official_SSE_open_day_before_discovery_end
+
+arms:
+  - {arm_id: TS4-D015, pullback_depth_fraction: 0.015}
+  - {arm_id: TS4-D025, pullback_depth_fraction: 0.025}
+  - {arm_id: TS4-D035, pullback_depth_fraction: 0.035}
+  - {arm_id: TS4-D040, pullback_depth_fraction: 0.040}
+adjacent_pairs:
+  - [TS4-D015, TS4-D025]
+  - [TS4-D025, TS4-D035]
+  - [TS4-D035, TS4-D040]
+
+state_machine:
+  frozen_context_builder: ts-v3-pullback-state-r4
+  pullback_line: previous_complete_week_vwap_adjusted_times_one_minus_arm_depth
+  first_touch: first_plan_and_daily_eligible_day_with_adjusted_low_at_or_below_pullback_line
+  invalidation: first_plan_day_with_adjusted_close_at_or_below_previous_complete_week_low_times_0_98
+  confirmation: first_plan_and_daily_eligible_recovery_on_or_after_first_touch_and_before_invalidation
+  recovery: adjusted_close_gt_previous_valid_high_and_adjusted_close_gt_adjusted_open
+  next_open: immediately_next_SSE_official_open_day_after_confirmation
+  later_security_bar_substitution: forbidden
+  legal_event_rules:
+    next_day_member_eligible: true
+    confirmation_and_next_day_adjustment_factor_exact_match: true
+    next_adjusted_open_above_structure_stop: true
+    next_adjusted_open_at_or_below_frozen_week_vwap: true
+    structure_stop_distance_minimum_exclusive: 0.0
+    structure_stop_distance_maximum_exclusive: 0.15
+    next_day_volume_strictly_positive: true
+
+density_gate:
+  per_arm_minimum_legal_events: 30
+  per_arm_minimum_distinct_signal_days: 20
+  per_arm_minimum_events_each_calendar_year: 5
+  required_calendar_years: [2019, 2020, 2021]
+  alpha158_event_key_coverage_required: 1.0
+  alpha158_duplicate_event_key_count_required: 0
+  minimum_passing_adjacent_pair_count: 1
+  pass_verdict: GO_DENSE_PARAMETER_REGION
+  failure_verdict: STOP_NO_DENSE_PARAMETER_REGION
+  threshold_change_after_profile: forbidden
+
+attempt_control:
+  proposed_strategy_attempt_count: 4
+  density_profile_attempt_count: 1
+  independent_audit_attempt_count: 1
+  strategy_effect_attempt_count: 0
+  same_scope_profile_rerun: forbidden
+  same_scope_audit_rerun: forbidden
+  parameter_grid_expansion: forbidden
+
+required_outputs:
+  per_arm:
+    - confirmed_event_status_counts
+    - legal_event_count
+    - distinct_signal_day_count
+    - legal_event_count_by_calendar_year
+    - alpha158_event_key_coverage
+    - density_gate_checks
+  aggregate:
+    - eligible_signal_end
+    - passing_arms
+    - passing_adjacent_pairs
+    - final_verdict
+  artifacts:
+    - arm_event_intermediate_with_security_identity_gitignored
+    - anonymous_arm_day_counts_gitignored
+    - aggregate_profile_report_gitignored
+    - independent_audit_gitignored
+
+execution_isolation:
+  implementation_git_head_must_equal_embedded_image_git_head: true
+  implementation_git_head_must_be_pushed_to_origin_main_before_run: true
+  docker_network_mode: none
+  project_env_mounted: false
+  secrets_mounted: false
+  production_scheduler_restart_or_change: forbidden
+  mutable_output_mount_only: data/research/trend_swing/ts-v4-density-preflight-v1
+
+successor_control:
+  density_pass_authorizes_effect: false
+  density_pass_authorizes_benchmark_recovery: false
+  density_pass_authorizes_model_or_new_prediction: false
+  density_pass_authorizes_paper_web_or_production: false
+  effect_requires_separate_release_and_h00906_lineage_gate: true
