@@ -20,6 +20,7 @@ CONTROLLED_FILES = {
     "compose.research.yaml",
     "compose.m6-attribution.yaml",
     "compose.m6-topk-conversion-release.yaml",
+    "compose.ts-recovery.yaml",
     "pyproject.toml",
     "requirements.lock",
 }

@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 WORKDIR /workspace
 
-COPY .dockerignore .env.example Dockerfile Makefile compose.yaml compose.research.yaml compose.m6-attribution.yaml compose.m6-topk-conversion-release.yaml pyproject.toml requirements.lock ./
+COPY .dockerignore .env.example Dockerfile Makefile compose.yaml compose.research.yaml compose.m6-attribution.yaml compose.m6-topk-conversion-release.yaml compose.ts-recovery.yaml pyproject.toml requirements.lock ./
 COPY src ./src
 COPY config ./config
 COPY templates ./templates
@@ -36,7 +36,7 @@ RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
     && python -c "import qlib; assert qlib.__version__ == '0.9.7', qlib.__version__" \
     && python -m pip install --no-deps -e .
 
-RUN mkdir -p /opt/shaiwei /workspace/data /workspace/ledger /workspace/logs \
+RUN mkdir -p /opt/shaiwei /workspace/data /workspace/ledger /workspace/logs /workspace/docs \
     && python -m shaiwei.provenance \
        --write-release-manifest /opt/shaiwei/release-manifest.json
 

@@ -1,0 +1,115 @@
+x-ts-recovery-common: &ts-recovery-common
+  image: shaiwei:ts-v3-recovery-r3
+  pull_policy: never
+  init: true
+  restart: "no"
+  user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 128
+  mem_limit: 10g
+  cpus: 4.0
+  environment: &offline-environment
+    HOME: /tmp
+    PYTHONPYCACHEPREFIX: /tmp/pycache
+    OMP_NUM_THREADS: "4"
+    OPENBLAS_NUM_THREADS: "4"
+    MKL_NUM_THREADS: "4"
+    NUMEXPR_NUM_THREADS: "4"
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=2g,mode=1777
+
+services:
+  ts-recovery-network:
+    <<: *ts-recovery-common
+    profiles: [ts-recovery-network]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_TS_RECOVERY_RELEASE_GIT_HEAD:-}
+    mem_limit: 2g
+    cpus: 1.0
+    environment:
+      <<: *offline-environment
+      SHAIWEI_TS_R3_APPROVAL_SCOPE_SHA256: ${SHAIWEI_TS_R3_APPROVAL_SCOPE_SHA256:?TS recovery approval scope is required}
+      SHAIWEI_TS_TOKEN_FILE: /run/secrets/project.env
+    volumes:
+      - type: bind
+        source: ./.env
+        target: /run/secrets/project.env
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./data/raw
+        target: /workspace/data/raw
+        read_only: false
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./data/research/trend_swing/ts-v3-data-gate-r3
+        target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3
+        read_only: false
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./ledger/ingest_batches.csv
+        target: /workspace/ledger/ingest_batches.csv
+        read_only: false
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/TS_V3_DATA_GATE_RECOVERY_R3_RELEASE_V1.yaml
+        target: /workspace/docs/TS_V3_DATA_GATE_RECOVERY_R3_RELEASE_V1.yaml
+        read_only: true
+        bind: {create_host_path: false}
+    command: [python, -m, shaiwei.research.trend_swing.recovery_cli, network]
+
+  ts-recovery-profile:
+    <<: *ts-recovery-common
+    profiles: [ts-recovery-offline]
+    network_mode: none
+    volumes:
+      - type: bind
+        source: ./data
+        target: /workspace/data
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./data/research/trend_swing/ts-v3-data-gate-r3
+        target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3
+        read_only: false
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./ledger/ingest_batches.csv
+        target: /workspace/ledger/ingest_batches.csv
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/TS_V3_DATA_GATE_RECOVERY_R3_RELEASE_V1.yaml
+        target: /workspace/docs/TS_V3_DATA_GATE_RECOVERY_R3_RELEASE_V1.yaml
+        read_only: true
+        bind: {create_host_path: false}
+    command: [python, -m, shaiwei.research.trend_swing.recovery_cli, profile]
+
+  ts-recovery-auditor:
+    <<: *ts-recovery-common
+    profiles: [ts-recovery-offline]
+    network_mode: none
+    mem_limit: 2g
+    cpus: 1.0
+    volumes:
+      - type: bind
+        source: ./data
+        target: /workspace/data
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./data/research/trend_swing/ts-v3-data-gate-r3
+        target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3
+        read_only: false
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./docs/TS_V3_DATA_GATE_RECOVERY_R3_RELEASE_V1.yaml
+        target: /workspace/docs/TS_V3_DATA_GATE_RECOVERY_R3_RELEASE_V1.yaml
+        read_only: true
+        bind: {create_host_path: false}
+    command: [python, -m, shaiwei.research.trend_swing.recovery_cli, audit]
