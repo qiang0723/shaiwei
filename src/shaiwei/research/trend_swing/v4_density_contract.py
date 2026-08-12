@@ -20,7 +20,9 @@ from shaiwei.research.trend_swing.contract import (
 
 
 RELEASE_PATH = PROJECT_ROOT / "config/ts_v4_density_preflight_release_v1.yaml"
-OUTPUT_DIR = PROJECT_ROOT / "data/research/trend_swing/ts-v4-density-preflight-v1"
+RECOVERY_PATH = PROJECT_ROOT / "config/ts_v4_density_preflight_recovery_r1.yaml"
+ORIGINAL_OUTPUT_DIR = PROJECT_ROOT / "data/research/trend_swing/ts-v4-density-preflight-v1"
+OUTPUT_DIR = PROJECT_ROOT / "data/research/trend_swing/ts-v4-density-preflight-r1"
 EVENT_PATH = OUTPUT_DIR / "arm_events.parquet"
 DAILY_PATH = OUTPUT_DIR / "anonymous_arm_daily.parquet"
 REPORT_PATH = OUTPUT_DIR / "profile_report.json"
@@ -126,6 +128,53 @@ class V4DensityRelease:
     @property
     def inputs(self) -> dict[str, Any]:
         return self.document["bound_inputs"]
+
+
+@dataclass(frozen=True)
+class V4DensityRecovery:
+    path: Path
+    document: dict[str, Any]
+    sha256: str
+
+    @classmethod
+    def load(
+        cls,
+        release: V4DensityRelease,
+        path: Path = RECOVERY_PATH,
+    ) -> "V4DensityRecovery":
+        resolved = project_path(path)
+        document = _yaml(resolved)
+        parent = document.get("frozen_parent", {})
+        delta = document.get("single_recovery_delta", {})
+        if (
+            document.get("recovery_id") != "ts-v4-density-preflight-recovery-r1"
+            or document.get("stage")
+            != "RESULT_BLIND_SERIALIZATION_RECOVERY_AUTHORIZED_ONCE"
+            or parent.get("release_id") != release.document["release_id"]
+            or parent.get("release_sha256") != release.sha256
+            or parent.get("immutable_and_not_rewritten") is not True
+        ):
+            raise TrendSwingError("unexpected TS v4B-R1 identity or parent")
+        if (
+            delta.get("data_logic_changed") is not False
+            or delta.get("state_machine_changed") is not False
+            or delta.get("arm_or_threshold_changed") is not False
+            or delta.get("alpha_key_projection_changed") is not False
+            or delta.get("output_scope")
+            != "data/research/trend_swing/ts-v4-density-preflight-r1"
+        ):
+            raise TrendSwingError("TS v4B-R1 recovery delta broadened")
+        allowed_true = {
+            "offline_engineering_and_fixture",
+            "one_recovery_density_profile",
+            "one_recovery_independent_audit",
+            "read_price_and_reference_fields_through_candidate_next_open",
+            "alpha158_event_key_only",
+        }
+        for key, value in document.get("authorization", {}).items():
+            if value is not (key in allowed_true):
+                raise TrendSwingError(f"TS v4B-R1 authority differs: {key}")
+        return cls(resolved, document, sha256_file(resolved))
 
 
 def validate_bound_inputs(release: V4DensityRelease) -> None:

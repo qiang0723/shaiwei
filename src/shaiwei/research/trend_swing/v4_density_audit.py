@@ -20,6 +20,7 @@ from shaiwei.research.trend_swing.v4_density_contract import (
     EVENT_PATH,
     REPORT_PATH,
     V4DensityRelease,
+    V4DensityRecovery,
     runtime_code_identity,
     validate_bound_inputs,
 )
@@ -131,6 +132,7 @@ def audit_once() -> dict[str, Any]:
     if AUDIT_PATH.exists():
         raise TrendSwingError("TS v4B audit already exists; same-scope rerun is forbidden")
     release = V4DensityRelease.load()
+    recovery = V4DensityRecovery.load(release)
     validate_bound_inputs(release)
     report = _report()
     identity = runtime_code_identity()
@@ -148,6 +150,8 @@ def audit_once() -> dict[str, Any]:
     checks = {
         "release_hash_matches": report["release_identity"]["release_sha256"]
         == release.sha256,
+        "recovery_hash_matches": report["release_identity"]["recovery_sha256"]
+        == recovery.sha256,
         "runtime_git_head_matches": report["release_identity"]["git_head"]
         == identity["git_head"],
         "runtime_snapshot_matches": report["release_identity"]["code_snapshot_sha256"]

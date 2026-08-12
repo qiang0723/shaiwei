@@ -71,7 +71,7 @@ def test_v4_density_services_only_write_the_dedicated_offline_scope():
         assert service["volumes"][0]["source"] == "./data"
         assert service["volumes"][0]["read_only"] is True
         assert service["volumes"][1]["source"] == (
-            "./data/research/trend_swing/ts-v4-density-preflight-v1"
+            "./data/research/trend_swing/ts-v4-density-preflight-r1"
         )
         assert service["volumes"][1]["read_only"] is False
     assert profile["command"][-1] == "profile"

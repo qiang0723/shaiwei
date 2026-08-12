@@ -27,6 +27,7 @@ from shaiwei.research.trend_swing.v4_density_contract import (
     OUTPUT_DIR,
     REPORT_PATH,
     V4DensityRelease,
+    V4DensityRecovery,
     runtime_code_identity,
     validate_bound_inputs,
 )
@@ -158,34 +159,30 @@ def _write_artifacts(
     if any(path.exists() for path in (EVENT_PATH, DAILY_PATH, REPORT_PATH, AUDIT_PATH)):
         raise TrendSwingError("TS v4B output already exists; same-scope rerun is forbidden")
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    connection.execute(
+    connection.sql(
         """
-        COPY (
-          SELECT arm_id,pullback_depth_fraction,ts_code,trade_date,market_rank,plan_week,
-                 industry,segment,first_touch_date,source_week,arm_pullback_line,week_vwap,
-                 initial_structure_stop,confirmation_adj_factor,next_trade_date,
-                 next_adjusted_open,next_adj_factor,next_volume_shares,next_day_eligible,
-                 stop_distance,event_status
-          FROM v4_events WHERE trade_date BETWEEN ? AND ?
-          ORDER BY arm_id,trade_date,ts_code
-        ) TO ? (FORMAT PARQUET,COMPRESSION ZSTD)
+        SELECT arm_id,pullback_depth_fraction,ts_code,trade_date,market_rank,plan_week,
+               industry,segment,first_touch_date,source_week,arm_pullback_line,week_vwap,
+               initial_structure_stop,confirmation_adj_factor,next_trade_date,
+               next_adjusted_open,next_adj_factor,next_volume_shares,next_day_eligible,
+               stop_distance,event_status
+        FROM v4_events WHERE trade_date BETWEEN ? AND ?
+        ORDER BY arm_id,trade_date,ts_code
         """,
-        [start, end, str(EVENT_PATH)],
-    )
-    connection.execute(
+        params=[start, end],
+    ).write_parquet(str(EVENT_PATH), compression="zstd")
+    connection.sql(
         """
-        COPY (
-          SELECT a.arm_id,d.trade_date,
-                 count(e.ts_code) AS confirmed_event_count,
-                 count(e.ts_code) FILTER(WHERE e.event_status='LEGAL_ENTRY_EVENT')
-                   AS legal_event_count
-          FROM v4_arms a CROSS JOIN open_days d
-          LEFT JOIN v4_events e ON e.arm_id=a.arm_id AND e.trade_date=d.trade_date
-          WHERE d.trade_date BETWEEN ? AND ? GROUP BY 1,2 ORDER BY 1,2
-        ) TO ? (FORMAT PARQUET,COMPRESSION ZSTD)
+        SELECT a.arm_id,d.trade_date,
+               count(e.ts_code) AS confirmed_event_count,
+               count(e.ts_code) FILTER(WHERE e.event_status='LEGAL_ENTRY_EVENT')
+                 AS legal_event_count
+        FROM v4_arms a CROSS JOIN open_days d
+        LEFT JOIN v4_events e ON e.arm_id=a.arm_id AND e.trade_date=d.trade_date
+        WHERE d.trade_date BETWEEN ? AND ? GROUP BY 1,2 ORDER BY 1,2
         """,
-        [start, end, str(DAILY_PATH)],
-    )
+        params=[start, end],
+    ).write_parquet(str(DAILY_PATH), compression="zstd")
     return {
         "arm_event_intermediate": {
             "path": EVENT_PATH.relative_to(PROJECT_ROOT).as_posix(),
@@ -209,6 +206,7 @@ def run_profile_once() -> dict[str, Any]:
     if any(path.exists() for path in (EVENT_PATH, DAILY_PATH, REPORT_PATH, AUDIT_PATH)):
         raise TrendSwingError("TS v4B profile or audit already exists; rerun is forbidden")
     release = V4DensityRelease.load()
+    recovery = V4DensityRecovery.load(release)
     validate_bound_inputs(release)
     identity = runtime_code_identity()
     inputs = release.inputs
@@ -255,7 +253,11 @@ def run_profile_once() -> dict[str, Any]:
     report = {
         "schema_version": "ts-v4-density-preflight-profile-v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "release_identity": {"release_sha256": release.sha256, **identity},
+        "release_identity": {
+            "release_sha256": release.sha256,
+            "recovery_sha256": recovery.sha256,
+            **identity,
+        },
         "profile_scope": {
             "source_context_start": inputs["source_context_start"],
             "discovery_start": inputs["discovery_start"],

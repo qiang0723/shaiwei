@@ -98,7 +98,7 @@ docker-ts-v4-density-build: ## 以已推送实现身份构建v4B结果盲密度�
 	@test -n "$(TS_V4_DENSITY_RELEASE_GIT_HEAD)" || (echo "TS_V4_DENSITY_RELEASE_GIT_HEAD is required"; exit 2)
 	SHAIWEI_TS_R3_APPROVAL_SCOPE_SHA256=offline-not-used SHAIWEI_TS_V4_DENSITY_RELEASE_GIT_HEAD="$(TS_V4_DENSITY_RELEASE_GIT_HEAD)" docker compose -f compose.ts-recovery.yaml --profile ts-v4-density-offline build ts-v4-density-profile
 docker-ts-v4-density-profile: ## 唯一一次断网四臂发现期密度画像，禁止收益与分数值
-	mkdir -p data/research/trend_swing/ts-v4-density-preflight-v1
+	mkdir -p data/research/trend_swing/ts-v4-density-preflight-r1
 	SHAIWEI_TS_R3_APPROVAL_SCOPE_SHA256=offline-not-used docker compose -f compose.ts-recovery.yaml --profile ts-v4-density-offline run --rm --no-deps ts-v4-density-profile
 docker-ts-v4-density-audit: ## 独立复算v4B四臂事件密度和结果防火墙
 	SHAIWEI_TS_R3_APPROVAL_SCOPE_SHA256=offline-not-used docker compose -f compose.ts-recovery.yaml --profile ts-v4-density-offline run --rm --no-deps ts-v4-density-auditor

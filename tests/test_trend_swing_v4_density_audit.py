@@ -93,6 +93,7 @@ def test_v4_density_independent_audit_recomputes_a_passing_fixture(
     report = {
         "release_identity": {
             "release_sha256": release.sha256,
+            "recovery_sha256": "d" * 64,
             "git_head": "b" * 40,
             "code_snapshot_sha256": "c" * 64,
         },
@@ -121,9 +122,18 @@ def test_v4_density_independent_audit_recomputes_a_passing_fixture(
         def load():
             return release
 
+    class _RecoveryLoader:
+        @staticmethod
+        def load(_release):
+            class _Recovery:
+                sha256 = "d" * 64
+
+            return _Recovery()
+
     monkeypatch.setattr(audit_module, "REPORT_PATH", report_path)
     monkeypatch.setattr(audit_module, "AUDIT_PATH", audit_path)
     monkeypatch.setattr(audit_module, "V4DensityRelease", _Loader)
+    monkeypatch.setattr(audit_module, "V4DensityRecovery", _RecoveryLoader)
     monkeypatch.setattr(audit_module, "validate_bound_inputs", lambda _: None)
     monkeypatch.setattr(
         audit_module,
