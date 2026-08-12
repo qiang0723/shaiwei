@@ -16,6 +16,11 @@ v4A只改变回调深度，预注册1.5%/2.5%/3.5%/4.0%四臂，其余机制和�
 真实画像。见`docs/TS_V4_PARAMETER_RESEARCH_PROTOCOL_20260812.md`和
 `docs/TS_V4_DENSITY_PREFLIGHT_RELEASE_PROTOCOL_20260812.md`。
 
+首次v4B画像在任何产物或结果写出前因DuckDB COPY参数绑定顺序失败，原scope已停止且不重跑。R1仅
+修复序列化写法并使用独立输出目录，研究含义、输入、四臂和门槛不变；下一节点为写出fixture和镜像
+身份通过后唯一一次R1断网恢复画像。见
+`docs/TS_V4_DENSITY_PREFLIGHT_RECOVERY_R1_PROTOCOL_20260812.md`。
+
 ## 2026-08-12 TS重点旁线（v3方向冻结）
 
 TS现升级为“强板块—强个股—右侧波段”方向：先要求大盘与主要市场不继续创新低，再选择相对走强的

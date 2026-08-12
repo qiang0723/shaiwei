@@ -1,0 +1,86 @@
+schema_version: 1
+recovery_id: ts-v4-density-preflight-recovery-r1
+recovery_date_utc8: 2026-08-12
+stage: RESULT_BLIND_SERIALIZATION_RECOVERY_AUTHORIZED_ONCE
+
+frozen_parent:
+  release_id: ts-v4-density-preflight-release-v1
+  release_path: config/ts_v4_density_preflight_release_v1.yaml
+  release_sha256: 5200c2ab2cf073ce6d5783b8d1995f30cd4fd85a0c875394ba42edb2fa852634
+  immutable_and_not_rewritten: true
+
+failed_attempt:
+  implementation_git_head: eec73158f5e498a5c3a34260693c43bd2f869771
+  code_snapshot_sha256: 16cc5a5a378c4653973cdb20b7c1ffee2e2710e7a9529018d3979edb05d29be7
+  image_id: sha256:7a14fc80c1535754817fd45d0a090f0e405c590356474cfcc718bab287e4e560
+  failure_stage: SERIALIZATION_BEFORE_FIRST_ARTIFACT
+  error_type: duckdb.IOException
+  error_summary: COPY_parameter_binding_treated_discovery_start_as_output_path
+  profile_report_written: false
+  event_artifact_written: false
+  daily_artifact_written: false
+  audit_written: false
+  result_values_observed: false
+  strategy_effect_attempt_count: 0
+  same_scope_rerun: forbidden
+
+single_recovery_delta:
+  old_writer: COPY_select_with_dates_and_output_path_in_one_positional_parameter_list
+  new_writer: DuckDB_relation_select_with_bound_dates_then_write_parquet_to_explicit_path
+  data_logic_changed: false
+  state_machine_changed: false
+  arm_or_threshold_changed: false
+  alpha_key_projection_changed: false
+  output_scope: data/research/trend_swing/ts-v4-density-preflight-r1
+  old_empty_scope_preserved: data/research/trend_swing/ts-v4-density-preflight-v1
+
+inherited_without_change:
+  arms_from_parent: true
+  adjacent_pairs_from_parent: true
+  discovery_dates_and_purge_from_parent: true
+  state_machine_and_next_open_from_parent: true
+  density_gate_from_parent: true
+  bound_input_hashes_from_parent: true
+  result_firewall_from_parent: true
+  execution_isolation_from_parent: true
+
+authorization:
+  offline_engineering_and_fixture: true
+  one_recovery_density_profile: true
+  one_recovery_independent_audit: true
+  read_price_and_reference_fields_through_candidate_next_open: true
+  alpha158_event_key_only: true
+  post_entry_outcome_read: false
+  alpha158_score_or_rank_read: false
+  benchmark_value_read: false
+  strategy_effect_or_backtest: false
+  provider_or_external_network: false
+  env_or_secret_read: false
+  model_training_or_prediction: false
+  paper_account_or_forward: false
+  web_or_production_change: false
+
+attempt_control:
+  proposed_strategy_attempt_count: 4
+  failed_serialization_attempt_count: 1
+  recovery_density_profile_attempt_count: 1
+  recovery_independent_audit_attempt_count: 1
+  strategy_effect_attempt_count: 0
+  same_recovery_scope_rerun: forbidden
+  parameter_grid_expansion: forbidden
+
+execution_isolation:
+  implementation_git_head_must_equal_embedded_image_git_head: true
+  implementation_git_head_must_be_pushed_to_origin_main_before_run: true
+  docker_network_mode: none
+  project_env_mounted: false
+  secrets_mounted: false
+  production_scheduler_restart_or_change: forbidden
+  mutable_output_mount_only: data/research/trend_swing/ts-v4-density-preflight-r1
+
+successor_control:
+  recovery_pass_authorizes_effect: false
+  recovery_pass_authorizes_benchmark_recovery: false
+  recovery_pass_authorizes_model_or_new_prediction: false
+  recovery_pass_authorizes_paper_web_or_production: false
+  effect_requires_separate_release_and_h00906_lineage_gate: true
