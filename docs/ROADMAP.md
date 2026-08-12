@@ -21,11 +21,12 @@ SMA6月线许可、`VWAP-1R`唯一入口和固定ATR止损被v3方向覆盖。�
 不得直接进入回测、模拟仓、Web或生产。见`docs/TS_V3_DATA_GATE_RECOVERY_R3_ACCEPTANCE_20260812.md`
 和`docs/TS_V3_EFFECT_PREFREEZE_REVIEW_20260812.md`。
 
-R4结果盲协议已先行冻结但尚未执行：回调线为上一完整周VWAP下4%，结构止损为周低点下浮2%，唯一
-次日开盘止损距离严格小于15%。2019—2024真正合法事件须至少60条/40个信号日、每年不少于3条且
-至少四年各不少于8条，画像后不得放宽；H00906缺失独立返回`BLOCKED_BENCHMARK_DATA`。协议推送后
-才允许synthetic fixture、一次断网匿名画像和一次独立audit，仍不授权效果。见
-`docs/TS_V3_PULLBACK_STATE_PREFLIGHT_PROTOCOL_20260812.md`。
+R4结果盲协议先行冻结后已完成唯一画像与独立audit：23个确认事件中10个合法、13个下一开盘高于周
+锚点；2019—2024仅8个合法事件、5个信号日，远低于预冻结的60/40门且年度分布门也失败，故权威
+`STOP_INSUFFICIENT_TRUE_EVENTS`。Alpha158事件键8/8覆盖，但H00906仍未绑定并独立
+`BLOCKED_BENCHMARK_DATA`。策略效果尝试仍为0、`NOT_EVALUATED`，不得为救回样本放宽4%回调、15%
+止损距离或年度门。当前精确基线停止；若未来继续TS，须提出具有新研究含义的新版本并登记新尝试，
+不能同scope重跑。见`docs/TS_V3_PULLBACK_STATE_PREFLIGHT_ACCEPTANCE_20260812.md`。
 
 最终交付路线固定为后台原子快照→TS独立模拟账户→Web只读页面：页面展示具体中文简称/代码、热点板块、
 状态、第一/第二批计划买点、结构止损、盈利/最晚退出、仓位和证据；无合格股票明确显示空仓。每项生成
