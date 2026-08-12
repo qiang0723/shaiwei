@@ -38,6 +38,9 @@ from shaiwei.research.trend_swing.recovery_r3_contract import RecoveryR3
 from shaiwei.research.trend_swing.sources import latest_source_entries
 
 
+RECOVERY_OPERATOR = "ts-v3-recovery-r3"
+
+
 @dataclass(frozen=True)
 class NetworkSettings:
     ingest: Any
@@ -231,7 +234,7 @@ def execute_network_once(
             params=scope,
             frame=frame,
             partitions=request.partitions,
-            operator="ts-v3-recovery-r2",
+            operator=RECOVERY_OPERATOR,
         )
         for (request, _), scope, frame in zip(raw_frames, EXPECTED_R3_REQUESTS, frames, strict=True)
     ]

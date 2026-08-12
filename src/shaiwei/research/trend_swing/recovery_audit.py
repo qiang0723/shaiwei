@@ -1,4 +1,4 @@
-"""Independent aggregate-only audit for the one-shot TS-1A-R2 profile."""
+"""Independent aggregate-only audit for the one-shot TS-1A-R3 profile."""
 
 from __future__ import annotations
 
@@ -29,6 +29,9 @@ from shaiwei.research.trend_swing.recovery_contract import (
     RecoveryRelease,
 )
 from shaiwei.research.trend_swing.recovery_r3_contract import RecoveryR3
+
+
+AUDIT_SCHEMA_VERSION = "ts-v3-data-recovery-independent-audit-r3-v1"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -162,7 +165,7 @@ def audit_offline_once() -> dict[str, Any]:
     if not all(checks.values()):
         raise TrendSwingError(f"TS recovery independent audit failed: {checks}")
     audit = {
-        "schema_version": "ts-v3-data-recovery-independent-audit-r2-v1",
+        "schema_version": AUDIT_SCHEMA_VERSION,
         "report_sha256": sha256_file(PROFILE_PATH),
         "manifest_sha256": sha256_file(MANIFEST_PATH),
         "anonymous_daily_profile_sha256": sha256_file(DAILY_PROFILE_PATH),

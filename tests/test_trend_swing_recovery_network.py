@@ -2,8 +2,9 @@ import pandas as pd
 import pytest
 
 from shaiwei.research.trend_swing.contract import TrendSwingError
+from shaiwei.research.trend_swing.recovery_audit import AUDIT_SCHEMA_VERSION
 from shaiwei.research.trend_swing.recovery_contract import CHINEXT_REQUEST
-from shaiwei.research.trend_swing.recovery_network import validate_response
+from shaiwei.research.trend_swing.recovery_network import RECOVERY_OPERATOR, validate_response
 
 
 def _frame() -> pd.DataFrame:
@@ -27,6 +28,11 @@ def _frame() -> pd.DataFrame:
 def test_recovery_response_accepts_exact_bounded_history():
     result = validate_response(_frame(), CHINEXT_REQUEST, {"20160104", "20260811"})
     assert result["trade_date"].tolist() == ["20160104", "20260811"]
+
+
+def test_r3_recovery_uses_unambiguous_audit_operator():
+    assert RECOVERY_OPERATOR == "ts-v3-recovery-r3"
+    assert AUDIT_SCHEMA_VERSION == "ts-v3-data-recovery-independent-audit-r3-v1"
 
 
 def test_recovery_response_rejects_duplicate_and_noncalendar_date():
