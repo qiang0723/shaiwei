@@ -1,0 +1,50 @@
+addendum_id: ts-v3-result-blind-data-contract-recovery-r2-v1-operationalization-a1
+addendum_date_utc8: 2026-08-12
+stage: RESULT_BLIND_IMPLEMENTATION_CLARIFICATION_ONLY
+predecessor:
+  protocol_id: ts-v3-result-blind-data-contract-recovery-r2-v1
+  protocol_sha256: ce449f5aa60ca85ebd89890aa48a2ab0082259916b5aea614594984c90735cb1
+  immutable_and_not_rewritten: true
+
+authority:
+  clarify_existing_rules: true
+  change_thresholds: false
+  read_post_entry_return: false
+  read_alpha158_prediction_values: false
+  rank_candidates: false
+  model_training_or_prediction: false
+  strategy_backtest_or_effect: false
+  network_execution_authorized: false
+  env_or_secret_read_authorized: false
+  paper_web_or_production_change: false
+
+price_lineage:
+  previous_valid_security_bar_source: deduplicated_daily_joined_to_same_day_adj_factor
+  previous_valid_high_must_not_depend_on:
+    - same_day_daily_basic_coverage
+    - same_day_industry_resolution
+    - same_day_ST_exclusion
+  candidate_day_still_requires:
+    - unique_daily_bar
+    - unique_same_day_adj_factor
+    - valid_same_day_market_cap
+    - unique_PIT_SW_L1_industry
+    - non_ST
+
+alpha158_key_only:
+  allowed_columns: [ts_code, trade_date]
+  prediction_value_column_read: forbidden
+  ranking_in_this_stage: forbidden
+  exact_key_coverage_only: true
+  duplicate_key: FAIL_CLOSED
+  score_maturity_claim: FROZEN_OOS_CACHE_IDENTITY_ONLY
+
+index_completeness:
+  response_must_equal_official_SSE_open_day_set_in_requested_range: true
+  both_responses_validate_before_first_raw_commit: true
+  exact_existing_plus_recovered_required_range_coverage: true
+
+attempt_control:
+  changes_recovery_profile_attempt_count: false
+  recovery_profile_attempt_count: 1
+  result_based_relaxation: forbidden
