@@ -113,3 +113,46 @@ services:
         read_only: true
         bind: {create_host_path: false}
     command: [python, -m, shaiwei.research.trend_swing.recovery_cli, audit]
+
+  ts-r4-profile:
+    <<: *ts-recovery-common
+    image: shaiwei:ts-v3-pullback-r4
+    profiles: [ts-r4-offline]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_TS_R4_RELEASE_GIT_HEAD:-}
+    network_mode: none
+    volumes:
+      - type: bind
+        source: ./data
+        target: /workspace/data
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./data/research/trend_swing/ts-v3-pullback-state-r4
+        target: /workspace/data/research/trend_swing/ts-v3-pullback-state-r4
+        read_only: false
+        bind: {create_host_path: false}
+    command: [python, -m, shaiwei.research.trend_swing.r4_cli, profile]
+
+  ts-r4-auditor:
+    <<: *ts-recovery-common
+    image: shaiwei:ts-v3-pullback-r4
+    profiles: [ts-r4-offline]
+    network_mode: none
+    mem_limit: 2g
+    cpus: 1.0
+    volumes:
+      - type: bind
+        source: ./data
+        target: /workspace/data
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./data/research/trend_swing/ts-v3-pullback-state-r4
+        target: /workspace/data/research/trend_swing/ts-v3-pullback-state-r4
+        read_only: false
+        bind: {create_host_path: false}
+    command: [python, -m, shaiwei.research.trend_swing.r4_cli, audit]

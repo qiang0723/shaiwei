@@ -87,6 +87,13 @@ docker-ts-recovery-profile: ## 三批提交后断网运行唯一匿名画像
 	docker compose -f compose.ts-recovery.yaml --profile ts-recovery-offline run --rm --no-deps ts-recovery-profile
 docker-ts-recovery-audit: ## 断网独立审计R3报告和匿名产物
 	docker compose -f compose.ts-recovery.yaml --profile ts-recovery-offline run --rm --no-deps ts-recovery-auditor
+docker-ts-r4-build: ## 以已推送实现身份构建R4结果盲短命镜像
+	@test -n "$(TS_R4_RELEASE_GIT_HEAD)" || (echo "TS_R4_RELEASE_GIT_HEAD is required"; exit 2)
+	SHAIWEI_TS_R4_RELEASE_GIT_HEAD="$(TS_R4_RELEASE_GIT_HEAD)" docker compose -f compose.ts-recovery.yaml --profile ts-r4-offline build ts-r4-profile
+docker-ts-r4-profile: ## 唯一一次断网回调状态匿名画像，禁止结果与分数值
+	docker compose -f compose.ts-recovery.yaml --profile ts-r4-offline run --rm --no-deps ts-r4-profile
+docker-ts-r4-audit: ## 独立复算R4匿名事件计数与结果防火墙
+	docker compose -f compose.ts-recovery.yaml --profile ts-r4-offline run --rm --no-deps ts-r4-auditor
 stage0-plan:      ## 查看阶段 0 自动流和凭据就绪状态；STAGE0_ARGS 可传 --as-of/步骤范围
 	$(PYTHON) -m shaiwei.pipeline.stage0 --plan $(STAGE0_ARGS)
 stage0-run:       ## 失败即停、可续跑的 Day0-7 全流程
