@@ -1,0 +1,209 @@
+schema_version: 1
+protocol_id: ts-v4-pullback-depth-parameter-research-v1
+protocol_date_utc8: 2026-08-12
+strategy_family: trend-swing
+stage: PARAMETER_RESEARCH_PROTOCOL_FROZEN_NOT_EXECUTION_AUTHORIZED
+
+predecessor:
+  strategy_version: ts-v3-direction-20260812
+  r4_protocol_sha256: 35427ccb1d5d0a00001d8f4ddb943acdcce31a84dcd90f996910170591b2b13f
+  r4_operationalization_sha256: 25340f87f23d433b0a787f030ef173dfa10b0e4ac5496de69539f89a49d1cc8f
+  r4_profile_report_sha256: 741dc548e2f4d53c7b47899928326a8b848fb9088acb7017251a1927e4d0a301
+  r4_independent_audit_sha256: bea65822c827f9fdd8a33600744067944f623d4e356567b8076ed26143724697
+  r4_verdict: STOP_INSUFFICIENT_TRUE_EVENTS
+  r4_strategy_effect_attempt_count: 0
+  immutable_and_not_rewritten: true
+
+research_question: >-
+  Whether a small, economically ordered change in the frozen pullback depth can produce a
+  sufficiently dense and stable parameter region whose fully executed portfolio has positive
+  after-cost absolute and benchmark-relative performance outside the selection period.
+
+current_authority:
+  protocol_and_fixture_engineering: true
+  result_blind_discovery_density_preflight: false
+  post_entry_outcome_read: false
+  alpha158_score_or_rank_read: false
+  benchmark_value_read: false
+  strategy_effect_or_backtest: false
+  provider_or_external_network: false
+  env_or_secret_read: false
+  model_training_or_prediction: false
+  paper_account_or_forward: false
+  web_or_production_change: false
+
+fixed_scope:
+  universe_id: csi800-pit-v1
+  include_bse: false
+  st_allowed: false
+  initial_capital_rmb: 500000
+  maximum_positions: 7
+  maximum_total_weight: 0.70
+  maximum_security_weight: 0.10
+  maximum_first_batch_weight: 0.05
+  maximum_first_batch_equity_risk: 0.0025
+  maximum_two_batch_equity_risk: 0.005
+  maximum_portfolio_open_risk: 0.03
+  maximum_industry_weight: 0.30
+  maximum_each_side_amount_fraction: 0.05
+  alpha158_role: rank_only_after_all_entry_eligibility_gates
+  alpha158_tie_breaker: ts_code_ascending
+
+single_change_axis:
+  parameter: previous_complete_week_vwap_pullback_depth_fraction
+  arms:
+    - {arm_id: TS4-D015, pullback_depth_fraction: 0.015}
+    - {arm_id: TS4-D025, pullback_depth_fraction: 0.025}
+    - {arm_id: TS4-D035, pullback_depth_fraction: 0.035}
+    - {arm_id: TS4-D040, pullback_depth_fraction: 0.040, role: frozen_v3_control}
+  economically_ordered: true
+  exact_strategy_attempt_count: 4
+  parameter_grid_expansion: forbidden
+
+inherited_rules_unchanged:
+  monthly_and_weekly_structure: ts-v3-pullback-state-preflight-v1
+  daily_recovery_confirmation: close_gt_previous_valid_high_and_close_gt_open
+  same_day_touch_and_recovery_allowed: true
+  initial_structure_stop: previous_complete_week_low_adjusted_times_0_98
+  next_open_range: structure_stop_exclusive_to_week_vwap_inclusive
+  maximum_stop_distance_exclusive: 0.15
+  failed_next_open_retry: forbidden
+  second_batch: >-
+    once only within five official trade days after first fill; first batch must be profitable,
+    completed close must be above frozen week anchor and first fill, and next open must pass every
+    remaining risk, cash, industry, capacity and execution gate
+  stop_ratchet: max_current_stop_and_latest_complete_week_low_times_0_98
+  take_profit: min_first_fill_plus_1_5_initial_risk_and_first_fill_times_1_20
+  maximum_holding_official_trade_days_after_first_fill: 15
+  t_plus_one_and_real_open_execution: required
+
+bound_inputs:
+  r3_input_manifest_path: data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json
+  r3_input_manifest_sha256: c2206a6fddc83500293ee7e7d8fd399cdc8df3709579f92f16a228bc16494a63
+  alpha158_oos_path: data/research/moneyflow/residuals/p1-moneyflow-alpha158-predictions-v1-46a24aad0c21e2df.parquet
+  alpha158_oos_sha256: 46a24aad0c21e2df054b2f4ba9d58ffebbadaf8bf9a811318fedd836663cc38a
+  alpha158_oos_span: ["20190102", "20241231"]
+  alpha158_required_columns: [window, ts_code, trade_date, baseline_score]
+  current_model_backfill: forbidden
+  primary_benchmark_logical_identifier: CSI_H00906_TOTAL_RETURN
+  primary_benchmark_status: BLOCKED_UNTIL_SEPARATE_AUDITABLE_LINEAGE_RECOVERY
+  price_index_000906_substitution: forbidden
+  locally_derived_dividend_proxy: forbidden
+
+chronological_partition:
+  discovery: {start: "20190102", end: "20211231"}
+  validation: {start: "20220104", end: "20231229"}
+  locked_historical_test: {start: "20240102", end: "20241231"}
+  maximum_signal_to_final_exit_trade_days: 16
+  final_signal_dates_without_mature_exit_are_purged_per_partition: true
+  next_partition_may_not_supply_prior_partition_outcomes: true
+  validation_unread_until_discovery_selection_locked: true
+  locked_test_unread_until_validation_pass: true
+  locked_test_is_pristine_unseen: false
+  locked_test_caveat: 2024_market_regime_has_been_repeatedly_used_in_prior_design_and_stress_discussion
+  authoritative_unseen_evidence: natural_forward_only
+
+stage_0_result_blind_density_preflight:
+  period: discovery
+  all_four_arms_profiled: true
+  post_entry_fields_forbidden: true
+  alpha158_allowed_columns: [ts_code, trade_date]
+  per_arm_minimum_legal_events: 30
+  per_arm_minimum_distinct_signal_days: 20
+  per_arm_minimum_events_each_calendar_year: 5
+  alpha158_event_key_coverage_required: 1.0
+  minimum_passing_adjacent_pair_count: 1
+  no_adjacent_pair_verdict: STOP_NO_DENSE_PARAMETER_REGION
+  threshold_change_after_profile: forbidden
+
+stage_1_discovery_effect:
+  period: discovery
+  arms_run: [TS4-D015, TS4-D025, TS4-D035, TS4-D040]
+  one_deterministic_replay_each: true
+  one_independent_audit: true
+  arm_hard_gates:
+    minimum_closed_trades: 30
+    minimum_closed_trades_each_calendar_year: 5
+    pooled_net_return_strictly_positive: true
+    pooled_h00906_net_excess_strictly_positive: true
+    minimum_positive_h00906_net_excess_calendar_years: 2
+    maximum_strategy_drawdown: 0.20
+    double_cost_pooled_net_return_minimum: 0.0
+    extra_10bp_each_side_pooled_net_return_minimum: 0.0
+  multiple_testing:
+    family: ts-v4-pullback-depth-v1
+    trial_count_including_all_proposed_arms: 4
+    selected_arm_minimum_deflated_sharpe_probability: 0.95
+    failed_sparse_or_invalid_arm_still_counts: true
+  plateau:
+    adjacency_follows_arm_order: true
+    both_arms_must_pass_all_hard_gates: true
+    minimum_worse_to_better_pooled_net_excess_ratio: 0.50
+    maximum_absolute_drawdown_difference: 0.05
+    minimum_worse_to_better_closed_trade_count_ratio: 0.50
+  deterministic_selection_order:
+    - maximum_median_calendar_year_h00906_net_excess
+    - minimum_maximum_drawdown
+    - minimum_turnover
+    - maximum_pullback_depth_fraction
+  no_plateau_or_dsr_failure_verdict: REJECT_TS_V4_DISCOVERY
+
+stage_2_validation:
+  only_selected_discovery_arm: true
+  fallback_to_next_arm_after_failure: forbidden
+  minimum_closed_trades: 15
+  pooled_net_return_strictly_positive: true
+  pooled_h00906_net_excess_strictly_positive: true
+  minimum_positive_h00906_net_excess_calendar_years: 1
+  each_calendar_year_net_return_minimum: -0.05
+  maximum_strategy_drawdown: 0.20
+  double_cost_pooled_net_return_minimum: 0.0
+  extra_10bp_each_side_pooled_net_return_minimum: 0.0
+  failure_verdict: REJECT_TS_V4_VALIDATION
+
+stage_3_locked_historical_test:
+  only_validation_passed_locked_arm: true
+  fallback_or_parameter_change: forbidden
+  minimum_closed_trades: 8
+  net_return_strictly_positive: true
+  maximum_strategy_drawdown: 0.20
+  double_cost_net_return_minimum: 0.0
+  extra_10bp_each_side_net_return_minimum: 0.0
+  combined_validation_and_test_h00906_net_excess_strictly_positive: true
+  combined_2022_2024_minimum_positive_h00906_net_excess_calendar_years: 2
+  pass_verdict: GO_TS_V4_HISTORICAL_NOT_FORWARD
+  failure_verdict: REJECT_TS_V4_LOCKED_TEST
+
+execution_and_cost:
+  entry_and_exit_prices: legal_raw_open_or_frozen_take_profit_limit_under_t_plus_one_rules
+  commission_rate_each_side: 0.0003
+  minimum_commission_rmb: 5.0
+  transfer_fee_rate_each_side_before_2022_04_29: 0.00002
+  transfer_fee_rate_each_side_on_or_after_2022_04_29: 0.00001
+  stamp_tax_sell_rate_before_2023_08_28: 0.001
+  stamp_tax_sell_rate_on_or_after_2023_08_28: 0.0005
+  base_cost_multiplier: 1.0
+  stress_cost_multiplier: 2.0
+  extra_slippage_each_side: 0.001
+  insufficient_liquidity_or_price_limit: pending_order_or_cancel_per_frozen_state_not_fictional_fill
+
+required_reporting:
+  - legal_event_and_closed_trade_counts
+  - absolute_and_h00906_relative_daily_returns
+  - annual_and_pooled_net_return_and_net_excess
+  - maximum_drawdown_and_drawdown_duration
+  - win_rate_profit_loss_ratio_and_expectancy
+  - turnover_cost_slippage_and_capacity
+  - holding_days_and_cash_ratio
+  - industry_security_and_trade_pnl_concentration
+  - parameter_neighborhood_plateau_checks
+  - trial_count_deflated_sharpe_and_all_failed_arms
+
+stopping_and_successor_control:
+  rerun_same_scope_after_semantic_result: forbidden
+  select_validation_or_test_winner: forbidden
+  change_threshold_or_parameter_after_any_effect: new_version_and_new_attempt_required
+  failed_validation_or_test_may_try_next_discovery_arm: false
+  historical_go_authorizes_paper_account: false
+  historical_go_authorizes_web_or_production: false
+  separate_natural_forward_protocol_required: true
