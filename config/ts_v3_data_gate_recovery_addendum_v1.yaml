@@ -1,0 +1,65 @@
+addendum_id: ts-v3-result-blind-data-contract-recovery-v1-operationalization-a1
+addendum_date_utc8: 2026-08-12
+stage: RESULT_BLIND_OPERATIONALIZATION_ONLY
+predecessor:
+  protocol_id: ts-v3-result-blind-data-contract-recovery-v1
+  protocol_sha256: 21b9bfa3de9d5bc37e7ebce5574ad43a6c8190aefa7ef90357dcf51acf1e3813
+  immutable_and_not_rewritten: true
+
+authority:
+  clarify_existing_rules: true
+  change_thresholds: false
+  read_post_entry_return: false
+  read_mae_mfe: false
+  model_training: false
+  model_prediction: false
+  strategy_backtest: false
+  network_execution_authorized: false
+  env_or_secret_read_authorized: false
+  paper_web_or_production_change: false
+
+time_semantics:
+  observation_time: AFTER_MARKET_CLOSE
+  previous_day_high: IMMEDIATELY_PRECEDING_VALID_SECURITY_BAR_HIGH
+  complete_week_calendar: W_FRI
+  complete_week_rule: period_end_strictly_before_observation_date
+  complete_month_calendar: CALENDAR_MONTH
+  complete_month_rule: period_end_strictly_before_observation_date
+  next_open_definition: IMMEDIATE_NEXT_OFFICIAL_MARKET_OPEN_DAY_SECURITY_OPEN
+  next_open_missing_or_suspended: NOT_EXECUTABLE_NO_FORWARD_SUBSTITUTION
+
+price_and_unit_semantics:
+  adjusted_price: raw_price_times_same_day_adj_factor
+  adjusted_week_vwap: sum_amount_rmb_times_adj_factor_divided_by_sum_volume_shares
+  tushare_daily_amount_to_rmb_multiplier: 1000
+  tushare_daily_volume_to_shares_multiplier: 100
+  tushare_daily_basic_total_mv_to_rmb_multiplier: 10000
+  return_construction: adjusted_close_close_to_close
+
+sector_semantics:
+  sector_daily_return: equal_weight_valid_member_adjusted_close_return
+  sector_level: cumulative_product_of_sector_daily_return
+  segment_comparator_daily_return: equal_weight_member_segment_index_return
+  comparator_level: cumulative_product_of_segment_comparator_daily_return
+  sector_selection_ties: excess_desc_then_industry_code_asc
+  missing_member_segment_history: member_excluded_from_comparator_for_that_day
+  fewer_than_five_valid_sector_members: sector_not_evaluable_for_that_day
+
+alpha158_semantics:
+  coverage_denominator: candidate_events_within_frozen_oos_cache_date_span
+  events_outside_frozen_oos_cache_span: NOT_EVALUABLE_NO_FROZEN_OOS_SCORE
+  duplicate_prediction_key: FAIL_CLOSED
+  prediction_values_may_not_be_read: false
+
+reporting_semantics:
+  candidate_rows_may_exist_only_in_gitignored_intermediate_storage: true
+  tracked_and_machine_reports_are_aggregate_only: true
+  security_codes_and_names_in_report: forbidden
+  zero_count_periods_are_retained: true
+  post_entry_return_fields: forbidden
+
+attempt_control:
+  changes_recovery_profile_attempt_count: false
+  recovery_profile_attempt_count: 1
+  parameter_grid: forbidden
+  result_based_relaxation: forbidden
