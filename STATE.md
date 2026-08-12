@@ -14,6 +14,9 @@
 - 当前仅协议冻结，效果尝试0、外网/密钥/收益/Alpha158分数/回测/模拟仓/Web/生产均未授权。下一步
   是协议推送后做synthetic序列fixture，再恰好一次断网匿名画像和一次独立audit。见
   `docs/TS_V3_PULLBACK_STATE_PREFLIGHT_PROTOCOL_20260812.md`。
+- 实现操作化附录已进一步冻结：市值取上一完整周最后有效PIT值；触达/确认日均须仍为成员、非ST、
+  行业唯一；确认后只认紧邻下一SSE开市日且仍在池、非ST、复权因子相同的raw开盘。附录不改任何
+  阈值或样本门，见`docs/TS_V3_PULLBACK_STATE_OPERATIONALIZATION_20260812.md`。
 
 ## 2026-08-12 · TS-1B效果协议冻结前复核STOP，须先闭合回调状态与全收益基准
 

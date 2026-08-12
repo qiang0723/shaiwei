@@ -1,0 +1,79 @@
+addendum_id: ts-v3-pullback-state-operationalization-v1
+addendum_date_utc8: 2026-08-12
+stage: RESULT_BLIND_IMPLEMENTATION_CLARIFICATION_ONLY
+
+predecessor:
+  protocol_id: ts-v3-pullback-state-preflight-v1
+  protocol_sha256: 35427ccb1d5d0a00001d8f4ddb943acdcce31a84dcd90f996910170591b2b13f
+  frozen_git_commit: 33b96a67f11b2953fc80e8d8035d3aa28d13b5a6
+  immutable_and_not_rewritten: true
+
+authority:
+  change_thresholds: false
+  change_universe_or_date_scope: false
+  read_post_entry_return: false
+  read_mae_mfe: false
+  read_alpha158_prediction_values: false
+  rank_candidates: false
+  model_training_or_prediction: false
+  strategy_backtest_or_effect: false
+  external_network: false
+  env_or_secret_read: false
+  paper_web_or_production_change: false
+
+weekly_plan_clock:
+  plan_week: SSE_calendar_week_containing_observation_date
+  source_week: latest_complete_SSE_calendar_week_strictly_before_observation_date
+  source_month: latest_complete_calendar_month_strictly_before_observation_date
+  previous_week_market_cap: last_valid_PIT_total_market_cap_in_source_week
+  weekly_vwap_units: adjusted_amount_rmb_divided_by_volume_shares
+  incomplete_week_or_month_use: forbidden
+
+sequence_semantics:
+  plan_stock_structure_is_static_within_plan_week: true
+  touch_day_requires_current_PIT_member_non_ST_unique_industry_and_all_daily_gates: true
+  touch_persists_only_within_same_plan_week: true
+  invalidation_applies_from_first_valid_bar_of_plan_week: true
+  invalidation_on_or_before_confirmation_is_absorbing: true
+  confirmation_day_requires_current_PIT_member_non_ST_unique_industry_and_all_daily_gates: true
+  confirmation_event_date: completed_recovery_confirmation_trade_date
+  alpha158_key_date: completed_recovery_confirmation_trade_date
+  multiple_touches_before_first_confirmation_form_one_event: true
+  later_confirmations_in_same_security_plan_week: ignored
+
+next_open_semantics:
+  date: immediately_next_SSE_official_open_day_after_confirmation
+  later_security_bar_substitution: forbidden
+  next_day_current_PIT_member_required: true
+  next_day_non_ST_required: true
+  raw_OHLC_and_positive_volume_required: true
+  confirmation_and_next_day_adjustment_factor_exact_match_required: true
+  unmatched_factor_without_corporate_action_adapter: BLOCKED_CORPORATE_ACTION_MAPPING
+  entry_price_for_distance_only: raw_open
+  no_position_or_post_open_path_is_read: true
+
+benchmark_discovery_semantics:
+  searchable_scope: bound_R3_input_manifest_source_metadata_only
+  accepted_identity: explicit_H00906_total_return_identifier_and_auditable_source
+  content_inference_from_000906_price_series: forbidden
+  absent_status: BLOCKED_BENCHMARK_DATA
+
+machine_artifacts:
+  true_event_intermediate:
+    gitignored: true
+    contains_security_identity: true
+    contains_post_entry_outcome: false
+  anonymous_profile:
+    gitignored: true
+    contains_security_identity: false
+  report_and_audit:
+    gitignored: true
+    aggregate_only: true
+    immutable_write_once: true
+
+attempt_control:
+  same_scope_profile_attempt_count: 1
+  same_scope_audit_attempt_count: 1
+  strategy_effect_attempt_count: 0
+  threshold_or_state_variant_count: 1
+  profile_rerun_after_semantic_read: forbidden
