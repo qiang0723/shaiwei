@@ -1,0 +1,90 @@
+schema_version: ts-v5-evolutionary-research-v1
+protocol_id: ts-v5-evolutionary-research-v1
+protocol_path: docs/TS_V5_EVOLUTIONARY_RESEARCH_PROTOCOL_20260813.md
+adr_path: docs/ADR_0006_TS_EVOLUTIONARY_RESEARCH_LANE.md
+status: FROZEN_GOVERNANCE_ENGINEERING_AUTHORIZED_LIVE_RESEARCH_NOT_AUTHORIZED
+
+family:
+  family_id: trend-swing
+  family_status: TS_FAMILY_ACTIVE
+  retirement_authority: USER_EXPLICIT_ONLY
+  failed_versions_remain_evidence: true
+  specific_version_stop_does_not_stop_family: true
+
+product_constraints:
+  market: A_SHARE
+  direction: LONG_ONLY
+  execution_timing: NEXT_LEGAL_OPEN
+  t_plus_one: true
+  maximum_entry_batches: 2
+  averaging_down: false
+  maximum_single_name_weight: 0.10
+  maximum_holding_count: 7
+  maximum_gross_weight: 0.70
+  bj_allowed: false
+  real_costs_and_tradeability_required: true
+
+mechanism_archetypes:
+  - VOLATILITY_ADAPTIVE_PULLBACK
+  - WEEKLY_STRUCTURE_QUANTILE
+  - BREAKOUT_RETEST
+  - MOVING_AVERAGE_RESUMPTION
+  - CONTRACTION_EXPANSION
+  - RELATIVE_STRENGTH_PULLBACK
+
+research_lifecycle:
+  stages:
+    - EXPLORATION_SANDBOX
+    - CANDIDATE_FREEZE
+    - VALIDATION
+    - LOCKED_HISTORICAL_TEST
+    - PAPER_FORWARD
+    - PRODUCTION_REVIEW
+  logic_revision_separate_from_parameter_optimization: true
+  all_generated_candidates_count: true
+  all_parameter_evaluations_count: true
+  failed_and_duplicate_attempts_count: true
+  sealed_period_reuse_for_replacement: false
+  historical_go_only_authorizes_paper_review: true
+
+candidate_contract:
+  schema_version: ts-v5-mechanism-candidate-v1
+  maximum_hypothesis_characters: 500
+  maximum_rationale_characters: 800
+  maximum_failure_conditions: 5
+  maximum_parameter_slots: 8
+  maximum_required_features: 12
+  maximum_parent_count: 2
+  exactly_one_primary_mechanism: true
+  free_code_allowed: false
+  url_or_path_allowed: false
+
+llm_boundary:
+  provider: DeepSeek
+  mode: BOUNDED_STRATEGY_CANDIDATE_JSON
+  live_call_authorized: false
+  spend_authorized: false
+  raw_market_data_allowed: false
+  security_identity_allowed: false
+  holdings_orders_or_signals_allowed: false
+  sealed_or_forward_results_allowed: false
+  secret_in_payload_allowed: false
+  suggested_first_batch:
+    completed_responses_exact: 12
+    calls_serial: true
+    maximum_cost_usd: "0.50"
+    unused_budget_carryover: false
+    replacement_responses_authorized: false
+
+current_authority:
+  candidate_contract_engineering: true
+  prompt_engineering: true
+  synthetic_fixture: true
+  deepseek_call: false
+  real_market_or_effect_read: false
+  parameter_search: false
+  backtest: false
+  paper: false
+  web: false
+  scheduler_or_production_change: false
+  production_authorization: none
