@@ -1,0 +1,33 @@
+schema_version: ts-v3-data-recovery-release-v1
+release_scope_sha256: 380503cb57169032627703103c034d997f6c51afb759fc315b0c56426f697256
+execution_authorized: false
+scope:
+  action: TS_V3_THREE_INDEX_DAILY_RECOVERY_ONCE
+  protocol_sha256: 21b9bfa3de9d5bc37e7ebce5574ad43a6c8190aefa7ef90357dcf51acf1e3813
+  operationalization_addendum_sha256: 4d5bfb1c96931d09dd351aee0d9468cb9f80642d4b25acf4d23e484843e1d63b
+  recovery_r2_protocol_sha256: ce449f5aa60ca85ebd89890aa48a2ab0082259916b5aea614594984c90735cb1
+  recovery_r2_addendum_sha256: 91f9c53a371180dba894ce8ed8a2f2273174e25294b7b812490f20529dc2c0f2
+  recovery_r3_protocol_sha256: a83ace9b12fff419adfe67ea4755daa0487254dec9cbd671779aeeec7e9aef18
+  implementation_snapshot_sha256: 4faa4cee2627041eb0d4efa8c237d17a1cd1e455ab4155a355341a8438dfa169
+  implementation_git_head: cbf7f0a43848398c245628c2761c4b9b4edc5be4
+  ingest_ledger_before_sha256: d5d54986b073a3d61ddf20c346376be485c612a308c12acc2bf93d6e3b42c940
+  logical_request_count: 3
+  successful_response_count_maximum: 3
+  bounded_transport_attempts_maximum_per_request: 6
+  requests:
+  - ts_code: 399006.SZ
+    start_date: '20160101'
+    end_date: '20260811'
+    fields: ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount
+  - ts_code: 000688.SH
+    start_date: '20260725'
+    end_date: '20260811'
+    fields: ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount
+  - ts_code: 000906.SH
+    start_date: '20260715'
+    end_date: '20260715'
+    fields: ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount
+  deepseek_or_other_llm_authorized: false
+  post_entry_outcome_authorized: false
+  model_or_backtest_authorized: false
+  paper_web_or_production_authorized: false

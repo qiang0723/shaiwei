@@ -18,9 +18,13 @@
 - 结果前实施附录进一步明确：上一有效高点只由日线+复权构造，不受上一日市值/行业/ST过滤影响；
   TS-1A-R2 对 Alpha158 只读 `ts_code/trade_date` 做事件键覆盖，禁止读取分数或排名。见
   `docs/TS_V3_DATA_GATE_RECOVERY_R2_OPERATIONALIZATION_20260812.md`。
-- 当前只完成离线模块、完全合成端到端 fixture与三段短命Docker边界；尚无 release scope，未读取项目 `.env`、未调用
-  Tushare、未生成真实候选画像、未看任何候选后收益。下一合法动作是实现回归与推送后冻结精确
-  release，再由用户按 scope SHA 批准一次两请求网络恢复；策略效果仍 `NOT_EVALUATED`、生产 none。
+- 当前只完成离线模块、完全合成端到端 fixture与三段短命Docker边界；未读取项目 `.env`、未调用
+  Tushare、未生成真实候选画像、未看任何候选后收益。下一合法动作只剩用户按精确 scope SHA 批准
+  一次三请求网络恢复；策略效果仍 `NOT_EVALUATED`、生产 none。
+- R3实现提交`cbf7f0a43848398c245628c2761c4b9b4edc5be4`已推送；全仓1,091、架构13、R3专项12、
+  Ruff/compileall/Compose/脱敏均PASS。精确release scope为
+  `380503cb57169032627703103c034d997f6c51afb759fc315b0c56426f697256`，绑定代码快照
+  `4faa4cee...a169`、当时ingest ledger物理SHA `d5d54986...c940`和上述三请求；当前仍未授权执行。
 
 ## 2026-08-12 · TS-1A结果盲数据门双阻断，策略效果未评估
 
