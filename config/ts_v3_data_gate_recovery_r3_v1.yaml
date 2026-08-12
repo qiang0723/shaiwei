@@ -1,0 +1,101 @@
+protocol_id: ts-v3-result-blind-data-contract-recovery-r3-v1
+protocol_date_utc8: 2026-08-12
+stage: RESULT_BLIND_COMPLETE_INDEX_RECOVERY_AND_PROFILE_ONLY
+strategy_version: ts-v3-direction-20260812
+
+predecessor:
+  protocol_id: ts-v3-result-blind-data-contract-recovery-r2-v1
+  protocol_sha256: ce449f5aa60ca85ebd89890aa48a2ab0082259916b5aea614594984c90735cb1
+  operationalization_addendum_sha256: 91f9c53a371180dba894ce8ed8a2f2273174e25294b7b812490f20529dc2c0f2
+  release_created: false
+  network_claim_created: false
+  provider_request_count: 0
+  recovery_profile_attempt_count: 0
+  status: SUPERSEDED_BEFORE_EXECUTION_BY_R3
+  immutable_and_not_rewritten: true
+
+registered_new_finding:
+  code: CSI800_SINGLE_OFFICIAL_DAY_GAP
+  benchmark_code: 000906.SH
+  missing_official_open_day: "20260715"
+  discovery_mode: RESULT_BLIND_KEY_LEVEL_CALENDAR_ANTI_JOIN_ONLY
+  strategy_results_inspected: false
+
+authorization:
+  offline_engineering_and_fixture: true
+  read_price_and_reference_fields: true
+  read_post_entry_return: false
+  read_alpha158_prediction_values: false
+  model_training_or_prediction: false
+  strategy_backtest_or_effect: false
+  paper_web_or_production_change: false
+  deepseek_or_other_llm: false
+  network_execution_authorized: false
+  env_or_secret_read_authorized: false
+
+network_recovery:
+  status: PENDING_EXACT_USER_APPROVAL
+  provider: tushare
+  logical_request_count: 3
+  successful_response_count_maximum: 3
+  bounded_transport_attempts_maximum_per_request: 6
+  requests:
+    - source_api: tushare.index_daily
+      params:
+        ts_code: 399006.SZ
+        start_date: "20160101"
+        end_date: "20260811"
+        fields: ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount
+    - source_api: tushare.index_daily
+      params:
+        ts_code: 000688.SH
+        start_date: "20260725"
+        end_date: "20260811"
+        fields: ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount
+    - source_api: tushare.index_daily
+      params:
+        ts_code: 000906.SH
+        start_date: "20260715"
+        end_date: "20260715"
+        fields: ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount
+  collect_all_responses_before_any_commit: true
+  commit_policy: three_immutable_raw_batches_plus_append_only_ingest_ledger
+  same_scope_retry_after_claim: forbidden
+  exact_release_scope_and_approval_required: true
+  secret_policy:
+    source: project_local_gitignored_env_only
+    output_or_commit_forbidden: true
+
+index_completeness:
+  official_calendar: tushare.trade_cal_SSE_open_days
+  required_ranges:
+    000906.SH: ["20160104", "20260811"]
+    399006.SZ: ["20160104", "20260811"]
+    000688.SH: ["20191231", "20260811"]
+  duplicate_key_count: 0
+  conflicting_key_count: 0
+  missing_official_day_after_required_start_count: 0
+  pre_launch_segment_history: NOT_EVALUABLE_NO_FALLBACK
+
+inherited_contract:
+  recovery_protocol: config/ts_v3_data_gate_recovery_v1.yaml
+  first_operationalization: config/ts_v3_data_gate_recovery_addendum_v1.yaml
+  r2_protocol: config/ts_v3_data_gate_recovery_r2_v1.yaml
+  r2_operationalization: config/ts_v3_data_gate_recovery_r2_addendum_v1.yaml
+  thresholds_changed: false
+  universe_changed: false
+  lifecycle_availability_or_candidate_rules_changed: false
+  alpha158_key_only_changed: false
+
+attempt_and_change_control:
+  strategy_effect_attempt_count: 0
+  recovery_profile_attempt_count: 1
+  network_logical_request_count_maximum: 3
+  parameter_grid: forbidden
+  result_based_relaxation: forbidden
+  same_scope_network_retry: forbidden
+  same_scope_profile_rerun_after_semantic_read: forbidden
+
+verdicts:
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
