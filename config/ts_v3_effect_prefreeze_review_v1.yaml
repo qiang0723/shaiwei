@@ -1,0 +1,114 @@
+review_id: ts-v3-effect-prefreeze-review-v1
+review_date_utc8: 2026-08-12
+strategy_version: ts-v3-direction-20260812
+stage: RESULT_BLIND_EFFECT_PROTOCOL_PREFREEZE_REVIEW
+
+authority:
+  read_post_entry_return: false
+  read_mae_mfe: false
+  read_alpha158_prediction_values: false
+  model_training_or_prediction: false
+  strategy_backtest_or_effect: false
+  external_network: false
+  paper_account: false
+  web_or_production_change: false
+
+bound_r3_evidence:
+  release_scope_sha256: 380503cb57169032627703103c034d997f6c51afb759fc315b0c56426f697256
+  input_manifest_file_sha256: c2206a6fddc83500293ee7e7d8fd399cdc8df3709579f92f16a228bc16494a63
+  profile_report_sha256: 633346e7df4f1e0fc091273c7aa98a9eb826d38859dcac50c89be31ba3359e98
+  independent_audit_sha256: 3832ccc972b2c6b65e7de9dcdfd23b5f76795076ac73b89ae28fa0ccf86e6e70
+  candidate_intermediate_sha256: e0ec1292273e453140de1775ab248d481e79f05ea6d94e50bbd92cb12f34c188
+  r3_verdict: GO_TS_V3_FREEZE
+  r3_strategy_effective: NOT_EVALUATED
+
+pre_effect_findings:
+  - finding_id: MISSING_PULLBACK_TOUCHED_STATE
+    severity: BLOCKING
+    evidence: >-
+      The R3 candidate predicate requires market, sector, size, weekly liquidity, monthly highs,
+      non-decreasing weekly lows, weekly close strength and a recovery candle, but it does not
+      require an earlier or same-day pullback touch within the frozen weekly plan.
+    impact: >-
+      The 832 R3 rows are recovery-shape candidates, not proven pullback-then-recovery events.
+      Treating them as the authoritative TS v3 sample would silently change the strategy into
+      a momentum-entry strategy.
+  - finding_id: EFFECT_SAMPLE_DENOMINATOR_NOT_YET_VALID
+    severity: BLOCKING
+    evidence:
+      r3_recovery_shape_events_all_dates: 832
+      r3_recovery_shape_events_in_frozen_oos_span_2019_2024: 414
+      oos_recovery_shape_events_with_positive_stop_distance_below_15pct: 154
+      authoritative_pullback_then_recovery_event_count: NOT_EVALUATED
+    impact: >-
+      The 154-row result-blind subset is only an upper-bound screening count and cannot support
+      a frozen minimum-trade gate.
+  - finding_id: PRIMARY_TOTAL_RETURN_BENCHMARK_NOT_BOUND
+    severity: BLOCKING_BEFORE_REAL_EFFECT
+    evidence: >-
+      The R3 input manifest contains the CSI800 price index 000906.SH but does not bind the
+      H00906 total-return series required by the TS baseline.
+    impact: >-
+      A real effect run must fail closed instead of substituting the price index or constructing
+      an undocumented proxy.
+  - finding_id: V3_EXIT_SEMANTICS_CONFLICT
+    severity: MUST_RESOLVE_BEFORE_FREEZE
+    evidence: >-
+      The v3 direction requires the previous-complete-week-low-times-0.98 structural stop and a
+      stop that may only ratchet upward after another complete week, while the retained v2.1
+      section describes a fixed ATR-based stop.
+    impact: >-
+      A single v3 exit state machine must supersede the historical v2.1 execution text before
+      synthetic engineering.
+
+non_authoritative_result_blind_recommendation_for_successor:
+  weekly_anchor: previous_complete_week_vwap
+  adjusted_to_raw_mapping: signal_date_adjustment_factor_then_legal_tick
+  pullback_touch: adjusted_low_lte_weekly_anchor_times_0_96
+  touch_and_recovery_same_completed_day_allowed: true
+  recovery_confirmation: adjusted_close_gt_previous_valid_high_and_gt_adjusted_open
+  initial_structure_stop: previous_complete_week_low_times_0_98
+  next_open_legal_range: mapped_raw_structure_stop_lt_raw_open_lte_mapped_raw_weekly_anchor
+  next_open_stop_distance: strictly_gt_0_and_lt_0_15
+  latest_complete_month_low_floor: previous_complete_month_low_times_0_95
+  two_complete_week_annualized_realized_volatility_range: [0.20, 1.20]
+  two_complete_week_range_maximum: 0.30
+  daily_amount_3bn_rmb_role: explanation_only_not_gate_or_rank
+  alpha158_role: frozen_oos_ranking_only
+  stop_ratchet: max_current_stop_and_latest_complete_week_low_times_0_98
+  take_profit: min_first_fill_plus_1_5_initial_risk_and_first_fill_times_1_20
+  maximum_holding_official_trade_days_after_first_fill: 15
+  rationale: >-
+    The 4 percent pullback is the midpoint of the user's result-blind 3-5 percent proposal; the
+    15 percent stop-distance ceiling removes the structurally over-wide tail; the 20 percent
+    profit cap prevents 1.5R from being misread as or becoming an unbounded percentage target.
+
+required_successor:
+  id: TS-1A-R4
+  stage: RESULT_BLIND_PULLBACK_STATE_AND_BENCHMARK_PREFLIGHT
+  order:
+    - freeze_one_unambiguous_pullback_and_exit_contract_before_profile
+    - implement_sequence_aware_pullback_touch_fixture_and_independent_audit
+    - profile_only_true_pullback_then_recovery_counts_without_post_entry_outcomes
+    - bind_or_fail_closed_on_official_H00906_total_return_lineage
+    - freeze_effect_sample_gate_only_after_true_event_counts_exist
+  forbidden:
+    - post_entry_return
+    - mae_mfe
+    - alpha158_prediction_values
+    - parameter_grid
+    - model_training_or_prediction
+    - strategy_backtest_or_effect
+    - paper_account
+    - web_or_production_change
+
+attempt_control:
+  strategy_effect_attempt_count: 0
+  alpha158_value_read_count: 0
+  result_based_threshold_change_count: 0
+  r3_same_scope_rerun: forbidden
+
+verdict:
+  ts_1b_effect_protocol: STOP_BEFORE_FREEZE
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
