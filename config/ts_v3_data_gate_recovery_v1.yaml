@@ -1,0 +1,230 @@
+protocol_id: ts-v3-result-blind-data-contract-recovery-v1
+protocol_date_utc8: 2026-08-12
+stage: RESULT_BLIND_DATA_CONTRACT_RECOVERY_AND_PROFILE_ONLY
+strategy_version: ts-v3-direction-20260812
+
+predecessor:
+  protocol_id: ts-v3-result-blind-data-gate-v1
+  protocol_sha256: f6c85b43a4e3868f6909ce6ee5e20c19c5ff69b0f5c7a723d1de4f533da52233
+  input_manifest_sha256: b62c77781f75518027452901fab7fafaf251e198d98d314a3b104de5fd9ab495
+  profile_report_sha256: d606a3adb7357f29c89e77ae2989f9117e3b7d7bb44b9cb8845d878ed30f6664
+  independent_audit_sha256: bbeb4407d34757a095933fbd53cd05f4208877ededd0e9560a5f1ef3cd29e75b
+  verdict: MULTIPLE_BLOCKS
+  immutable_and_not_reinterpreted: true
+
+research_question: >-
+  After registering the already-frozen delisting and independent nontrading evidence and
+  collecting exactly one missing official ChiNext index history, can existing immutable data
+  support one result-blind TS v3 candidate funnel and threshold-free structural profile?
+
+authorization:
+  offline_engineering_and_fixture: true
+  read_price_and_reference_fields: true
+  read_post_entry_return: false
+  read_mae_mfe: false
+  model_training: false
+  model_prediction: false
+  strategy_backtest: false
+  candidate_effect_evaluation: false
+  paper_account: false
+  production_change: false
+  web_implementation: false
+  deepseek_or_other_llm: false
+  network_execution_authorized: false
+  env_or_secret_read_authorized: false
+
+network_recovery:
+  status: PENDING_EXACT_USER_APPROVAL
+  provider: tushare
+  source_api: tushare.index_daily
+  logical_request_count: 1
+  successful_response_count_maximum: 1
+  bounded_transport_attempts_maximum: 6
+  request:
+    ts_code: 399006.SZ
+    start_date: "20160101"
+    end_date: "20260811"
+    fields: ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount
+  expected_response:
+    exact_ts_code: 399006.SZ
+    unique_key: [ts_code, trade_date]
+    bse_count: 0
+    dates_must_be_subset_of_official_sse_open_days: true
+    first_date_must_be_no_later_than: "20160104"
+    last_date_must_equal: "20260811"
+    row_count_must_be_below: 6000
+  commit_policy: immutable_raw_batch_plus_append_only_ingest_ledger
+  secret_policy:
+    source: project_local_gitignored_env_only
+    output_or_commit_forbidden: true
+  same_scope_retry_after_claim: forbidden
+  exact_release_scope_and_approval_required: true
+
+scope:
+  start_date: "20160101"
+  end_date: "20260811"
+  universe_id: csi800-pit-v1
+  universe_source: tushare.index_weight
+  bse_included: false
+  st_allowed: false
+  delisting_period_allowed: false
+  survival_interval: list_date_lte_trade_date_lt_delist_date
+
+availability_evidence:
+  primary_bar_source: tushare.daily
+  primary_full_day_suspension_source: tushare.suspend_d
+  independent_nontrading_source: baostock.history_k_data_plus
+  independent_allowed_values: ["0", "1"]
+  trade_status_0_and_bar_absent: CONFIRMED_NONTRADING_INDEPENDENT
+  trade_status_1_and_bar_absent: CONFLICT_FAIL_CLOSED
+  delist_date_is_effective_removal_date: true
+  delist_date_is_not_expected_trading_day: true
+  status_evidence_cannot_create_price_or_volume: true
+
+market_and_sector:
+  broad_market:
+    code: 000906.SH
+    display_name: 中证800
+    gates:
+      close_above_sma20: true
+      latest_complete_week_low_not_below_previous_complete_week_low: true
+  listing_segment_mapping:
+    main:
+      benchmark_code: 000906.SH
+      fallback_allowed: false
+    chinext:
+      benchmark_code: 399006.SZ
+      fallback_allowed: false
+    star:
+      benchmark_code: 000688.SH
+      fallback_allowed: false
+  segment_gate:
+    close_above_sma20: true
+    latest_complete_week_low_not_below_previous_complete_week_low: true
+    missing_history: NOT_EVALUABLE
+  hotspot_sector:
+    taxonomy: SW_L1_PIT
+    membership_source: tushare.index_member_all
+    price_construction: PIT_CSI800_MEMBER_EQUAL_WEIGHT_ADJUSTED_CLOSE
+    weighting: equal_weight
+    minimum_daily_constituents: 5
+    official_index_claim_allowed: false
+    segment_comparator: PIT_MEMBER_EQUAL_WEIGHT_SEGMENT_INDEX_RETURN
+    selection_policy: top_3_by_20d_excess_after_all_sector_gates
+    gates:
+      sector_close_above_sma20: true
+      sector_20d_return_above_member_weighted_segment_20d_return: true
+      sector_60d_return_above_member_weighted_segment_60d_return: true
+      latest_complete_week_low_not_below_previous_complete_week_low: true
+
+confirmed_stock_gates:
+  minimum_total_market_cap_rmb: 20000000000
+  minimum_previous_complete_week_amount_rmb: 5000000000
+  daily_amount_bonus_rmb: 3000000000
+  daily_amount_bonus_is_hard_gate: false
+  monthly_high_rule: last_two_complete_month_highs_strictly_increase_using_three_months
+  weekly_low_rule: last_three_complete_week_lows_non_decreasing
+  weekly_close_rule: latest_complete_week_close_at_or_above_week_midpoint
+  recovery_rule: close_above_previous_day_high_and_close_above_open
+
+profile_only_not_threshold_selection:
+  monthly_low_change: true
+  consecutive_two_week_range: true
+  consecutive_two_week_realized_volatility: true
+  previous_complete_week_vwap_distance: true
+  previous_complete_week_midpoint_distance: true
+  next_open_gap_bins: [-0.05, -0.02, 0.0, 0.01, 0.02, 0.03, 0.05]
+  initial_structure_stop: previous_complete_week_low_times_0_98
+  stop_distance_bins: [0.0, 0.02, 0.04, 0.06, 0.08, 0.10, 0.15]
+  risk_budget_per_security: 0.005
+  first_batch_weight_maximum: 0.05
+  total_security_weight_maximum: 0.10
+  maximum_holding_trade_days: 15
+  profit_exit: NOT_FROZEN
+
+alpha158:
+  role: ranking_only
+  source: frozen_oos_prediction_cache
+  required_event_key_coverage_minimum: 0.95
+  maturity_time_check: true
+  original_label: next_open_to_t_plus_11_open
+  ts_horizon: conditional_exit_up_to_15_trade_days
+  mismatch_status: NON_DECISION_RANKING_ONLY
+  historical_backfill_with_current_model: forbidden
+
+required_sources:
+  - tushare.trade_cal
+  - tushare.stock_basic
+  - tushare.daily
+  - tushare.adj_factor
+  - tushare.daily_basic
+  - tushare.index_weight
+  - tushare.index_member_all
+  - tushare.index_daily
+  - tushare.namechange
+  - tushare.suspend_d
+  - baostock.history_k_data_plus
+
+data_gates:
+  minimum_stock_bar_or_nontrading_coverage: 0.995
+  minimum_market_cap_coverage: 0.995
+  minimum_industry_coverage: 0.99
+  minimum_alpha158_event_coverage: 0.95
+  duplicate_key_count: 0
+  conflicting_key_count: 0
+  bse_count: 0
+  future_lineage_count: 0
+  member_on_or_after_delist_date_count: 0
+  unexplained_missing_bar_count: 0
+  independent_trading_without_bar_count: 0
+
+profile_outputs:
+  allowed:
+    - source_identity_and_hashes
+    - field_and_date_coverage
+    - gate_level_aggregate_counts
+    - market_and_sector_aggregate_counts
+    - anonymous_candidate_count
+    - empty_period_length
+    - contemporaneous_feature_distributions
+    - price_distance_distributions_before_next_open
+    - capacity_and_risk_feasibility_counts
+    - alpha158_event_key_coverage
+  forbidden:
+    - security_level_recommendation
+    - security_code_or_name_in_report
+    - any_return_after_candidate_entry
+    - win_rate
+    - pnl
+    - excess_return
+    - mae
+    - mfe
+    - sharpe
+    - drawdown
+    - parameter_profit_comparison
+
+verdicts:
+  go: GO_TS_V3_FREEZE
+  blocked:
+    - BLOCKED_MARKET_RULE
+    - BLOCKED_SECTOR_LINEAGE
+    - BLOCKED_SECTOR_RULE
+    - BLOCKED_VOLATILITY_RULE
+    - BLOCKED_VOLUME_RULE
+    - BLOCKED_ENTRY_RULE
+    - BLOCKED_EXIT_RULE
+    - BLOCKED_FACTOR_LINEAGE
+    - BLOCKED_HORIZON_CONTRACT
+    - BLOCKED_DATA
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+
+attempt_and_change_control:
+  strategy_effect_attempt_count: 0
+  recovery_profile_attempt_count: 1
+  network_logical_request_count_maximum: 1
+  full_sample_threshold_optimization: forbidden
+  parameter_grid: forbidden
+  result_based_relaxation: forbidden
+  same_scope_network_retry: forbidden
+  same_scope_profile_rerun_after_semantic_read: forbidden
