@@ -4,6 +4,8 @@
 > `P`=需求提案，`H`=已有历史/后台证据但尚无页面查询。前端只能使用 `I`；`F/P/H` 均不得冒充已实现。
 >
 > 2026-07-25 更新：P3-0 已实现原子总览、逐仓投影、FORWARD 锚点、最新信号和次日对账。
+> 2026-08-12 提案：TS v3指标只有在后台权威快照落地后才能接入；当前全部为`P`，Web不得自行
+> 计算或展示虚构股票与买卖点。
 > 本表原 `P` 标记保留设计来源；实际可用性以 `WEB_QUERY_CONTRACTS.md`、
 > `P3_WEB_QUERY_ACCEPTANCE_20260725.md` 和 `P3_WEB_OPERATIONS_ACCEPTANCE_20260725.md` 为准。
 > 数据质量与系统运行查询和页面已由 P3-2A/P3-2B 完成；P3-3B/P3-3C 已实现实验详情、因子工厂
@@ -123,6 +125,21 @@
 | `replay_status` | 账本重放 | 独立重放全部账户日的结论 | 非 PASS 禁止可信组合结论 | `verify_paper_replay.status` | I |
 | `replay_run_count` | 重放账户日 | 重放覆盖的 PASS run 数 | 无 run=`NO_DATA` | `verify_paper_replay.run_count` | I |
 | `replay_event_count` | 重放事件数 | 重放核对的事件总数 | 无事件=`NO_DATA` | `verify_paper_replay.event_count` | I |
+
+## 6A. TS v3候选与计划（提案）
+
+| 机器名 | 展示名 | 定义 | 空值与状态 | 来源 | 状态 |
+|---|---|---|---|---|---|
+| `ts_decision` | 当前结论 | `TRADE_READY/WATCH_ONLY/HOLD_CASH/EVIDENCE_BLOCKED`之一 | 无合格票必须为`HOLD_CASH` | `ts_overview`提案 | P |
+| `ts_sector_status` | 板块状态 | 后台冻结市场安全、唯一PIT映射和相对强度后的板块结论 | 无合法谱系=`EVIDENCE_BLOCKED` | `ts_overview`提案 | P |
+| `ts_candidate_status` | 股票状态 | 从不合格、观察、两批、持有、退出到关闭的权威状态 | 不允许前端推断 | `ts_candidates`提案 | P |
+| `batch_1_price_band` | 第一批买入区间 | 后台在信号时点冻结的下一执行日允许价格下限/上限 | 未到`ENTRY_READY`不显示价格 | `ts_candidates`提案 | P |
+| `batch_2_condition` | 第二批条件 | 第一批盈利后的唯一确认条件、允许价格区间和最大新增权重 | 未成交第一批=`NOT_APPLICABLE` | `ts_candidates`提案 | P |
+| `structure_stop` | 当前结构止损 | 初始周低点下浮冻结值及只升不降后的当前值 | 须同时显示形成日期；不能冒充成交价 | `ts_candidates`提案 | P |
+| `profit_exit` | 盈利退出 | TS-1B冻结的唯一盈利退出价格或状态 | 未冻结=`NOT_READY`，不得前端补算 | `ts_candidates`提案 | P |
+| `latest_exit_date` | 最晚退出日 | 按第一批成交日和官方交易日历生成 | 未成交=`NOT_APPLICABLE` | `ts_candidates`提案 | P |
+| `ts_planned_weight` | TS计划仓位 | 经单票/组合风险、现金、容量和集中度裁剪后的权重 | 5%/10%只是上限 | `ts_candidates`提案 | P |
+| `feedback_reference` | 反馈编号 | 绑定策略版本、候选、快照和时点的稳定引用 | 仅用于反馈，不改变信号 | TS原子快照提案 | P |
 
 ## 7. 暂不展示
 

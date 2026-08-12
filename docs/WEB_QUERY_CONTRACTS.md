@@ -178,6 +178,24 @@ ID，也不进入当前重试统计。
 哈希绑定的 `data/web/research_snapshots/`；web-query 只读挂载该投影，禁止直接挂整个
 `data/research`。完整协议见 `P3_FACTOR_EXPERIMENT_QUERY_PROTOCOL_20260725.md`。
 
+### P-WEB-08 TS v3候选、计划与证据快照（设计提案，未实现）
+
+目的：以一个原子只读快照展示TS的市场/板块判断、具体候选、第一/第二批计划买点、结构止损、盈利或
+时间退出和全部失败原因。查询只消费TS后台权威投影，不扫描Parquet、不拼生产账本、不在前端重算。
+
+建议分为三个同身份视图：
+
+- `ts_overview(as_of, strategy_version)`：当前结论、市场状态、强板块、行动计数、仓位/现金/风险；
+- `ts_candidates(as_of, strategy_version, status, sector, page_token)`：具体中文简称/代码、唯一板块、
+  状态、入选/阻断原因、第一批价格区间、第二批条件、止损、盈利/最晚退出和计划仓位；
+- `ts_candidate_detail(candidate_id, snapshot_id)`：月/周/日结构、计划/订单/成交分层、门禁、时钟和
+  脱敏证据。历史效果门未通过时只允许称“候选/计划”，不得称“推荐”。
+
+所有视图必须绑定同一`strategy_version/as_of/generated_at/data_snapshot/code_snapshot/snapshot_id`，
+并返回`feedback_reference`。没有合格股票时原样返回`NO_ELIGIBLE_CANDIDATE/HOLD_CASH`，不得补备用票。
+反馈首版仅复制结构化模板；页面写反馈须另立认证、追加式账本和写服务ADR，不能扩展现有只读查询层。
+完整产品边界见`TS_V3_STRATEGY_PRODUCT_PLAN_20260812.md`。
+
 ## 4. HTTP 适配层包络（已实现）
 
 P3-0 已实现只读 HTTP 层，P3-2A 与 P3-3B 在同一包络下扩展运维和研究投影：

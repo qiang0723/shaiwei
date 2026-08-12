@@ -1,0 +1,164 @@
+protocol_id: ts-v3-result-blind-data-gate-v1
+protocol_date_utc8: 2026-08-12
+stage: RESULT_BLIND_QUANTIFICATION_AND_DATA_GATE_ONLY
+strategy_version: ts-v3-direction-20260812
+
+research_question: >-
+  Can the existing immutable A-share data, PIT CSI800 membership, PIT SW L1 industry lineage,
+  official market/board indexes and frozen OOS Alpha158 scores support one unambiguous TS v3
+  candidate funnel without reading any post-entry outcome?
+
+authorization:
+  read_price_and_reference_fields: true
+  read_post_entry_return: false
+  read_mae_mfe: false
+  model_training: false
+  model_prediction: false
+  strategy_backtest: false
+  candidate_effect_evaluation: false
+  paper_account: false
+  production_change: false
+  web_implementation: false
+  external_network: false
+
+scope:
+  start_date: 2016-01-01
+  end_date: 2026-08-11
+  universe_id: csi800-pit-v1
+  universe_source: tushare.index_weight
+  bse_included: false
+  st_allowed: false
+  delisting_period_allowed: false
+
+market_and_sector:
+  broad_market:
+    code: 000906.SH
+    display_name: 中证800
+    role: broad_safety_only
+  listing_segment_mapping:
+    main:
+      benchmark_code: 000906.SH
+      fallback_allowed: false
+    chinext:
+      benchmark_code: 399006.SZ
+      fallback_allowed: false
+    star:
+      benchmark_code: 000688.SH
+      fallback_allowed: false
+  segment_history_policy: >-
+    Official index history must exist on the observation date; missing pre-launch history is
+    NOT_EVALUABLE and must not be backfilled with the current index or another segment.
+  hotspot_sector:
+    taxonomy: SW_L1_PIT
+    membership_source: tushare.index_member_all
+    price_construction: PIT_CSI800_MEMBER_EQUAL_WEIGHT_ADJUSTED_CLOSE
+    weighting: equal_weight
+    minimum_daily_constituents: 5
+    source_name: TS派生申万一级行业等权篮子
+    official_index_claim_allowed: false
+    selection_policy: top_3_by_20d_excess_after_all_sector_gates
+    gates:
+      sector_close_above_sma20: true
+      sector_20d_return_above_segment_20d_return: true
+      sector_60d_return_above_segment_60d_return: true
+      latest_complete_week_low_not_below_previous_week_low: true
+
+confirmed_stock_gates:
+  minimum_total_market_cap_rmb: 20000000000
+  minimum_previous_complete_week_amount_rmb: 5000000000
+  daily_amount_bonus_rmb: 3000000000
+  daily_amount_bonus_is_hard_gate: false
+  monthly_high_rule: last_two_complete_month_highs_strictly_increase_using_three_months
+  monthly_low_rule: PROFILE_ONLY_PENDING_UNIQUE_FREEZE
+  weekly_low_rule: last_three_complete_week_lows_non_decreasing
+  weekly_close_rule: latest_complete_week_close_at_or_above_week_midpoint
+  two_week_volatility_rule: PROFILE_ONLY_PENDING_UNIQUE_FREEZE
+
+entry_and_exit_profile_only:
+  pullback_reference_candidates:
+    - previous_complete_week_vwap
+    - previous_complete_week_midpoint
+  recovery_candidate: close_above_previous_day_high_and_close_above_open
+  next_open_gap_bins: [-0.05, -0.02, 0.0, 0.01, 0.02, 0.03, 0.05]
+  initial_structure_stop: previous_complete_week_low_times_0_98
+  stop_distance_bins: [0.0, 0.02, 0.04, 0.06, 0.08, 0.10, 0.15]
+  profit_exit: NOT_FROZEN_IN_TS_1A
+  maximum_holding_trade_days: 15
+
+alpha158:
+  role: ranking_only
+  source: frozen_oos_prediction_cache
+  required_event_key_coverage_profile: true
+  maturity_time_check: true
+  original_label: next_open_to_t_plus_11_open
+  ts_horizon: conditional_exit_up_to_15_trade_days
+  mismatch_status_until_ts_1b: NON_DECISION_RANKING_ONLY
+  historical_backfill_with_current_model: forbidden
+
+profile_outputs:
+  allowed:
+    - source_identity_and_hashes
+    - field_coverage
+    - date_coverage
+    - gate_level_counts
+    - market_and_sector_count
+    - candidate_count
+    - empty_period_length
+    - contemporaneous_feature_distributions
+    - price_distance_distributions_before_the_next_open
+    - capacity_and_risk_feasibility_counts
+    - alpha158_event_key_coverage
+  forbidden:
+    - any_return_after_candidate_entry
+    - win_rate
+    - pnl
+    - excess_return
+    - mae
+    - mfe
+    - sharpe
+    - drawdown
+    - parameter_profit_comparison
+    - stock_recommendation
+
+data_gates:
+  required_sources:
+    - tushare.trade_cal
+    - tushare.daily
+    - tushare.adj_factor
+    - tushare.daily_basic
+    - tushare.index_weight
+    - tushare.index_member_all
+    - tushare.index_daily
+    - tushare.namechange
+    - tushare.suspend_d
+  minimum_stock_bar_coverage: 0.995
+  minimum_market_cap_coverage: 0.995
+  minimum_industry_coverage: 0.99
+  minimum_alpha158_event_coverage: 0.95
+  duplicate_key_count: 0
+  bse_count: 0
+  future_lineage_count: 0
+  unexplained_missing_bar_count: 0
+
+verdicts:
+  go: GO_TS_V3_FREEZE
+  blocked:
+    - BLOCKED_MARKET_RULE
+    - BLOCKED_SECTOR_LINEAGE
+    - BLOCKED_SECTOR_RULE
+    - BLOCKED_VOLATILITY_RULE
+    - BLOCKED_VOLUME_RULE
+    - BLOCKED_ENTRY_RULE
+    - BLOCKED_EXIT_RULE
+    - BLOCKED_FACTOR_LINEAGE
+    - BLOCKED_HORIZON_CONTRACT
+    - BLOCKED_DATA
+  production_authorization: none
+
+attempt_and_change_control:
+  strategy_effect_attempt_count: 0
+  data_profile_attempt_count: 1
+  full_sample_threshold_optimization: forbidden
+  parameter_grid: forbidden
+  result_based_relaxation: forbidden
+  same_scope_rerun_after_semantic_read: forbidden
