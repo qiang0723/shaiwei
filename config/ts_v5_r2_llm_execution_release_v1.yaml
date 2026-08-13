@@ -1,0 +1,83 @@
+schema_version: ts-v5-r2-llm-execution-release-v1
+release_id: ts-v5-r2-response-contract-canary-001
+status: TS_V5_R2_RESULT_BEFORE_EXECUTION_FROZEN
+frozen_on: "2026-08-13"
+execution_authorized: true
+production_authorization: none
+
+user_approval:
+  source: user_explicit_approval_primary_codex_thread
+  approved_on: "2026-08-13"
+  approved_scope_path: config/ts_v5_r2_llm_canary_scope_v1.yaml
+  approved_scope_sha256: e2d7218fc77e918ce3f389263290be6fc5fb15d274ec7affcf75d94e48e1a8ef
+  completed_responses_exact: 4
+  independent_candidates: 4
+  adversarial_revisions: 0
+  batch_hard_ceiling_usd: 0.10
+  replacement_or_fifth_response_authorized: false
+
+provider_identity:
+  requested_model: deepseek-v4-pro
+  expected_model_version: DeepSeek-V4-Pro
+  response_model_field: deepseek-v4-pro
+  version_and_response_field_are_distinct: true
+  correction_frozen_before_any_paid_response: true
+
+program_budget_context:
+  record_path: config/ts_v5_llm_research_scope_v2.yaml
+  record_sha256: a7ab6407db4037be53b7496246e4e200ca2a1d8081d4c31fa1de024b9ee32d56
+  program_hard_ceiling_usd: 5.0
+  approved_r2_scope_controls_this_batch: true
+  program_ceiling_does_not_expand_this_batch: true
+  future_batches_require_new_scope_and_user_approval: true
+
+frozen_contract:
+  governance_sha256: 52ea721b5b9711dc9f0637e9230d9b934a3b075e2e5203d600d119cfb30c335b
+  prompt_sha256: bf046a1072e64346c14595d13b0d3f5cdee838df3a631dc7f4f85a92798e5e89
+  candidate_schema_sha256: 185ef56a2032dd5fa3dd991a75714e635d910f50124786420e3929cad153512c
+  transport_protocol_sha256: f5ae129217d8c6d5504ce252501e96087779ffc2fbb3c32524377ee3f6fc17e4
+  response_contract_sha256: c254b41e9ab8f37254944cf9f759ae55c77c69f15119e1e87d296e3a0d091a02
+  request_bundle_sha256: 0068357f586749d97d40660b3bd737f31afedafc3f7b6671c00f4641c4fe489b
+
+authorization:
+  completed_responses_exact: 4
+  batch_hard_ceiling_usd: 0.10
+  concurrency: 1
+  replacement_responses_authorized: false
+  fifth_response_authorized: false
+  unused_budget_carryover: false
+  new_user_approval_required: true
+
+egress:
+  scheme: https
+  host: api.deepseek.com
+  port: 443
+  path: /chat/completions
+  trust_environment_proxy: false
+
+forbidden_payload:
+  - raw_market_data
+  - security_identity
+  - holdings_orders_or_signals
+  - returns_or_sealed_results
+  - first_batch_responses_or_reasoning
+  - paths_or_secrets
+
+runtime:
+  implementation_git_head: d077ca4424bdd114fb68f71d27eee17d63b17f6f
+  image_tag: shaiwei:ts-v5-r2-canary-001
+  image_id: sha256:95189574de1fc6c0105840d6c55652c46f5810349271f46f401484e3102bcd59
+  code_snapshot_sha256: 4724bc2593911435594448078e76c78e69d45f45800af04640339bc7da1d5d5c
+  output_root: data/research/trend_swing/ts-v5-r2-canary-001
+  attempt_ledger: ledger/ts_v5_r2_llm_attempts.csv
+  transport_ledger: ledger/ts_v5_r2_llm_transports.csv
+
+pre_execution_gates:
+  release_commit_pushed_and_head_equals_origin_main: true
+  implementation_image_identity_matches: true
+  only_deepseek_api_key_passed_to_container: true
+  tls_hostname_probe_before_secret_read: true
+  outbound_request_bundle_matches: true
+  dedicated_ledgers_pristine: true
+  scheduler_identity_unchanged_and_healthy: true
+  no_market_effect_backtest_or_production_access: true
