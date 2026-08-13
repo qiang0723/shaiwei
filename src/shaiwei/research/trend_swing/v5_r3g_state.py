@@ -74,8 +74,6 @@ class Episode:
     threshold: Decimal = Decimal("0")
     structure_low: Decimal = Decimal("0")
     terminal_reason: str = ""
-
-
 def _strict_dataclass(cls: type[Any], value: Mapping[str, Any]) -> Any:
     expected = {field.name for field in fields(cls)}
     if set(value) != expected:
@@ -97,8 +95,9 @@ def _parameter_values(candidate: MechanismCandidate, values: Mapping[str, str]) 
 
 
 def _validate_daily(row: DailyInput) -> None:
-    decimals = (row.low, row.close, row.prior_valid_high, row.amount, row.reference,
-                row.atr, row.threshold, row.relative_strength, row.structure_low)
+    decimals = (row.low, row.close, row.prior_valid_high, row.amount,
+                row.prior_20d_amount_median, row.reference, row.atr, row.threshold,
+                row.relative_strength, row.structure_low)
     if (
         row.sequence < 1
         or row.lagged_feature_sequence >= row.sequence

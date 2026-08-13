@@ -80,7 +80,7 @@ def build_evidence(scope: R3GScope) -> tuple[dict[str, Any], dict[str, Any]]:
         ),
         "all_six_synthetic_paths_execute": len(normal) == 6
         and all(row["terminal_status"] == "EXECUTED" for row in normal),
-        "all_adversarial_cases_fail_or_resolve_as_frozen": len(adversarial) == 15
+        "all_adversarial_cases_fail_or_resolve_as_frozen": len(adversarial) == 16
         and all(adversarial.values()),
         "registry_contains_no_llm_free_text_or_reasoning": _registry_has_no_free_text(registry),
         "registry_contains_no_forbidden_result_keys": not (_keys(registry) & FORBIDDEN_RESULT_TERMS),

@@ -191,6 +191,9 @@ def adversarial_evidence(candidates: tuple[RegisteredCandidate, ...]) -> dict[st
     missing = dict(future)
     missing.pop("return_after_entry")
     missing.pop("atr")
+    nonfinite = dict(future)
+    nonfinite.pop("return_after_entry")
+    nonfinite["prior_20d_amount_median"] = Decimal("NaN")
     extra_point = {**point, "FUTURE_PROFIT_THRESHOLD": "1"}
     no_bar = advance_without_security_bar(
         first.candidate,
@@ -202,6 +205,9 @@ def adversarial_evidence(candidates: tuple[RegisteredCandidate, ...]) -> dict[st
     return {
         "future_result_field_rejected": _fails(lambda: DailyInput.from_mapping(future)),
         "missing_feature_rejected": _fails(lambda: DailyInput.from_mapping(missing)),
+        "nonfinite_lagged_amount_rejected": _fails(lambda: transition(
+            first.candidate, point, Episode(), DailyInput.from_mapping(nonfinite)
+        )),
         "current_bar_reference_rejected": _fails(lambda: transition(
             first.candidate, point, Episode(), _daily(lagged_feature_sequence=1)
         )),

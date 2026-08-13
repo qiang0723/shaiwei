@@ -69,7 +69,7 @@ def test_all_six_normal_paths_execute(candidates):
 
 def test_all_adversarial_paths_hold(candidates):
     evidence = adversarial_evidence(candidates)
-    assert len(evidence) == 15
+    assert len(evidence) == 16
     assert all(evidence.values())
 
 
