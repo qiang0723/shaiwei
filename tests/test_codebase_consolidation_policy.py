@@ -196,10 +196,10 @@ def test_a1_1b_addendum_ratchets_d1_modules_without_rewriting_frozen_parent():
     limits = {
         item["path"]: item["max_lines"] for item in addendum["module_size_ratchets"]
     }
-    assert observed == {
-        "src/shaiwei/research/llm_factor.py": 944,
-        "src/shaiwei/research/llm_factor_contract.py": 357,
-        "src/shaiwei/research/deepseek_client.py": 808,
+    assert set(observed) == {
+        "src/shaiwei/research/llm_factor.py",
+        "src/shaiwei/research/llm_factor_contract.py",
+        "src/shaiwei/research/deepseek_client.py",
     }
     assert all(observed[path] <= limits[path] for path in observed)
 

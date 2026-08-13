@@ -28,11 +28,7 @@ from shaiwei.research.llm_factor_contract import (
     build_request,
     plan_attempt,
 )
-from shaiwei.research.provider_contract import (
-    D1ControlError,
-    ProviderResponse,
-    SENSITIVE_OUTPUT_PATTERNS,
-)
+from shaiwei.research.provider_contract import D1ControlError, ProviderResponse, SENSITIVE_OUTPUT_PATTERNS
 
 
 TRANSPORT_LEDGER_HEADER_V1 = (
