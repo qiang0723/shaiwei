@@ -1,0 +1,70 @@
+schema_version: ts-v5-r3a-offline-contract-diagnostic-v1
+scope_id: ts-v5-r3a-offline-contract-diagnostic-001
+status: RESULT_BLIND_DIAGNOSTIC_FROZEN
+frozen_on: "2026-08-13"
+execution_authorized: true
+external_api_calls_authorized: 0
+production_authorization: none
+
+purpose:
+  primary: classify_why_all_four_r2_json_documents_failed_the_strict_candidate_contract
+  decide_between:
+    - PROMPT_CONTRACT_GAP
+    - JSON_SCHEMA_EXPRESSIVENESS_GAP
+    - MODEL_INSTRUCTION_NONCOMPLIANCE
+    - LOCAL_VALIDATOR_DEFECT
+  candidate_repair_or_effect_evaluation: false
+
+frozen_inputs:
+  governance_sha256: 52ea721b5b9711dc9f0637e9230d9b934a3b075e2e5203d600d119cfb30c335b
+  prompt_sha256: bf046a1072e64346c14595d13b0d3f5cdee838df3a631dc7f4f85a92798e5e89
+  response_contract_sha256: c254b41e9ab8f37254944cf9f759ae55c77c69f15119e1e87d296e3a0d091a02
+  r2_scope_sha256: e2d7218fc77e918ce3f389263290be6fc5fb15d274ec7affcf75d94e48e1a8ef
+  r2_release_sha256: 1ae0a24e6ca221cf71c7cf42318cbd643bcf07281922f485c39f30cf476f036b
+  r2_attempt_ledger_sha256: daccc4d9868ea368f64abb450ed8e47ffbe8b579a44cef96e8624d5d51e35ea7
+  r2_transport_ledger_sha256: 1959d52dd00512be378aca68fc4dbbfa93a863e25be7a6b27eb5261ad738c983
+  r2_report_sha256: 81a49b252174ea6ba4579e7e48361060099f43377adea4406d0fcca03230d277
+  r2_audit_sha256: 24440b4cc0072ba62b6c569a71abc43f105041a4bbbd19f55254d6029edeb630
+  raw_envelope_sha256:
+    - c0c6c8ac0695401d924abaf4480eb3200503739ccefdbff9fbe6866cbf679c04
+    - c9277ae1c6c3eafd7dd5c1640c844fb1a2bf21cbd90bcfecd91bf1040145f3e9
+    - a7c98435adccf2f1285d1cfd049aa0c14adb81a57ea5875f5a78315742d6ad73
+    - acf36a4a78eb397aa5f71edbe86873c3dfdb4c9e96949a01ea9444914b6fbd56
+
+diagnostic_method:
+  raw_response_count_exact: 4
+  inspect_content_only: true
+  reasoning_content_used: false
+  preserve_raw_artifacts_byte_immutable: true
+  reconstruct_validation_errors_with_frozen_validator: true
+  compare_each_failed_constraint_against:
+    - transmitted_json_schema
+    - transmitted_system_prompt
+    - transmitted_candidate_limits
+    - local_custom_validator_only_rules
+  minimal_counterfactual_repairs_for_classification_only: true
+  repaired_candidate_admission: false
+  sanitized_report_only: true
+  raw_response_text_in_report: false
+
+classification_rules:
+  JSON_SCHEMA_EXPRESSIVENESS_GAP: failed_rule_is_only_or_incompletely_expressed_in_transmitted_schema
+  PROMPT_CONTRACT_GAP: failed_rule_is_not_explicitly_enumerated_in_prompt_or_candidate_limits
+  MODEL_INSTRUCTION_NONCOMPLIANCE: failed_rule_is_explicit_and_machine_visible_but_output_breaks_it
+  LOCAL_VALIDATOR_DEFECT: frozen_validator_rejects_a_document_that_satisfies_its_declared_contract
+  MULTI_CAUSE: more_than_one_rule_above_materially_contributes
+
+outputs:
+  diagnostic_report: data/research/trend_swing/ts-v5-r3a-offline-contract-diagnostic/diagnostic.json
+  independent_audit: data/research/trend_swing/ts-v5-r3a-offline-contract-diagnostic/audit.json
+  tracked_acceptance: docs/TS_V5_R3A_OFFLINE_CONTRACT_DIAGNOSTIC_ACCEPTANCE_20260813.md
+
+forbidden:
+  - external_network
+  - secret_read
+  - deepseek_or_other_llm_call
+  - raw_market_or_security_data
+  - return_or_effect_read
+  - candidate_repair_or_admission
+  - parameter_search_or_backtest
+  - paper_web_or_production
