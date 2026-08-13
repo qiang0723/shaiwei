@@ -1,0 +1,52 @@
+schema_version: ts-v5-r3g-reference-dimension-addendum-v1
+addendum_id: ts-v5-r3g-reference-dimension-addendum-001
+status: RESULT_BLIND_PREIMPLEMENTATION_CLARIFICATION_FROZEN
+prepared_on: "2026-08-13"
+production_authorization: none
+
+binds_scope:
+  path: config/ts_v5_r3g_executable_semantics_engineering_v1.yaml
+  sha256: 3a066c13eeefd9409c159973a5ae1aff63fb5fc92b8caa67275ae5790b1345bb
+  scope_id: ts-v5-r3g-executable-semantics-engineering-001
+
+reason:
+  issue: NEXT_OPEN_ABOVE_REFERENCE_requires_same_dimension_comparison
+  discovered_before_implementation_or_any_result_read: true
+  candidate_removed_repaired_or_recompiled: false
+  parameter_or_threshold_changed: false
+
+next_open_reference_observation:
+  VOLATILITY_ADAPTIVE_PULLBACK: adjusted_equivalent_security_open
+  WEEKLY_STRUCTURE_QUANTILE: adjusted_equivalent_security_open
+  BREAKOUT_RETEST: adjusted_equivalent_security_open
+  MOVING_AVERAGE_RESUMPTION: adjusted_equivalent_security_open
+  CONTRACTION_EXPANSION: adjusted_equivalent_security_open
+  RELATIVE_STRENGTH_PULLBACK: next_open_stock_sector_relative_strength
+
+relative_strength_next_open:
+  numerator: stock_L_day_gross_return_ending_at_next_open
+  denominator: pit_sector_equal_weight_L_day_gross_return_ending_at_same_next_open
+  denominator_must_be_positive: true
+  pit_sector_membership_asof_next_open: required
+  future_close_or_later_bar_allowed: false
+  unavailable_or_nonfinite: CANCELLED_EXECUTION_REFERENCE_UNAVAILABLE
+  execution_fill_if_allowed: raw_security_open
+
+comparison:
+  cancel_when_next_open_reference_observation_strictly_above_frozen_reference: true
+  equality_allowed: true
+  structure_stop_and_all_product_execution_gates_still_apply: true
+  failed_execution_has_no_same_episode_retry: true
+
+authority:
+  r3f_content_or_reasoning_read: false
+  market_security_or_effect_read: false
+  external_network_or_provider: false
+  env_or_secret_read: false
+  model_backtest_paper_web_scheduler_or_production: false
+
+forbidden:
+  - compare_security_price_to_relative_strength_reference
+  - remove_or_silently_repair_candidate_rule
+  - use_next_close_or_later_information_at_open
+  - effect_or_density_read
