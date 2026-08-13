@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-13 · TS-v5-R3A离线合同诊断完成
+
+- 结果盲scope `9f82d89f...e48e4d1`在展开四份R2 content前先行推送；随后只读四份不可变响应，
+  未使用reasoning、未调用LLM、未读行情/收益，未修补候选或回测。
+- 四份共同主因是`INCOMPLETE_LLM_FACING_CONTRACT_PROJECTION`：4/4均违反只存在于本地自定义validator、
+  未完整投影到模型可见Schema/candidate limits的规则；仅第2份另违反可见的长度和Feature枚举。
+  JSON Schema表达缺口4、提示合同缺口4、模型可见规则不服从1、validator缺陷0。
+- 权威`GO_R3B_CONTRACT_PROJECTION_RECOVERY_ONLY`：保持validator不变，下一步应以同源机制专属约束投影
+  和确定性编译器补齐强制取消规则/required features，LLM只填研究语义和边界内选择。不是新调用授权；
+  R2四份仍无效且不得修补录取。见
+  `docs/TS_V5_R3A_OFFLINE_CONTRACT_DIAGNOSTIC_ACCEPTANCE_20260813.md`。
+
 ## 2026-08-13 · TS-v5-R2四响应合同金丝雀权威停止
 
 - 用户精确批准scope `e2d7218f...e1a8ef`后，结果前实现`d077ca4`、独立镜像、空账本和execution
