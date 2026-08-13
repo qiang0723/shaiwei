@@ -1,0 +1,98 @@
+schema_version: ts-v5-r3d-offline-proposal-diagnostic-v1
+scope_id: ts-v5-r3d-offline-proposal-diagnostic-001
+status: RESULT_BLIND_DIAGNOSTIC_FROZEN
+frozen_on: "2026-08-13"
+execution_authorized: true
+external_api_calls_authorized: 0
+production_authorization: none
+
+purpose:
+  primary: classify_why_all_six_r3c_json_documents_failed_proposal_schema_or_compilation
+  decide_whether_another_live_canary_is_worth_engineering_first: true
+  candidate_repair_admission_or_effect_evaluation: false
+
+frozen_inputs:
+  r3b_scope_sha256: 9e7c317f798f313db098e3cb195fc7341c89c99b817641573c58c3330a9ab26b
+  r3b_acceptance_sha256: df0e97b4a8e15e30c7800a9fbc03d56ce1df3dc38c1163090445e4a420cfa223
+  proposal_contract_sha256: 538326777bdeb3c0793e729b1c4dc086b804e07743aca8adba7e9f251e9b09a0
+  proposal_compiler_sha256: 7a6c8f728c756084df5bc5c68e18332f62fc1666813943df5e331c749c71bd31
+  candidate_validator_sha256: dc3a19b7cbc07ae6cca44b4c814c1c34c283caf90359b8d81e8f1a68cb54b37b
+  r3c_scope_sha256: 234621cf0280fceca82a8e5f82d6966b27979fde761d68b2508346a2ebd953ae
+  r3c_release_sha256: 849af5f4d761fa323a2bc63123879e0696b14733ca3c03adbf8c881afb64d0da
+  r3c_attempt_ledger_sha256: 18d206fe9e1c75e62619c47fb7e1f93d55857806b27b29861a7e240522bee14e
+  r3c_transport_ledger_sha256: 0da6ea6c23833577fcc4a03e3a7077711beea5e7df23dc022454b1e5f67c9446
+  r3c_report_sha256: c5292c3a1c6b9021ff00222c9fbbdb8c959e1cd5f5b5065757b987ccfc6b47cf
+  r3c_audit_sha256: af532860ece5061d3628307b8b605a4da33d5c9b34e01f86166d11d7d79db597
+  r3c_acceptance_sha256: f152ee666b610102026156dc7fe837a7e00aee20e1f999d4fc6595c568312d4a
+  request_sha256:
+    - 9edd8c574af2ed57acd28bc9cb39b9faf4ca35e9eb93dcfda9a42d2412c9badb
+    - 314c8ff4acb19b739f9030a7ec47c9668f0a4d532ee06adc0e91476319047ae9
+    - 056cbff398e7d3a9efd46c304aa5da07fcd6ee6840b52ec7180015a058410f8d
+    - cdfffb4983906f9c5b26da7c5a71ab6ffbb259c61cc26bdcc3c43508d13312bf
+    - bebe9aab3be4a8ab53ce8cad43b912b4989a80f4c55b03fb4fdd656e9ede647c
+    - d550d1b810030c0b3d49eaa1e33768c9f59920ed0e290f8480b9d65945065c45
+  raw_envelope_sha256:
+    - 7362f7a14f50c22fc7e2037d80b9417798c189e9e5d658e4d6807fdcf7edd2d9
+    - fd4bf25846e1a17196b6c5acadb5765d6a458e719459afb832293d4d2182febb
+    - 983b3c66bcd2f748c0a1d194f6faa1deafaa4062c5deb45301e14f16c100b048
+    - 3b5f374b670d51adba9af05d2a260a6af38bed381502c6ecc6633af06f54f74f
+    - 9d4b0c607444c75766c928658260d0244a86b72e8084308d3a04264cef63c4c3
+    - e1c50ca7f57209ae323a35cf98dc21c6dba680e28d0f0e0fe73112dde564f241
+  manifest_sha256:
+    - 349a5d471414021defb9ccd34b3db288e5a78240ddc19f7a62cf658c9b22adf8
+    - 9014745b0e5cc7b03c8a5bcb29098a3ca5dc3a8c46d4e199a575f211ec915124
+    - dec403b24de06a78eb7d02bd8a60bbcea346a83b5fe5f31af63c619b62231261
+    - 317f5d1cd532bf82ebd97bcb773970161a97e3129038ca1bc480dd77d1fbedce
+    - 4dd50e09e76f910d7d32bbb6410a7145f81fc8e6159a984559ec8b1a0dcdd022
+    - 925a09ab1cf4cfd1e07c68ac219330043180c14613d24fc732ccb80e632d9fa5
+
+diagnostic_method:
+  raw_response_count_exact: 6
+  inspect_content_only: true
+  reasoning_content_used: false
+  preserve_r3c_artifacts_byte_immutable: true
+  reconstruct_proposal_schema_errors: true
+  evaluate_transmitted_mechanism_projection_rules: true
+  invoke_frozen_compiler_for_classification_only: true
+  repaired_or_normalized_candidate_persisted: false
+  repaired_candidate_admission: false
+  sanitized_report_only: true
+  raw_response_text_in_report: false
+
+failure_layers:
+  PROPOSAL_JSON_SCHEMA: core_json_schema_type_required_extra_enum_length_or_count_rule
+  MECHANISM_PROJECTION: visible_x_ts_parameter_domain_range_uniqueness_product_or_lineage_rule
+  DETERMINISTIC_COMPILER: proposal_satisfies_every_transmitted_rule_but_compile_still_fails
+  FINAL_CANDIDATE_VALIDATOR: deterministic_candidate_fails_the_unchanged_candidate_contract
+
+decision_rules:
+  primary_rule_priority_is_frozen: true
+  all_six_must_receive_a_deterministic_anonymous_classification: true
+  local_implementation_defect_if_visible_contract_passes_but_compiler_or_final_validator_fails: true
+  recoverable_common_interface_requires:
+    local_implementation_defect_count: 0
+    visible_contract_violation_attempt_count: 6
+    dominant_primary_rule_attempt_count_minimum: 4
+    distinct_primary_rule_id_maximum: 3
+    recovery_must_not_relax_validator_or_research_bounds: true
+    recovery_must_be_fixture_testable_before_any_new_call: true
+  gates:
+    local_implementation_defect_present: STOP_LOCAL_IMPLEMENTATION_DEFECT
+    recoverable_common_interface_true: GO_R3E_CONTRACT_RECOVERY_ENGINEERING_ONLY
+    otherwise: STOP_NEW_LIVE_BATCH_NOT_JUSTIFIED
+  direct_new_external_call_authorized: false
+
+outputs:
+  diagnostic_report: data/research/trend_swing/ts-v5-r3d-offline-proposal-diagnostic/diagnostic.json
+  independent_audit: data/research/trend_swing/ts-v5-r3d-offline-proposal-diagnostic/audit.json
+  tracked_acceptance: docs/TS_V5_R3D_OFFLINE_PROPOSAL_DIAGNOSTIC_ACCEPTANCE_20260813.md
+
+forbidden:
+  - external_network
+  - secret_read
+  - deepseek_or_other_llm_call
+  - raw_response_or_reasoning_persistence_in_tracked_outputs
+  - candidate_repair_normalization_or_admission
+  - market_security_return_or_effect_read
+  - parameter_search_or_backtest
+  - paper_web_or_production
