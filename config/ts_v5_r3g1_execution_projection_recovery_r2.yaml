@@ -1,0 +1,88 @@
+schema_version: ts-v5-r3g1-execution-projection-recovery-r2
+recovery_id: ts-v5-r3g1-execution-projection-recovery-r2
+prepared_on: "2026-08-13"
+status: RESULT_KNOWN_IMPLEMENTATION_DEFECT_RECOVERY_FROZEN
+production_authorization: none
+
+frozen_parent:
+  scope_path: config/ts_v5_r3g1_recent_density_scope_v1.yaml
+  scope_sha256: 3b83d8a569886b2af78298c85789b8c6495b0cf8903975b2ddb0c48367040381
+  release_git_head: 05ae36b18a03fd1253784810918cd321135b3af0
+  release_code_snapshot_sha256: fc80141673676b76b9ad5c2f7e0710c1fe881243e7bcdad8a6fbe8cc2d436c83
+  profile_path: data/research/trend_swing/ts-v5-r3g1-recent-density-001/density_profile.json
+  profile_sha256: 51d0bcdc5367058cfbf289067c45de84548e7c57b9b6ac7e2b4061de048a963a
+  event_path: data/research/trend_swing/ts-v5-r3g1-recent-density-001/events.parquet
+  event_sha256: 3b68183692bdb28b61e9673f6626c1387bf5765319bd6dde54820a1c996f70da
+  audit_path: data/research/trend_swing/ts-v5-r3g1-recent-density-001/audit.json
+  audit_sha256: 6a284581f18e41cef080184dc34eb05f95a76f0bc643588f70ccd040d7ee0b15
+  observed_verdict: STOP_NO_RECENT_DENSE_MECHANISM
+  observed_event_rows: 0
+  immutable_and_not_rewritten: true
+  authority_status: INVALIDATED_BY_COMMON_EXECUTION_PROJECTION_DEFECT
+
+diagnosis:
+  method: static_contract_trace_after_parent_artifacts_were_sealed
+  additional_real_profile_or_effect_read: false
+  common_defects:
+    - id: MISSING_RAW_OPEN_EXECUTION_FIELD
+      producer: src/shaiwei/research/trend_swing/v5_r3g1_features.py
+      consumer: src/shaiwei/research/trend_swing/v5_r3g1_inputs.py
+      observed_behavior: every_confirmed_episode_raises_missing_field_at_next_open_and_is_cancelled
+    - id: HAS_BAR_DERIVED_FROM_OFFICIAL_DAY_INSTEAD_OF_JOINED_SECURITY_BAR
+      producer: src/shaiwei/research/trend_swing/v5_r3g1_features.py
+      consumer: src/shaiwei/research/trend_swing/v5_r3g1_runner.py
+      observed_behavior: security_no_bar_days_are_misclassified_as_security_bar_days
+  strategy_or_density_conclusion_permitted_from_parent: false
+
+single_recovery_delta:
+  raw_open_projection: adjusted_open_divided_by_positive_adjustment_factor_on_joined_security_bars
+  has_bar_projection: joined_security_bar_ts_code_is_not_null
+  exception_policy: missing_required_execution_projection_must_fail_closed_at_run_level
+  candidate_mechanisms_changed: false
+  parameter_grid_changed: false
+  density_threshold_changed: false
+  chronological_roles_changed: false
+  input_manifest_changed: false
+  market_sector_or_entry_semantics_changed: false
+  selection_rule_changed: false
+
+recovery_output:
+  root: data/research/trend_swing/ts-v5-r3g1-recent-density-r2
+  parent_artifacts_may_not_be_deleted_moved_or_overwritten: true
+  schema_must_identify_parent_invalidation_and_recovery_scope: true
+
+authority:
+  offline_engineering_and_fixture: true
+  one_recovery_density_profile: true
+  one_recovery_independent_audit: true
+  read_price_reference_market_sector_and_execution_gate_fields: true
+  read_post_entry_return_or_effect: false
+  read_alpha158_value_or_rank: false
+  benchmark_value_read: false
+  model_training_prediction_or_backtest: false
+  external_network_or_provider: false
+  env_or_secret_read: false
+  paper_web_scheduler_or_production_change: false
+
+attempt_control:
+  parent_profile_attempt_count: 1
+  recovery_profile_attempt_count: 1
+  recovery_independent_audit_attempt_count: 1
+  strategy_effect_attempt_count: 0
+  same_recovery_scope_rerun: forbidden
+  additional_diagnostic_profile: forbidden
+  threshold_or_grid_adjustment_after_result: forbidden
+
+execution_isolation:
+  implementation_git_head_must_be_pushed_before_run: true
+  docker_network_mode: none
+  project_env_mounted: false
+  secrets_mounted: false
+  source_mounts_read_only: true
+  only_recovery_output_is_writable: true
+  scheduler_restart_or_change: forbidden
+
+successor_control:
+  recovery_density_result_authorizes_effect: false
+  h00906_total_return_lineage_required_before_effect: true
+  recovery_density_result_authorizes_model_backtest_paper_web_or_production: false
