@@ -254,6 +254,7 @@ def test_compose_is_short_lived_minimal_and_audit_is_offline() -> None:
     audit = compose["services"]["ts-v5-llm-audit"]
 
     assert live["read_only"] is True
+    assert live["user"] == "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
     assert live["cap_drop"] == ["ALL"]
     assert live["environment"] == [
         "DEEPSEEK_API_KEY",

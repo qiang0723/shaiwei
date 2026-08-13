@@ -4,7 +4,7 @@ services:
     pull_policy: never
     profiles: [ts-v5-llm]
     init: true
-    user: "10001:10001"
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
     read_only: true
     cap_drop: [ALL]
     security_opt:
@@ -52,7 +52,7 @@ services:
     pull_policy: never
     profiles: [ts-v5-llm-audit]
     init: true
-    user: "10001:10001"
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
     network_mode: none
     read_only: true
     cap_drop: [ALL]
