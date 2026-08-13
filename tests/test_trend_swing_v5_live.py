@@ -267,3 +267,15 @@ def test_compose_is_short_lived_minimal_and_audit_is_offline() -> None:
     assert all("DEEPSEEK_API_KEY" not in item for item in audit["environment"])
     assert all("docker.sock" not in volume["source"] for volume in live["volumes"])
     assert all(volume["source"] not in (".", "./") for volume in live["volumes"])
+    release_mount = [
+        volume for volume in live["volumes"] if volume["target"].startswith("/opt/shaiwei/")
+    ]
+    assert release_mount == [
+        {
+            "type": "bind",
+            "source": "./config/ts_v5_llm_execution_release_v2.yaml",
+            "target": "/opt/shaiwei/ts_v5_llm_execution_release_v2.yaml",
+            "read_only": True,
+            "bind": {"create_host_path": False},
+        }
+    ]

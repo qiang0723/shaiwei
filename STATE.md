@@ -14,6 +14,9 @@
   重新生成；正式release现绑定该提交、镜像ID、
   代码快照、请求束和两份空专属账本。下一步须先推送release并通过无secret Docker preflight，之后才
   能读取项目内DeepSeek密钥并执行唯一批次。
+- v1 release的两次无密钥preflight分别暴露专属目录未创建和旧D1重型导入链；两次均在secret、TLS、
+  provider调用和账本写入前停止。v1保持原样并由v2显式记录为`FAILED_BEFORE_SECRET_NETWORK_OR_PROVIDER_CALL`；
+  v2只绑定轻量provider修复后的`4e5cb60`和新镜像，研究scope/提示/12响应/0.50美元均不变。
 
 - 用户纠偏TS不能因具体规则失败就停止；TS现正式定义为长期策略研究族，只有用户明确退役才关闭。
   v3/v4固定百分比结论原样保留，只停止具体版本，不停止“强市场—强板块—强个股—右侧波段”方向。

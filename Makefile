@@ -80,10 +80,10 @@ ts-v3-recovery-audit: ## 独立复核R2匿名日报、manifest和结果防火墙
 	$(PYTHON) -m shaiwei.research.trend_swing.recovery_cli audit
 
 ts-v5-llm-preflight:
-	$(PYTHON) -m shaiwei.research.trend_swing.v5_live --preflight-only
+	$(PYTHON) -m shaiwei.research.trend_swing.v5_live --release config/ts_v5_llm_execution_release_v2.yaml --preflight-only
 
 ts-v5-llm-audit:
-	$(PYTHON) -m shaiwei.research.trend_swing.v5_audit
+	$(PYTHON) -m shaiwei.research.trend_swing.v5_audit --release config/ts_v5_llm_execution_release_v2.yaml
 
 docker-ts-v5-llm-build:
 	@test -n "$(TS_V5_LLM_RELEASE_GIT_HEAD)" || (echo "TS_V5_LLM_RELEASE_GIT_HEAD is required"; exit 2)

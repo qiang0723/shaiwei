@@ -35,8 +35,8 @@ services:
         bind:
           create_host_path: false
       - type: bind
-        source: ./config/ts_v5_llm_execution_release_v1.yaml
-        target: /opt/shaiwei/ts_v5_llm_execution_release_v1.yaml
+        source: ./config/ts_v5_llm_execution_release_v2.yaml
+        target: /opt/shaiwei/ts_v5_llm_execution_release_v2.yaml
         read_only: true
         bind:
           create_host_path: false
@@ -45,7 +45,7 @@ services:
       - -m
       - shaiwei.research.trend_swing.v5_live
       - --release
-      - /opt/shaiwei/ts_v5_llm_execution_release_v1.yaml
+      - /opt/shaiwei/ts_v5_llm_execution_release_v2.yaml
 
   ts-v5-llm-audit:
     image: shaiwei:ts-v5-llm-batch-001
@@ -86,8 +86,8 @@ services:
         bind:
           create_host_path: false
       - type: bind
-        source: ./config/ts_v5_llm_execution_release_v1.yaml
-        target: /opt/shaiwei/ts_v5_llm_execution_release_v1.yaml
+        source: ./config/ts_v5_llm_execution_release_v2.yaml
+        target: /opt/shaiwei/ts_v5_llm_execution_release_v2.yaml
         read_only: true
         bind:
           create_host_path: false
@@ -96,4 +96,4 @@ services:
       - -m
       - shaiwei.research.trend_swing.v5_audit
       - --release
-      - /opt/shaiwei/ts_v5_llm_execution_release_v1.yaml
+      - /opt/shaiwei/ts_v5_llm_execution_release_v2.yaml
