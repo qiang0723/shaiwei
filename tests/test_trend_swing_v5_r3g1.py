@@ -53,6 +53,8 @@ def test_scope_freezes_recent_role_separation_and_no_effect_authority():
     assert scope.recovery["frozen_parent"]["authority_status"] == (
         "INVALIDATED_BY_COMMON_EXECUTION_PROJECTION_DEFECT"
     )
+    assert scope.identity_recovery["provisional_image"]["image_process_started"] is False
+    assert scope.identity_recovery["authority"]["additional_density_attempt"] is False
 
 
 def test_scope_drift_fails_closed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -100,6 +102,15 @@ def test_new_modules_respect_architecture_size_budget():
     root = Path(__file__).resolve().parents[1] / "src/shaiwei/research/trend_swing"
     for path in root.glob("v5_r3g1_*.py"):
         assert len(path.read_text(encoding="utf-8").splitlines()) <= 300, path.name
+
+
+def test_r3g1_build_and_runtime_have_non_manual_identity_gates():
+    root = Path(__file__).resolve().parents[1]
+    makefile = (root / "Makefile").read_text(encoding="utf-8")
+    dockerfile = (root / "Dockerfile.ts-v5-r3g1").read_text(encoding="utf-8")
+    assert '"$$(git rev-parse HEAD)"' in makefile
+    assert '"$$(git rev-parse origin/main)"' in makefile
+    assert "SHAIWEI_RELEASE_MANIFEST=/opt/shaiwei/release-manifest.json" in dockerfile
 
 
 def test_role_stream_projects_raw_open_and_marks_missing_security_bar():

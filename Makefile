@@ -155,6 +155,8 @@ docker-ts-v5-r3g-audit:
 
 docker-ts-v5-r3g1-build:
 	@test -n "$(TS_V5_R3G1_RELEASE_GIT_HEAD)" || (echo "TS_V5_R3G1_RELEASE_GIT_HEAD is required"; exit 2)
+	@test "$(TS_V5_R3G1_RELEASE_GIT_HEAD)" = "$$(git rev-parse HEAD)" || (echo "TS_V5_R3G1_RELEASE_GIT_HEAD differs from HEAD"; exit 2)
+	@test "$(TS_V5_R3G1_RELEASE_GIT_HEAD)" = "$$(git rev-parse origin/main)" || (echo "TS_V5_R3G1_RELEASE_GIT_HEAD differs from origin/main"; exit 2)
 	docker build --network=none -f Dockerfile.ts-v5-r3g1 --build-arg SHAIWEI_RELEASE_GIT_HEAD="$(TS_V5_R3G1_RELEASE_GIT_HEAD)" -t shaiwei:ts-v5-r3g1-recent-density-r2 .
 
 docker-ts-v5-r3g1-profile:

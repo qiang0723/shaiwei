@@ -24,6 +24,8 @@ CORRECTION_PATH = PROJECT_ROOT / "config/ts_v5_r3g1_execution_clock_correction_a
 CORRECTION_SHA256 = "5aa7f0b1385a3bab64f30f63bac812c56fdc8eb2b3268065b357894f7872710b"
 RECOVERY_PATH = PROJECT_ROOT / "config/ts_v5_r3g1_execution_projection_recovery_r2.yaml"
 RECOVERY_SHA256 = "01f0ae9fba381bfa9c6bd7d1f069339da6b26d8c06706549944403b00427b380"
+IDENTITY_RECOVERY_PATH = PROJECT_ROOT / "config/ts_v5_r3g1_release_identity_recovery_r3.yaml"
+IDENTITY_RECOVERY_SHA256 = "f82eed0cddf35dd7e1eecdbd205b13fde84e3dbfdc77e8e7fd878148acea9695"
 OUTPUT_ROOT = PROJECT_ROOT / "data/research/trend_swing/ts-v5-r3g1-recent-density-r2"
 EVENT_PATH = OUTPUT_ROOT / "events.parquet"
 PROFILE_PATH = OUTPUT_ROOT / "density_profile.json"
@@ -48,9 +50,11 @@ class R3G1Scope:
     addendum: dict[str, Any]
     correction: dict[str, Any]
     recovery: dict[str, Any]
+    identity_recovery: dict[str, Any]
     sha256: str = SCOPE_SHA256
     addendum_sha256: str = ADDENDUM_SHA256
     recovery_sha256: str = RECOVERY_SHA256
+    identity_recovery_sha256: str = IDENTITY_RECOVERY_SHA256
 
     @classmethod
     def load(cls) -> "R3G1Scope":
@@ -58,6 +62,7 @@ class R3G1Scope:
         addendum = _load_yaml(ADDENDUM_PATH, ADDENDUM_SHA256)
         correction = _load_yaml(CORRECTION_PATH, CORRECTION_SHA256)
         recovery = _load_yaml(RECOVERY_PATH, RECOVERY_SHA256)
+        identity_recovery = _load_yaml(IDENTITY_RECOVERY_PATH, IDENTITY_RECOVERY_SHA256)
         authority = document.get("authority", {})
         required_true = {
             "offline_engineering_and_fixture",
@@ -91,9 +96,16 @@ class R3G1Scope:
                     "paper_web_scheduler_or_production_change",
                 )
             )
+            or identity_recovery.get("status")
+            != "RESULT_UNKNOWN_PRE_RUN_IMAGE_IDENTITY_RECOVERY_FROZEN"
+            or identity_recovery.get("binds", {}).get("execution_projection_recovery_sha256")
+            != RECOVERY_SHA256
+            or identity_recovery.get("provisional_image", {}).get("image_process_started")
+            is not False
+            or identity_recovery.get("authority", {}).get("additional_density_attempt") is not False
         ):
             raise D1ControlError("TS-v5-R3G-1 authority or identity differs")
-        return cls(document, addendum, correction, recovery)
+        return cls(document, addendum, correction, recovery, identity_recovery)
 
     @property
     def roles(self) -> tuple[tuple[str, str, str], ...]:

@@ -152,6 +152,7 @@ def run_profile_once() -> dict[str, Any]:
         "role_boundary_addendum_sha256": scope.addendum_sha256,
         "execution_clock_correction_sha256": "5aa7f0b1385a3bab64f30f63bac812c56fdc8eb2b3268065b357894f7872710b",
         "execution_projection_recovery_sha256": scope.recovery_sha256,
+        "release_identity_recovery_sha256": scope.identity_recovery_sha256,
         "parent_invalidation": {
             "authority_status": scope.recovery["frozen_parent"]["authority_status"],
             "profile_sha256": scope.recovery["frozen_parent"]["profile_sha256"],

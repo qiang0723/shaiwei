@@ -2,6 +2,7 @@ FROM shaiwei:ts-v4-density-preflight@sha256:949a2c26c284bf3c083df317055519f4bd0a
 
 ARG SHAIWEI_RELEASE_GIT_HEAD=""
 ENV SHAIWEI_RELEASE_GIT_HEAD=${SHAIWEI_RELEASE_GIT_HEAD}
+ENV SHAIWEI_RELEASE_MANIFEST=/opt/shaiwei/release-manifest.json
 
 USER 0:0
 COPY Dockerfile.ts-v5-r3g1 compose.ts-v5-r3g1.yaml ./

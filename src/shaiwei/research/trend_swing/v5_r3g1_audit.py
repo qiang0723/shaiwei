@@ -101,6 +101,8 @@ def audit_once() -> dict[str, Any]:
         "scope_identity_matches": report["scope_sha256"] == scope.sha256,
         "role_boundary_matches": report["role_boundary_addendum_sha256"] == scope.addendum_sha256,
         "recovery_identity_matches": report["execution_projection_recovery_sha256"] == scope.recovery_sha256,
+        "release_identity_recovery_matches": report["release_identity_recovery_sha256"]
+        == scope.identity_recovery_sha256,
         "parent_invalidation_is_explicit": report["parent_invalidation"] == {
             "authority_status": "INVALIDATED_BY_COMMON_EXECUTION_PROJECTION_DEFECT",
             "profile_sha256": scope.recovery["frozen_parent"]["profile_sha256"],

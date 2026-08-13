@@ -1,0 +1,46 @@
+schema_version: ts-v5-r3g1-release-identity-recovery-r3
+recovery_id: ts-v5-r3g1-release-identity-recovery-r3
+prepared_on: "2026-08-13"
+status: RESULT_UNKNOWN_PRE_RUN_IMAGE_IDENTITY_RECOVERY_FROZEN
+production_authorization: none
+
+binds:
+  execution_projection_recovery_sha256: 01f0ae9fba381bfa9c6bd7d1f069339da6b26d8c06706549944403b00427b380
+  triggering_implementation_commit: e834b3b4adfd59de5a6a5a2c7320d51976d871ed
+  triggering_implementation_commit_pushed_to_origin_main: true
+  final_release_git_head_is_bound_by_make_to_head_and_origin_main_at_build_time: true
+
+provisional_image:
+  image_id: sha256:18c3174b3a66a9d62853099013c5acc11d7e6e443540b82aeb2b5638a34ddf4c
+  embedded_git_head: e834b3b6b51554ff9417566466403224b124cdac
+  expected_git_head: e834b3b4adfd59de5a6a5a2c7320d51976d871ed
+  identity_match: false
+  image_process_started: false
+  market_or_security_data_read: false
+  density_read: false
+  profile_event_or_audit_written: false
+  strategy_effect_read: false
+  secret_or_network_used: false
+  authority: PROVISIONAL_NEVER_RUN
+
+root_cause:
+  category: MANUAL_GIT_SHA_TRANSCRIPTION_ERROR
+  build_argument_was_not_automatically_compared_with_local_and_origin_main_head: true
+
+recovery_delta:
+  make_build_must_compare_requested_git_head_to_local_head: true
+  make_build_must_compare_requested_git_head_to_origin_main_tracking_head: true
+  runtime_must_verify_embedded_controlled_file_manifest: true
+  final_image_identity_must_be_recorded_in_acceptance_evidence: true
+  strategy_data_parameter_time_role_or_threshold_changed: false
+
+authority:
+  rebuild_correct_identity_image: true
+  run_offline_fixtures_and_preflight: true
+  recovery_density_profile_remains_authorized_once_under_r2: true
+  recovery_independent_audit_remains_authorized_once_under_r2: true
+  additional_density_attempt: false
+  external_network_or_provider: false
+  env_or_secret_read: false
+  post_entry_return_or_effect: false
+  model_backtest_paper_web_scheduler_or_production_change: false
