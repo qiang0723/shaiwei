@@ -1,0 +1,60 @@
+schema_version: ts-v5-llm-response-contract-v2
+status: FROZEN_ENGINEERING_ONLY_NO_LIVE_AUTHORITY
+frozen_on: "2026-08-13"
+
+purpose:
+  - prevent_reasoning_from_consuming_the_final_json_budget
+  - preserve_strict_fail_closed_candidate_admission
+
+legacy_batch_evidence:
+  batch_id: ts-v5-llm-research-batch-001
+  completed_responses: 12
+  finish_reason_length: 12
+  completion_tokens_at_legacy_limit: 12
+  empty_final_content: 12
+  nonempty_reasoning_content: 12
+  legacy_max_tokens: 1800
+  legacy_authoritative_gate: STOP_NO_VALID_CANDIDATES
+  legacy_evidence_is_immutable: true
+
+future_request_profile:
+  thinking:
+    type: disabled
+  reasoning_effort: OMITTED
+  response_format:
+    type: json_object
+  max_tokens: 1800
+  tools: []
+  stream: false
+  candidate_schema_unchanged: true
+  prompt_and_product_constraints_unchanged: true
+
+terminal_response_gate:
+  accepted_finish_reasons:
+    - stop
+  require_nonempty_content: true
+  require_json_object: true
+  require_strict_candidate_schema: true
+  reasoning_content_is_never_candidate: true
+  length_is_always_failure: true
+  failure_classes:
+    length_at_limit_with_empty_content_and_reasoning: OUTPUT_BUDGET_EXHAUSTED_IN_REASONING
+    other_length: PROVIDER_OUTPUT_TRUNCATED
+    stop_with_empty_content: PROVIDER_EMPTY_FINAL_CONTENT
+    stop_with_invalid_json: CANDIDATE_JSON_INVALID
+    unsupported_finish_reason: PROVIDER_FINISH_REASON_INVALID
+
+compatibility:
+  legacy_request_builder_default_unchanged: true
+  legacy_release_and_evidence_unchanged: true
+  future_release_must_explicitly_select_v2: true
+  no_silent_fallback_to_v1: true
+
+authority:
+  external_api_calls: 0
+  secret_read: false
+  market_or_effect_read: false
+  parameter_search_or_backtest: false
+  paper_web_or_production: false
+  future_live_calls_require_new_scope_and_user_approval: true
+  production_authorization: none
