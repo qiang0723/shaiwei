@@ -8,7 +8,7 @@ import yaml
 
 from shaiwei.research.deepseek_client import DeepSeekProvider
 from shaiwei.research.trend_swing.v5_audit import audit_batch
-from shaiwei.research.trend_swing.v5_evidence import ATTEMPT_HEADER
+from shaiwei.research.trend_swing.v5_evidence import ATTEMPT_HEADER, candidate_gate
 from shaiwei.research.trend_swing.v5_live import run_batch
 from shaiwei.research.trend_swing.v5_transport import (
     APPROVED_SCOPE_SHA256,
@@ -279,3 +279,21 @@ def test_compose_is_short_lived_minimal_and_audit_is_offline() -> None:
             "bind": {"create_host_path": False},
         }
     ]
+
+
+def test_candidate_gate_stops_complete_batch_without_a_valid_candidate() -> None:
+    rows = [
+        {
+            "schema_status": "NOT_EVALUATED",
+            "duplicate_status": "NOT_EVALUATED",
+            "failure_class": "PROVIDER_FINISH_REASON_INVALID",
+        }
+        for _ in range(12)
+    ]
+    assert candidate_gate(rows) == ("STOP_NO_VALID_CANDIDATES", 0)
+    rows[0] = {
+        "schema_status": "PASS",
+        "duplicate_status": "UNIQUE",
+        "failure_class": "",
+    }
+    assert candidate_gate(rows) == ("GO_CANDIDATES_ONLY", 1)

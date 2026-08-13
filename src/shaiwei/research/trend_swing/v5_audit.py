@@ -14,7 +14,7 @@ from shaiwei.ledger import sha256_file
 from shaiwei.research.deepseek_client import TRANSPORT_LEDGER_HEADER_V2
 from shaiwei.research.provider_contract import D1ControlError
 from shaiwei.research.trend_swing.v5_contract import canonical_json, sha256_text
-from shaiwei.research.trend_swing.v5_evidence import attempt_rows, write_once
+from shaiwei.research.trend_swing.v5_evidence import attempt_rows, candidate_gate, write_once
 from shaiwei.research.trend_swing.v5_live import (
     DEFAULT_ATTEMPT_LEDGER,
     DEFAULT_OUTPUT,
@@ -143,6 +143,7 @@ def audit_batch(
         )
     )
     total_cost = sum(float(row["estimated_cost_usd"]) for row in rows)
+    authoritative_gate, valid_candidates = candidate_gate(rows)
     checks = {
         "release_identity": report.get("execution_release_sha256") == release.sha256,
         "completed_responses_exact": report.get("completed_response_count") == 12,
@@ -164,6 +165,15 @@ def audit_batch(
         "checks": checks,
         "static_evidence": static,
         "actual_cost_usd": total_cost,
+        "valid_candidate_count": valid_candidates,
+        "authoritative_candidate_gate": authoritative_gate,
+        "original_report_gate": report.get("gate"),
+        "original_report_gate_consistent": report.get("gate") == authoritative_gate,
+        "original_report_gate_finding": (
+            "NONE"
+            if report.get("gate") == authoritative_gate
+            else "ORIGINAL_GATE_IGNORED_CANDIDATE_VALIDITY"
+        ),
         "candidate_content_used_for_effect_decision": False,
         "network_used": False,
         "secret_read": False,

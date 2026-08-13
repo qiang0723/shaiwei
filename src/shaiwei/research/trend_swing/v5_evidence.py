@@ -230,3 +230,18 @@ def response_envelope(response: ProviderResponse) -> dict[str, Any]:
         "sensitive_output_detected": response.sensitive_output_detected,
         "source_response_sha256": response.source_response_sha256,
     }
+
+
+def candidate_gate(rows: list[dict[str, str]]) -> tuple[str, int]:
+    """Admit only a complete batch containing at least one usable candidate."""
+    valid = sum(
+        row["schema_status"] == "PASS"
+        and row["duplicate_status"] == "UNIQUE"
+        and not row["failure_class"]
+        for row in rows
+    )
+    if len(rows) != 12:
+        return "STOP_INCOMPLETE_BATCH", valid
+    if valid == 0:
+        return "STOP_NO_VALID_CANDIDATES", valid
+    return "GO_CANDIDATES_ONLY", valid

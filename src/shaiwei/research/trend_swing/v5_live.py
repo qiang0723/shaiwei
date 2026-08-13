@@ -17,6 +17,7 @@ from shaiwei.research.provider_contract import D1ControlError, ProviderResponse
 from shaiwei.research.trend_swing.v5_contract import canonical_json, sha256_text
 from shaiwei.research.trend_swing.v5_evidence import (
     attempt_rows,
+    candidate_gate,
     classify_response,
     persist_completed_attempt,
     response_envelope,
@@ -123,6 +124,7 @@ def _terminal_report(
     code_sha: str,
     tls_sha: str,
 ) -> dict[str, Any]:
+    gate, valid_candidates = candidate_gate(rows)
     return {
         "schema_version": "ts-v5-llm-research-report-v1",
         "execution_release_id": release.release_id,
@@ -138,6 +140,7 @@ def _terminal_report(
         ),
         "schema_valid_count": sum(row["schema_status"] == "PASS" for row in rows),
         "unique_candidate_count": sum(row["duplicate_status"] == "UNIQUE" for row in rows),
+        "valid_candidate_count": valid_candidates,
         "duplicate_candidate_count": sum(row["duplicate_status"] == "DUPLICATE" for row in rows),
         "failure_class_counts": {
             value or "NONE": sum(row["failure_class"] == value for row in rows)
@@ -165,7 +168,7 @@ def _terminal_report(
         "paper_web_or_production": False,
         "candidate_effectiveness": "NOT_EVALUATED",
         "production_authorization": "none",
-        "gate": "GO_CANDIDATES_ONLY" if len(rows) == 12 else "STOP_INCOMPLETE_BATCH",
+        "gate": gate,
     }
 
 

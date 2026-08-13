@@ -4,6 +4,12 @@
 
 ## 2026-08-13 · TS-v5持续演化研究治理冻结，工程开工但外部研究未授权
 
+- 首批真实DeepSeek机制研究已完成并权威`STOP_NO_VALID_CANDIDATES`：12/12完成响应（6独立+6反方），
+  串行、外部调用12、实际费用0.03012781美元、幂等复跑调用0；12份均因provider结束原因非`stop`
+  而计为无效，Schema合法候选0。原始报告误以“响应齐全”给出`GO_CANDIDATES_ONLY`，报告保持不可变，
+  独立断网audit后追加纠正；禁止补发、复用本approval、参数搜索、回测、模拟仓、Web或生产。TS策略族
+  不因本批停止。见`docs/TS_V5_LLM_FIRST_BATCH_ACCEPTANCE_20260813.md`。
+
 - 用户已明确批准v1 scope
   `9947e1bebc10d5da32df63ff462a8c8e9403a12986dbfef0a891f69956325a88`执行首批恰好12个
   DeepSeek完成响应和0.50美元单批熔断。该明确批准晚于预算v2，因此v1恢复控制本批，v2只保留5美元
