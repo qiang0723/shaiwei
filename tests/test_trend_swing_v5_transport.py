@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from shaiwei.research.deepseek_client import DeepSeekProvider
-from shaiwei.research.llm_factor_contract import D1ControlError
+from shaiwei.research.provider_contract import D1ControlError
 from shaiwei.research.trend_swing.v5_prompt import build_request, plan_attempt, validate_response
 from shaiwei.research.trend_swing.v5_transport import (
     V5TransportProtocol,

@@ -24,12 +24,14 @@ import yaml
 
 from shaiwei.ledger import append_llm_factor_transport, sha256_file
 from shaiwei.research.llm_factor_contract import (
-    D1ControlError,
     D1Protocol,
-    ProviderResponse,
-    SENSITIVE_OUTPUT_PATTERNS,
     build_request,
     plan_attempt,
+)
+from shaiwei.research.provider_contract import (
+    D1ControlError,
+    ProviderResponse,
+    SENSITIVE_OUTPUT_PATTERNS,
 )
 
 

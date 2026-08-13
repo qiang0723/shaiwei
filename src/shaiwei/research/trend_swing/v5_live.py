@@ -13,7 +13,7 @@ from typing import Any, Callable
 from shaiwei.config import PROJECT_ROOT
 from shaiwei.ledger import sha256_file
 from shaiwei.provenance import code_snapshot_sha256, git_head
-from shaiwei.research.llm_factor_contract import D1ControlError, ProviderResponse
+from shaiwei.research.provider_contract import D1ControlError, ProviderResponse
 from shaiwei.research.trend_swing.v5_contract import canonical_json, sha256_text
 from shaiwei.research.trend_swing.v5_evidence import (
     attempt_rows,

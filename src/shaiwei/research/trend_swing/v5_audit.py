@@ -12,7 +12,7 @@ from typing import Any
 from shaiwei.config import PROJECT_ROOT
 from shaiwei.ledger import sha256_file
 from shaiwei.research.deepseek_client import TRANSPORT_LEDGER_HEADER_V2
-from shaiwei.research.llm_factor_contract import D1ControlError
+from shaiwei.research.provider_contract import D1ControlError
 from shaiwei.research.trend_swing.v5_contract import canonical_json, sha256_text
 from shaiwei.research.trend_swing.v5_evidence import attempt_rows, write_once
 from shaiwei.research.trend_swing.v5_live import (

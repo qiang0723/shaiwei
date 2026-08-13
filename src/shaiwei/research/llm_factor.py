@@ -29,18 +29,17 @@ from shaiwei.research.alphagen_expression import (
 )
 from shaiwei.research.llm_factor_contract import (
     TOPICS as TOPICS,
-    SENSITIVE_OUTPUT_PATTERNS,
     AttemptPlan,
     CandidateLineage as CandidateLineage,
     CandidateProposal,
     D1ControlError,
     D1Protocol,
-    ProviderResponse,
     build_request,
     candidate_schema as candidate_schema,
     candidate_schema_sha256,
     plan_attempt,
 )
+from shaiwei.research.provider_contract import ProviderResponse, SENSITIVE_OUTPUT_PATTERNS
 
 ATTEMPT_LEDGER_HEADER_V1 = (
     "attempt_id",

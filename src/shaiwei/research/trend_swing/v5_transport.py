@@ -12,7 +12,7 @@ import httpx
 import yaml
 
 from shaiwei.research.deepseek_client import DeepSeekProvider
-from shaiwei.research.llm_factor_contract import D1ControlError
+from shaiwei.research.provider_contract import D1ControlError
 from shaiwei.config import PROJECT_ROOT
 from shaiwei.research.trend_swing.v5_contract import V5Bundle, canonical_json, sha256_file, sha256_text
 

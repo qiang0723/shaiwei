@@ -10,7 +10,7 @@ from typing import Any
 
 from shaiwei.config import PROJECT_ROOT
 from shaiwei.ledger import append_ts_v5_llm_attempt, sha256_file
-from shaiwei.research.llm_factor_contract import D1ControlError, ProviderResponse
+from shaiwei.research.provider_contract import D1ControlError, ProviderResponse
 from shaiwei.research.trend_swing.v5_models import MechanismCandidate
 from shaiwei.research.trend_swing.v5_prompt import AttemptPlan, validate_response
 from shaiwei.research.trend_swing.v5_transport import V5ExecutionRelease, V5TransportProtocol

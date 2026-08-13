@@ -11,7 +11,6 @@ from dataclasses import dataclass
 import hashlib
 import json
 from pathlib import Path
-import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -24,6 +23,11 @@ from shaiwei.research.llm_factor_prompt import (
     PromptBundle,
     PromptContractError,
 )
+from shaiwei.research.provider_contract import (
+    D1ControlError as D1ControlError,
+    ProviderResponse as ProviderResponse,
+    SENSITIVE_OUTPUT_PATTERNS as SENSITIVE_OUTPUT_PATTERNS,
+)
 
 
 TOPICS = (
@@ -33,16 +37,6 @@ TOPICS = (
     "liquidity_volume",
     "price_volume_state",
 )
-SENSITIVE_OUTPUT_PATTERNS = (
-    re.compile(r"(?<![A-Za-z0-9])sk-[A-Za-z0-9]{20,}"),
-    re.compile(r"https://open\.feishu\.cn/open-apis/bot/v2/hook/[0-9a-fA-F-]{32,}"),
-)
-
-
-class D1ControlError(RuntimeError):
-    pass
-
-
 def _sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -243,18 +237,6 @@ class AttemptPlan:
     topic: str
     topic_ordinal: int
     evolution_mode: Literal["independent", "mutation"]
-
-
-@dataclass(frozen=True)
-class ProviderResponse:
-    model: str
-    content: str
-    reasoning_content: str
-    finish_reason: str
-    usage: dict[str, int] | None
-    completed_at: str
-    sensitive_output_detected: bool = False
-    source_response_sha256: str = ""
 
 
 def _canonical_json(value: Any) -> str:
