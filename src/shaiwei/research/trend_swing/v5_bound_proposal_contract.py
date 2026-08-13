@@ -213,13 +213,35 @@ def mechanism_projection(mechanism: Mechanism) -> dict[str, Any]:
         "primary_mechanism": mechanism.value,
         "deterministic_reference_frame": reference.value,
         "deterministic_pullback_measure": measure.value,
+        "deterministic_mandatory_cancellation_rules": [
+            item.value for item in MANDATORY_CANCELLATIONS
+        ],
+        "optional_cancellation_rule_enum": [item.value for item in OPTIONAL_CANCELLATIONS],
+        "deterministic_required_features": [
+            item.value
+            for item in sorted(
+                COMMON_FEATURES | MECHANISM_FEATURES[mechanism], key=lambda item: item.value
+            )
+        ],
         "mandatory_parameter_ids": sorted(item.value for item in mandatory),
         "optional_parameter_ids": [item.value for item in SHARED_PARAMETERS],
         "parameter_contracts": parameters,
         "deterministic_search_points_by_slot_count": SEARCH_POINTS_BY_SLOT_COUNT,
         "maximum_search_evaluations": 196,
+        "parameter_slots_must_be_unique": True,
+        "parameter_minimum_must_be_less_than_maximum": True,
+        "integer_parameter_bounds_must_be_integral": True,
+        "numeric_string_pattern": NUMERIC_PATTERN,
+        "optional_cancellation_rules_must_be_unique": True,
+        "falsification_conditions_must_be_unique": True,
         "response_lineage_field_allowed": False,
         "response_search_points_field_allowed": False,
+        "prohibited_text_categories": [
+            "code_or_shell_or_sql",
+            "url_or_local_path",
+            "secret_shaped_value",
+            "validated_profit_or_production_claim",
+        ],
     }
 
 
@@ -235,6 +257,11 @@ def proposal_schema(mechanism: Mechanism) -> dict[str, Any]:
             "enum": [item.value for item in OPTIONAL_CANCELLATIONS], "type": "string"
         }
     schema["x-ts-mechanism-projection"] = mechanism_projection(mechanism)
+    schema["x-ts-text-contract"] = {
+        "safe_text_pattern": SAFE_TEXT.pattern,
+        "forbidden_pattern": FORBIDDEN_TEXT.pattern,
+        "falsification_conditions_must_be_unique": True,
+    }
     schema["x-ts-assigned-authority-is-not-a-response-field"] = True
     return schema
 

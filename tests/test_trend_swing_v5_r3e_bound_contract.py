@@ -61,6 +61,12 @@ def test_request_binds_authority_but_response_schema_cannot_override_it() -> Non
     assert "search_points_maximum" not in schema_text
     assert task["mechanism_projection"]["response_lineage_field_allowed"] is False
     assert task["mechanism_projection"]["response_search_points_field_allowed"] is False
+    assert task["mechanism_projection"]["deterministic_required_features"]
+    assert task["mechanism_projection"]["deterministic_mandatory_cancellation_rules"] == [
+        "STRUCTURE_LOW_BROKEN",
+        "MARKET_OR_SECTOR_GATE_LOST",
+    ]
+    assert task["proposal_schema"]["x-ts-text-contract"]["forbidden_pattern"]
 
 
 @pytest.mark.parametrize("field", ["lineage", "search_points_maximum"])
