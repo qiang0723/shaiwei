@@ -38,7 +38,11 @@ live入口也会在release加载阶段退出码2，无法获得网络或provider
   `920162c7938985d76fc757d9ddad7e4a76c23b2e3d8cfdafc67b465ed6bcbf16`。
 - 实现提交`a2f215d`先行推送；路径越界和manifest绑定加固提交`3b85077`随后推送，HEAD与origin/main一致。
 - 一次镜像build-arg手工转录错误已显式记为provisional，不得进入release；见
-  `docs/TS_V5_R3C_IMAGE_IDENTITY_ADDENDUM_20260813.md`。终版镜像身份在补遗后重新生成并逐字段核对。
+  `docs/TS_V5_R3C_IMAGE_IDENTITY_ADDENDUM_20260813.md`。终版镜像
+  `sha256:0c07a2eb7142c6e9f4fed8ab7b85b695aac561245325b8b0417ec61efe38b92a`内嵌完整Git HEAD
+  `9ba7b52bf005dd3e7d0f1c48f398f884a74c9caf`，代码快照
+  `227c299691427566080a2204fbb284cdbf4687a6a655bb8ec93771deb2c1695b`；三项由镜像内权威
+  provenance函数和简单内容ID读取逐字段核对。
 - 终版镜像在`network=none`、只读根、非root、无secret下重算preflight和独立audit均PASS；注入无效哨兵
   密钥但不给release时按预期失败，无provider调用。
 

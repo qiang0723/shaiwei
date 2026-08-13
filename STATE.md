@@ -10,7 +10,7 @@
   audit和结果前release门均已完成；MockTransport六席、幂等复用和离线复算PASS。实现`a2f215d`、
   路径与manifest加固`3b85077`均已推送。
 - 首个加固镜像因40位Git build-arg手工转录错误永久标为provisional；它只有断网/无secret预检，API与
-  费用0。终版镜像须用真实完整HEAD重建并逐字段核对；无
+  费用0。终版镜像`sha256:0c07a2eb...b92a`已用真实完整HEAD重建并逐字段核对；无
   release时即使注入哨兵密钥也退出码2。全仓1246、架构13项PASS，scheduler原镜像连续运行且healthy。
 - 权威`READY_FOR_EXPLICIT_LIVE_APPROVAL`：当前API调用、secret读取和费用仍为0。须用户逐字批准唯一
   scope、恰好6响应和0.15美元后，才可冻结execution release；效果/回测/模拟仓/生产仍禁止。见
