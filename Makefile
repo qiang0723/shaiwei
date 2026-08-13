@@ -78,6 +78,22 @@ ts-v3-recovery-profile: ## 两批补采完成后唯一一次断网匿名候选�
 	$(PYTHON) -m shaiwei.research.trend_swing.recovery_cli profile
 ts-v3-recovery-audit: ## 独立复核R2匿名日报、manifest和结果防火墙
 	$(PYTHON) -m shaiwei.research.trend_swing.recovery_cli audit
+
+ts-v5-llm-preflight:
+	$(PYTHON) -m shaiwei.research.trend_swing.v5_live --preflight-only
+
+ts-v5-llm-audit:
+	$(PYTHON) -m shaiwei.research.trend_swing.v5_audit
+
+docker-ts-v5-llm-build:
+	@test -n "$(TS_V5_LLM_RELEASE_GIT_HEAD)" || (echo "TS_V5_LLM_RELEASE_GIT_HEAD is required"; exit 2)
+	docker build -f Dockerfile.ts-v5-llm --build-arg SHAIWEI_RELEASE_GIT_HEAD="$(TS_V5_LLM_RELEASE_GIT_HEAD)" -t shaiwei:ts-v5-llm-batch-001 .
+
+docker-ts-v5-llm-run:
+	docker compose -f compose.ts-v5-llm.yaml --profile ts-v5-llm run --rm --no-deps ts-v5-llm
+
+docker-ts-v5-llm-audit:
+	docker compose -f compose.ts-v5-llm.yaml --profile ts-v5-llm-audit run --rm --no-deps ts-v5-llm-audit
 docker-ts-recovery-build: ## 以已推送实现身份构建R3短命研究镜像
 	@test -n "$(TS_RECOVERY_RELEASE_GIT_HEAD)" || (echo "TS_RECOVERY_RELEASE_GIT_HEAD is required"; exit 2)
 	SHAIWEI_TS_RECOVERY_RELEASE_GIT_HEAD="$(TS_RECOVERY_RELEASE_GIT_HEAD)" docker compose -f compose.ts-recovery.yaml --profile ts-recovery-network build ts-recovery-network

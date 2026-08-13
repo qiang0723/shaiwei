@@ -1,0 +1,99 @@
+services:
+  ts-v5-llm:
+    image: shaiwei:ts-v5-llm-batch-001
+    pull_policy: never
+    profiles: [ts-v5-llm]
+    init: true
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,mode=1777
+    pids_limit: 64
+    mem_limit: 512m
+    cpus: 1.0
+    environment:
+      - DEEPSEEK_API_KEY
+      - HOME=/tmp
+      - PYTHONPYCACHEPREFIX=/tmp/pycache
+    volumes:
+      - type: bind
+        source: ./data/research/trend_swing/ts-v5-llm-batch-001
+        target: /workspace/data/research/trend_swing/ts-v5-llm-batch-001
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/ts_v5_llm_attempts.csv
+        target: /workspace/ledger/ts_v5_llm_attempts.csv
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/ts_v5_llm_transports.csv
+        target: /workspace/ledger/ts_v5_llm_transports.csv
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./config/ts_v5_llm_execution_release_v1.yaml
+        target: /opt/shaiwei/ts_v5_llm_execution_release_v1.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.v5_live
+      - --release
+      - /opt/shaiwei/ts_v5_llm_execution_release_v1.yaml
+
+  ts-v5-llm-audit:
+    image: shaiwei:ts-v5-llm-batch-001
+    pull_policy: never
+    profiles: [ts-v5-llm-audit]
+    init: true
+    user: "10001:10001"
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+    pids_limit: 32
+    mem_limit: 256m
+    cpus: 0.5
+    environment:
+      - HOME=/tmp
+      - PYTHONPYCACHEPREFIX=/tmp/pycache
+    volumes:
+      - type: bind
+        source: ./data/research/trend_swing/ts-v5-llm-batch-001
+        target: /workspace/data/research/trend_swing/ts-v5-llm-batch-001
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/ts_v5_llm_attempts.csv
+        target: /workspace/ledger/ts_v5_llm_attempts.csv
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/ts_v5_llm_transports.csv
+        target: /workspace/ledger/ts_v5_llm_transports.csv
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./config/ts_v5_llm_execution_release_v1.yaml
+        target: /opt/shaiwei/ts_v5_llm_execution_release_v1.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.v5_audit
+      - --release
+      - /opt/shaiwei/ts_v5_llm_execution_release_v1.yaml

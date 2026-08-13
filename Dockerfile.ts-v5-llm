@@ -1,0 +1,30 @@
+FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93
+
+ARG SHAIWEI_RELEASE_GIT_HEAD=""
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/workspace/src \
+    SHAIWEI_RELEASE_GIT_HEAD=${SHAIWEI_RELEASE_GIT_HEAD}
+
+WORKDIR /workspace
+
+COPY requirements.web.lock pyproject.toml ./
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
+    python -m pip install --no-deps -r requirements.web.lock
+
+COPY src ./src
+COPY config ./config
+
+RUN groupadd --gid 10001 research \
+    && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin research \
+    && mkdir -p /opt/shaiwei \
+    && python -m shaiwei.provenance \
+       --write-release-manifest /opt/shaiwei/release-manifest.json
+
+ENV SHAIWEI_RELEASE_MANIFEST=/opt/shaiwei/release-manifest.json
+
+USER 10001:10001
+
+CMD ["python", "-m", "shaiwei.research.trend_swing.v5_live", "--preflight-only"]

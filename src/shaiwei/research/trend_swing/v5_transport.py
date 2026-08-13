@@ -13,7 +13,16 @@ import yaml
 
 from shaiwei.research.deepseek_client import DeepSeekProvider
 from shaiwei.research.llm_factor_contract import D1ControlError
+from shaiwei.config import PROJECT_ROOT
 from shaiwei.research.trend_swing.v5_contract import V5Bundle, canonical_json, sha256_file, sha256_text
+
+APPROVED_SCOPE_PATH = PROJECT_ROOT / "config/ts_v5_llm_research_scope_v1.yaml"
+APPROVED_SCOPE_SHA256 = "9947e1bebc10d5da32df63ff462a8c8e9403a12986dbfef0a891f69956325a88"
+BUDGET_RECORD_PATH = PROJECT_ROOT / "config/ts_v5_llm_research_scope_v2.yaml"
+BUDGET_RECORD_SHA256 = "a7ab6407db4037be53b7496246e4e200ca2a1d8081d4c31fa1de024b9ee32d56"
+INDEPENDENT_REQUEST_BUNDLE_SHA256 = (
+    "7de4b42dd849f7298183a97b3622661940c60facf3e69218dba64b523bf8fb25"
+)
 
 
 @dataclass(frozen=True)
@@ -50,6 +59,12 @@ class V5ExecutionRelease:
     protocol_sha256: str
     completed_responses_exact: int
     batch_hard_ceiling_usd: float
+    response_model_identity: str
+    implementation_git_head: str
+    image_tag: str
+    output_root: str
+    attempt_ledger: str
+    transport_ledger: str
 
     @classmethod
     def load(
@@ -74,6 +89,38 @@ class V5ExecutionRelease:
             or re.fullmatch(r"ts-v5-llm-research-batch-[0-9]{3}", release_id) is None
         ):
             raise D1ControlError("TS-v5 live release identity or authority differs")
+        approval = document.get("user_approval", {})
+        if approval != {
+            "source": "user_explicit_approval_primary_codex_thread",
+            "approved_on": "2026-08-13",
+            "approved_scope_path": "config/ts_v5_llm_research_scope_v1.yaml",
+            "approved_scope_sha256": APPROVED_SCOPE_SHA256,
+            "completed_responses_exact": 12,
+            "independent_candidates": 6,
+            "adversarial_revisions": 6,
+            "batch_hard_ceiling_usd": 0.5,
+        }:
+            raise D1ControlError("TS-v5 live release does not match the explicit user approval")
+        if sha256_file(APPROVED_SCOPE_PATH) != APPROVED_SCOPE_SHA256:
+            raise D1ControlError("TS-v5 approved scope identity differs")
+        if document.get("provider_identity") != {
+            "requested_model": "deepseek-v4-pro",
+            "expected_model_version": "DeepSeek-V4-Pro",
+            "response_model_field": "deepseek-v4-pro",
+            "version_and_response_field_are_distinct": True,
+            "correction_frozen_before_any_paid_response": True,
+        }:
+            raise D1ControlError("TS-v5 provider identity contract differs")
+        budget = document.get("program_budget_context", {})
+        if budget != {
+            "record_path": "config/ts_v5_llm_research_scope_v2.yaml",
+            "record_sha256": BUDGET_RECORD_SHA256,
+            "program_hard_ceiling_usd": 5.0,
+            "approved_v1_scope_controls_this_batch": True,
+            "program_ceiling_does_not_expand_this_batch": True,
+            "future_batches_require_new_scope_and_user_approval": True,
+        } or sha256_file(BUDGET_RECORD_PATH) != BUDGET_RECORD_SHA256:
+            raise D1ControlError("TS-v5 program budget context differs")
         identity = document.get("frozen_contract", {})
         expected_identity = {
             **protocol.bundle.identity(),
@@ -109,6 +156,30 @@ class V5ExecutionRelease:
             "paths_or_secrets",
         ]:
             raise D1ControlError("TS-v5 live release payload boundary differs")
+        runtime = document.get("runtime", {})
+        implementation_head = str(runtime.get("implementation_git_head", ""))
+        if (
+            re.fullmatch(r"[0-9a-f]{40}", implementation_head) is None
+            or runtime.get("image_tag") != "shaiwei:ts-v5-llm-batch-001"
+            or runtime.get("output_root")
+            != "data/research/trend_swing/ts-v5-llm-batch-001"
+            or runtime.get("attempt_ledger") != "ledger/ts_v5_llm_attempts.csv"
+            or runtime.get("transport_ledger") != "ledger/ts_v5_llm_transports.csv"
+        ):
+            raise D1ControlError("TS-v5 live runtime boundary differs")
+        gates = document.get("pre_execution_gates", {})
+        required_gates = (
+            "release_commit_pushed_and_head_equals_origin_main",
+            "implementation_image_identity_matches",
+            "only_deepseek_api_key_passed_to_container",
+            "tls_hostname_probe_before_secret_read",
+            "outbound_payload_allowlist_scan",
+            "invalid_completed_response_counts_without_replacement",
+            "scheduler_identity_unchanged_and_healthy",
+            "no_market_effect_backtest_or_production_access",
+        )
+        if any(gates.get(key) is not True for key in required_gates):
+            raise D1ControlError("TS-v5 live pre-execution gates differ")
         return cls(
             path=path,
             document=document,
@@ -117,6 +188,12 @@ class V5ExecutionRelease:
             protocol_sha256=protocol.sha256,
             completed_responses_exact=12,
             batch_hard_ceiling_usd=0.5,
+            response_model_identity=str(document["provider_identity"]["response_model_field"]),
+            implementation_git_head=implementation_head,
+            image_tag=str(runtime["image_tag"]),
+            output_root=str(runtime["output_root"]),
+            attempt_ledger=str(runtime["attempt_ledger"]),
+            transport_ledger=str(runtime["transport_ledger"]),
         )
 
 

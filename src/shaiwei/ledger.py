@@ -31,6 +31,8 @@ LLM_FACTOR_ATTEMPTS_V2 = LEDGER_DIR / "llm_factor_attempts_v2.csv"
 LLM_FACTOR_TRANSPORTS_V2 = LEDGER_DIR / "llm_factor_transports_v2.csv"
 LLM_FACTOR_REVIEWS = LEDGER_DIR / "llm_factor_reviews.csv"
 LLM_FACTOR_REVIEW_TRANSPORTS = LEDGER_DIR / "llm_factor_review_transports.csv"
+TS_V5_LLM_ATTEMPTS = LEDGER_DIR / "ts_v5_llm_attempts.csv"
+TS_V5_LLM_TRANSPORTS = LEDGER_DIR / "ts_v5_llm_transports.csv"
 G8_FUND_EVIDENCE = LEDGER_DIR / "g8_fund_evidence.csv"
 G8_MANAGER_EVIDENCE = LEDGER_DIR / "g8_manager_evidence.csv"
 
@@ -262,6 +264,12 @@ def append_llm_factor_review(*, path: Path | None = None, **kw: object) -> bool:
     """Append one terminal D1-3 adversarial review without storing prompt content."""
     kw.setdefault("operator", "docker-d1-review")
     return _append_idempotent(path or LLM_FACTOR_REVIEWS, kw, key="review_id")
+
+
+def append_ts_v5_llm_attempt(*, path: Path | None = None, **kw: object) -> bool:
+    """Append one sanitized TS-v5 completed-response decision."""
+    kw.setdefault("operator", "docker-ts-v5-llm")
+    return _append_idempotent(path or TS_V5_LLM_ATTEMPTS, kw, key="attempt_id")
 
 
 def append_llm_factor_experiment(*, path: Path | None = None, **kw: object) -> bool:
