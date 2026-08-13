@@ -13,6 +13,7 @@ from shaiwei.ledger import append_ts_v5_llm_attempt, sha256_file
 from shaiwei.research.provider_contract import D1ControlError, ProviderResponse
 from shaiwei.research.trend_swing.v5_models import MechanismCandidate
 from shaiwei.research.trend_swing.v5_prompt import AttemptPlan, validate_response
+from shaiwei.research.trend_swing.v5_response_contract import V5ResponseContract
 from shaiwei.research.trend_swing.v5_transport import V5ExecutionRelease, V5TransportProtocol
 
 ATTEMPT_HEADER = (
@@ -91,6 +92,7 @@ def classify_response(
     *,
     parent_fingerprint: str | None,
     prior_semantic_signatures: set[str],
+    response_contract: V5ResponseContract | None = None,
 ) -> dict[str, Any]:
     try:
         usage, cost = _usage_and_cost(protocol, response)
@@ -111,6 +113,10 @@ def classify_response(
     failure_class = usage_failure
     if not failure_class and response.model != release.response_model_identity:
         failure_class = "PROVIDER_MODEL_IDENTITY_MISMATCH"
+    elif not failure_class and response_contract is not None and response.sensitive_output_detected:
+        failure_class = "PROVIDER_SENSITIVE_OUTPUT"
+    elif not failure_class and response_contract is not None:
+        failure_class = response_contract.terminal_failure(response)
     elif not failure_class and response.finish_reason != "stop":
         failure_class = "PROVIDER_FINISH_REASON_INVALID"
     elif not failure_class and response.sensitive_output_detected:
