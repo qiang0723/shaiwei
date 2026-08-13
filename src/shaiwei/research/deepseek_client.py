@@ -17,18 +17,16 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
 import yaml
 
 from shaiwei.ledger import append_llm_factor_transport, sha256_file
-from shaiwei.research.llm_factor_contract import (
-    D1Protocol,
-    build_request,
-    plan_attempt,
-)
 from shaiwei.research.provider_contract import D1ControlError, ProviderResponse, SENSITIVE_OUTPUT_PATTERNS
+
+if TYPE_CHECKING:
+    from shaiwei.research.llm_factor_contract import D1Protocol
 
 
 TRANSPORT_LEDGER_HEADER_V1 = (
@@ -658,6 +656,8 @@ def create_live_deepseek_provider(
 
 def run_mock_transport_fixture(protocol: D1Protocol, output_dir: Path) -> dict[str, Any]:
     """Exercise success, retry and uncertain-billing recovery without a network route."""
+    from shaiwei.research.llm_factor_contract import build_request, plan_attempt
+
     fixed_time = "2026-07-25T14:30:00+00:00"
     request = build_request(protocol, plan_attempt(protocol, 1))
 
