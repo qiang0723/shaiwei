@@ -6,6 +6,13 @@
 
 ## 2026-08-13 TS-v5持续演化研究路线
 
+R2四响应合同金丝雀已完成零调用预执行门：固定四个独立机制席位、无反方/递补/第五调用，v2请求束
+SHA-256为`0068357f...e489b`，最坏费用0.034104美元、硬上限0.10美元。全仓与断网只读镜像预检均
+`GO_PREEXECUTION_ONLY`；新增代码仅为157行scope/请求束预检，没有复制live runner或扩张传输热点。
+当前仍没有API调用、secret读取、行情/效果、参数搜索或回测。下一步必须由用户批准唯一scope哈希
+`e2d7218f...a1a8ef`，之后才能另立执行release；“继续”本身不构成付费授权。见
+`docs/TS_V5_R2_LLM_CANARY_PREEXECUTION_ACCEPTANCE_20260813.md`。
+
 首批DeepSeek机制研究已完成12/12响应，实际费用0.03012781美元；但12份全部因provider结束原因非
 `stop`而无效，合法候选0。权威裁决`STOP_NO_VALID_CANDIDATES`，不进入参数搜索/回测，不补发或复用
 本approval。原始报告的`GO_CANDIDATES_ONLY`遗漏合法候选门，保持原文并由独立断网audit追加纠正。

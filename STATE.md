@@ -4,6 +4,15 @@
 
 ## 2026-08-13 · TS-v5持续演化研究治理冻结，工程开工但外部研究未授权
 
+- TS-v5-R2四响应合同金丝雀预执行门已`GO_PREEXECUTION_ONLY`：scope提交`89da7a5`先行推送，唯一
+  scope SHA-256为`e2d7218f...a1a8ef`；固定波动自适应/周结构分位/突破回踩/均线恢复四个独立席位，
+  无反方、无递补、无第五调用，最坏费用0.034104美元、硬上限0.10美元。实现提交`5cb8ff8`只新增157行
+  scope/请求束预检，复用v2响应画像和原请求安全门；4请求束SHA-256为`0068357f...e489b`。全仓1175、
+  架构13项通过；正确镜像`sha256:510c0a99...819de`在断网、只读根、非root、无secret条件下同结果PASS。
+  首次镜像构建曾手工传错1字符Git哈希，该镜像未运行、未入release且已由正确身份镜像取代。当前API
+  调用、secret读取和费用均为0；须用户逐字批准scope哈希后才可另立live release。见
+  `docs/TS_V5_R2_LLM_CANARY_PREEXECUTION_ACCEPTANCE_20260813.md`。
+
 - 首批真实DeepSeek机制研究已完成并权威`STOP_NO_VALID_CANDIDATES`：12/12完成响应（6独立+6反方），
   串行、外部调用12、实际费用0.03012781美元、幂等复跑调用0；12份均因provider结束原因非`stop`
   而计为无效，Schema合法候选0。原始报告误以“响应齐全”给出`GO_CANDIDATES_ONLY`，报告保持不可变，
