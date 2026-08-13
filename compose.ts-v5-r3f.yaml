@@ -1,0 +1,144 @@
+x-r3f-base: &r3f-base
+  image: shaiwei:ts-v5-r3f-canary-001
+  pull_policy: never
+  init: true
+  user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+  read_only: true
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=96m,mode=1777
+  pids_limit: 48
+  mem_limit: 384m
+  cpus: 0.75
+  environment:
+    - HOME=/tmp
+    - PYTHONPYCACHEPREFIX=/tmp/pycache
+
+x-r3f-volumes: &r3f-volumes
+  - type: bind
+    source: ./data/research/trend_swing/ts-v5-r3f-canary-001
+    target: /workspace/data/research/trend_swing/ts-v5-r3f-canary-001
+    bind:
+      create_host_path: false
+  - type: bind
+    source: ./ledger/ts_v5_r3f_llm_attempts.csv
+    target: /workspace/ledger/ts_v5_r3f_llm_attempts.csv
+    bind:
+      create_host_path: false
+  - type: bind
+    source: ./ledger/ts_v5_r3f_llm_transports.csv
+    target: /workspace/ledger/ts_v5_r3f_llm_transports.csv
+    bind:
+      create_host_path: false
+  - type: bind
+    source: ./config/ts_v5_r3f_llm_execution_release_v1.yaml
+    target: /opt/shaiwei/ts_v5_r3f_llm_execution_release_v1.yaml
+    read_only: true
+    bind:
+      create_host_path: false
+
+x-r3f-read-volumes: &r3f-read-volumes
+  - type: bind
+    source: ./data/research/trend_swing/ts-v5-r3f-canary-001
+    target: /workspace/data/research/trend_swing/ts-v5-r3f-canary-001
+    read_only: true
+    bind:
+      create_host_path: false
+  - type: bind
+    source: ./ledger/ts_v5_r3f_llm_attempts.csv
+    target: /workspace/ledger/ts_v5_r3f_llm_attempts.csv
+    read_only: true
+    bind:
+      create_host_path: false
+  - type: bind
+    source: ./ledger/ts_v5_r3f_llm_transports.csv
+    target: /workspace/ledger/ts_v5_r3f_llm_transports.csv
+    read_only: true
+    bind:
+      create_host_path: false
+  - type: bind
+    source: ./config/ts_v5_r3f_llm_execution_release_v1.yaml
+    target: /opt/shaiwei/ts_v5_r3f_llm_execution_release_v1.yaml
+    read_only: true
+    bind:
+      create_host_path: false
+
+services:
+  ts-v5-r3f:
+    <<: *r3f-base
+    profiles: [ts-v5-r3f]
+    environment:
+      - DEEPSEEK_API_KEY
+      - HOME=/tmp
+      - PYTHONPYCACHEPREFIX=/tmp/pycache
+    volumes: *r3f-volumes
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.v5_r3f_live
+      - --release
+      - /opt/shaiwei/ts_v5_r3f_llm_execution_release_v1.yaml
+
+  ts-v5-r3f-preflight:
+    <<: *r3f-base
+    profiles: [ts-v5-r3f-preflight]
+    network_mode: none
+    volumes: *r3f-read-volumes
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.v5_r3f_live
+      - --release
+      - /opt/shaiwei/ts_v5_r3f_llm_execution_release_v1.yaml
+      - --preflight-only
+
+  ts-v5-r3f-audit:
+    <<: *r3f-base
+    profiles: [ts-v5-r3f-audit]
+    network_mode: none
+    volumes:
+      - type: bind
+        source: ./data/research/trend_swing/ts-v5-r3f-canary-001
+        target: /workspace/data/research/trend_swing/ts-v5-r3f-canary-001
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/ts_v5_r3f_llm_attempts.csv
+        target: /workspace/ledger/ts_v5_r3f_llm_attempts.csv
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/ts_v5_r3f_llm_transports.csv
+        target: /workspace/ledger/ts_v5_r3f_llm_transports.csv
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./config/ts_v5_r3f_llm_execution_release_v1.yaml
+        target: /opt/shaiwei/ts_v5_r3f_llm_execution_release_v1.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.v5_r3f_result_audit
+      - --release
+      - /opt/shaiwei/ts_v5_r3f_llm_execution_release_v1.yaml
+      - --write-report
+      - /workspace/data/research/trend_swing/ts-v5-r3f-canary-001/ts_v5_r3f_audit.json
+
+  ts-v5-r3f-replay:
+    <<: *r3f-base
+    profiles: [ts-v5-r3f-replay]
+    network_mode: none
+    volumes: *r3f-read-volumes
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.v5_r3f_live
+      - --release
+      - /opt/shaiwei/ts_v5_r3f_llm_execution_release_v1.yaml
