@@ -85,6 +85,8 @@ def release_document(protocol: V5TransportProtocol) -> dict[str, object]:
         "runtime": {
             "implementation_git_head": IMPLEMENTATION_HEAD,
             "image_tag": "shaiwei:ts-v5-llm-batch-001",
+            "image_id": "sha256:" + "d" * 64,
+            "code_snapshot_sha256": "c" * 64,
             "output_root": "data/research/trend_swing/ts-v5-llm-batch-001",
             "attempt_ledger": "ledger/ts_v5_llm_attempts.csv",
             "transport_ledger": "ledger/ts_v5_llm_transports.csv",

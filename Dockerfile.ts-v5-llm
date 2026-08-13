@@ -10,9 +10,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /workspace
 
-COPY requirements.web.lock pyproject.toml ./
+COPY requirements.ts-v5-llm.lock pyproject.toml ./
 RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
-    python -m pip install --no-deps -r requirements.web.lock
+    python -m pip install --no-deps -r requirements.ts-v5-llm.lock
 
 COPY src ./src
 COPY config ./config

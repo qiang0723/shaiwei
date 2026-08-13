@@ -25,6 +25,7 @@ CONTROLLED_FILES = {
     "compose.ts-v5-llm.yaml",
     "pyproject.toml",
     "requirements.lock",
+    "requirements.ts-v5-llm.lock",
 }
 RELEASE_MANIFEST_ENV = "SHAIWEI_RELEASE_MANIFEST"
 RELEASE_GIT_HEAD_ENV = "SHAIWEI_RELEASE_GIT_HEAD"

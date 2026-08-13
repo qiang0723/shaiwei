@@ -62,6 +62,8 @@ class V5ExecutionRelease:
     response_model_identity: str
     implementation_git_head: str
     image_tag: str
+    image_id: str
+    code_snapshot_sha256: str
     output_root: str
     attempt_ledger: str
     transport_ledger: str
@@ -158,9 +160,13 @@ class V5ExecutionRelease:
             raise D1ControlError("TS-v5 live release payload boundary differs")
         runtime = document.get("runtime", {})
         implementation_head = str(runtime.get("implementation_git_head", ""))
+        image_id = str(runtime.get("image_id", ""))
+        code_snapshot = str(runtime.get("code_snapshot_sha256", ""))
         if (
             re.fullmatch(r"[0-9a-f]{40}", implementation_head) is None
             or runtime.get("image_tag") != "shaiwei:ts-v5-llm-batch-001"
+            or re.fullmatch(r"sha256:[0-9a-f]{64}", image_id) is None
+            or re.fullmatch(r"[0-9a-f]{64}", code_snapshot) is None
             or runtime.get("output_root")
             != "data/research/trend_swing/ts-v5-llm-batch-001"
             or runtime.get("attempt_ledger") != "ledger/ts_v5_llm_attempts.csv"
@@ -191,6 +197,8 @@ class V5ExecutionRelease:
             response_model_identity=str(document["provider_identity"]["response_model_field"]),
             implementation_git_head=implementation_head,
             image_tag=str(runtime["image_tag"]),
+            image_id=image_id,
+            code_snapshot_sha256=code_snapshot,
             output_root=str(runtime["output_root"]),
             attempt_ledger=str(runtime["attempt_ledger"]),
             transport_ledger=str(runtime["transport_ledger"]),

@@ -209,6 +209,8 @@ def run_batch(
             raise D1ControlError("TS-v5 terminal report identity differs")
         return {**report, "idempotent_reuse": True, "external_api_calls_this_run": 0}
     tls_sha, code_sha, external_calls = tls_probe(release), runtime_code_sha(), 0
+    if code_sha != release.code_snapshot_sha256:
+        raise D1ControlError("TS-v5 runtime code snapshot differs from the frozen release")
     for ordinal in range(len(rows) + 1, 13):
         rows = attempt_rows(attempt_path, release)
         spent = sum(float(row["estimated_cost_usd"]) for row in rows)
