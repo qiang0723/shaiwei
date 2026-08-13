@@ -1,0 +1,146 @@
+schema_version: ts-v5-r3g1-recent-density-scope-v1
+scope_id: ts-v5-r3g1-recent-density-001
+prepared_on: "2026-08-13"
+status: RESULT_BLIND_RECENT_DENSITY_FROZEN
+production_authorization: none
+
+objective:
+  primary: profile_the_six_frozen_entry_mechanisms_on_recent_2021_2026_event_density_only
+  downstream_decision: select_at_most_one_density_anchor_and_two_neighbours_per_mechanism
+  strategy_effect_evaluation: false
+
+supersession:
+  predecessor_scope: config/ts_v5_r3g_executable_semantics_engineering_v1.yaml
+  predecessor_scope_sha256: 3a066c13eeefd9409c159973a5ae1aff63fb5fc92b8caa67275ae5790b1345bb
+  predecessor_future_density_partition_status: SUPERSEDED_BEFORE_ANY_REAL_DENSITY_READ
+  predecessor_2019_2024_partition_immutable_and_not_rewritten: true
+  reason: prefer_recent_market_structure_without_collapsing_selection_holdout_and_partial_year_roles
+
+authority:
+  offline_engineering_and_fixture: true
+  one_result_blind_density_profile: true
+  one_independent_audit: true
+  read_price_reference_market_sector_and_execution_gate_fields: true
+  read_post_entry_return_or_effect: false
+  read_alpha158_value_or_rank: false
+  benchmark_value_read: false
+  model_training_prediction_or_backtest: false
+  external_network_or_provider: false
+  env_or_secret_read: false
+  paper_web_scheduler_or_production_change: false
+
+frozen_inputs:
+  r3g_scope_path: config/ts_v5_r3g_executable_semantics_engineering_v1.yaml
+  r3g_scope_sha256: 3a066c13eeefd9409c159973a5ae1aff63fb5fc92b8caa67275ae5790b1345bb
+  r3g_reference_addendum_sha256: 945abec5a281bad3ff5d888a8dcb06eb416578a8190131d3850b332c6dabd1f0
+  r3g_confirmation_addendum_sha256: 26e856576b036abea1e96f7a3e57cc27a8ceb74aec31fec4b440a68e0b17b48f
+  r3g_registry_path: data/research/trend_swing/ts-v5-r3g-executable-semantics/candidate_registry.json
+  r3g_registry_sha256: 9e51a58e080676d52797d551d3cd0e4fbcde3715655303c2cd0c04ac8846eaf4
+  r3g_engineering_report_path: data/research/trend_swing/ts-v5-r3g-executable-semantics/engineering_report.json
+  r3g_engineering_report_sha256: e2fe2e119929d3c3c409a71cbddbc84c2e74212a96070bd871222a7bc7d5fc6a
+  r3g_audit_path: data/research/trend_swing/ts-v5-r3g-executable-semantics/audit.json
+  r3g_audit_sha256: a9f32f965544fd74e706d17901abb3811f199a1b53bf88cfec2de9a1cf435579
+  r3_manifest_path: data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json
+  r3_manifest_sha256: c2206a6fddc83500293ee7e7d8fd399cdc8df3709579f92f16a228bc16494a63
+  source_context: {start: "20160101", end: "20260811"}
+  universe_id: csi800-pit-v1
+  bj_allowed: false
+  alpha158_read: false
+
+chronological_roles:
+  selectable_discovery:
+    start: "20210104"
+    end: "20231229"
+    required_calendar_years: [2021, 2022, 2023]
+    may_select_density_anchor: true
+  frozen_stability_holdout:
+    start: "20240102"
+    end: "20251231"
+    required_calendar_years: [2024, 2025]
+    may_select_or_replace_anchor: false
+    use: selected_anchor_and_neighbours_pass_fail_only
+  current_partial_year_monitor:
+    start: "20260105"
+    end: "20260811"
+    required_calendar_years: [2026]
+    may_select_or_replace_anchor: false
+    affects_verdict: false
+    annual_threshold_normalization: forbidden
+    reporting_label: NOT_FOR_SELECTION_NOT_FOR_VERDICT_PARTIAL_YEAR
+  all_2021_2026_dates_may_not_be_merged_into_one_selection_sample: true
+
+density_gate:
+  per_point_minimum_legal_events: 30
+  per_point_minimum_distinct_signal_days: 20
+  per_point_minimum_events_each_discovery_calendar_year: 5
+  mechanism_minimum_density_eligible_points: 3
+  mechanism_specific_parameters_must_each_have_two_distinct_eligible_values: true
+  holdout_selected_point_minimum_events_each_calendar_year: 5
+  holdout_selected_point_minimum_distinct_signal_days: 10
+  threshold_change_after_profile: forbidden
+
+selection:
+  effective_parameter_point_count: 431
+  density_profile_counts_as_design_search_not_effect_trials: true
+  anchor_order:
+    - maximum_minimum_discovery_calendar_year_event_count
+    - minimum_discovery_calendar_year_event_count_coefficient_of_variation
+    - minimum_absolute_distance_from_60_total_discovery_events
+    - minimum_canonical_parameter_hash
+  neighbours_per_mechanism: 2
+  neighbour_order: normalized_manhattan_distance_from_anchor_then_parameter_hash
+  neighbours_must_pass_discovery_gate: true
+  holdout_or_2026_results_may_not_change_anchor_or_neighbours: true
+  maximum_future_effect_points: 18
+
+attempt_control:
+  llm_generation_attempt_count: 28
+  result_blind_density_design_point_count: 431
+  density_profile_attempt_count: 1
+  independent_audit_attempt_count: 1
+  strategy_effect_attempt_count: 0
+  same_scope_profile_rerun: forbidden
+  same_scope_audit_rerun: forbidden
+  parameter_grid_expansion: forbidden
+
+result_firewall:
+  allowed:
+    - legal_event_count
+    - distinct_signal_day_count
+    - event_count_by_calendar_year
+    - state_and_cancellation_counts
+    - selected_parameter_hash_and_parameter_values
+    - input_output_and_code_hashes
+  forbidden:
+    - post_entry_return
+    - pnl
+    - win_rate
+    - excess_return
+    - mae
+    - mfe
+    - sharpe
+    - drawdown
+    - alpha158_value_or_rank
+    - benchmark_value
+
+verdicts:
+  all_six_mechanisms_pass_discovery_and_holdout: GO_R3G_EFFECT_SCOPE_PROPOSAL_ONLY
+  one_or_more_mechanisms_fail: PARTIAL_GO_DENSE_MECHANISMS_ONLY
+  no_mechanism_passes: STOP_NO_RECENT_DENSE_MECHANISM
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+
+execution_isolation:
+  implementation_git_head_must_equal_embedded_image_git_head: true
+  implementation_git_head_must_be_pushed_to_origin_main_before_run: true
+  docker_network_mode: none
+  project_env_mounted: false
+  secrets_mounted: false
+  source_mounts_read_only: true
+  mutable_output_mount_only: data/research/trend_swing/ts-v5-r3g1-recent-density-001
+  scheduler_restart_or_change: forbidden
+
+successor_control:
+  density_pass_authorizes_effect: false
+  h00906_total_return_lineage_required_before_effect: true
+  density_pass_authorizes_model_backtest_paper_web_or_production: false
