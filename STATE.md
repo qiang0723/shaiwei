@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-13 · TS-v5-R2四响应合同金丝雀权威停止
+
+- 用户精确批准scope `e2d7218f...e1a8ef`后，结果前实现`d077ca4`、独立镜像、空账本和execution
+  release依次冻结并推送；一次transport SHA手工录入错误在零调用/零密钥阶段由独立提交留痕纠正。
+- 唯一真实批次串行取得恰好4/4份完成响应，外部调用4、重试0、递补0、第五次调用0；实际费用
+  `$0.006332411`，无计费不确定性。四份content均为JSON，但严格候选Schema全部FAIL，因此有效候选0，
+  权威`STOP_NO_VALID_CANDIDATES`；不得补发，不读取策略效果，不运行参数搜索或回测。
+- 断网无密钥独立审计逐请求、逐哈希、逐响应重分类和费用复算PASS；断网幂等复跑新增调用0且四类证据
+  哈希不变。未读/未发证券、行情、持仓、收益、首批响应或reasoning，生产scheduler原身份健康。
+- 本scope永久关闭；若继续须先离线匿名分析Schema失败机制，再另立新scope和用户批准。
+  `candidate_effectiveness=NOT_EVALUATED / production_authorization=none`。见
+  `docs/TS_V5_R2_LLM_CANARY_ACCEPTANCE_20260813.md`。
+
 ## 2026-08-13 · TS-v5持续演化研究治理冻结，工程开工但外部研究未授权
 
 - TS-v5-R2四响应合同金丝雀预执行门已`GO_PREEXECUTION_ONLY`：scope提交`89da7a5`先行推送，唯一
