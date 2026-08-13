@@ -1,0 +1,59 @@
+x-r3g-base: &r3g-base
+  image: shaiwei:ts-v5-r3g-engineering-001
+  pull_policy: never
+  init: true
+  user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+  network_mode: none
+  read_only: true
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+  pids_limit: 32
+  mem_limit: 256m
+  cpus: 0.5
+  environment:
+    - HOME=/tmp
+    - PYTHONPYCACHEPREFIX=/tmp/pycache
+  volumes:
+    - type: bind
+      source: ./data/research/trend_swing/ts-v5-r3f-canary-001
+      target: /workspace/data/research/trend_swing/ts-v5-r3f-canary-001
+      read_only: true
+      bind:
+        create_host_path: false
+    - type: bind
+      source: ./ledger/ts_v5_r3f_llm_attempts.csv
+      target: /workspace/ledger/ts_v5_r3f_llm_attempts.csv
+      read_only: true
+      bind:
+        create_host_path: false
+    - type: bind
+      source: ./ledger/ts_v5_r3f_llm_transports.csv
+      target: /workspace/ledger/ts_v5_r3f_llm_transports.csv
+      read_only: true
+      bind:
+        create_host_path: false
+    - type: bind
+      source: ./data/research/trend_swing/ts-v5-r3g-executable-semantics
+      target: /workspace/data/research/trend_swing/ts-v5-r3g-executable-semantics
+      bind:
+        create_host_path: false
+
+services:
+  ts-v5-r3g:
+    <<: *r3g-base
+    profiles: [ts-v5-r3g]
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.v5_r3g_acceptance
+
+  ts-v5-r3g-audit:
+    <<: *r3g-base
+    profiles: [ts-v5-r3g-audit]
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.v5_r3g_audit

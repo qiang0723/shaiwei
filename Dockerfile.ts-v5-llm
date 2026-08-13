@@ -14,6 +14,7 @@ COPY requirements.ts-v5-llm.lock pyproject.toml compose.ts-v5-llm.yaml compose.t
 RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
     python -m pip install --no-deps -r requirements.ts-v5-llm.lock
 
+COPY compose.ts-v5-r3g.yaml ./
 COPY src ./src
 COPY config ./config
 
