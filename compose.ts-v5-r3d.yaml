@@ -1,0 +1,68 @@
+services:
+  ts-v5-r3d:
+    image: shaiwei:ts-v5-r3d-diagnostic-001
+    pull_policy: never
+    profiles: [ts-v5-r3d]
+    init: true
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+    pids_limit: 32
+    mem_limit: 256m
+    cpus: 0.5
+    environment:
+      - HOME=/tmp
+      - PYTHONPYCACHEPREFIX=/tmp/pycache
+    volumes:
+      - type: bind
+        source: ./data/research/trend_swing/ts-v5-r3c-canary-001
+        target: /workspace/data/research/trend_swing/ts-v5-r3c-canary-001
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/trend_swing/ts-v5-r3d-offline-proposal-diagnostic
+        target: /workspace/data/research/trend_swing/ts-v5-r3d-offline-proposal-diagnostic
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/ts_v5_r3c_llm_attempts.csv
+        target: /workspace/ledger/ts_v5_r3c_llm_attempts.csv
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/ts_v5_r3c_llm_transports.csv
+        target: /workspace/ledger/ts_v5_r3c_llm_transports.csv
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./docs/TS_V5_R3B_CONTRACT_PROJECTION_ENGINEERING_ACCEPTANCE_20260813.md
+        target: /workspace/docs/TS_V5_R3B_CONTRACT_PROJECTION_ENGINEERING_ACCEPTANCE_20260813.md
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./docs/TS_V5_R3C_LLM_CANARY_ACCEPTANCE_20260813.md
+        target: /workspace/docs/TS_V5_R3C_LLM_CANARY_ACCEPTANCE_20260813.md
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.v5_r3d_diagnostic
+
+  ts-v5-r3d-audit:
+    extends: ts-v5-r3d
+    profiles: [ts-v5-r3d-audit]
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.v5_r3d_audit
