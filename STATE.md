@@ -2,6 +2,22 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-13 · TS-v5-R3E本地绑定proposal合同工程门完成
+
+- 结果前scope `30185aa4...ec691`与v3合同先以提交`863f7d2`推送，随后实现`aee51dc`及完整可见投影
+  修正`e1ebfa4`推送；旧v2
+  proposal合同/编译器、最终候选validator和R3C/R3D证据均保持冻结哈希不变。
+- v3把attempt mode、父候选和搜索点数移出LLM响应：请求显式携带本地批准的`INDEPENDENT`权威，编译器
+  唯一注入lineage；证据mode只从已编译候选派生。搜索点按1—5槽机械分配7/7/5/3/2，对应搜索积
+  7/49/125/81/32，均不超过196。
+- 六机制合成proposal全部通过原候选validator，48/48个对抗样例fail closed；R3C六份封存回答断网只读
+  重放仍为0录取、0修补。正式工程报告`095ebb49...7f73`、独立audit`e7c6c47d...5a9e`，二次运行哈希
+  不变，audit全部PASS。
+- 权威`GO_R3F_LIVE_CANARY_SCOPE_PROPOSAL_ONLY`：只说明本地合同缺陷已关闭，可以另提R3F小批金丝雀
+  scope；当前DeepSeek调用、secret读取、行情/收益、参数搜索/回测、模拟仓、Web和生产仍为0，策略效果
+  `NOT_EVALUATED`。scheduler原容器`183b8c6c5edd`持续healthy。见
+  `docs/TS_V5_R3E_BOUND_PROPOSAL_ENGINEERING_ACCEPTANCE_20260813.md`。
+
 ## 2026-08-13 · TS-v5-R3D离线诊断发现本地授权绑定缺陷并停止
 
 - 结果前scope `cbfba18e...fb6090`和实现提交`555ccdf`先后推送；随后仅在`network=none`专用镜像中

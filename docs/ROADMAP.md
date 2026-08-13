@@ -6,6 +6,13 @@
 
 ## 2026-08-13 TS-v5持续演化研究路线
 
+R3E零API工程已关闭R3D的本地授权缺陷：proposal v3响应不再拥有lineage或搜索点数；批准的独立席位
+通过request中的本地authority绑定，编译器唯一注入候选lineage，证据mode从候选派生。1—5槽搜索点
+机械分配并始终不超过196。六机制合成编译、48个对抗样例、R3C六份封存回答0录取、独立audit和幂等
+均PASS，旧v2与旧裁决保持不变。当前仅`GO_R3F_LIVE_CANARY_SCOPE_PROPOSAL_ONLY`；如继续，必须另立
+小批R3F scope/release并获用户明确批准，不自动调用DeepSeek，也不进入参数搜索/回测。见
+`docs/TS_V5_R3E_BOUND_PROPOSAL_ENGINEERING_ACCEPTANCE_20260813.md`。
+
 R3D零API离线诊断发现R3C存在本地授权绑定缺陷：批准的六席均为`INDEPENDENT`，但请求没有绑定
 `assigned_attempt_mode`且Schema允许反方模式；六份回答均选`ADVERSARIAL_REVISION`，runner却统一按
 独立席位记账。权威`STOP_LOCAL_IMPLEMENTATION_DEFECT`；字段层另有搜索积超196占5/6、文本安全2/6、
@@ -747,6 +754,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | TS-v5-R3B | 机制专属合同投影工程门 | 六机制proposal Schema/精确projection、确定性编译器、42/42对抗fail closed与独立audit均PASS；外部调用/效果0 | 仅可另提小批live canary scope；调用次数、费用、release须结果前冻结并由用户明确批准，参数搜索/回测/生产仍禁止 |
 | TS-v5-R3C | 六机制合同金丝雀 | 6/6完成响应、六机制各1；费用$0.012032535；六份JSON均在proposal Schema或确定性编译合同FAIL，有效候选0；断网独立audit PASS；权威`STOP_NO_VALID_CANDIDATES` | scope关闭，不递补/第7次调用；如继续先另立零API/零行情R3D离线匿名失败诊断并保持validator不变；效果/回测/生产仍禁止 |
 | TS-v5-R3D | 六响应离线proposal诊断 | 六份均暴露批准独立席位未绑定进request/schema、响应模式与runner记账错配；另有搜索积5/6等字段错误；audit PASS；权威`STOP_LOCAL_IMPLEMENTATION_DEFECT` | 仅可另立R3E零API合同恢复，绑定mode并机械约束搜索积；不自动授权新调用，效果/回测/生产仍禁止 |
+| TS-v5-R3E | 本地绑定proposal合同工程门 | v3移除响应lineage/搜索点，编译器绑定独立authority并机械分配搜索积；六机制、48对抗、旧六回答0录取、audit/幂等PASS | `GO_R3F_LIVE_CANARY_SCOPE_PROPOSAL_ONLY`；新调用须另立小批scope/release并获明确批准，参数搜索/回测/生产仍禁止 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |
 | G8-1R | 监管主源不可覆盖采集 | 1 条原 Docker 失败永久保留；恢复 54 条主证据、二遍幂等与断网复核 PASS；G8 仍 NOT_READY | 只允许另立 G8-2 管理人 HTTPS 交叉核验与费率有效期谱系协议 |
 | G8-2 | 管理人 HTTPS 逐值与费率有效期谱系 | 19 个逻辑请求留痕；八日逐值 1/6、费率谱系 0/6，权威 NO-GO；不是策略 REJECT | 禁止 G8-3；未来只能另立恢复协议处理传输/解析、华商 HTTPS 与法律文件有效期 |
