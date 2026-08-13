@@ -1,0 +1,35 @@
+schema_version: ts-v5-r3g1-role-boundary-addendum-v1
+addendum_id: ts-v5-r3g1-role-boundary-001
+prepared_on: "2026-08-13"
+status: RESULT_BLIND_ROLE_BOUNDARY_FROZEN
+production_authorization: none
+
+binds_scope:
+  path: config/ts_v5_r3g1_recent_density_scope_v1.yaml
+  sha256: 3b83d8a569886b2af78298c85789b8c6495b0cf8903975b2ddb0c48367040381
+  immutable_and_not_rewritten: true
+
+reason:
+  real_density_read_before_addendum: false
+  strategy_effect_read_before_addendum: false
+  parameter_threshold_or_candidate_changed: false
+  ambiguity_removed: whether_an_episode_or_waiting_state_may_cross_a_chronological_role_boundary
+
+role_boundary_semantics:
+  state_feature_context_start: "20160101"
+  lagged_feature_context_is_continuous: true
+  each_role_starts_with_no_active_episode: true
+  episodes_armed_before_role_start_are_excluded: true
+  episode_arm_signal_and_next_open_must_all_belong_to_same_role: true
+  episodes_may_not_cross_role_end: true
+  role_tail_purge: candidate_maximum_wait_days_plus_one_next_open_day
+  tail_purge_changes_density_thresholds: false
+  partial_year_role_remains_not_for_selection_and_not_for_verdict: true
+
+authority:
+  read_market_or_security_data: false
+  read_density: false
+  read_post_entry_return_or_effect: false
+  external_network_or_provider: false
+  env_or_secret_read: false
+  model_backtest_paper_web_scheduler_or_production_change: false
