@@ -164,6 +164,7 @@ def persist_completed_attempt(
     output_root: Path,
     code_sha: str,
     project_root: Path = PROJECT_ROOT,
+    operator: str = "docker-ts-v5-llm",
 ) -> None:
     candidate = classified["candidate"]
     manifest = {
@@ -219,7 +220,7 @@ def persist_completed_attempt(
         "raw_artifact_sha256": sha256_file(raw_path),
         "manifest_path": manifest_path.relative_to(project_root).as_posix(),
         "manifest_sha256": sha256_file(manifest_path),
-        "operator": "docker-ts-v5-llm",
+        "operator": operator,
     }
     if not append_ts_v5_llm_attempt(path=attempt_path, **row):
         raise D1ControlError("TS-v5 attempt row unexpectedly exists")

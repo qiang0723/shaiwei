@@ -235,6 +235,9 @@ def test_v5_live_modules_remain_below_architecture_soft_limit() -> None:
         "src/shaiwei/research/trend_swing/v5_audit.py",
         "src/shaiwei/research/trend_swing/v5_response_contract.py",
         "src/shaiwei/research/trend_swing/v5_response_recovery.py",
+        "src/shaiwei/research/trend_swing/v5_r2_release.py",
+        "src/shaiwei/research/trend_swing/v5_r2_live.py",
+        "src/shaiwei/research/trend_swing/v5_r2_audit.py",
     )
     assert all(len((root / name).read_text().splitlines()) <= 400 for name in modules)
 

@@ -10,7 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /workspace
 
-COPY requirements.ts-v5-llm.lock pyproject.toml ./
+COPY requirements.ts-v5-llm.lock pyproject.toml compose.ts-v5-llm.yaml compose.ts-v5-r2.yaml ./
 RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
     python -m pip install --no-deps -r requirements.ts-v5-llm.lock
 

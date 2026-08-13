@@ -22,6 +22,7 @@ CONTROLLED_FILES = {
     "compose.m6-attribution.yaml",
     "compose.m6-topk-conversion-release.yaml",
     "compose.ts-recovery.yaml",
+    "compose.ts-v5-r2.yaml",
     "compose.ts-v5-llm.yaml",
     "pyproject.toml",
     "requirements.lock",
