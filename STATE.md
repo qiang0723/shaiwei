@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-13 · TS-v5-R3B机制专属合同投影工程门完成
+
+- R3A确认的模型侧合同投影缺口已闭合：六机制分别生成proposal Schema与精确projection，LLM只填写
+  研究语义和边界内选择；reference/measure、两个强制取消规则及全部必需features由同源编译器确定性
+  补齐，终产物仍必须通过字节不变的冻结`MechanismCandidate`。
+- 六个最小proposal全部编译，21条规则/机制均有投影或确定性来源，42/42个对抗样例fail closed；独立
+  audit完整重算PASS，二次运行write-once哈希不变。权威
+  `GO_NEW_LIVE_CANARY_SCOPE_PROPOSAL_ONLY`，不是新调用授权或策略有效性结论。
+- 外部调用、secret/行情/收益读取、旧R2候选修补、参数搜索、回测、模拟仓、Web和生产均为0；策略仍
+  `NOT_EVALUATED`、生产授权`none`。如继续须另立小批live canary scope/release并获用户明确批准。
+  见`docs/TS_V5_R3B_CONTRACT_PROJECTION_ENGINEERING_ACCEPTANCE_20260813.md`。
+
 ## 2026-08-13 · TS-v5-R3A离线合同诊断完成
 
 - 结果盲scope `9f82d89f...e48e4d1`在展开四份R2 content前先行推送；随后只读四份不可变响应，
