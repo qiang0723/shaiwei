@@ -145,7 +145,7 @@ docker-ts-v5-r3f-audit:
 
 docker-ts-v5-r3g-build:
 	@test -n "$(TS_V5_R3G_RELEASE_GIT_HEAD)" || (echo "TS_V5_R3G_RELEASE_GIT_HEAD is required"; exit 2)
-	docker build -f Dockerfile.ts-v5-llm --build-arg SHAIWEI_RELEASE_GIT_HEAD="$(TS_V5_R3G_RELEASE_GIT_HEAD)" -t shaiwei:ts-v5-r3g-engineering-001 .
+	docker build --network=none -f Dockerfile.ts-v5-r3g --build-arg SHAIWEI_RELEASE_GIT_HEAD="$(TS_V5_R3G_RELEASE_GIT_HEAD)" -t shaiwei:ts-v5-r3g-engineering-001 .
 
 docker-ts-v5-r3g-run:
 	docker compose -f compose.ts-v5-r3g.yaml --profile ts-v5-r3g run --rm --no-deps ts-v5-r3g

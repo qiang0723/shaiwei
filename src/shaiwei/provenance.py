@@ -16,6 +16,7 @@ CONTROLLED_FILES = {
     ".env.example",
     "Dockerfile",
     "Dockerfile.ts-v5-llm",
+    "Dockerfile.ts-v5-r3g",
     "Makefile",
     "compose.yaml",
     "compose.research.yaml",
