@@ -1,0 +1,127 @@
+schema_version: ts-v5-r2-llm-canary-scope-v1
+scope_id: ts-v5-r2-response-contract-canary-001
+status: AWAITING_EXPLICIT_USER_APPROVAL
+prepared_on: "2026-08-13"
+execution_authorized: false
+user_approval_received: false
+deepseek_api_called: false
+production_authorization: none
+
+purpose:
+  primary: validate_response_contract_v2_with_a_minimal_live_canary
+  candidate_effectiveness_evaluation: false
+  parameter_selection_or_optimization: false
+
+frozen_identity:
+  governance_sha256: 52ea721b5b9711dc9f0637e9230d9b934a3b075e2e5203d600d119cfb30c335b
+  prompt_sha256: bf046a1072e64346c14595d13b0d3f5cdee838df3a631dc7f4f85a92798e5e89
+  candidate_schema_sha256: 185ef56a2032dd5fa3dd991a75714e635d910f50124786420e3929cad153512c
+  response_contract_path: config/ts_v5_llm_response_contract_v2.yaml
+  response_contract_sha256: c254b41e9ab8f37254944cf9f759ae55c77c69f15119e1e87d296e3a0d091a02
+  r1_acceptance_path: docs/TS_V5_LLM_RESPONSE_CONTRACT_RECOVERY_ACCEPTANCE_20260813.md
+  r1_acceptance_sha256: 9c9ed315a4ab5e02075fcbd3b0b8eda82b72a8d81f769870945f3458d20bd024
+  first_batch_authoritative_gate: STOP_NO_VALID_CANDIDATES
+  first_batch_evidence_immutable: true
+
+provider_contract:
+  provider: DeepSeek
+  base_url: https://api.deepseek.com
+  path: /chat/completions
+  model_request: deepseek-v4-pro
+  model_version_expected: DeepSeek-V4-Pro
+  thinking: disabled
+  reasoning_effort: omitted
+  response_format: json_object
+  maximum_output_tokens_per_response: 1800
+  tools: false
+  stream: false
+  concurrency: 1
+  trust_environment_proxy: false
+
+attempt_contract:
+  completed_response_target_exact: 4
+  independent_slots: 4
+  adversarial_revision_slots: 0
+  mechanism_order:
+    - VOLATILITY_ADAPTIVE_PULLBACK
+    - WEEKLY_STRUCTURE_QUANTILE
+    - BREAKOUT_RETEST
+    - MOVING_AVERAGE_RESUMPTION
+  each_completed_response_counts: true
+  invalid_candidate_counts: true
+  replacement_response_authorized: false
+  unused_slot_or_budget_carryover: false
+  maximum_transport_attempts_per_slot: 3
+  retry_only_when_no_completed_response_is_known: true
+  billing_uncertain_stops_batch: true
+  stop_after_four_completed_responses: true
+
+terminal_gate:
+  accepted_finish_reason: stop
+  require_nonempty_content: true
+  require_json_object: true
+  require_strict_candidate_schema: true
+  length_is_failure: true
+  empty_content_is_failure: true
+  reasoning_content_is_never_candidate: true
+  canary_batch_gate:
+    all_four_completed_required: true
+    minimum_valid_unique_candidates: 1
+    zero_valid_candidates: STOP_NO_VALID_CANDIDATES
+    one_or_more_valid_candidates: GO_CONTRACT_CANARY_ONLY
+
+send_allowlist:
+  - frozen_system_prompt
+  - strict_candidate_json_schema
+  - product_constraints
+  - candidate_complexity_and_parameter_limits
+  - public_method_summary_without_instructions
+  - anonymous_ts_v3_v4_failure_memory
+  - assigned_mechanism_and_attempt_identity
+
+send_forbidden:
+  - raw_or_row_level_market_data
+  - security_code_name_or_list
+  - holdings_orders_fills_or_signals
+  - discovery_return_or_risk_metrics
+  - sealed_validation_or_locked_test
+  - forward_or_production_results
+  - local_absolute_paths
+  - api_key_or_other_secret
+  - tushare_or_feishu_credentials
+  - prior_raw_llm_responses_or_reasoning_content
+
+cost_contract:
+  official_price_checked_on: "2026-08-13"
+  official_pricing_url: https://api-docs.deepseek.com/quick_start/pricing
+  input_cache_hit_usd_per_million: "0.003625"
+  input_cache_miss_usd_per_million: "0.435"
+  output_usd_per_million: "0.87"
+  maximum_prompt_tokens_per_slot: 16000
+  maximum_output_tokens_per_slot: 1800
+  planned_worst_case_all_cache_miss_usd: "0.034104"
+  batch_hard_ceiling_usd: "0.10"
+  stop_before_request_if_remaining_ceiling_cannot_cover_slot_worst_case: true
+  ts_v5_program_ceiling_usd: "5.00"
+  unused_program_budget_is_not_execution_authority: true
+
+storage_and_isolation:
+  project_relative_output_root: data/research/trend_swing/ts-v5-r2-canary-001
+  dedicated_attempt_ledger: ledger/ts_v5_r2_llm_attempts.csv
+  dedicated_transport_ledger: ledger/ts_v5_r2_llm_transports.csv
+  gitignored_raw_responses: true
+  first_batch_ledgers_and_artifacts_read_only: true
+  env_file_not_mounted: true
+  only_deepseek_api_key_injected_after_release: true
+  short_lived_nonroot_readonly_docker: true
+  scheduler_web_and_production_unchanged: true
+
+next_authority_if_user_approves_exact_scope_sha256:
+  freeze_execution_release_after_implementation_push: true
+  build_distinct_immutable_image: true
+  run_no_secret_preflight: true
+  run_bound_four_response_canary_once: true
+  run_networkless_independent_audit: true
+  market_or_effect_read: false
+  parameter_search_or_backtest: false
+  paper_web_or_production: false
