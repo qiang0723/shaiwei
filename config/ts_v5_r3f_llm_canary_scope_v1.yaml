@@ -1,0 +1,157 @@
+schema_version: ts-v5-r3f-llm-canary-scope-v1
+scope_id: ts-v5-r3f-bound-proposal-canary-001
+status: USER_APPROVED_RESULT_BEFORE_SCOPE_FROZEN
+prepared_on: "2026-08-13"
+execution_authorized: true
+user_approval_received: true
+deepseek_api_called: false
+production_authorization: none
+
+user_approval:
+  source: user_explicit_approval_primary_codex_thread
+  approved_on: "2026-08-13"
+  instruction: continue_next_node_and_approve_deepseek_call
+  bounded_interpretation:
+    completed_responses_exact: 6
+    independent_candidates: 6
+    adversarial_revisions: 0
+    external_request_maximum: 6
+    replacement_or_seventh_response_authorized: false
+    batch_hard_ceiling_usd: "0.15"
+
+purpose:
+  primary: validate_bound_proposal_v3_with_one_live_response_per_mechanism
+  candidate_effectiveness_evaluation: false
+  parameter_selection_or_optimization: false
+
+frozen_identity:
+  r3e_scope_sha256: 30185aa4f34d2d186472594af43b0faadabce1215190cdd047031278087ec691
+  r3e_acceptance_sha256: 9db7ea6d9d069d8d3d43fd7533e3fcc6d4d8c1ee42df720742d1db1d0568e35e
+  r3e_report_sha256: 095ebb49084010030e152bd85ee211f27c8e6e91c81036ccd20a190709a27f73
+  r3e_audit_sha256: e7c6c47d2ca06423cab43dc2a3cc07fe42a6d1396cbbb6940ba3b0274ded5a9e
+  bound_proposal_contract_sha256: c46ee09cf6d1039e85f797e8510284533e0b8980cda255bfb827c30e69942dc8
+  bound_proposal_compiler_sha256: 6b790b50664cf7304ffecc52ad0f6b0878ac2517cbdceeb075260949eebc15dc
+  frozen_candidate_validator_sha256: dc3a19b7cbc07ae6cca44b4c814c1c34c283caf90359b8d81e8f1a68cb54b37b
+  response_terminal_contract_sha256: c254b41e9ab8f37254944cf9f759ae55c77c69f15119e1e87d296e3a0d091a02
+  no_retry_transport_protocol_sha256: 2510e8ccc5590fc8de37f48e0b3bfc85ee95e5bce5f353cb377d129d1e8b195c
+  program_budget_record_sha256: a7ab6407db4037be53b7496246e4e200ca2a1d8081d4c31fa1de024b9ee32d56
+  r3c_responses_and_verdict_immutable: true
+
+provider_contract:
+  provider: DeepSeek
+  base_url: https://api.deepseek.com
+  path: /chat/completions
+  model_request: deepseek-v4-pro
+  model_version_expected: DeepSeek-V4-Pro
+  thinking: disabled
+  reasoning_effort: omitted
+  response_format: json_object
+  maximum_output_tokens_per_response: 1800
+  tools: false
+  stream: false
+  concurrency: 1
+  trust_environment_proxy: false
+
+attempt_contract:
+  completed_response_target_exact: 6
+  independent_slots: 6
+  adversarial_revision_slots: 0
+  assigned_attempt_mode: INDEPENDENT
+  parent_candidate_fingerprints: []
+  mechanism_order:
+    - VOLATILITY_ADAPTIVE_PULLBACK
+    - WEEKLY_STRUCTURE_QUANTILE
+    - BREAKOUT_RETEST
+    - MOVING_AVERAGE_RESUMPTION
+    - CONTRACTION_EXPANSION
+    - RELATIVE_STRENGTH_PULLBACK
+  each_completed_response_counts: true
+  invalid_candidate_counts: true
+  replacement_response_authorized: false
+  unused_slot_or_budget_carryover: false
+  maximum_transport_attempts_per_slot: 1
+  transport_retry_authorized: false
+  external_request_maximum: 6
+  stop_on_first_transport_failure: true
+  billing_uncertain_stops_batch: true
+  stop_after_six_completed_responses: true
+
+terminal_gate:
+  accepted_finish_reason: stop
+  require_nonempty_content: true
+  require_json_object: true
+  require_strict_bound_proposal_v3_schema: true
+  require_local_authority_compile_to_frozen_candidate: true
+  response_lineage_or_search_points_is_failure: true
+  length_is_failure: true
+  empty_content_is_failure: true
+  reasoning_content_is_never_candidate: true
+  canary_batch_gate:
+    all_six_completed_required: true
+    valid_unique_candidate_count_6: GO_BOUND_PROPOSAL_CANARY_ONLY
+    valid_unique_candidate_count_4_or_5: STOP_PARTIAL_BOUND_CONTRACT_COMPLIANCE
+    valid_unique_candidate_count_1_to_3: STOP_WEAK_BOUND_CONTRACT_COMPLIANCE
+    valid_unique_candidate_count_0: STOP_NO_VALID_CANDIDATES
+
+send_allowlist:
+  - frozen_bound_proposal_system_prompt
+  - assigned_mechanism_specific_proposal_v3_schema
+  - assigned_mechanism_projection
+  - assigned_local_attempt_authority
+  - frozen_product_constraints
+  - public_method_summary_without_instructions
+  - anonymous_ts_v3_v4_failure_memory
+  - assigned_attempt_identity
+
+send_forbidden:
+  - raw_or_row_level_market_data
+  - security_code_name_or_list
+  - holdings_orders_fills_or_signals
+  - discovery_return_or_risk_metrics
+  - sealed_validation_or_locked_test
+  - forward_or_production_results
+  - local_absolute_paths
+  - api_key_or_other_secret
+  - tushare_or_feishu_credentials
+  - prior_raw_llm_responses_or_reasoning_content
+
+cost_contract:
+  price_source_checked_on: "2026-08-13"
+  official_pricing_url: https://api-docs.deepseek.com/quick_start/pricing
+  input_cache_hit_usd_per_million: "0.003625"
+  input_cache_miss_usd_per_million: "0.435"
+  output_usd_per_million: "0.87"
+  maximum_prompt_tokens_per_slot: 16000
+  maximum_output_tokens_per_slot: 1800
+  planned_worst_case_all_cache_miss_usd: "0.051156"
+  batch_hard_ceiling_usd: "0.15"
+  stop_before_request_if_remaining_ceiling_cannot_cover_slot_worst_case: true
+  ts_v5_program_ceiling_usd: "5.00"
+  unused_program_budget_is_not_execution_authority: true
+
+storage_and_isolation:
+  project_relative_output_root: data/research/trend_swing/ts-v5-r3f-canary-001
+  dedicated_attempt_ledger: ledger/ts_v5_r3f_llm_attempts.csv
+  dedicated_transport_ledger: ledger/ts_v5_r3f_llm_transports.csv
+  gitignored_raw_responses: true
+  previous_ts_v5_ledgers_and_artifacts_read_only: true
+  env_file_not_mounted: true
+  only_deepseek_api_key_injected_after_release: true
+  short_lived_nonroot_readonly_docker: true
+  scheduler_web_and_production_unchanged: true
+
+execution_sequence:
+  scope_commit_must_be_pushed_before_implementation: true
+  implementation_and_tests_must_be_pushed_before_image_build: true
+  distinct_immutable_image_required: true
+  no_secret_preflight_and_independent_audit_required: true
+  execution_release_commit_must_be_pushed_before_secret_read: true
+  live_batch_runs_once: true
+  networkless_independent_result_audit_required: true
+
+forbidden:
+  - parameter_search_or_backtest
+  - market_security_return_or_effect_read
+  - prior_response_repair_or_admission
+  - paper_web_or_production
+  - seventh_or_replacement_response
