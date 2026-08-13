@@ -176,6 +176,21 @@ def test_r3c_preflight_requires_pristine_bound_runtime(tmp_path: Path) -> None:
     assert report["secret_read"] is False
 
 
+def test_runtime_symlink_escape_fails_before_provider(tmp_path: Path) -> None:
+    project, output, attempt, transport, release = paths(tmp_path)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    output.rmdir()
+    output.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(D1ControlError, match="escapes the project"):
+        run_batch(
+            release_path=release, output_root=output, attempt_path=attempt,
+            transport_path=transport, project_root=project,
+            runtime_git_head=lambda: IMPLEMENTATION_HEAD,
+            runtime_code_sha=lambda: CODE_SNAPSHOT,
+        )
+
+
 def test_six_mock_responses_reuse_and_audit_offline(tmp_path: Path) -> None:
     project, output, attempt, transport, release = paths(tmp_path)
     calls = 0

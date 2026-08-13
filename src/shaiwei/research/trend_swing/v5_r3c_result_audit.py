@@ -66,12 +66,20 @@ def _linked_response(
     ):
         raise D1ControlError("TS-v5-R3C immutable attempt artifact differs")
     raw = json_object(raw_path, label="TS-v5-R3C")
+    manifest = json_object(manifest_path, label="TS-v5-R3C")
     event = by_attempt.get(row["attempt_id"])
     if (
         event is None
         or event["request_sha256"] != row["request_sha256"]
         or event["source_response_sha256"] != row["response_sha256"]
         or raw.get("source_response_sha256") != row["response_sha256"]
+        or manifest.get("request_sha256") != row["request_sha256"]
+        or manifest.get("response_sha256") != row["response_sha256"]
+        or manifest.get("candidate_fingerprint") != row["candidate_fingerprint"]
+        or manifest.get("parse_status") != row["parse_status"]
+        or manifest.get("schema_status") != row["schema_status"]
+        or manifest.get("duplicate_status") != row["duplicate_status"]
+        or manifest.get("failure_class") != row["failure_class"]
     ):
         raise D1ControlError("TS-v5-R3C transport linkage differs")
     provider_path = output_root / "artifacts/provider" / event["response_artifact_path"]
@@ -153,7 +161,7 @@ def audit_batch(
     bundle = sha256_text(canonical_json([
         {key: row[key] for key in (
             "attempt_id", "request_sha256", "response_sha256",
-            "raw_artifact_sha256", "candidate_fingerprint",
+            "raw_artifact_sha256", "manifest_sha256", "candidate_fingerprint",
         )} for row in rows
     ]))
     checks = {

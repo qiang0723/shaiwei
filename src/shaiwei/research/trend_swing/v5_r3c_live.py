@@ -44,6 +44,13 @@ def _load_release(path: Path) -> tuple[V5TransportProtocol, R3CExecutionRelease]
     return protocol, R3CExecutionRelease.load(path, protocol)
 
 
+def _runtime_relative(path: Path, project_root: Path) -> str:
+    try:
+        return path.resolve(strict=True).relative_to(project_root.resolve(strict=True)).as_posix()
+    except (FileNotFoundError, RuntimeError, ValueError) as exc:
+        raise D1ControlError("TS-v5-R3C runtime path escapes the project") from exc
+
+
 def run_preflight(
     *,
     release_path: Path,
@@ -93,7 +100,7 @@ def _terminal_report(
         "attempt_evidence_bundle_sha256": sha256_text(canonical_json([
             {key: row[key] for key in (
                 "attempt_id", "request_sha256", "response_sha256",
-                "raw_artifact_sha256", "candidate_fingerprint",
+                "raw_artifact_sha256", "manifest_sha256", "candidate_fingerprint",
             )} for row in rows
         ])),
         "tls_certificate_sha256": tls_sha,
@@ -158,9 +165,9 @@ def run_batch(
     if (
         runtime_git_head() != release.implementation_git_head
         or code_sha != release.code_snapshot_sha256
-        or output_root.relative_to(project_root).as_posix() != release.output_root
-        or attempt_path.relative_to(project_root).as_posix() != release.attempt_ledger
-        or transport_path.relative_to(project_root).as_posix() != release.transport_ledger
+        or _runtime_relative(output_root, project_root) != release.output_root
+        or _runtime_relative(attempt_path, project_root) != release.attempt_ledger
+        or _runtime_relative(transport_path, project_root) != release.transport_ledger
     ):
         raise D1ControlError("TS-v5-R3C runtime path or identity differs")
     report_path = output_root / "ts_v5_r3c_report.json"
