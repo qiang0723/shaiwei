@@ -61,10 +61,10 @@ forbidden_payload:
   - paths_or_secrets
 
 runtime:
-  implementation_git_head: b509d169c3c89d76d5e9743ad9d7a161532c5a4c
+  implementation_git_head: 9d979c9a7de5e4c2722c7adf069ab9420d47ce41
   image_tag: shaiwei:ts-v5-llm-batch-001
-  image_id: sha256:3635c975aa7555436941f27b2373bea3ecd0d099c00bd511f63dbe5ecc866c8e
-  code_snapshot_sha256: d8608e4b78ba94660a10e8bc8281133e111b2cb9fd452bc1fdac63642b135875
+  image_id: sha256:cdaacfe413f0dfd311dd233dae95a5e02db1c72b7f7baee7a60ca0e91ce7f0c4
+  code_snapshot_sha256: d4d144c458175fa5c34502ced497748f15267129d0d599e9f8ff6ac969d5139f
   output_root: data/research/trend_swing/ts-v5-llm-batch-001
   attempt_ledger: ledger/ts_v5_llm_attempts.csv
   transport_ledger: ledger/ts_v5_llm_transports.csv

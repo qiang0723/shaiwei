@@ -10,7 +10,8 @@
   总预算背景且不得扩大本批。当前先施工并验收最小协调器/证据/独立audit，未读取secret、未联网；
   实现提交推送并冻结绑定release后才可真实执行。见
   `docs/TS_V5_LLM_EXECUTION_PROTOCOL_20260813.md`。
-- 执行前实现已以`b509d16`推送，专用最小镜像和内容快照已生成；正式release现绑定该提交、镜像ID、
+- 执行前实现经轻量provider合同抽离与架构棘轮复核后以`9d979c9`推送，专用最小镜像和内容快照已
+  重新生成；正式release现绑定该提交、镜像ID、
   代码快照、请求束和两份空专属账本。下一步须先推送release并通过无secret Docker preflight，之后才
   能读取项目内DeepSeek密钥并执行唯一批次。
 
