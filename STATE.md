@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-13 · TS-v5-R3D离线诊断发现本地授权绑定缺陷并停止
+
+- 结果前scope `cbfba18e...fb6090`和实现提交`555ccdf`先后推送；随后仅在`network=none`专用镜像中
+  只读六份R3C content，不使用reasoning，不调用LLM、不读行情/收益、不修补候选。
+- 六个批准席位均为`INDEPENDENT`，但请求Schema同时允许两种lineage且未传`assigned_attempt_mode`；
+  六份回答都选择`ADVERSARIAL_REVISION`，runner却统一按`INDEPENDENT`记账。权威根因为
+  `APPROVED_INDEPENDENT_SLOT_MODE_NOT_BOUND_IN_REQUEST_OR_RUNNER`，裁
+  `STOP_LOCAL_IMPLEMENTATION_DEFECT`。
+- 次级字段错误为搜索积超196占5/6、文本安全2/6、父哈希2/6、缺必填字段1/6；因首要本地缺陷，
+  “是否值得新live批”的次级门未评价。独立audit 12项PASS，断网幂等复跑报告/audit与R3C原账本哈希
+  不变；scheduler原身份健康。
+- 下一合法目标仅为R3E零API合同恢复：把批准mode确定性绑定到request/schema/compiler/账本并机械分配
+  合法搜索积；保持validator、196上限和全部研究边界不变。R3E不是新调用授权。见
+  `docs/TS_V5_R3D_OFFLINE_PROPOSAL_DIAGNOSTIC_ACCEPTANCE_20260813.md`。
+
 ## 2026-08-13 · TS-v5-R3C六机制合同金丝雀权威停止
 
 - 用户精确批准scope `234621cf...953ae`后，execution release提交`ad77847`先行推送；无密钥断网
