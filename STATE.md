@@ -10,6 +10,15 @@
   独立断网audit后追加纠正；禁止补发、复用本approval、参数搜索、回测、模拟仓、Web或生产。TS策略族
   不因本批停止。见`docs/TS_V5_LLM_FIRST_BATCH_ACCEPTANCE_20260813.md`。
 
+- TS-v5-R1响应合同恢复工程门已`GO_RESPONSE_CONTRACT_ENGINEERING_ONLY`：首批12份不可变envelope只读
+  复核为12/12 `finish_reason=length`、12/12恰好用满1800 completion tokens、12/12最终content为空
+  且reasoning非空，根因是思考阶段耗尽固定输出预算。协议提交`815212d`先于实现提交`97aba0d`推送；
+  v2仅显式关闭thinking并移除reasoning_effort，1800上限、候选Schema、提示、六机制和发送边界均不变。
+  `length`仍永久失败，只有`stop+非空JSON object+严格Schema`可进入候选。全仓1172、架构13项通过；
+  独立镜像`sha256:0bd9e9b4...d09d2`在断网、只读根、无secret条件下复核PASS。当前外部调用/费用新增0，
+  不授权补发、参数搜索、回测、模拟仓、Web或生产；新批仍须新scope和用户批准。见
+  `docs/TS_V5_LLM_RESPONSE_CONTRACT_RECOVERY_ACCEPTANCE_20260813.md`。
+
 - 用户已明确批准v1 scope
   `9947e1bebc10d5da32df63ff462a8c8e9403a12986dbfef0a891f69956325a88`执行首批恰好12个
   DeepSeek完成响应和0.50美元单批熔断。该明确批准晚于预算v2，因此v1恢复控制本批，v2只保留5美元
