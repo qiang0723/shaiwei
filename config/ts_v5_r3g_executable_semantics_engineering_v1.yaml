@@ -1,0 +1,225 @@
+schema_version: ts-v5-r3g-executable-semantics-engineering-v1
+scope_id: ts-v5-r3g-executable-semantics-engineering-001
+status: RESULT_BLIND_EXECUTABLE_SEMANTICS_ENGINEERING_FROZEN
+prepared_on: "2026-08-13"
+production_authorization: none
+
+objective:
+  primary: bind_six_r3f_candidates_to_unique_pit_executable_entry_semantics
+  downstream_decision: authorize_or_block_result_blind_density_projection_scope_only
+  strategy_effect_evaluation: false
+
+authority:
+  read_r3f_content: true
+  read_r3f_reasoning: false
+  read_market_or_security_data: false
+  read_post_entry_return_or_effect: false
+  parameter_grid_enumeration_synthetic_only: true
+  run_real_parameter_search: false
+  model_or_backtest: false
+  external_network_or_provider: false
+  env_or_secret_read: false
+  paper_web_scheduler_or_production_change: false
+
+frozen_inputs:
+  r3f_scope_sha256: 1a45898caa3c4fac0c7a1b8a301271d48c3b0a666e947d7b988bd50d7e7aee61
+  r3f_release_sha256: da758d6de3f09f71c03497b306938a9ecf66ef5170d0f6eddc606e4d11347ab6
+  r3f_request_bundle_sha256: 74eca6f39f088f837c7137d6861f5b61b6c1cac3c89da90d053e1821ca7c3a45
+  r3f_report_sha256: a742ddc550f3a48af699ee74ef35f5a82ec918e4e04ca4d86d83233da98554f5
+  r3f_audit_sha256: 9cd374470ff5b473da3fe4f2dc2d4b78912210d82c6a1f4dffe5131c61e03aa9
+  r3f_attempt_ledger_sha256: ccf7155cbd769100b1d04b624f1605cfbe15d5961ec76f495cd7f33541817d98
+  r3f_transport_ledger_sha256: 3839d57fb02e8e7f03b317fb5b8d26333a36b6661dbdfb634764e6e4a9730121
+  r3f_evidence_tree_sha256: 2f61c511ca4632064b698b6e06007eba5cf8cb9a0a5322dde8ebf2a9ec54645b
+  proposal_contract_sha256: c46ee09cf6d1039e85f797e8510284533e0b8980cda255bfb827c30e69942dc8
+  proposal_compiler_sha256: 6b790b50664cf7304ffecc52ad0f6b0878ac2517cbdceeb075260949eebc15dc
+  candidate_validator_sha256: dc3a19b7cbc07ae6cca44b4c814c1c34c283caf90359b8d81e8f1a68cb54b37b
+
+attempt_memory:
+  llm_generation_attempts_before_r3f: 22
+  r3f_llm_generation_attempts: 6
+  cumulative_llm_generation_attempts: 28
+  cumulative_valid_bound_candidates: 6
+  prior_ts_v5_strategy_effect_attempts: 0
+  generation_attempts_are_not_independent_effect_trials: true
+  all_future_parameter_effect_evaluations_count: true
+
+candidate_bindings:
+  - ordinal: 1
+    attempt_id: ts-v5-r3f-i01-volatility-adaptive-pullback
+    mechanism: VOLATILITY_ADAPTIVE_PULLBACK
+    candidate_fingerprint: bc94a47bf29c0679c149504d58df128658f5297ea9ba9696d276b23c0b5ffd37
+    semantic_signature: a67d8b2b820727718437a8db970229557116e141352b9501a1ab025706898244
+    maximum_search_budget_points: 81
+    expected_effective_grid_points: 81
+  - ordinal: 2
+    attempt_id: ts-v5-r3f-i02-weekly-structure-quantile
+    mechanism: WEEKLY_STRUCTURE_QUANTILE
+    candidate_fingerprint: cb2c6cb939cda266aa8daa6eb13ed1d38e55d054a30de6be8efb9232cfebba0d
+    semantic_signature: 20698a3c17f00b2c624a17ccaeb84affa07b5f0007686536b246443daab37e2a
+    maximum_search_budget_points: 125
+    expected_effective_grid_points: 75
+  - ordinal: 3
+    attempt_id: ts-v5-r3f-i03-breakout-retest
+    mechanism: BREAKOUT_RETEST
+    candidate_fingerprint: 0956f9981311d6390d332bd579d27ab5c3095d5cd1660b2565387365e40fef30
+    semantic_signature: fc6b6199311ba8cdd9d156147dc6da06dd47db3aa34ba2bc9fb88b640c1fc2c1
+    maximum_search_budget_points: 81
+    expected_effective_grid_points: 81
+  - ordinal: 4
+    attempt_id: ts-v5-r3f-i04-moving-average-resumption
+    mechanism: MOVING_AVERAGE_RESUMPTION
+    candidate_fingerprint: 621265d9e916680275d66d9882192aee3a3e38920e859c709daa98d7b4c92e94
+    semantic_signature: 4411c70947af73f6240c6b13790203706c505dd0002f435594e6a4bf82f0fe7b
+    maximum_search_budget_points: 81
+    expected_effective_grid_points: 81
+  - ordinal: 5
+    attempt_id: ts-v5-r3f-i05-contraction-expansion
+    mechanism: CONTRACTION_EXPANSION
+    candidate_fingerprint: bdb74d75d3f1fc69429743281cc40a7305e68031635834c4923516d28f7a3b26
+    semantic_signature: c7730d5f3825a7cb57ba95392dcdcc899c6ee2a6ebefb01790010e17730ebf4b
+    maximum_search_budget_points: 32
+    expected_effective_grid_points: 32
+  - ordinal: 6
+    attempt_id: ts-v5-r3f-i06-relative-strength-pullback
+    mechanism: RELATIVE_STRENGTH_PULLBACK
+    candidate_fingerprint: 6510e4460c7eaa61c07b0f8d4ab338b3007e85c96f638cd82aeb9f23673ea90a
+    semantic_signature: f09ddd4850acd67fe7ef86b4047c359e1a90c722197636ccf84346ab8b441454
+    maximum_search_budget_points: 81
+    expected_effective_grid_points: 81
+
+inherited_base_eligibility:
+  source: config/ts_v3_pullback_state_preflight_v1.yaml
+  monthly_weekly_structure: unchanged
+  market_and_pit_sector_gate: required_at_arm_and_confirmation
+  liquidity_and_tradability_gate: required_at_arm_confirmation_and_execution
+  security_eligibility: required_at_arm_confirmation_and_execution
+  alpha158_values_or_rank: forbidden
+  all_reference_features: result_blind
+
+common_clock_and_state:
+  all_period_features: completed_periods_only
+  daily_signal_time: after_official_close
+  execution_time: immediately_next_legal_official_open
+  per_security_episode: one_active_episode_at_a_time
+  touch_and_first_confirmation_same_close_allowed_when_confirmation_days_is_one: true
+  wait_age_on_touch_close: 0
+  maximum_wait_days: subsequent_official_open_day_closes_after_touch
+  confirmation_allowed_when_wait_age_is_between_zero_and_maximum_inclusive: true
+  expiry_precedes_confirmation_when_wait_age_strictly_exceeds_maximum: true
+  cancellation_precedes_confirmation_on_same_day: true
+  reference_threshold_and_structure_stop_frozen_at_episode_arm: true
+  structure_low: latest_complete_week_low_times_0_98
+  structure_break_test: adjusted_close_less_than_or_equal_to_structure_low
+  market_or_sector_loss_is_absorbing: true
+  next_open_above_reference_checked_only_when_candidate_declares_rule: true
+  liquidity_loss_during_wait_absorbing_only_when_candidate_declares_rule: true
+  duplicate_event_same_security_episode: forbidden
+  failed_next_open_execution_has_no_same_episode_retry: true
+
+mechanism_semantics:
+  VOLATILITY_ADAPTIVE_PULLBACK:
+    reference: previous_complete_week_vwap
+    atr: mean_true_range_over_prior_L_daily_bars_excluding_current_bar
+    arm: adjusted_low_at_or_below_reference_and_at_or_above_reference_minus_M_times_atr
+    confirm: adjusted_close_at_or_above_reference_for_N_consecutive_bars
+  WEEKLY_STRUCTURE_QUANTILE:
+    reference: previous_complete_week_low_plus_Q_times_week_range
+    arm: adjusted_low_at_or_below_reference
+    confirm: adjusted_close_at_or_above_reference_for_N_consecutive_bars
+  BREAKOUT_RETEST:
+    reference: max_weekly_high_of_L_complete_weeks_before_latest_complete_week
+    prerequisite: latest_complete_week_close_strictly_above_reference
+    atr: mean_true_range_over_prior_20_daily_bars_excluding_current_bar
+    arm: adjusted_low_at_or_below_reference_plus_T_times_atr_and_adjusted_close_at_or_above_reference_minus_T_times_atr
+    confirm: adjusted_close_at_or_above_reference_for_N_consecutive_bars
+  MOVING_AVERAGE_RESUMPTION:
+    reference: simple_mean_adjusted_close_over_prior_L_daily_bars_excluding_current_bar
+    atr: mean_true_range_over_prior_20_daily_bars_excluding_current_bar
+    arm: adjusted_low_at_or_below_reference_plus_T_times_atr_and_adjusted_close_at_or_above_reference_minus_T_times_atr
+    confirm: adjusted_close_strictly_above_reference_and_prior_valid_high_and_daily_amount_strictly_above_prior_20_day_median_for_N_consecutive_bars
+  CONTRACTION_EXPANSION:
+    reference: latest_complete_week_high
+    prerequisite: latest_complete_week_range_rank_within_prior_L_complete_weeks_at_or_below_Q
+    arm: first_daily_bar_of_eligible_plan_week
+    confirm: adjusted_close_strictly_above_reference_and_daily_amount_at_or_above_R_times_prior_20_day_median_for_N_consecutive_bars
+  RELATIVE_STRENGTH_PULLBACK:
+    relative_strength: stock_L_day_gross_return_divided_by_pit_sector_equal_weight_L_day_gross_return
+    reference: prior_L_day_relative_strength_rolling_peak_excluding_current_bar
+    threshold: prior_L_day_empirical_Q_quantile_of_positive_relative_strength_drawdown_excluding_current_bar
+    arm: current_drawdown_at_or_above_threshold
+    recovery_line: reference_times_one_minus_threshold
+    confirm: relative_strength_at_or_above_recovery_line_for_N_consecutive_bars
+
+synthetic_parameter_grid:
+  interpolation: exact_decimal_linear_including_both_bounds
+  integer_points: evenly_spaced_unique_integers_including_bounds_capped_by_integer_cardinality
+  search_points_maximum_is_a_ceiling_not_an_exact_count: true
+  cartesian_product: true
+  maximum_candidate_search_budgets: [81, 125, 81, 81, 32, 81]
+  effective_candidate_grid_points: [81, 75, 81, 81, 32, 81]
+  maximum_total_search_budget: 481
+  effective_total_parameter_points: 431
+  real_data_or_effect_read: false
+
+future_density_scope_not_yet_authorized:
+  universe_id: csi800-pit-v1
+  bj_allowed: false
+  discovery: {start: "20190102", end: "20211231"}
+  validation: {start: "20220104", end: "20231229"}
+  locked_historical_test: {start: "20240102", end: "20241231"}
+  maximum_signal_to_final_exit_trade_days: 16
+  partition_end_purge_required: true
+  all_431_effective_points_density_profiled_without_returns: true
+  density_profiles_are_design_attempts_not_effect_trials: true
+  alpha158_values_or_rank_forbidden: true
+  per_point_minimum_legal_events: 30
+  per_point_minimum_distinct_signal_days: 20
+  per_point_minimum_events_each_calendar_year: 5
+  mechanism_minimum_density_eligible_points: 3
+  mechanism_specific_parameters_must_each_have_two_distinct_eligible_values: true
+  density_anchor_order:
+    - maximum_minimum_calendar_year_event_count
+    - minimum_calendar_year_event_count_coefficient_of_variation
+    - minimum_absolute_distance_from_60_total_events
+    - minimum_canonical_parameter_hash
+  future_effect_points_per_mechanism: 3
+  neighbor_selection: anchor_plus_two_nearest_density_eligible_points_by_normalized_manhattan_distance_then_hash
+  future_effect_trial_count_maximum_if_all_mechanisms_pass_density: 18
+  all_actual_future_effect_points_including_failed_points_count_in_one_family: true
+  benchmark_required_for_effect: CSI_H00906_TOTAL_RETURN
+  benchmark_current_status: BLOCKED_UNTIL_AUDITABLE_LINEAGE_RECOVERY
+
+inherited_portfolio_and_cost_for_future_effect:
+  source: config/ts_v4_parameter_research_v1.yaml
+  next_open_execution: true
+  maximum_positions: 7
+  maximum_security_weight: 0.10
+  maximum_gross_weight: 0.70
+  maximum_entry_batches: 2
+  averaging_down: false
+  maximum_holding_days: 15
+  structure_stop_and_ratchet_unchanged: true
+  take_profit_minimum_of_1_5_initial_risk_and_20_percent: true
+  real_commission_tax_transfer_fee_slippage_and_capacity: true
+  cost_multipliers: [1.0, 2.0]
+  extra_slippage_each_side: 0.001
+
+engineering_acceptance:
+  six_candidates_recompiled_from_immutable_content: true
+  candidate_fingerprints_and_semantic_signatures_exact: true
+  grid_counts_exact_and_unique: true
+  six_mechanism_synthetic_state_paths: required
+  no_lookahead_and_cancellation_precedence_adversarial_fixtures: required
+  result_firewall: required
+  deterministic_replay_and_independent_audit: required
+  all_pass_verdict: GO_R3G_DENSITY_SCOPE_PROPOSAL_ONLY
+  any_failure_verdict: STOP_R3G_EXECUTABLE_SEMANTICS_GAP
+
+forbidden:
+  - silent_candidate_repair_or_text_rewrite
+  - use_reasoning_as_candidate
+  - real_density_profile_or_parameter_search
+  - post_entry_outcome_or_strategy_effect
+  - validation_or_locked_test_read
+  - deepseek_or_other_external_call
+  - paper_web_scheduler_or_production
