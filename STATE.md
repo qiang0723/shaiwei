@@ -2,6 +2,24 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-13 · TS-v5-R3G-1近期密度R2部分GO
+
+- R3G-1覆盖2021—2026但按角色分离：2021—2023只做发现选择，2024—2025冻结验证，2026截至
+  8月11日仅观察且不选参、不改判；六年不得合并。原R3G-0的2019—2021是v4继承文案，不是数据只能
+  到2021。
+- 首轮431点全零在封存后查明为公共执行投影缺陷：缺`raw_open`且`has_bar`取错来源；原profile/event/
+  audit哈希永久保留，但旧`STOP_NO_RECENT_DENSE_MECHANISM`降为
+  `INVALIDATED_BY_COMMON_EXECUTION_PROJECTION_DEFECT`，不再是密度结论。
+- R2只修这两个字段并强化缺字段fail-closed；唯一断网画像生成5,683行事件，独立audit 21/21 PASS。
+  六机制只有`BREAKOUT_RETEST`通过：81点中41点过发现门，机械锚点+两个邻居均过2024—2025冻结门；
+  其余五机制本批STOP。权威`PARTIAL_GO_DENSE_MECHANISMS_ONLY`，策略仍`NOT_EVALUATED`、生产授权none。
+- 正式镜像`3b81e501...a42d9`、Git`5afc08f`、代码快照`7c0c8cfa...c23f`；profile/events/audit哈希
+  `9ab1719d...7a67`/`2e68af1c...d08a`/`40cfb62e...0964`。手工错录SHA镜像在运行前拦截并永久
+  标provisional，随后增加HEAD/origin/build自动一致性和manifest门。
+- 下一合法节点须先闭合H00906全收益谱系，再另立R3G-2结果前效果协议；只允许已机械冻结的突破回踩
+  三点，不自动授权收益读取、回测、模拟仓或生产。见
+  `docs/TS_V5_R3G1_RECENT_DENSITY_RECOVERY_R2_ACCEPTANCE_20260813.md`。
+
 ## 2026-08-13 · TS-v5-R3G-0六机制可执行语义工程门GO
 
 - 主scope `3a066c13...45bb`以提交`c7da5ef`先行推送；量纲与确认公式歧义在实现前分别以`a12c208`、
@@ -16,8 +34,8 @@
   `9e51a58e...eaf4`/`e2fe2e11...fc6a`/`a9f32f96...5579`，独立audit 13项PASS，幂等复跑三哈希不变。
   全仓1292 PASS、架构13 PASS；五模块170/106/280/251/299行。scheduler原容器`183b8c6c5edd`
   和原镜像持续healthy。见`docs/TS_V5_R3G_EXECUTABLE_SEMANTICS_ENGINEERING_ACCEPTANCE_20260813.md`。
-- 下一合法节点仅为另立R3G-1结果盲密度投影scope，对2019—2021发现窗的431点只看事件密度；不直接
-  读收益/验证/锁定测试，不进模拟仓或生产。未来任何效果前仍须闭合H00906全收益谱系。
+- 该下一节点已由上方R3G-1完成并显式覆盖为2021—2026三段角色；本段2019—2021仅保留为当时继承
+  文案，不再代表当前待办或现行时间口径。
 
 ## 2026-08-13 · TS-v5-R3F本地绑定proposal真实合同金丝雀GO
 
