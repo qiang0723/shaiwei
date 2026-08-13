@@ -7,7 +7,8 @@ x-r3g1-base: &r3g1-base
   read_only: true
   cap_drop: [ALL]
   security_opt: [no-new-privileges:true]
-  tmpfs: [/tmp:rw,noexec,nosuid,size=128m,mode=1777]
+  tmpfs:
+    - "/tmp:rw,noexec,nosuid,size=128m,mode=1777"
   pids_limit: 64
   mem_limit: 10g
   cpus: 4

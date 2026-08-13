@@ -1,0 +1,37 @@
+schema_version: ts-v5-r3g1-compose-mount-recovery-r1
+recovery_id: ts-v5-r3g1-compose-mount-recovery-r1
+prepared_on: "2026-08-13"
+status: RESULT_UNKNOWN_CONTAINER_CREATE_RECOVERY_FROZEN
+production_authorization: none
+
+frozen_parent:
+  scope_sha256: 3b83d8a569886b2af78298c85789b8c6495b0cf8903975b2ddb0c48367040381
+  implementation_git_head: c8dda0e8cb6165ec5c87755351be8a0c72c1aca7
+  image_id: sha256:30cc8f97ee310ab315abef62da1ec1303c4fb20485684e9c2407696ad9375ee8
+  immutable_and_not_rewritten: true
+
+failed_attempt:
+  failure_stage: DOCKER_CONTAINER_CREATE_BEFORE_PROCESS_START
+  error_type: DockerInvalidMountPath
+  error_summary: inline_tmpfs_commas_parsed_as_multiple_mount_paths
+  container_process_started: false
+  market_or_security_data_read: false
+  density_read: false
+  profile_or_event_artifact_written: false
+  strategy_effect_read: false
+
+single_recovery_delta:
+  old_tmpfs_yaml: inline_flow_sequence_with_unquoted_comma_options
+  new_tmpfs_yaml: quoted_single_string
+  code_changed: false
+  data_logic_changed: false
+  candidate_parameter_time_role_or_threshold_changed: false
+  output_scope_changed: false
+
+authority:
+  one_recovery_profile_attempt: true
+  one_recovery_independent_audit: true
+  external_network_or_provider: false
+  env_or_secret_read: false
+  post_entry_return_or_effect: false
+  model_backtest_paper_web_scheduler_or_production_change: false
