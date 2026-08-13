@@ -2,6 +2,23 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-13 · TS-v5-R3G-0六机制可执行语义工程门GO
+
+- 主scope `3a066c13...45bb`以提交`c7da5ef`先行推送；量纲与确认公式歧义在实现前分别以`a12c208`、
+  `4f83994`加注，不删除/修补候选，不改参数或阈值。最终实现/断网构建/非有限特征防线提交为
+  `21d25ad`/`7cb4993`/`f0d1005`，均已推送。
+- 六候选从R3F不可变content重新编译，fingerprint/signature完全一致且唯一；有效参数点
+  81/75/81/81/32/81，共431。六条正常合成路径和16类对抗路径全PASS；候选登记不含LLM自由文本、
+  reasoning、证券、行情或结果。
+- 权威`GO_R3G_DENSITY_SCOPE_PROPOSAL_ONLY`；本节点DeepSeek/外网/secret/行情/密度/收益/Alpha158分数/
+  模型/回测均为0，TS-v5效果尝试仍为0，策略`NOT_EVALUATED`、生产授权`none`。
+- 最终断网镜像`34da009d...c5e6`、代码快照`8e068eea...d308`；registry/report/audit哈希为
+  `9e51a58e...eaf4`/`e2fe2e11...fc6a`/`a9f32f96...5579`，独立audit 13项PASS，幂等复跑三哈希不变。
+  全仓1292 PASS、架构13 PASS；五模块170/106/280/251/299行。scheduler原容器`183b8c6c5edd`
+  和原镜像持续healthy。见`docs/TS_V5_R3G_EXECUTABLE_SEMANTICS_ENGINEERING_ACCEPTANCE_20260813.md`。
+- 下一合法节点仅为另立R3G-1结果盲密度投影scope，对2019—2021发现窗的431点只看事件密度；不直接
+  读收益/验证/锁定测试，不进模拟仓或生产。未来任何效果前仍须闭合H00906全收益谱系。
+
 ## 2026-08-13 · TS-v5-R3F本地绑定proposal真实合同金丝雀GO
 
 - 用户批准后，scope `1a45898c...ee61`、实现`2031df8`、独立镜像`f3ccf7df...6efd`和execution

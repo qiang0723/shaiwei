@@ -6,6 +6,14 @@
 
 ## 2026-08-13 TS-v5持续演化研究路线
 
+R3G-0六机制可执行语义工程门已完成：六份R3F候选从不可变content重新编译并登记，fingerprint与语义
+签名完全一致；价格/相对强度量纲和六类确认公式在实现前分别加注。整数网格去重后六候选有效点为
+81/75/81/81/32/81，共431；六条正常合成执行路径与16类对抗路径全PASS。断网镜像、独立audit和幂等
+复跑均PASS，权威`GO_R3G_DENSITY_SCOPE_PROPOSAL_ONLY`；行情/密度/收益/Alpha158分数/模型/回测均未
+读取或运行，TS-v5效果尝试仍为0。下一步只能另立R3G-1无收益密度投影scope，对2019—2021发现窗机械
+画像431点；未来效果前仍须闭合H00906全收益谱系，不得直接模拟仓或生产。见
+`docs/TS_V5_R3G_EXECUTABLE_SEMANTICS_ENGINEERING_ACCEPTANCE_20260813.md`。
+
 R3F本地绑定proposal真实合同金丝雀已完成：结果前scope、实现镜像和release依次推送后，唯一短命容器
 串行取得六机制各1份完成响应；外部请求6、完成6、每席仅sequence 1，重试/递补/第7次调用/计费不确定
 均为0，实际费用0.010779967美元。六份均通过proposal v3 Schema、本地authority编译和原候选validator，
@@ -764,6 +772,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | TS-v5-R3D | 六响应离线proposal诊断 | 六份均暴露批准独立席位未绑定进request/schema、响应模式与runner记账错配；另有搜索积5/6等字段错误；audit PASS；权威`STOP_LOCAL_IMPLEMENTATION_DEFECT` | 仅可另立R3E零API合同恢复，绑定mode并机械约束搜索积；不自动授权新调用，效果/回测/生产仍禁止 |
 | TS-v5-R3E | 本地绑定proposal合同工程门 | v3移除响应lineage/搜索点，编译器绑定独立authority并机械分配搜索积；六机制、48对抗、旧六回答0录取、audit/幂等PASS | `GO_R3F_LIVE_CANARY_SCOPE_PROPOSAL_ONLY`；新调用须另立小批scope/release并获明确批准，参数搜索/回测/生产仍禁止 |
 | TS-v5-R3F | 本地绑定proposal真实合同金丝雀 | 六机制各1份，6请求/6完成/0重试；v3 Schema、本地编译、原validator和语义唯一6/6 PASS；费用$0.010779967，断网audit/幂等PASS | `GO_BOUND_PROPOSAL_CANARY_ONLY`；scope关闭。下一步另立R3G发现期评价协议，结果前冻结去重、发现期、密度、参数预算、成本与多重检验；仍不授权模拟仓/生产 |
+| TS-v5-R3G-0 | 六机制可执行语义工程门 | 六候选原指纹/签名重编译一致；431有效参数点、六正常路径、16对抗、独立audit与幂等PASS；行情/效果0 | `GO_R3G_DENSITY_SCOPE_PROPOSAL_ONLY`；下一步另立R3G-1无收益密度scope，只看2019—2021事件分布；效果/模拟仓/生产仍禁止 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |
 | G8-1R | 监管主源不可覆盖采集 | 1 条原 Docker 失败永久保留；恢复 54 条主证据、二遍幂等与断网复核 PASS；G8 仍 NOT_READY | 只允许另立 G8-2 管理人 HTTPS 交叉核验与费率有效期谱系协议 |
 | G8-2 | 管理人 HTTPS 逐值与费率有效期谱系 | 19 个逻辑请求留痕；八日逐值 1/6、费率谱系 0/6，权威 NO-GO；不是策略 REJECT | 禁止 G8-3；未来只能另立恢复协议处理传输/解析、华商 HTTPS 与法律文件有效期 |
