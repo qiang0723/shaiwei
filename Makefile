@@ -155,10 +155,10 @@ docker-ts-v5-r3g-audit:
 
 docker-ts-v5-r3g1-build:
 	@test -n "$(TS_V5_R3G1_RELEASE_GIT_HEAD)" || (echo "TS_V5_R3G1_RELEASE_GIT_HEAD is required"; exit 2)
-	docker build --network=none -f Dockerfile.ts-v5-r3g1 --build-arg SHAIWEI_RELEASE_GIT_HEAD="$(TS_V5_R3G1_RELEASE_GIT_HEAD)" -t shaiwei:ts-v5-r3g1-recent-density-001 .
+	docker build --network=none -f Dockerfile.ts-v5-r3g1 --build-arg SHAIWEI_RELEASE_GIT_HEAD="$(TS_V5_R3G1_RELEASE_GIT_HEAD)" -t shaiwei:ts-v5-r3g1-recent-density-r2 .
 
 docker-ts-v5-r3g1-profile:
-	mkdir -p data/research/trend_swing/ts-v5-r3g1-recent-density-001
+	mkdir -p data/research/trend_swing/ts-v5-r3g1-recent-density-r2
 	docker compose -f compose.ts-v5-r3g1.yaml --profile ts-v5-r3g1 run --rm --no-deps ts-v5-r3g1-profile
 
 docker-ts-v5-r3g1-audit:

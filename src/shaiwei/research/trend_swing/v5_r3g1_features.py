@@ -159,7 +159,9 @@ def prepare_role_stream(connection: duckdb.DuckDBPyConnection) -> None:
         )
         SELECT d.* EXCLUDE(trade_date,market_rank,industry,segment,segment_code,plan_week,ts_code),
           x.trade_date,x.market_rank,x.plan_week,x.industry,x.segment,x.segment_code,x.ts_code,
-          x.trade_date IS NOT NULL AS has_bar,
+          d.ts_code IS NOT NULL AS has_bar,
+          CASE WHEN d.ts_code IS NOT NULL AND d.adj_factor>0
+            THEN d.adj_open/d.adj_factor ELSE NULL END AS raw_open,
           coalesce(d.f_plan,true) AS f_plan,
           coalesce(d.f_daily,false) AS f_daily,
           coalesce(d.amount_rmb>0,false) AS liquidity_gate,
@@ -168,6 +170,16 @@ def prepare_role_stream(connection: duckdb.DuckDBPyConnection) -> None:
           ON d.ts_code=x.ts_code AND d.trade_date=x.trade_date
         """
     )
+    invalid = connection.execute(
+        """
+        SELECT
+          count(*) FILTER(WHERE has_bar AND (raw_open IS NULL OR raw_open<=0)),
+          count(*) FILTER(WHERE NOT has_bar AND raw_open IS NOT NULL)
+        FROM r3g1_stream
+        """
+    ).fetchone()
+    if invalid != (0, 0):
+        raise RuntimeError(f"TS-v5-R3G-1 execution projection is invalid: {invalid}")
 
 
 def prepare_r3g1_features(connection: duckdb.DuckDBPyConnection) -> None:

@@ -146,11 +146,19 @@ def run_profile_once() -> dict[str, Any]:
     ]
     verdict = "GO_R3G_EFFECT_SCOPE_PROPOSAL_ONLY" if len(passing) == 6 else ("PARTIAL_GO_DENSE_MECHANISMS_ONLY" if passing else "STOP_NO_RECENT_DENSE_MECHANISM")
     report = {
-        "schema_version": "ts-v5-r3g1-recent-density-profile-v1",
+        "schema_version": "ts-v5-r3g1-recent-density-recovery-profile-v2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "scope_sha256": scope.sha256,
         "role_boundary_addendum_sha256": scope.addendum_sha256,
         "execution_clock_correction_sha256": "5aa7f0b1385a3bab64f30f63bac812c56fdc8eb2b3268065b357894f7872710b",
+        "execution_projection_recovery_sha256": scope.recovery_sha256,
+        "parent_invalidation": {
+            "authority_status": scope.recovery["frozen_parent"]["authority_status"],
+            "profile_sha256": scope.recovery["frozen_parent"]["profile_sha256"],
+            "event_sha256": scope.recovery["frozen_parent"]["event_sha256"],
+            "audit_sha256": scope.recovery["frozen_parent"]["audit_sha256"],
+            "parent_artifacts_rewritten": False,
+        },
         "release_identity": runtime_code_identity(),
         "chronological_roles": scope.document["chronological_roles"],
         "mechanism_profiles": profiles,

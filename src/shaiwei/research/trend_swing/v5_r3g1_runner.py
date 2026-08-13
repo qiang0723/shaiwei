@@ -62,7 +62,7 @@ def project_events(
                         episode,
                         next_open_input(registered.candidate, point, signal, row),
                     )
-                except (D1ControlError, KeyError, TypeError, ValueError, ArithmeticError):
+                except (D1ControlError, TypeError, ValueError, ArithmeticError):
                     terminal = Episode(status=EpisodeStatus.CANCELLED)
                 if terminal.status == EpisodeStatus.EXECUTED:
                     events.append(_event(role, registered, point_hash, code, signal, row))
@@ -86,7 +86,7 @@ def project_events(
                 episode,
                 daily_input(registered.candidate, point, row),
             )
-        except (D1ControlError, KeyError, TypeError, ValueError, ArithmeticError):
+        except (D1ControlError, TypeError, ValueError, ArithmeticError):
             episode = Episode()
             continue
         if episode.status == EpisodeStatus.CONFIRMED:

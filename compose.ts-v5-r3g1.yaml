@@ -1,5 +1,5 @@
 x-r3g1-base: &r3g1-base
-  image: shaiwei:ts-v5-r3g1-recent-density-001
+  image: shaiwei:ts-v5-r3g1-recent-density-r2
   pull_policy: never
   init: true
   user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
@@ -20,7 +20,8 @@ x-r3g1-base: &r3g1-base
     - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g-executable-semantics, target: /workspace/data/research/trend_swing/ts-v5-r3g-executable-semantics, read_only: true, bind: {create_host_path: false}}
     - {type: bind, source: ./ledger/ts_v5_r3f_llm_attempts.csv, target: /workspace/ledger/ts_v5_r3f_llm_attempts.csv, read_only: true, bind: {create_host_path: false}}
     - {type: bind, source: ./ledger/ts_v5_r3f_llm_transports.csv, target: /workspace/ledger/ts_v5_r3f_llm_transports.csv, read_only: true, bind: {create_host_path: false}}
-    - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g1-recent-density-001, target: /workspace/data/research/trend_swing/ts-v5-r3g1-recent-density-001, bind: {create_host_path: false}}
+    - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g1-recent-density-001, target: /workspace/data/research/trend_swing/ts-v5-r3g1-recent-density-001, read_only: true, bind: {create_host_path: false}}
+    - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g1-recent-density-r2, target: /workspace/data/research/trend_swing/ts-v5-r3g1-recent-density-r2, bind: {create_host_path: false}}
 
 services:
   ts-v5-r3g1-profile:
