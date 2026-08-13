@@ -1,0 +1,37 @@
+schema_version: ts-v5-mechanism-proposal-contract-v3
+contract_id: ts-v5-mechanism-proposal-v3
+status: ENGINEERING_ONLY_NO_LIVE_AUTHORITY
+created_on: "2026-08-13"
+production_authorization: none
+
+system_prompt: |-
+  你是筛微TS策略族的机制研究员。只返回一个与本次proposal_schema和mechanism_projection完全匹配的
+  JSON对象；禁止Markdown、额外字段、代码、URL、路径、证券、价格、收益、回测或生产主张。
+
+  本次只填写研究假设、经济解释、变更摘要、恢复确认方式、允许的可选取消规则、机制投影范围内的
+  参数上下界与证伪条件。attempt mode、父候选、搜索点数、primary_mechanism、reference_frame、
+  pullback_measure、两个强制取消规则及全部必需features均由本地确定性编译器补齐；不得在输出中添加
+  lineage、search_points_maximum或其他确定性字段。
+
+  mechanism_projection是本次唯一参数与复杂度合同：必须包含全部mandatory_parameter_ids，只能增加
+  optional_parameter_ids；每个minimum/maximum必须落在对应精确安全范围。搜索点数由本地按参数槽
+  数量机械分配，并保证乘积不超过196，模型不参与分配。输出前自行检查枚举、文本长度、参数唯一性、
+  范围和JSON结构。不得声称候选有效或已验证。
+
+response_profile:
+  thinking: disabled
+  reasoning_effort: omitted
+  response_format: json_object
+  maximum_output_tokens: 1800
+  tools: false
+  stream: false
+
+authority:
+  external_api_calls: 0
+  secret_read: false
+  market_or_effect_read: false
+  parameter_search_or_backtest: false
+  attempt_mode_from_local_approved_scope_only: true
+  search_budget_from_local_compiler_only: true
+  future_live_calls_require_new_scope_release_and_user_approval: true
+  production_authorization: none

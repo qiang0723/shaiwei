@@ -1,0 +1,96 @@
+schema_version: ts-v5-r3e-bound-proposal-engineering-v1
+scope_id: ts-v5-r3e-bound-proposal-engineering-001
+status: RESULT_BLIND_ENGINEERING_FROZEN
+frozen_on: "2026-08-13"
+execution_authorized: true
+external_api_calls_authorized: 0
+production_authorization: none
+
+purpose:
+  close_r3d_local_authority_binding_defect: true
+  move_search_point_budget_out_of_llm_response: true
+  preserve_r3c_and_r3d_evidence_byte_immutable: true
+  decide_whether_a_new_live_canary_scope_is_engineering_ready: true
+  repair_or_admit_old_responses: false
+  evaluate_candidate_effect_or_strategy: false
+
+frozen_inputs:
+  r3c_scope_sha256: 234621cf0280fceca82a8e5f82d6966b27979fde761d68b2508346a2ebd953ae
+  r3c_attempt_ledger_sha256: 18d206fe9e1c75e62619c47fb7e1f93d55857806b27b29861a7e240522bee14e
+  r3c_transport_ledger_sha256: 0da6ea6c23833577fcc4a03e3a7077711beea5e7df23dc022454b1e5f67c9446
+  r3c_acceptance_sha256: f152ee666b610102026156dc7fe837a7e00aee20e1f999d4fc6595c568312d4a
+  r3d_scope_sha256: cbfba18e67ea50469548d46f0d43ccd25d7ba11f3980063022fd809665fb6090
+  r3d_report_sha256: 4ba99d3b119ec08a095abf9b29b0593cfcd44b47c78544070a49046cd137717c
+  r3d_audit_sha256: 5007b045364256060a88a27fd7d4bcb7eb08390198b41e639373075ee1645ddc
+  r3d_acceptance_sha256: 54612c37bca385d1ca1200392b6763ba3c98fb615864f8b2e468b2cf759694a6
+  legacy_proposal_contract_sha256: 538326777bdeb3c0793e729b1c4dc086b804e07743aca8adba7e9f251e9b09a0
+  legacy_proposal_compiler_sha256: 7a6c8f728c756084df5bc5c68e18332f62fc1666813943df5e331c749c71bd31
+  candidate_validator_sha256: dc3a19b7cbc07ae6cca44b4c814c1c34c283caf90359b8d81e8f1a68cb54b37b
+  bound_proposal_contract_sha256: c46ee09cf6d1039e85f797e8510284533e0b8980cda255bfb827c30e69942dc8
+
+approved_attempt_authority:
+  mode: INDEPENDENT
+  parent_candidate_fingerprints: []
+  source: future_result_blind_scope_attempt_plan_only
+  response_may_supply_or_override_mode: false
+  compiler_must_inject_lineage: true
+  evidence_mode_must_equal_compiled_candidate_lineage_mode: true
+
+deterministic_search_budget:
+  maximum_search_evaluations: 196
+  response_may_supply_search_points: false
+  schedule_by_parameter_slot_count:
+    1: 7
+    2: 7
+    3: 5
+    4: 3
+    5: 2
+  same_points_for_each_slot: true
+  compiler_must_prove_product_within_limit: true
+
+engineering_method:
+  proposal_schema_version: ts-v5-mechanism-proposal-v3
+  response_lineage_field_present: false
+  response_search_points_field_present: false
+  deterministic_request_contains_assigned_attempt_authority: true
+  synthetic_valid_proposal_count_exact: 6
+  adversarial_cases_per_mechanism_minimum: 8
+  old_r3c_response_count_exact: 6
+  old_response_content_only: true
+  old_response_reasoning_used: false
+  old_response_repaired_normalized_or_admitted: false
+  preserve_legacy_v2_contract_compiler_validator_byte_immutable: true
+  independent_audit_required: true
+  idempotent_write_once_required: true
+
+decision_rules:
+  go_requires:
+    all_six_synthetic_proposals_compile: true
+    all_compiled_candidates_pass_unchanged_validator: true
+    request_schema_mode_binding_exact: true
+    request_schema_excludes_response_lineage: true
+    request_schema_excludes_response_search_points: true
+    deterministic_search_product_within_196_for_slot_counts_1_to_5: true
+    evidence_mode_cannot_diverge_from_compiled_lineage: true
+    all_adversarial_cases_fail_closed: true
+    all_six_old_r3c_documents_remain_not_admitted: true
+    legacy_inputs_byte_immutable: true
+    independent_audit_pass: true
+  gates:
+    all_go_requirements_true: GO_R3F_LIVE_CANARY_SCOPE_PROPOSAL_ONLY
+    otherwise: STOP_R3E_ENGINEERING_GAP
+  direct_new_external_call_authorized: false
+
+outputs:
+  engineering_report: data/research/trend_swing/ts-v5-r3e-bound-proposal-engineering/engineering_report.json
+  independent_audit: data/research/trend_swing/ts-v5-r3e-bound-proposal-engineering/audit.json
+  tracked_acceptance: docs/TS_V5_R3E_BOUND_PROPOSAL_ENGINEERING_ACCEPTANCE_20260813.md
+
+forbidden:
+  - external_network
+  - secret_read
+  - deepseek_or_other_llm_call
+  - old_response_repair_normalization_or_admission
+  - market_security_return_or_effect_read
+  - parameter_search_or_backtest
+  - paper_web_or_production
