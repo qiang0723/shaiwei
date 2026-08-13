@@ -91,6 +91,12 @@ ts-v5-r2-preflight:
 ts-v5-r2-audit:
 	$(PYTHON) -m shaiwei.research.trend_swing.v5_r2_audit --release config/ts_v5_r2_llm_execution_release_v1.yaml
 
+ts-v5-r3c-preflight:
+	$(PYTHON) -m shaiwei.research.trend_swing.v5_r3c_live --release config/ts_v5_r3c_llm_execution_release_v1.yaml --preflight-only
+
+ts-v5-r3c-audit:
+	$(PYTHON) -m shaiwei.research.trend_swing.v5_r3c_result_audit --release config/ts_v5_r3c_llm_execution_release_v1.yaml
+
 docker-ts-v5-llm-build:
 	@test -n "$(TS_V5_LLM_RELEASE_GIT_HEAD)" || (echo "TS_V5_LLM_RELEASE_GIT_HEAD is required"; exit 2)
 	docker build -f Dockerfile.ts-v5-llm --build-arg SHAIWEI_RELEASE_GIT_HEAD="$(TS_V5_LLM_RELEASE_GIT_HEAD)" -t shaiwei:ts-v5-llm-batch-001 .
@@ -110,6 +116,16 @@ docker-ts-v5-r2-run:
 
 docker-ts-v5-r2-audit:
 	docker compose -f compose.ts-v5-r2.yaml --profile ts-v5-r2-audit run --rm --no-deps ts-v5-r2-audit
+
+docker-ts-v5-r3c-build:
+	@test -n "$(TS_V5_R3C_RELEASE_GIT_HEAD)" || (echo "TS_V5_R3C_RELEASE_GIT_HEAD is required"; exit 2)
+	docker build -f Dockerfile.ts-v5-llm --build-arg SHAIWEI_RELEASE_GIT_HEAD="$(TS_V5_R3C_RELEASE_GIT_HEAD)" -t shaiwei:ts-v5-r3c-canary-001 .
+
+docker-ts-v5-r3c-run:
+	docker compose -f compose.ts-v5-r3c.yaml --profile ts-v5-r3c run --rm --no-deps ts-v5-r3c
+
+docker-ts-v5-r3c-audit:
+	docker compose -f compose.ts-v5-r3c.yaml --profile ts-v5-r3c-audit run --rm --no-deps ts-v5-r3c-audit
 docker-ts-recovery-build: ## 以已推送实现身份构建R3短命研究镜像
 	@test -n "$(TS_RECOVERY_RELEASE_GIT_HEAD)" || (echo "TS_RECOVERY_RELEASE_GIT_HEAD is required"; exit 2)
 	SHAIWEI_TS_RECOVERY_RELEASE_GIT_HEAD="$(TS_RECOVERY_RELEASE_GIT_HEAD)" docker compose -f compose.ts-recovery.yaml --profile ts-recovery-network build ts-recovery-network

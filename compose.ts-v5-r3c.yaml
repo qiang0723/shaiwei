@@ -1,0 +1,101 @@
+services:
+  ts-v5-r3c:
+    image: shaiwei:ts-v5-r3c-canary-001
+    pull_policy: never
+    profiles: [ts-v5-r3c]
+    init: true
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=96m,mode=1777
+    pids_limit: 48
+    mem_limit: 384m
+    cpus: 0.75
+    environment:
+      - DEEPSEEK_API_KEY
+      - HOME=/tmp
+      - PYTHONPYCACHEPREFIX=/tmp/pycache
+    volumes:
+      - type: bind
+        source: ./data/research/trend_swing/ts-v5-r3c-canary-001
+        target: /workspace/data/research/trend_swing/ts-v5-r3c-canary-001
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/ts_v5_r3c_llm_attempts.csv
+        target: /workspace/ledger/ts_v5_r3c_llm_attempts.csv
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/ts_v5_r3c_llm_transports.csv
+        target: /workspace/ledger/ts_v5_r3c_llm_transports.csv
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./config/ts_v5_r3c_llm_execution_release_v1.yaml
+        target: /opt/shaiwei/ts_v5_r3c_llm_execution_release_v1.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.v5_r3c_live
+      - --release
+      - /opt/shaiwei/ts_v5_r3c_llm_execution_release_v1.yaml
+
+  ts-v5-r3c-audit:
+    image: shaiwei:ts-v5-r3c-canary-001
+    pull_policy: never
+    profiles: [ts-v5-r3c-audit]
+    init: true
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+    pids_limit: 32
+    mem_limit: 256m
+    cpus: 0.5
+    environment:
+      - HOME=/tmp
+      - PYTHONPYCACHEPREFIX=/tmp/pycache
+    volumes:
+      - type: bind
+        source: ./data/research/trend_swing/ts-v5-r3c-canary-001
+        target: /workspace/data/research/trend_swing/ts-v5-r3c-canary-001
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/ts_v5_r3c_llm_attempts.csv
+        target: /workspace/ledger/ts_v5_r3c_llm_attempts.csv
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./ledger/ts_v5_r3c_llm_transports.csv
+        target: /workspace/ledger/ts_v5_r3c_llm_transports.csv
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./config/ts_v5_r3c_llm_execution_release_v1.yaml
+        target: /opt/shaiwei/ts_v5_r3c_llm_execution_release_v1.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.v5_r3c_result_audit
+      - --release
+      - /opt/shaiwei/ts_v5_r3c_llm_execution_release_v1.yaml
+      - --write-report
+      - /workspace/data/research/trend_swing/ts-v5-r3c-canary-001/ts_v5_r3c_audit.json

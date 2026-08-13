@@ -63,7 +63,7 @@ def attempt_rows(path: Path, release: V5ExecutionRelease) -> list[dict[str, str]
     return rows
 
 
-def _usage_and_cost(
+def usage_and_cost(
     protocol: V5TransportProtocol, response: ProviderResponse
 ) -> tuple[dict[str, int], float]:
     required = ("prompt_tokens", "prompt_cache_hit_tokens", "prompt_cache_miss_tokens", "completion_tokens")
@@ -95,7 +95,7 @@ def classify_response(
     response_contract: V5ResponseContract | None = None,
 ) -> dict[str, Any]:
     try:
-        usage, cost = _usage_and_cost(protocol, response)
+        usage, cost = usage_and_cost(protocol, response)
     except D1ControlError:
         usage = {
             "prompt_tokens": 0,
