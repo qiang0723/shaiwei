@@ -11,10 +11,13 @@ TS升级为长期策略研究族：具体版本可以停止或淘汰，策略族
 只负责机制假设、定向改版、失败诊断和语义反审，本地确定性程序负责参数搜索、成本/可成交回测、
 多重检验、去重、选择和独立裁决。首轮只研究六个不同机制，不继续扩大固定百分比网格。
 
-当前已冻结治理、候选边界和建议首批12个DeepSeek响应/0.50美元上限，但真实调用仍须在合同/提示/
-fixture验收后以精确发送内容和scope再次取得用户批准；未授权行情/收益、回测、模拟仓、Web或生产。
-见`docs/ADR_0006_TS_EVOLUTIONARY_RESEARCH_LANE.md`和
-`docs/TS_V5_EVOLUTIONARY_RESEARCH_PROTOCOL_20260813.md`。
+治理、严格候选合同、六机制枚举、参数/复杂度边界、语义去重、受限提示、TS专用窄传输适配和离线
+CLI均已完成工程验收；
+离线preflight形成六个不同独立请求并停在`READY_FOR_BOUNDED_LLM_RESEARCH_APPROVAL`。建议首批12个
+DeepSeek响应/0.50美元上限，但真实调用仍须以精确发送内容和scope再次取得用户批准；未授权行情/
+收益、回测、模拟仓、Web或生产。见`docs/ADR_0006_TS_EVOLUTIONARY_RESEARCH_LANE.md`、
+`docs/TS_V5_EVOLUTIONARY_RESEARCH_PROTOCOL_20260813.md`和
+`docs/TS_V5_EVOLUTIONARY_RESEARCH_ENGINEERING_ACCEPTANCE_20260813.md`。
 
 ## 2026-08-12 TS-v4参数研究继续路线
 

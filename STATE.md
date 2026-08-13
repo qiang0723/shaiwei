@@ -11,9 +11,14 @@
   不得用于失败后的替补选择。
 - 首轮机制限定为波动自适应回调、周结构分位、突破回踩、均线恢复、收缩扩张和相对强度回调六类。
   DeepSeek定位为候选生成/批判/语义复核，不裁决收益；本地程序负责数据、参数搜索、回测、统计、去重
-  和所有权威门。当前只授权合同/提示/fixture施工，尚未授权真实DeepSeek调用、行情/收益、回测、
-  模拟仓、Web或生产。见`docs/ADR_0006_TS_EVOLUTIONARY_RESEARCH_LANE.md`和
-  `docs/TS_V5_EVOLUTIONARY_RESEARCH_PROTOCOL_20260813.md`。
+  和所有权威门。候选合同、六机制枚举、参数/复杂度边界、语义去重、受限提示、TS专用窄传输适配与
+  CLI已完成；专项22、
+  全仓1157、架构13项通过，离线preflight为PASS，provider/行情效果/secret读取均为0。
+- 当前停在`READY_FOR_BOUNDED_LLM_RESEARCH_APPROVAL`；尚未授权真实DeepSeek调用、行情/收益、回测、
+  模拟仓、Web或生产。建议首批恰好12响应、串行、0.50美元上限仍须精确release和用户再次批准。见
+  `docs/ADR_0006_TS_EVOLUTIONARY_RESEARCH_LANE.md`、
+  `docs/TS_V5_EVOLUTIONARY_RESEARCH_PROTOCOL_20260813.md`和
+  `docs/TS_V5_EVOLUTIONARY_RESEARCH_ENGINEERING_ACCEPTANCE_20260813.md`。
 
 ## 2026-08-13 · TS-v4B-R1结果盲密度门STOP，固定百分比参数区域关闭
 
