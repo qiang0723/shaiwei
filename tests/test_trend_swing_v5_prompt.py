@@ -48,6 +48,7 @@ def test_revision_requires_same_mechanism_parent_and_allowlisted_feedback() -> N
         bundle,
         revision,
         parent=parent,
+        parent_attempt_fingerprint=parent.fingerprint(),
         discovery_feedback={
             "parent_candidate_fingerprint": parent.fingerprint(),
             "discovery_event_count": 24,
@@ -57,11 +58,30 @@ def test_revision_requires_same_mechanism_parent_and_allowlisted_feedback() -> N
     assert parent.fingerprint() in str(request)
 
     with pytest.raises(ValueError, match="non-allowlisted"):
-        build_request(bundle, revision, parent=parent, discovery_feedback={"locked_test": "PASS"})
+        build_request(
+            bundle,
+            revision,
+            parent=parent,
+            parent_attempt_fingerprint=parent.fingerprint(),
+            discovery_feedback={"locked_test": "PASS"},
+        )
 
     wrong_parent = MechanismCandidate.model_validate(candidate_document("BREAKOUT_RETEST"))
     with pytest.raises(ValueError, match="same-mechanism"):
-        build_request(bundle, revision, parent=wrong_parent)
+        build_request(
+            bundle,
+            revision,
+            parent=wrong_parent,
+            parent_attempt_fingerprint=wrong_parent.fingerprint(),
+        )
+
+    failed_parent = build_request(
+        bundle,
+        revision,
+        parent_attempt_fingerprint="a" * 64,
+        parent_failure_class="CANDIDATE_SCHEMA_INVALID",
+    )
+    assert failed_parent["messages"][1]["content"].find("INVALID_RESPONSE_COUNTED") >= 0
 
 
 def test_request_guard_rejects_security_secret_and_absolute_path_in_feedback() -> None:
@@ -75,6 +95,7 @@ def test_request_guard_rejects_security_secret_and_absolute_path_in_feedback() -
                 bundle,
                 revision,
                 parent=parent,
+                parent_attempt_fingerprint=parent.fingerprint(),
                 discovery_feedback={"discovery_effect_direction": value},
             )
 
@@ -93,3 +114,13 @@ def test_response_must_match_planned_identity_and_strict_schema() -> None:
     extra["best_parameter"] = "1.0"
     with pytest.raises(ValueError, match="strict schema"):
         validate_response(plan, extra)
+
+    revision = plan_attempt(bundle, 7)
+    revised = candidate_document()
+    revised["lineage"] = {
+        "mode": "ADVERSARIAL_REVISION",
+        "parent_candidate_fingerprints": [candidate.fingerprint()],
+    }
+    assert validate_response(
+        revision, revised, expected_parent_fingerprint=candidate.fingerprint()
+    ).lineage.mode == "ADVERSARIAL_REVISION"

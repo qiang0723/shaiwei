@@ -71,13 +71,30 @@ def build_request(
     plan: AttemptPlan,
     *,
     parent: MechanismCandidate | None = None,
+    parent_attempt_fingerprint: str | None = None,
+    parent_failure_class: str | None = None,
     discovery_feedback: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    if plan.mode == "INDEPENDENT" and (parent is not None or discovery_feedback):
+    if plan.mode == "INDEPENDENT" and (
+        parent is not None
+        or parent_attempt_fingerprint is not None
+        or parent_failure_class is not None
+        or discovery_feedback
+    ):
         raise ValueError("independent TS-v5 attempts cannot receive prior feedback")
     if plan.mode == "ADVERSARIAL_REVISION":
-        if parent is None or parent.primary_mechanism != plan.mechanism:
-            raise ValueError("TS-v5 revision requires a same-mechanism parent")
+        if parent_attempt_fingerprint is None or not re.fullmatch(
+            r"[0-9a-f]{64}", parent_attempt_fingerprint
+        ):
+            raise ValueError("TS-v5 revision requires one bound parent-attempt fingerprint")
+        if parent is not None and (
+            parent.primary_mechanism != plan.mechanism
+            or parent.fingerprint() != parent_attempt_fingerprint
+            or parent_failure_class is not None
+        ):
+            raise ValueError("TS-v5 revision has an inconsistent same-mechanism parent")
+        if parent is None and not parent_failure_class:
+            raise ValueError("TS-v5 revision without a valid parent needs its failure class")
     allowed_feedback = set(bundle.prompt["feedback_contract"]["allowed_fields"])
     feedback = dict(discovery_feedback or {})
     if set(feedback) - allowed_feedback:
@@ -93,6 +110,16 @@ def build_request(
         "public_knowledge_summary": bundle.prompt["public_knowledge_summary"],
         "frozen_failure_memory": bundle.prompt["frozen_failure_memory"],
         "parent_candidate": parent.model_dump(mode="json") if parent else None,
+        "parent_attempt": (
+            {
+                "fingerprint": parent_attempt_fingerprint,
+                "status": "VALID_CANDIDATE" if parent else "INVALID_RESPONSE_COUNTED",
+                "failure_class": parent_failure_class,
+                "raw_response_included": False,
+            }
+            if parent_attempt_fingerprint
+            else None
+        ),
         "discovery_feedback": feedback,
         "instructions": {
             "one_primary_mechanism_only": True,
@@ -120,13 +147,21 @@ def build_request(
     return request
 
 
-def validate_response(plan: AttemptPlan, document: Mapping[str, Any]) -> MechanismCandidate:
+def validate_response(
+    plan: AttemptPlan,
+    document: Mapping[str, Any],
+    *,
+    expected_parent_fingerprint: str | None = None,
+) -> MechanismCandidate:
     try:
         candidate = MechanismCandidate.model_validate(document)
     except ValidationError as exc:
         raise ValueError("TS-v5 candidate response violates the strict schema") from exc
     if candidate.primary_mechanism != plan.mechanism or candidate.lineage.mode != plan.mode:
         raise ValueError("TS-v5 response identity differs from the planned attempt")
+    expected_parents = [] if expected_parent_fingerprint is None else [expected_parent_fingerprint]
+    if candidate.lineage.parent_candidate_fingerprints != expected_parents:
+        raise ValueError("TS-v5 response lineage differs from the bound parent attempt")
     return candidate
 
 
