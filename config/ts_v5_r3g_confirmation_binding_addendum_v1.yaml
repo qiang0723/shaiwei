@@ -1,0 +1,62 @@
+schema_version: ts-v5-r3g-confirmation-binding-addendum-v1
+addendum_id: ts-v5-r3g-confirmation-binding-addendum-001
+status: RESULT_BLIND_PREIMPLEMENTATION_CLARIFICATION_FROZEN
+prepared_on: "2026-08-13"
+production_authorization: none
+
+binds_scope:
+  path: config/ts_v5_r3g_executable_semantics_engineering_v1.yaml
+  sha256: 3a066c13eeefd9409c159973a5ae1aff63fb5fc92b8caa67275ae5790b1345bb
+  scope_id: ts-v5-r3g-executable-semantics-engineering-001
+
+reason:
+  issue: bind_candidate_confirmation_enum_to_same_dimension_mechanism_formula
+  discovered_before_implementation_or_any_density_or_result_read: true
+  supersedes_protocol_section_4_mechanism_5_formula_without_rewriting_original: true
+  candidate_removed_repaired_or_recompiled: false
+  parameter_or_threshold_changed: false
+
+bindings:
+  VOLATILITY_ADAPTIVE_PULLBACK:
+    candidate_enum: CLOSE_RECLAIMS_REFERENCE
+    confirmation: adjusted_close_gte_frozen_previous_complete_week_vwap
+  WEEKLY_STRUCTURE_QUANTILE:
+    candidate_enum: CLOSE_RECLAIMS_REFERENCE
+    confirmation: adjusted_close_gte_frozen_weekly_structure_quantile_reference
+  BREAKOUT_RETEST:
+    candidate_enum: CLOSE_RECLAIMS_REFERENCE
+    confirmation: adjusted_close_gte_frozen_weekly_breakout_reference
+  MOVING_AVERAGE_RESUMPTION:
+    candidate_enum: PRICE_AND_VOLUME_EXPAND
+    confirmation:
+      - adjusted_close_gt_frozen_moving_average_reference
+      - adjusted_close_gt_immediately_previous_valid_security_bar_high
+      - daily_amount_gt_prior_20_day_median_excluding_current_bar
+  CONTRACTION_EXPANSION:
+    candidate_enum: CLOSE_RECLAIMS_REFERENCE
+    arm_requires:
+      - first_daily_bar_of_eligible_plan_week
+      - daily_amount_gte_volume_expansion_ratio_times_prior_20_day_median_excluding_current_bar
+    confirmation: adjusted_close_gt_frozen_latest_complete_week_high
+  RELATIVE_STRENGTH_PULLBACK:
+    candidate_enum: CLOSE_RECLAIMS_REFERENCE
+    confirmation: stock_sector_relative_strength_gte_frozen_recovery_line
+
+consecutive_days:
+  source_parameter: RECOVERY_CONFIRMATION_DAYS
+  same_formula_must_hold_on_each_consecutive_official_security_bar: true
+  failed_confirmation_bar_resets_streak_to_zero: true
+  cancellation_precedes_confirmation: true
+
+authority:
+  r3f_content_or_reasoning_read: false
+  market_security_density_or_effect_read: false
+  external_network_or_provider: false
+  env_or_secret_read: false
+  model_backtest_paper_web_scheduler_or_production: false
+
+forbidden:
+  - treat_volume_expansion_as_contraction_recovery_enum
+  - compare_security_close_to_relative_strength_reference
+  - silent_candidate_or_parameter_change
+  - density_or_effect_read
