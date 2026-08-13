@@ -1,0 +1,46 @@
+schema_version: ts-v5-r3g1-execution-clock-correction-addendum-v1
+addendum_id: ts-v5-r3g1-execution-clock-correction-001
+prepared_on: "2026-08-13"
+status: RESULT_BLIND_IMPLEMENTATION_CORRECTION_FROZEN
+production_authorization: none
+
+binds:
+  r3g1_scope_sha256: 3b83d8a569886b2af78298c85789b8c6495b0cf8903975b2ddb0c48367040381
+  role_boundary_addendum_sha256: 59133b29891b3f2524ea5c4a05e832d165714bbf9fbd92666994399658530d29
+  r3g0_scope_sha256: 3a066c13eeefd9409c159973a5ae1aff63fb5fc92b8caa67275ae5790b1345bb
+  immutable_and_not_rewritten: true
+
+finding:
+  discovered_before_real_density_read: true
+  discovered_before_strategy_effect_read: true
+  parameter_threshold_candidate_or_grid_changed: false
+  r3g0_report_or_audit_rewritten: false
+  defect: contraction_volume_expansion_was_implemented_on_arm_instead_of_confirmation
+  missing_clock_binding: next_open_market_sector_gate_had_no_explicit_asof_definition
+
+correction:
+  contraction_expansion:
+    arm: first_security_bar_of_eligible_plan_week_and_frozen_contraction_prerequisite_only
+    confirmation: adjusted_close_strictly_above_frozen_week_high_and_current_amount_at_or_above_frozen_ratio_times_prior_20_day_amount_median
+    volume_is_not_required_to_arm: true
+    same_day_arm_and_confirmation_allowed_when_confirmation_days_is_one: true
+  next_open:
+    market_and_sector_gate: signal_close_gate_carried_forward
+    next_day_close_high_low_amount_or_sector_return_read: forbidden
+    security_membership_st_status_raw_open_positive_volume_and_adjustment_factor: evaluated_as_of_execution_open
+    price_mechanism_reference_observation: adjusted_equivalent_raw_open
+    relative_strength_reference_observation: stock_adjusted_open_gross_return_over_lag_L_close_divided_by_sector_level_as_of_signal_close_over_its_lag_L_level
+
+required_regression:
+  contraction_can_arm_without_volume_expansion: true
+  contraction_cannot_confirm_without_volume_expansion: true
+  next_open_gate_cannot_use_next_day_close_state: true
+  all_existing_r3g_adversarial_fixtures_still_pass: true
+
+authority:
+  read_market_or_security_data: false
+  read_density: false
+  read_post_entry_return_or_effect: false
+  external_network_or_provider: false
+  env_or_secret_read: false
+  model_backtest_paper_web_scheduler_or_production_change: false

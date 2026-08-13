@@ -135,12 +135,7 @@ def _arms(mechanism: str, row: DailyInput, point: Mapping[str, Decimal]) -> bool
         tolerance = point["MOVING_AVERAGE_TOLERANCE_ATR"] * row.atr
         return row.low <= row.reference + tolerance and row.close >= row.reference - tolerance
     if mechanism == "CONTRACTION_EXPANSION":
-        return (
-            row.contraction_prerequisite
-            and row.first_plan_week_bar
-            and row.amount
-            >= point["VOLUME_EXPANSION_RATIO"] * row.prior_20d_amount_median
-        )
+        return row.contraction_prerequisite and row.first_plan_week_bar
     if mechanism == "RELATIVE_STRENGTH_PULLBACK":
         drawdown = (row.reference - row.relative_strength) / row.reference
         return drawdown >= row.threshold
@@ -166,7 +161,11 @@ def _confirms(
             and row.amount > row.prior_20d_amount_median
         )
     if mechanism == "CONTRACTION_EXPANSION":
-        return row.close > episode.reference
+        return (
+            row.close > episode.reference
+            and row.amount
+            >= point["VOLUME_EXPANSION_RATIO"] * row.prior_20d_amount_median
+        )
     if mechanism == "RELATIVE_STRENGTH_PULLBACK":
         recovery_line = episode.reference * (Decimal("1") - episode.threshold)
         return row.relative_strength >= recovery_line

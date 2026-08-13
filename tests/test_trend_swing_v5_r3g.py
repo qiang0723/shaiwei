@@ -18,6 +18,7 @@ from shaiwei.research.trend_swing.v5_r3g_fixtures import (
     normal_path_evidence,
 )
 from shaiwei.research.trend_swing.v5_r3g_state import DailyInput
+from shaiwei.research.trend_swing.v5_r3g_state import Episode, EpisodeStatus, transition
 
 
 @pytest.fixture(scope="module")
@@ -98,6 +99,45 @@ def test_daily_input_rejects_future_result_field():
     }
     with pytest.raises(D1ControlError):
         DailyInput.from_mapping(document)
+
+
+def test_contraction_arms_without_volume_but_requires_volume_to_confirm(candidates):
+    registered = next(
+        item for item in candidates
+        if item.candidate.primary_mechanism.value == "CONTRACTION_EXPANSION"
+    )
+    point = registered.grid[0]
+    base = {
+        "sequence": 1,
+        "lagged_feature_sequence": 0,
+        "low": Decimal("9"),
+        "close": Decimal("11"),
+        "prior_valid_high": Decimal("10"),
+        "amount": Decimal("1"),
+        "prior_20d_amount_median": Decimal("10"),
+        "reference": Decimal("10"),
+        "atr": Decimal("1"),
+        "threshold": Decimal("0.1"),
+        "relative_strength": Decimal("1"),
+        "structure_low": Decimal("8"),
+        "base_structure_gate": True,
+        "market_sector_gate": True,
+        "liquidity_gate": True,
+        "security_eligible": True,
+        "breakout_prerequisite": False,
+        "contraction_prerequisite": True,
+        "first_plan_week_bar": True,
+    }
+    armed = transition(registered.candidate, point, Episode(), DailyInput(**base))
+    assert armed.status == EpisodeStatus.ARMED
+    assert armed.confirmation_streak == 0
+    confirmed = transition(
+        registered.candidate,
+        {**point, "RECOVERY_CONFIRMATION_DAYS": "1"},
+        armed,
+        DailyInput(**{**base, "sequence": 2, "lagged_feature_sequence": 1, "amount": Decimal("30")}),
+    )
+    assert confirmed.status == EpisodeStatus.CONFIRMED
 
 
 def test_report_gate_is_result_blind_density_scope_proposal_only(scope):
