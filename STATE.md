@@ -15,10 +15,12 @@
   CLI已完成；专项22、
   全仓1157、架构13项通过，离线preflight为PASS，provider/行情效果/secret读取均为0。
 - 当前停在`READY_FOR_BOUNDED_LLM_RESEARCH_APPROVAL`；尚未授权真实DeepSeek调用、行情/收益、回测、
-  模拟仓、Web或生产。建议首批恰好12响应、串行、0.50美元上限仍须精确release和用户再次批准。见
+  模拟仓、Web或生产。首批恰好12响应、串行、0.50美元上限及发送白名单已形成待批准机器scope；该
+  scope当前`execution_authorized=false`，仍须用户按哈希明确批准后才能生成执行release。见
   `docs/ADR_0006_TS_EVOLUTIONARY_RESEARCH_LANE.md`、
   `docs/TS_V5_EVOLUTIONARY_RESEARCH_PROTOCOL_20260813.md`和
-  `docs/TS_V5_EVOLUTIONARY_RESEARCH_ENGINEERING_ACCEPTANCE_20260813.md`。
+  `docs/TS_V5_EVOLUTIONARY_RESEARCH_ENGINEERING_ACCEPTANCE_20260813.md`、
+  `docs/TS_V5_LLM_RESEARCH_SCOPE_PROPOSAL_20260813.md`。
 
 ## 2026-08-13 · TS-v4B-R1结果盲密度门STOP，固定百分比参数区域关闭
 
