@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-13 · TS-v5-R3C六机制合同金丝雀预执行门完成
+
+- scope提交`c8bb9ed`先于实现推送，冻结六机制各1份独立响应、无递补/第7次调用、最坏费用
+  0.051156美元和0.15美元硬熔断；唯一scope SHA为`234621cf...953ae`。
+- 六请求bundle `f10e5e41...b6ff`、proposal分类/确定性编译、复用transport/标准账本/统一费用、独立
+  audit和结果前release门均已完成；MockTransport六席、幂等复用和离线复算PASS。实现`a2f215d`、
+  路径与manifest加固`3b85077`均已推送。
+- 首个加固镜像因40位Git build-arg手工转录错误永久标为provisional；它只有断网/无secret预检，API与
+  费用0。终版镜像须用真实完整HEAD重建并逐字段核对；无
+  release时即使注入哨兵密钥也退出码2。全仓1246、架构13项PASS，scheduler原镜像连续运行且healthy。
+- 权威`READY_FOR_EXPLICIT_LIVE_APPROVAL`：当前API调用、secret读取和费用仍为0。须用户逐字批准唯一
+  scope、恰好6响应和0.15美元后，才可冻结execution release；效果/回测/模拟仓/生产仍禁止。见
+  `docs/TS_V5_R3C_LLM_CANARY_PREEXECUTION_ACCEPTANCE_20260813.md`。
+
 ## 2026-08-13 · TS-v5-R3B机制专属合同投影工程门完成
 
 - R3A确认的模型侧合同投影缺口已闭合：六机制分别生成proposal Schema与精确projection，LLM只填写

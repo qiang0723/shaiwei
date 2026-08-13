@@ -6,6 +6,13 @@
 
 ## 2026-08-13 TS-v5持续演化研究路线
 
+R3C六机制合同金丝雀已完成零调用预执行门：每机制一个独立席位、恰好6响应、无递补/第7次调用；全
+cache miss最坏0.051156美元，硬熔断0.15美元。六请求bundle、proposal编译、复用transport/账本/费用、
+独立audit、断网只读镜像和全仓1246项均PASS；API/secret/费用仍为0，scheduler未变化。当前
+`READY_FOR_EXPLICIT_LIVE_APPROVAL`，须用户批准scope `234621cf...953ae`后才可冻结execution release；
+真实调用也只评价合同遵守，不读取效果或进入回测/生产。见
+`docs/TS_V5_R3C_LLM_CANARY_PREEXECUTION_ACCEPTANCE_20260813.md`。
+
 R3B机制专属合同投影工程门已完成：六机制各自拥有proposal Schema和精确参数projection，LLM只提供
 研究语义和边界内选择；本地编译器从冻结常量补齐reference/measure、强制取消规则与必需features，
 并继续通过原冻结候选validator。六机制全部编译，42/42对抗样例fail closed，独立audit和幂等复跑
@@ -731,6 +738,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | TS-v5-R2 | 四响应合同金丝雀 | 恰好4个独立完成响应、费用$0.006332411；四份JSON均严格Schema FAIL，有效候选0，断网独立audit PASS；权威`STOP_NO_VALID_CANDIDATES` | scope关闭不得递补或第五次调用；先离线匿名分析失败机制，新调用须新scope和用户批准；效果/回测/生产仍禁止 |
 | TS-v5-R3A | 四响应离线合同诊断 | 四份共同主因是LLM侧合同投影不完整；Schema/提示缺口4/4，可见规则不服从1/4，validator缺陷0；独立audit PASS | 仅允许另立R3B工程目标，构建机制专属同源投影与确定性编译器；不放宽validator、不修补旧候选，外部调用仍须新批准 |
 | TS-v5-R3B | 机制专属合同投影工程门 | 六机制proposal Schema/精确projection、确定性编译器、42/42对抗fail closed与独立audit均PASS；外部调用/效果0 | 仅可另提小批live canary scope；调用次数、费用、release须结果前冻结并由用户明确批准，参数搜索/回测/生产仍禁止 |
+| TS-v5-R3C | 六机制合同金丝雀预执行门 | 六请求bundle、分类/编译、复用transport/账本/费用、独立audit与断网镜像均PASS；API/secret/费用0 | 等用户批准scope `234621cf...953ae`、恰好6响应及$0.15；之后才能冻结release，效果/回测/生产仍禁止 |
 | G8-0 | 法定产品证据源可行性 | 主源覆盖与结构 PASS；HTTP 传输身份 WARN；GO 仅限 G8-1 主源采集 | 先冻结不可覆盖采集协议；管理人 HTTPS/费率谱系完成前不得 VERIFIED 或计算 G8 |
 | G8-1R | 监管主源不可覆盖采集 | 1 条原 Docker 失败永久保留；恢复 54 条主证据、二遍幂等与断网复核 PASS；G8 仍 NOT_READY | 只允许另立 G8-2 管理人 HTTPS 交叉核验与费率有效期谱系协议 |
 | G8-2 | 管理人 HTTPS 逐值与费率有效期谱系 | 19 个逻辑请求留痕；八日逐值 1/6、费率谱系 0/6，权威 NO-GO；不是策略 REJECT | 禁止 G8-3；未来只能另立恢复协议处理传输/解析、华商 HTTPS 与法律文件有效期 |
