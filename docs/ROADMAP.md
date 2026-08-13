@@ -13,11 +13,13 @@ TS升级为长期策略研究族：具体版本可以停止或淘汰，策略族
 
 治理、严格候选合同、六机制枚举、参数/复杂度边界、语义去重、受限提示、TS专用窄传输适配和离线
 CLI均已完成工程验收；
-离线preflight形成六个不同独立请求并停在`READY_FOR_BOUNDED_LLM_RESEARCH_APPROVAL`。建议首批12个
-DeepSeek响应/0.50美元上限，但真实调用仍须以精确发送内容和scope再次取得用户批准；未授权行情/
-收益、回测、模拟仓、Web或生产。见`docs/ADR_0006_TS_EVOLUTIONARY_RESEARCH_LANE.md`、
+离线preflight形成六个不同独立请求并停在`READY_FOR_BOUNDED_LLM_RESEARCH_APPROVAL`。用户已将TS-v5
+DeepSeek持续研究总费用硬上限提高到5.00美元，但首批仍为12个响应/0.50美元单批熔断，余额不是自动
+执行授权，后续每批仍须冻结scope并明确批准。真实调用仍须以精确发送内容和v2 scope再次取得用户
+批准；未授权行情/收益、回测、模拟仓、Web或生产。见`docs/ADR_0006_TS_EVOLUTIONARY_RESEARCH_LANE.md`、
 `docs/TS_V5_EVOLUTIONARY_RESEARCH_PROTOCOL_20260813.md`和
-`docs/TS_V5_EVOLUTIONARY_RESEARCH_ENGINEERING_ACCEPTANCE_20260813.md`。
+`docs/TS_V5_EVOLUTIONARY_RESEARCH_ENGINEERING_ACCEPTANCE_20260813.md`和
+`docs/TS_V5_LLM_RESEARCH_BUDGET_ADDENDUM_20260813.md`。
 
 ## 2026-08-12 TS-v4参数研究继续路线
 

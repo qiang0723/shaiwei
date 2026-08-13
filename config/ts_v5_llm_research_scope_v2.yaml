@@ -1,0 +1,120 @@
+schema_version: ts-v5-llm-research-scope-v2
+scope_id: ts-v5-llm-research-batch-001-budget-v2
+status: AWAITING_FIRST_BATCH_EXECUTION_APPROVAL
+prepared_at: "2026-08-13T08:26:25+08:00"
+execution_authorized: false
+first_batch_user_approval_received: false
+program_budget_authorized_by_user: true
+deepseek_api_called: false
+production_authorization: none
+
+supersedes_before_execution:
+  scope_path: config/ts_v5_llm_research_scope_v1.yaml
+  scope_sha256: 9947e1bebc10d5da32df63ff462a8c8e9403a12986dbfef0a891f69956325a88
+  prior_status: AWAITING_EXPLICIT_USER_APPROVAL
+  reason: USER_RAISED_TS_V5_DEEPSEEK_PROGRAM_CEILING_TO_5_USD
+  provider_calls_under_prior_scope: 0
+  secret_reads_under_prior_scope: 0
+
+frozen_identity:
+  candidate_lane_git_head: f597200e0a3aecc77d2ef1c1d9eed5fa2e14dd4f
+  prior_scope_proposal_git_head: 2c6dee68d3ed15381190071aa13eb28b7914eb3e
+  governance_sha256: 52ea721b5b9711dc9f0637e9230d9b934a3b075e2e5203d600d119cfb30c335b
+  prompt_sha256: bf046a1072e64346c14595d13b0d3f5cdee838df3a631dc7f4f85a92798e5e89
+  candidate_schema_sha256: 185ef56a2032dd5fa3dd991a75714e635d910f50124786420e3929cad153512c
+  independent_request_bundle_sha256: 7de4b42dd849f7298183a97b3622661940c60facf3e69218dba64b523bf8fb25
+  transport_protocol_sha256: b453590686223bdfec62500836600a2715afc319a647a720fd11d4ff24657d9e
+
+provider_contract:
+  provider: DeepSeek
+  base_url: https://api.deepseek.com
+  path: /chat/completions
+  model_request: deepseek-v4-pro
+  model_version_expected: DeepSeek-V4-Pro
+  thinking: enabled
+  reasoning_effort: high
+  response_format: json_object
+  tools: false
+  stream: false
+  concurrency: 1
+  trust_environment_proxy: false
+
+attempt_contract:
+  completed_response_target_exact: 12
+  independent_slots: 6
+  adversarial_revision_slots: 6
+  mechanism_order:
+    - VOLATILITY_ADAPTIVE_PULLBACK
+    - WEEKLY_STRUCTURE_QUANTILE
+    - BREAKOUT_RETEST
+    - MOVING_AVERAGE_RESUMPTION
+    - CONTRACTION_EXPANSION
+    - RELATIVE_STRENGTH_PULLBACK
+  failed_completed_response_counts: true
+  invalid_candidate_counts: true
+  replacement_response_authorized: false
+  unused_slot_or_budget_carryover: false
+  maximum_transport_attempts_per_slot: 3
+  retry_only_when_no_completed_response_is_known: true
+  billing_uncertain_stops_batch: true
+
+send_allowlist:
+  - frozen_system_prompt
+  - strict_candidate_json_schema
+  - product_constraints
+  - candidate_complexity_and_parameter_limits
+  - public_method_summary_without_instructions
+  - anonymous_ts_v3_v4_failure_memory
+  - assigned_mechanism_and_attempt_identity
+  - valid_same_mechanism_parent_candidate_for_revision
+  - invalid_parent_attempt_hash_and_failure_class_for_revision
+  - no_discovery_effect_feedback_in_this_batch
+
+send_forbidden:
+  - raw_or_row_level_market_data
+  - security_code_name_or_list
+  - holdings_orders_fills_or_signals
+  - discovery_return_or_risk_metrics
+  - sealed_validation_or_locked_test
+  - forward_or_production_results
+  - local_absolute_paths
+  - api_key_or_other_secret
+  - tushare_or_feishu_credentials
+
+cost_contract:
+  official_price_checked_on: "2026-08-13"
+  official_pricing_url: https://api-docs.deepseek.com/quick_start/pricing
+  input_cache_hit_usd_per_million: "0.003625"
+  input_cache_miss_usd_per_million: "0.435"
+  output_usd_per_million: "0.87"
+  maximum_prompt_tokens_per_slot: 16000
+  maximum_output_tokens_per_slot: 1800
+  planned_worst_case_all_cache_miss_usd: "0.102312"
+  first_batch_hard_ceiling_usd: "0.50"
+  ts_v5_program_hard_ceiling_usd: "5.00"
+  stop_before_request_if_remaining_batch_ceiling_cannot_cover_slot_worst_case: true
+  stop_before_request_if_remaining_program_ceiling_cannot_cover_slot_worst_case: true
+  unused_program_budget_is_not_execution_authority: true
+  unused_batch_budget_carryover: false
+  every_future_batch_requires_new_scoped_release_and_user_approval: true
+
+storage_and_isolation:
+  project_relative_output_root: data/research/trend_swing/ts-v5-llm-batch-001
+  gitignored_raw_responses: true
+  append_only_ts_specific_attempt_and_transport_ledgers: true
+  d1_factor_ledgers_unchanged: true
+  env_file_not_mounted: true
+  only_deepseek_api_key_secret_injected_after_release: true
+  docker_short_lived_serial_runner: true
+  scheduler_web_and_production_unchanged: true
+
+next_authority_if_first_batch_approved:
+  freeze_exact_execution_release: true
+  implement_and_fixture_batch_coordinator: true
+  build_immutable_short_lived_image: true
+  run_preflight_before_secret_read: true
+  run_bound_batch_once: true
+  validate_and_archive_candidates: true
+  market_or_effect_read: false
+  parameter_search_or_backtest: false
+  paper_web_or_production: false
