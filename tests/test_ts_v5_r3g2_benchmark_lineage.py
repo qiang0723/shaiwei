@@ -8,6 +8,7 @@ from shaiwei.research.trend_swing.benchmark_lineage import (
     BenchmarkLineageError,
     CalendarEvidence,
     SOURCE_FIELDS,
+    apply_boundary_anchor_policy,
     evaluate_quality,
     parse_history,
     validate_identity_text,
@@ -127,6 +128,31 @@ def test_dictionary_key_order_cannot_shift_official_fields() -> None:
     assert frame.loc[0, "index_code"] == "H00906"
     assert frame.loc[0, "index_full_name_cn"] == "中证800全收益指数"
     assert frame.loc[0, "close"] == 100.0
+
+
+def test_exact_nontrading_start_anchor_is_excluded() -> None:
+    anchor = _row("2019-01-01")
+    anchor[6:9] = [None, None, None]
+    frame = parse_history(_raw([anchor, _row("2019-01-02")]))
+    derived, count = apply_boundary_anchor_policy(
+        frame,
+        open_days=frozenset({"20190102"}),
+        requested_start_date="20190101",
+    )
+    assert count == 1
+    assert derived["trade_date"].tolist() == ["20190102"]
+
+
+def test_other_nontrading_observation_fails_closed() -> None:
+    anchor = _row("2019-01-03")
+    anchor[6:9] = [None, None, None]
+    frame = parse_history(_raw([anchor, _row("2019-01-02")]))
+    with pytest.raises(BenchmarkLineageError):
+        apply_boundary_anchor_policy(
+            frame,
+            open_days=frozenset({"20190102"}),
+            requested_start_date="20190101",
+        )
 
 
 def test_transport_preflight_requires_empty_project_local_directory(

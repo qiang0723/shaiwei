@@ -26,6 +26,10 @@ RECOVERY_R2_PATH = PROJECT_ROOT / "config/ts_v5_r3g2_benchmark_transport_recover
 RECOVERY_R2_SHA256 = "30eb0458091b39f019c21aa817e731e3826b926cceb5611609000ecbcb2838bb"
 RECOVERY_R3_PATH = PROJECT_ROOT / "config/ts_v5_r3g2_benchmark_evaluation_recovery_r3.yaml"
 RECOVERY_R3_SHA256 = "87c0d80dd514decb1be7281aff418cc0e6bd0dcae8090b579ab81d2bbccfa627"
+RECOVERY_R4_PATH = PROJECT_ROOT / "config/ts_v5_r3g2_benchmark_boundary_anchor_r4.yaml"
+RECOVERY_R4_SHA256 = "189c53caef73aac3b6fe7969f0ea394fbf3c36094676a550634bb6bc74f5332f"
+RECOVERY_R5_PATH = PROJECT_ROOT / "config/ts_v5_r3g2_benchmark_boundary_anchor_r5.yaml"
+RECOVERY_R5_SHA256 = "eab808eb39305373b3cf96fea75602e4a3951af8a87d2f66b9c77984131d3e5a"
 OUTPUT_ROOT = PROJECT_ROOT / "data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1"
 FACTSHEET_PATH = OUTPUT_ROOT / "raw/000906factsheet.pdf"
 FIRST_HISTORY_PATH = OUTPUT_ROOT / "raw/H00906-history-first.json"
@@ -104,6 +108,8 @@ def load_recovery(
     path: Path = RECOVERY_PATH,
     r2_path: Path = RECOVERY_R2_PATH,
     r3_path: Path = RECOVERY_R3_PATH,
+    r4_path: Path = RECOVERY_R4_PATH,
+    r5_path: Path = RECOVERY_R5_PATH,
 ) -> dict[str, Any]:
     if path.is_symlink() or sha256_file(path) != RECOVERY_SHA256:
         raise BenchmarkLineageError("H00906 transport recovery identity differs")
@@ -149,7 +155,44 @@ def load_recovery(
         or r3_authority.get("network_or_provider_request") is not False
     ):
         raise BenchmarkLineageError("H00906 field mapping recovery authority differs")
-    return r3
+    if r4_path.is_symlink() or sha256_file(r4_path) != RECOVERY_R4_SHA256:
+        raise BenchmarkLineageError("H00906 boundary anchor recovery identity differs")
+    r4 = yaml.safe_load(r4_path.read_text(encoding="utf-8"))
+    if not isinstance(r4, dict):
+        raise BenchmarkLineageError("H00906 boundary anchor recovery is not a mapping")
+    r4_authority = r4.get("r4_authority", {})
+    r4_policy = r4.get("exact_boundary_anchor_policy", {})
+    if (
+        r4.get("status") != "RESULT_UNKNOWN_EXACT_START_BOUNDARY_ANCHOR_FROZEN"
+        or r4.get("parent_recovery", {}).get("sha256") != RECOVERY_R3_SHA256
+        or r4_policy.get("maximum_anchor_count") != 1
+        or r4_policy.get("anchor_date_must_equal_requested_start_date") != "20190101"
+        or r4_authority.get("one_offline_evaluation_recovery") is not True
+        or r4_authority.get("network_or_provider_request") is not False
+    ):
+        raise BenchmarkLineageError("H00906 boundary anchor recovery authority differs")
+    if r5_path.is_symlink() or sha256_file(r5_path) != RECOVERY_R5_SHA256:
+        raise BenchmarkLineageError("H00906 boundary semantics identity differs")
+    r5 = yaml.safe_load(r5_path.read_text(encoding="utf-8"))
+    if not isinstance(r5, dict):
+        raise BenchmarkLineageError("H00906 boundary semantics is not a mapping")
+    r5_authority = r5.get("r5_authority", {})
+    r5_policy = r5.get("clarified_boundary_anchor_policy", {})
+    if (
+        r5.get("status") != "RESULT_UNKNOWN_BOUNDARY_ANCHOR_SEMANTICS_CLARIFIED"
+        or r5.get("parent_recovery", {}).get("sha256") != RECOVERY_R4_SHA256
+        or r5_policy.get("maximum_anchor_count") != 1
+        or r5_policy.get("anchor_date_must_equal_requested_start_date") != "20190101"
+        or r5_policy.get("anchor_open_high_low_must_all_be_null") is not True
+        or r5_policy.get("anchor_close_must_be_finite_and_positive") is not True
+        or r5_policy.get("exclude_from_derived_daily") is not True
+        or r5_authority.get("one_offline_evaluation_recovery") is not True
+        or r5_authority.get("one_offline_independent_audit") is not True
+        or r5_authority.get("network_or_provider_request") is not False
+        or r5_authority.get("env_or_secret_read") is not False
+    ):
+        raise BenchmarkLineageError("H00906 boundary semantics authority differs")
+    return r5
 
 
 def canonical_history_data(raw: bytes) -> bytes:
@@ -190,6 +233,36 @@ def validate_identity_text(text: str) -> None:
         raise BenchmarkLineageError("official factsheet lacks the frozen return-code family")
     if "全收益" not in normalized and "totalreturn" not in normalized:
         raise BenchmarkLineageError("official factsheet lacks an explicit total-return label")
+
+
+def apply_boundary_anchor_policy(
+    frame: pd.DataFrame,
+    *,
+    open_days: frozenset[str],
+    requested_start_date: str,
+) -> tuple[pd.DataFrame, int]:
+    """Exclude the one frozen non-trading start anchor, or fail closed."""
+    unexpected = frame.loc[~frame["trade_date"].isin(open_days)]
+    if unexpected.empty:
+        return frame.copy().reset_index(drop=True), 0
+    if len(unexpected) != 1:
+        raise BenchmarkLineageError("official history has multiple non-open observations")
+    anchor = unexpected.iloc[0]
+    close = anchor["close"]
+    if (
+        str(anchor["trade_date"]) != requested_start_date
+        or requested_start_date in open_days
+        or str(anchor["index_code"]) != "H00906"
+        or not anchor[["open", "high", "low"]].isna().all()
+        or pd.isna(close)
+        or not math.isfinite(float(close))
+        or float(close) <= 0
+    ):
+        raise BenchmarkLineageError("official history non-open observation is not the frozen anchor")
+    derived = frame.loc[frame["trade_date"].isin(open_days)].copy().reset_index(drop=True)
+    if set(derived["trade_date"]) != set(open_days):
+        raise BenchmarkLineageError("official history differs from open days after anchor exclusion")
+    return derived, 1
 
 
 def load_calendar_evidence(

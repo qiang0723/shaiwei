@@ -66,7 +66,7 @@ def run_once() -> dict:
         raw_already_persisted=True,
         transport_recovery={
             "prior_failed_transport_attempt_count": 2,
-            "prior_offline_evaluation_attempt_count": 1,
+            "prior_offline_evaluation_attempt_count": 2,
             "recovery_completed_response_count": 3,
             "secret_read_count": 0,
         },

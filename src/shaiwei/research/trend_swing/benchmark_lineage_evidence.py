@@ -18,10 +18,11 @@ from shaiwei.research.trend_swing.benchmark_lineage import (
     FIRST_HISTORY_PATH,
     MANIFEST_DRAFT_PATH,
     PROTOCOL_SHA256,
-    RECOVERY_R2_SHA256,
     RECOVERY_R3_SHA256,
+    RECOVERY_R5_SHA256,
     REPORT_PATH,
     SECOND_HISTORY_PATH,
+    apply_boundary_anchor_policy,
     evaluate_quality,
     load_calendar_evidence,
     load_protocol,
@@ -111,25 +112,34 @@ def evaluate_and_persist(
     protocol = load_protocol()
     first = parse_history(first_raw)
     second = parse_history(second_raw)
+    if not first.equals(second):
+        raise BenchmarkLineageError("two official H00906 responses differ after parsing")
     calendar = load_calendar_evidence(
         ledger_path,
         start_date=protocol["benchmark"]["required_start_date"],
         end_date=protocol["benchmark"]["required_end_date"],
     )
-    report = evaluate_quality(
+    derived, anchor_count = apply_boundary_anchor_policy(
         first,
-        second,
+        open_days=calendar.open_days,
+        requested_start_date=protocol["benchmark"]["required_start_date"],
+    )
+    report = evaluate_quality(
+        derived,
+        derived.copy(),
         identity_text=factsheet_text(factsheet),
         calendar=calendar,
         start_date=protocol["benchmark"]["required_start_date"],
         end_date=protocol["benchmark"]["required_end_date"],
     )
+    report["raw_row_count"] = len(first)
+    report["source_boundary_anchor_count"] = anchor_count
     report["implementation_git_head"] = git_head()
     report["implementation_snapshot_sha256"] = code_snapshot_sha256()
     if transport_recovery is not None:
         report["transport_recovery"] = transport_recovery
-        report["transport_recovery_sha256"] = RECOVERY_R3_SHA256
-        report["parent_transport_recovery_sha256"] = RECOVERY_R2_SHA256
+        report["transport_recovery_sha256"] = RECOVERY_R5_SHA256
+        report["parent_transport_recovery_sha256"] = RECOVERY_R3_SHA256
     if raw_already_persisted:
         expected = (
             (FACTSHEET_PATH, factsheet),
@@ -145,7 +155,7 @@ def evaluate_and_persist(
     if any(path.exists() for path in (DAILY_PATH, REPORT_PATH, MANIFEST_DRAFT_PATH)):
         raise BenchmarkLineageError("H00906 derived scope was already consumed")
     DAILY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    first.to_parquet(DAILY_PATH, index=False)
+    derived.to_parquet(DAILY_PATH, index=False)
     report["artifacts"] = {
         "factsheet": artifact(FACTSHEET_PATH),
         "history_first": artifact(FIRST_HISTORY_PATH),

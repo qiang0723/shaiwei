@@ -15,9 +15,10 @@ from shaiwei.research.trend_swing.benchmark_lineage import (
     FIRST_HISTORY_PATH,
     MANIFEST_DRAFT_PATH,
     PROTOCOL_SHA256,
-    RECOVERY_R3_SHA256,
+    RECOVERY_R5_SHA256,
     REPORT_PATH,
     SECOND_HISTORY_PATH,
+    apply_boundary_anchor_policy,
     evaluate_quality,
     load_calendar_evidence,
     load_protocol,
@@ -49,9 +50,16 @@ def audit_once() -> dict:
         start_date=protocol["benchmark"]["required_start_date"],
         end_date=protocol["benchmark"]["required_end_date"],
     )
-    recomputed = evaluate_quality(
+    if not first.equals(second):
+        raise RuntimeError("independent H00906 raw response comparison failed")
+    derived, anchor_count = apply_boundary_anchor_policy(
         first,
-        second,
+        open_days=calendar.open_days,
+        requested_start_date=protocol["benchmark"]["required_start_date"],
+    )
+    recomputed = evaluate_quality(
+        derived,
+        derived.copy(),
         identity_text=_factsheet_text(),
         calendar=calendar,
         start_date=protocol["benchmark"]["required_start_date"],
@@ -78,7 +86,11 @@ def audit_once() -> dict:
                 "invalid_ohlc_count",
             )
         ),
-        "derived_daily_equals_official_response": persisted.equals(first),
+        "derived_daily_equals_official_open_days": persisted.equals(derived),
+        "source_boundary_anchor": (
+            report.get("raw_row_count") == len(first)
+            and report.get("source_boundary_anchor_count") == anchor_count == 1
+        ),
         "derived_daily_hash": (
             manifest["sources"]["official.csi_total_return"]["artifacts"][0]["content_sha256"]
             == sha256_file(DAILY_PATH)
@@ -98,11 +110,11 @@ def audit_once() -> dict:
         "zero_effect_attempt": report["strategy_effect_attempt_count"] == 0,
         "zero_secret_read": report["tushare_or_secret_read_count"] == 0,
         "transport_recovery_identity": report.get("transport_recovery_sha256")
-        == RECOVERY_R3_SHA256,
+        == RECOVERY_R5_SHA256,
         "transport_attempt_accounting": report.get("transport_recovery")
         == {
             "prior_failed_transport_attempt_count": 2,
-            "prior_offline_evaluation_attempt_count": 1,
+            "prior_offline_evaluation_attempt_count": 2,
             "recovery_completed_response_count": 3,
             "secret_read_count": 0,
         },
