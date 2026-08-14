@@ -27,8 +27,9 @@
   字段错位，在任何派生写入前失败。R3只改为16字段显式名称映射并加乱序对抗测试，零新网络。见
   `docs/TS_V5_R3G2_BENCHMARK_EVALUATION_RECOVERY_R3_20260814.md`。
 - R3字段映射正确后质量门只剩官方接口的`20190101`非交易日起点锚：1846 raw行对1845开市日，缺失/
-  重复/无效close均0，派生仍未写。R4只允许精确一条起点、OHLC全空的边界锚留raw不入派生日表，
-  排除后日期须与SSE日历全等；零新网络。见`docs/TS_V5_R3G2_BENCHMARK_BOUNDARY_ANCHOR_R4_20260814.md`。
+  重复/无效close均0，派生仍未写。R4因“OHLC全空”与“close为正”的字面矛盾未实施；R5在结果未知时
+  只澄清为open/high/low全空、close有限且为正，边界锚留raw不入派生日表，排除后日期须与SSE
+  日历全等；零新网络。见`docs/TS_V5_R3G2_BENCHMARK_BOUNDARY_ANCHOR_R5_20260814.md`。
 
 ## 2026-08-13 · TS-v5-R3G-1近期密度R2部分GO
 

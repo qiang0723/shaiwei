@@ -9,6 +9,7 @@ RECOVERY = ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r1.yaml"
 RECOVERY_R2 = ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r2.yaml"
 RECOVERY_R3 = ROOT / "config/ts_v5_r3g2_benchmark_evaluation_recovery_r3.yaml"
 RECOVERY_R4 = ROOT / "config/ts_v5_r3g2_benchmark_boundary_anchor_r4.yaml"
+RECOVERY_R5 = ROOT / "config/ts_v5_r3g2_benchmark_boundary_anchor_r5.yaml"
 COMPOSE = ROOT / "compose.ts-v5-r3g2-benchmark.yaml"
 DOCKERFILE = ROOT / "Dockerfile.ts-v5-r3g2-benchmark"
 
@@ -173,5 +174,21 @@ def test_r4_accepts_only_one_exact_nontrading_start_anchor() -> None:
     assert policy["anchor_OHLC_must_all_be_null"] is True
     assert policy["exclude_from_derived_daily"] is True
     assert policy["after_exclusion_date_set_must_equal_official_open_days"] is True
+    assert authority["network_or_provider_request"] is False
+    assert authority["read_candidate_or_post_entry_return"] is False
+
+
+def test_r5_resolves_only_the_contradictory_anchor_field_set() -> None:
+    recovery = yaml.safe_load(RECOVERY_R5.read_text(encoding="utf-8"))
+    ambiguity = recovery["r4_ambiguity"]
+    policy = recovery["clarified_boundary_anchor_policy"]
+    authority = recovery["r5_authority"]
+    assert recovery["status"] == "RESULT_UNKNOWN_BOUNDARY_ANCHOR_SEMANTICS_CLARIFIED"
+    assert ambiguity["implementation_before_clarification"] is False
+    assert ambiguity["derived_file_count"] == 0
+    assert ambiguity["strategy_effect_attempt_count"] == 0
+    assert policy["anchor_open_high_low_must_all_be_null"] is True
+    assert policy["anchor_close_must_be_finite_and_positive"] is True
+    assert policy["exclude_from_derived_daily"] is True
     assert authority["network_or_provider_request"] is False
     assert authority["read_candidate_or_post_entry_return"] is False

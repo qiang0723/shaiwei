@@ -17,6 +17,10 @@ H00906中证800全收益基准数据门已在任何候选收益读取前冻结�
 独立audit；不引入secret、替代源或效果权限。见
 `docs/TS_V5_R3G2_BENCHMARK_TRANSPORT_RECOVERY_R1_20260814.md`。
 
+R4起点锚文字在实施前被发现同时要求“OHLC全空”与“close为正”，因内部矛盾不直接施工。R5仅澄清为
+open/high/low全空、close有限且为正；不改数据、来源、门槛、时间角色或网络次数。见
+`docs/TS_V5_R3G2_BENCHMARK_BOUNDARY_ANCHOR_R5_20260814.md`。
+
 ## 2026-08-13 TS-v5持续演化研究路线
 
 R3G-1近期密度投影已完成R2权威恢复：现行时间口径覆盖2021—2026，但严格分为2021—2023发现选择、
