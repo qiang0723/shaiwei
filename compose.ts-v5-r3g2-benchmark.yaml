@@ -37,3 +37,8 @@ services:
     profiles: [ts-v5-r3g2-benchmark-audit]
     network_mode: none
     command: [python, -m, shaiwei.research.trend_swing.benchmark_lineage_audit]
+  ts-v5-r3g2-benchmark-recovery:
+    <<: *r3g2-benchmark-base
+    profiles: [ts-v5-r3g2-benchmark-recovery]
+    network_mode: none
+    command: [python, -m, shaiwei.research.trend_swing.benchmark_lineage_recovery]

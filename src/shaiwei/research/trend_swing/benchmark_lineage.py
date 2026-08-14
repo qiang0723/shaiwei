@@ -20,6 +20,8 @@ from shaiwei.research.trend_swing.sources import latest_source_entries
 
 PROTOCOL_PATH = PROJECT_ROOT / "config/ts_v5_r3g2_benchmark_lineage_v1.yaml"
 PROTOCOL_SHA256 = "48ce1e403e13c4921688cda19a7c437490428f53c2e6c457cf5a57e0f4764de7"
+RECOVERY_PATH = PROJECT_ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r1.yaml"
+RECOVERY_SHA256 = "c0945de50895fb013648c05b0d7335c679015c5903b40b81e2b85075696d31bc"
 OUTPUT_ROOT = PROJECT_ROOT / "data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1"
 FACTSHEET_PATH = OUTPUT_ROOT / "raw/000906factsheet.pdf"
 FIRST_HISTORY_PATH = OUTPUT_ROOT / "raw/H00906-history-first.json"
@@ -72,6 +74,25 @@ def load_protocol(path: Path = PROTOCOL_PATH) -> dict[str, Any]:
         or value.get("verdicts", {}).get("production_authorization") != "none"
     ):
         raise BenchmarkLineageError("H00906 frozen protocol authority differs")
+    return value
+
+
+def load_recovery(path: Path = RECOVERY_PATH) -> dict[str, Any]:
+    if path.is_symlink() or sha256_file(path) != RECOVERY_SHA256:
+        raise BenchmarkLineageError("H00906 transport recovery identity differs")
+    value = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise BenchmarkLineageError("H00906 transport recovery is not a mapping")
+    authority = value.get("recovery_authority", {})
+    if (
+        value.get("status") != "RESULT_UNKNOWN_TRANSPORT_RECOVERY_FROZEN"
+        or value.get("parent_protocol", {}).get("sha256") != PROTOCOL_SHA256
+        or authority.get("host_transport_only") is not True
+        or authority.get("docker_offline_evaluation_once") is not True
+        or authority.get("env_or_secret_read") is not False
+        or value.get("post_transfer", {}).get("evaluation_network_mode") != "none"
+    ):
+        raise BenchmarkLineageError("H00906 transport recovery authority differs")
     return value
 
 
