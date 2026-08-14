@@ -1,0 +1,71 @@
+recovery_id: ts-v5-r3g2-h00906-benchmark-transport-recovery-r1
+recovery_date_utc8: 2026-08-14
+status: RESULT_UNKNOWN_TRANSPORT_RECOVERY_FROZEN
+
+parent_protocol:
+  path: config/ts_v5_r3g2_benchmark_lineage_v1.yaml
+  sha256: 48ce1e403e13c4921688cda19a7c437490428f53c2e6c457cf5a57e0f4764de7
+
+failed_scope:
+  implementation_git_head: 1817bf5c95550fbba5abe186f5225538c185d488
+  image_id: sha256:2064e37e900568bb9e57889aff52df429f9a1944cd4f1b5f7a01ca3e05039ac2
+  failure_stage: first_official_factsheet_TLS_handshake
+  error_type: httpx.ConnectError
+  error_summary: SSL_UNEXPECTED_EOF_WHILE_READING
+  completed_http_response_count: 0
+  history_request_attempt_count: 0
+  persisted_file_count: 0
+  data_gate_evaluation_count: 0
+  independent_audit_count: 0
+  secret_read_count: 0
+  strategy_effect_attempt_count: 0
+  same_scope_retry_authorized: false
+
+recovery_authority:
+  host_transport_only: true
+  one_factsheet_transfer: true
+  two_identical_history_transfers: true
+  maximum_transport_attempts_per_logical_request: 1
+  docker_offline_evaluation_once: true
+  docker_offline_independent_audit_once: true
+  env_or_secret_read: false
+  extra_source_or_substitute: false
+  read_candidate_or_post_entry_return: false
+  parameter_search_or_effect_comparison: false
+  model_training_prediction_or_backtest: false
+  paper_web_scheduler_or_production_change: false
+
+host_transport:
+  factsheet:
+    method: GET
+    url: https://oss-ch.csindex.com.cn/static/html/csindex/public/uploads/indices/detail/files/zh_CN/000906factsheet.pdf
+    output: data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1/raw/000906factsheet.pdf
+  history_first:
+    method: GET
+    url: https://www.csindex.com.cn/csindex-home/perf/index-perf
+    query:
+      indexCode: H00906
+      startDate: "20190101"
+      endDate: "20260811"
+    output: data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1/raw/H00906-history-first.json
+  history_second:
+    method: GET
+    url: https://www.csindex.com.cn/csindex-home/perf/index-perf
+    query:
+      indexCode: H00906
+      startDate: "20190101"
+      endDate: "20260811"
+    output: data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1/raw/H00906-history-second.json
+
+post_transfer:
+  canonical_history_responses_must_match: true
+  all_parent_quality_gates_unchanged: true
+  evaluation_network_mode: none
+  audit_network_mode: none
+  output_contract_unchanged: true
+
+verdicts:
+  transport_or_data_failure: NO_GO_H00906_LINEAGE_DATA_GATE
+  go: GO_H00906_LINEAGE_DATA_GATE_ONLY
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none

@@ -17,6 +17,9 @@
 - 首轮镜像构建在容器/请求/读取前因BuildKit把本地digest引用解析为Docker Hub拉取而失败；零scope
   消耗。恢复只改用已核验本地标签并把精确父镜像ID写入label和测试，协议与数据门不变。见
   `docs/TS_V5_R3G2_BENCHMARK_IMAGE_RECOVERY_20260814.md`。
+- 首次真实网络容器在事实表TLS握手阶段失败，完整HTTP响应、历史请求、文件写入、数据门评价均为0；
+  原网络scope关闭。R1只把固定三份公开bytes传输移到宿主，随后Docker断网评价和审计；不读secret、
+  不换来源或门槛。见`docs/TS_V5_R3G2_BENCHMARK_TRANSPORT_RECOVERY_R1_20260814.md`。
 
 ## 2026-08-13 · TS-v5-R3G-1近期密度R2部分GO
 

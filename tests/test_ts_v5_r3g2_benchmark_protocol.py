@@ -5,6 +5,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT / "config/ts_v5_r3g2_benchmark_lineage_v1.yaml"
+RECOVERY = ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r1.yaml"
 COMPOSE = ROOT / "compose.ts-v5-r3g2-benchmark.yaml"
 DOCKERFILE = ROOT / "Dockerfile.ts-v5-r3g2-benchmark"
 
@@ -97,3 +98,23 @@ def test_release_image_is_pinned_to_frozen_r3g1_parent() -> None:
     assert "COPY src ./src" in dockerfile
     assert "COPY config ./config" in dockerfile
     assert "COPY tests ./tests" in dockerfile
+
+
+def test_transport_recovery_only_moves_public_bytes_to_host() -> None:
+    recovery = yaml.safe_load(RECOVERY.read_text(encoding="utf-8"))
+    failed = recovery["failed_scope"]
+    authority = recovery["recovery_authority"]
+    assert recovery["status"] == "RESULT_UNKNOWN_TRANSPORT_RECOVERY_FROZEN"
+    assert failed["completed_http_response_count"] == 0
+    assert failed["history_request_attempt_count"] == 0
+    assert failed["persisted_file_count"] == 0
+    assert failed["same_scope_retry_authorized"] is False
+    assert authority["host_transport_only"] is True
+    assert authority["maximum_transport_attempts_per_logical_request"] == 1
+    assert authority["docker_offline_evaluation_once"] is True
+    assert authority["docker_offline_independent_audit_once"] is True
+    assert authority["env_or_secret_read"] is False
+    assert authority["extra_source_or_substitute"] is False
+    assert authority["read_candidate_or_post_entry_return"] is False
+    assert recovery["post_transfer"]["evaluation_network_mode"] == "none"
+    assert recovery["post_transfer"]["audit_network_mode"] == "none"
