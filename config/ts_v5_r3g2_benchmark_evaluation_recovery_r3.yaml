@@ -1,0 +1,64 @@
+recovery_id: ts-v5-r3g2-h00906-benchmark-evaluation-recovery-r3
+recovery_date_utc8: 2026-08-14
+status: RESULT_UNKNOWN_EXPLICIT_FIELD_MAPPING_RECOVERY_FROZEN
+
+parent_recovery:
+  path: config/ts_v5_r3g2_benchmark_transport_recovery_r2.yaml
+  sha256: 30eb0458091b39f019c21aa817e731e3826b926cceb5611609000ecbcb2838bb
+
+r2_evaluation_failure:
+  image_git_head: 69df00c2c2735ccd39e5e70057c8dd0aea095983
+  code_snapshot_sha256: b9e75f346bd2e582da14160cf9b56e34fd63d9c519d66c0b219c3b09d4bec410
+  stage: parsed_history_identity_gate_before_any_derived_write
+  error: official_history_index_identity_differs
+  root_cause: canonical_key_sort_followed_by_positional_column_rename
+  derived_file_count: 0
+  report_file_count: 0
+  independent_audit_count: 0
+  strategy_effect_attempt_count: 0
+  same_r2_evaluation_retry_authorized: false
+
+frozen_raw_inputs:
+  factsheet_sha256: 15c9cb54edb45ea2294c7b8614bce5bff35e5d6daa94c2ebad45dd0ed11942b7
+  history_first_sha256: 85472a434ddb094a18007b3e2733c825c0643001c605b643df2692ca41e34b2a
+  history_second_sha256: 85472a434ddb094a18007b3e2733c825c0643001c605b643df2692ca41e34b2a
+  new_network_request_count: 0
+
+r3_change:
+  replace_positional_rename_with_explicit_official_key_mapping: true
+  exact_official_keys:
+    tradeDate: trade_date
+    indexCode: index_code
+    indexNameCnAll: index_full_name_cn
+    indexNameCn: index_short_name_cn
+    indexNameEnAll: index_full_name_en
+    indexNameEn: index_short_name_en
+    open: open
+    high: high
+    low: low
+    close: close
+    change: change
+    changePct: pct_change
+    tradingVol: volume
+    tradingValue: amount
+    consNumber: constituent_count
+    peg: pe_ttm
+  missing_extra_or_duplicate_key: fail_closed
+  dictionary_key_order: irrelevant
+  parent_quality_gates_unchanged: true
+
+r3_authority:
+  one_offline_evaluation_recovery: true
+  one_offline_independent_audit: true
+  network_or_provider_request: false
+  env_or_secret_read: false
+  read_candidate_or_post_entry_return: false
+  parameter_search_or_effect_comparison: false
+  model_training_prediction_or_backtest: false
+  paper_web_scheduler_or_production_change: false
+
+verdicts:
+  failure: NO_GO_H00906_LINEAGE_DATA_GATE
+  go: GO_H00906_LINEAGE_DATA_GATE_ONLY
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none

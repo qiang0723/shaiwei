@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT / "config/ts_v5_r3g2_benchmark_lineage_v1.yaml"
 RECOVERY = ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r1.yaml"
 RECOVERY_R2 = ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r2.yaml"
+RECOVERY_R3 = ROOT / "config/ts_v5_r3g2_benchmark_evaluation_recovery_r3.yaml"
 COMPOSE = ROOT / "compose.ts-v5-r3g2-benchmark.yaml"
 DOCKERFILE = ROOT / "Dockerfile.ts-v5-r3g2-benchmark"
 
@@ -134,5 +135,23 @@ def test_transport_r2_adds_only_output_preflight() -> None:
     assert all(preflight.values())
     assert authority["inherits_exact_three_public_requests_from_r1"] is True
     assert authority["maximum_transport_attempts_per_logical_request"] == 1
+    assert authority["env_or_secret_read"] is False
+    assert authority["read_candidate_or_post_entry_return"] is False
+
+
+def test_evaluation_r3_only_replaces_positional_mapping() -> None:
+    recovery = yaml.safe_load(RECOVERY_R3.read_text(encoding="utf-8"))
+    failure = recovery["r2_evaluation_failure"]
+    change = recovery["r3_change"]
+    authority = recovery["r3_authority"]
+    assert recovery["status"] == "RESULT_UNKNOWN_EXPLICIT_FIELD_MAPPING_RECOVERY_FROZEN"
+    assert failure["derived_file_count"] == 0
+    assert failure["report_file_count"] == 0
+    assert failure["same_r2_evaluation_retry_authorized"] is False
+    assert change["replace_positional_rename_with_explicit_official_key_mapping"] is True
+    assert len(change["exact_official_keys"]) == 16
+    assert change["dictionary_key_order"] == "irrelevant"
+    assert authority["one_offline_evaluation_recovery"] is True
+    assert authority["network_or_provider_request"] is False
     assert authority["env_or_secret_read"] is False
     assert authority["read_candidate_or_post_entry_return"] is False
