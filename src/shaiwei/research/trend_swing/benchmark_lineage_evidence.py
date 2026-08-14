@@ -19,7 +19,7 @@ from shaiwei.research.trend_swing.benchmark_lineage import (
     MANIFEST_DRAFT_PATH,
     PROTOCOL_SHA256,
     RECOVERY_R2_SHA256,
-    RECOVERY_SHA256,
+    RECOVERY_R3_SHA256,
     REPORT_PATH,
     SECOND_HISTORY_PATH,
     evaluate_quality,
@@ -128,8 +128,8 @@ def evaluate_and_persist(
     report["implementation_snapshot_sha256"] = code_snapshot_sha256()
     if transport_recovery is not None:
         report["transport_recovery"] = transport_recovery
-        report["transport_recovery_sha256"] = RECOVERY_R2_SHA256
-        report["parent_transport_recovery_sha256"] = RECOVERY_SHA256
+        report["transport_recovery_sha256"] = RECOVERY_R3_SHA256
+        report["parent_transport_recovery_sha256"] = RECOVERY_R2_SHA256
     if raw_already_persisted:
         expected = (
             (FACTSHEET_PATH, factsheet),

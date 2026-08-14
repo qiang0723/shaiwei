@@ -18,6 +18,7 @@ from shaiwei.research.trend_swing.benchmark_lineage import (
     load_recovery,
 )
 from shaiwei.research.trend_swing.benchmark_lineage_evidence import evaluate_and_persist
+from shaiwei.research.trend_swing.contract import sha256_file
 
 
 def validate_output_preflight(
@@ -44,12 +45,20 @@ def validate_output_preflight(
 
 
 def run_once() -> dict:
-    load_recovery()
+    recovery = load_recovery()
     raw_paths = (FACTSHEET_PATH, FIRST_HISTORY_PATH, SECOND_HISTORY_PATH)
     if not all(path.is_file() and not path.is_symlink() for path in raw_paths):
         raise RuntimeError("host-transferred H00906 evidence is incomplete")
     if any(path.exists() for path in (DAILY_PATH, REPORT_PATH, MANIFEST_DRAFT_PATH)):
         raise RuntimeError("H00906 recovery evaluation was already consumed")
+    frozen = recovery["frozen_raw_inputs"]
+    expected_hashes = (
+        (FACTSHEET_PATH, frozen["factsheet_sha256"]),
+        (FIRST_HISTORY_PATH, frozen["history_first_sha256"]),
+        (SECOND_HISTORY_PATH, frozen["history_second_sha256"]),
+    )
+    if any(sha256_file(path) != expected for path, expected in expected_hashes):
+        raise RuntimeError("H00906 frozen raw input identity differs")
     report = evaluate_and_persist(
         FACTSHEET_PATH.read_bytes(),
         FIRST_HISTORY_PATH.read_bytes(),
@@ -57,6 +66,7 @@ def run_once() -> dict:
         raw_already_persisted=True,
         transport_recovery={
             "prior_failed_transport_attempt_count": 2,
+            "prior_offline_evaluation_attempt_count": 1,
             "recovery_completed_response_count": 3,
             "secret_read_count": 0,
         },

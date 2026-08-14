@@ -24,6 +24,8 @@ RECOVERY_PATH = PROJECT_ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r
 RECOVERY_SHA256 = "c0945de50895fb013648c05b0d7335c679015c5903b40b81e2b85075696d31bc"
 RECOVERY_R2_PATH = PROJECT_ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r2.yaml"
 RECOVERY_R2_SHA256 = "30eb0458091b39f019c21aa817e731e3826b926cceb5611609000ecbcb2838bb"
+RECOVERY_R3_PATH = PROJECT_ROOT / "config/ts_v5_r3g2_benchmark_evaluation_recovery_r3.yaml"
+RECOVERY_R3_SHA256 = "87c0d80dd514decb1be7281aff418cc0e6bd0dcae8090b579ab81d2bbccfa627"
 OUTPUT_ROOT = PROJECT_ROOT / "data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1"
 FACTSHEET_PATH = OUTPUT_ROOT / "raw/000906factsheet.pdf"
 FIRST_HISTORY_PATH = OUTPUT_ROOT / "raw/H00906-history-first.json"
@@ -49,6 +51,25 @@ HISTORY_COLUMNS = (
     "constituent_count",
     "pe_ttm",
 )
+SOURCE_FIELDS = (
+    "tradeDate",
+    "indexCode",
+    "indexNameCnAll",
+    "indexNameCn",
+    "indexNameEnAll",
+    "indexNameEn",
+    "open",
+    "high",
+    "low",
+    "close",
+    "change",
+    "changePct",
+    "tradingVol",
+    "tradingValue",
+    "consNumber",
+    "peg",
+)
+SOURCE_TO_HISTORY = dict(zip(SOURCE_FIELDS, HISTORY_COLUMNS, strict=True))
 NUMERIC_COLUMNS = HISTORY_COLUMNS[6:]
 
 
@@ -82,6 +103,7 @@ def load_protocol(path: Path = PROTOCOL_PATH) -> dict[str, Any]:
 def load_recovery(
     path: Path = RECOVERY_PATH,
     r2_path: Path = RECOVERY_R2_PATH,
+    r3_path: Path = RECOVERY_R3_PATH,
 ) -> dict[str, Any]:
     if path.is_symlink() or sha256_file(path) != RECOVERY_SHA256:
         raise BenchmarkLineageError("H00906 transport recovery identity differs")
@@ -112,7 +134,22 @@ def load_recovery(
         or r2_authority.get("env_or_secret_read") is not False
     ):
         raise BenchmarkLineageError("H00906 output preflight recovery authority differs")
-    return r2
+    if r3_path.is_symlink() or sha256_file(r3_path) != RECOVERY_R3_SHA256:
+        raise BenchmarkLineageError("H00906 field mapping recovery identity differs")
+    r3 = yaml.safe_load(r3_path.read_text(encoding="utf-8"))
+    if not isinstance(r3, dict):
+        raise BenchmarkLineageError("H00906 field mapping recovery is not a mapping")
+    r3_authority = r3.get("r3_authority", {})
+    expected_mapping = r3.get("r3_change", {}).get("exact_official_keys")
+    if (
+        r3.get("status") != "RESULT_UNKNOWN_EXPLICIT_FIELD_MAPPING_RECOVERY_FROZEN"
+        or r3.get("parent_recovery", {}).get("sha256") != RECOVERY_R2_SHA256
+        or expected_mapping != SOURCE_TO_HISTORY
+        or r3_authority.get("one_offline_evaluation_recovery") is not True
+        or r3_authority.get("network_or_provider_request") is not False
+    ):
+        raise BenchmarkLineageError("H00906 field mapping recovery authority differs")
+    return r3
 
 
 def canonical_history_data(raw: bytes) -> bytes:
@@ -128,11 +165,14 @@ def canonical_history_data(raw: bytes) -> bytes:
 
 def parse_history(raw: bytes) -> pd.DataFrame:
     data = json.loads(canonical_history_data(raw))
-    frame = pd.DataFrame(data)
-    if len(frame.columns) != len(HISTORY_COLUMNS):
-        raise BenchmarkLineageError("official H00906 response row shape differs")
-    frame.columns = list(HISTORY_COLUMNS)
-    parsed_dates = pd.to_datetime(frame["trade_date"], errors="coerce")
+    expected = set(SOURCE_FIELDS)
+    if any(not isinstance(row, dict) or set(row) != expected for row in data):
+        raise BenchmarkLineageError("official H00906 response field identity differs")
+    frame = pd.DataFrame(
+        [{target: row[source] for source, target in SOURCE_TO_HISTORY.items()} for row in data],
+        columns=HISTORY_COLUMNS,
+    )
+    parsed_dates = pd.to_datetime(frame["trade_date"], format="%Y%m%d", errors="coerce")
     if parsed_dates.isna().any():
         raise BenchmarkLineageError("official H00906 response contains invalid dates")
     frame["trade_date"] = parsed_dates.dt.strftime("%Y%m%d")
