@@ -8,6 +8,7 @@ PROTOCOL = ROOT / "config/ts_v5_r3g2_benchmark_lineage_v1.yaml"
 RECOVERY = ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r1.yaml"
 RECOVERY_R2 = ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r2.yaml"
 RECOVERY_R3 = ROOT / "config/ts_v5_r3g2_benchmark_evaluation_recovery_r3.yaml"
+RECOVERY_R4 = ROOT / "config/ts_v5_r3g2_benchmark_boundary_anchor_r4.yaml"
 COMPOSE = ROOT / "compose.ts-v5-r3g2-benchmark.yaml"
 DOCKERFILE = ROOT / "Dockerfile.ts-v5-r3g2-benchmark"
 
@@ -154,4 +155,23 @@ def test_evaluation_r3_only_replaces_positional_mapping() -> None:
     assert authority["one_offline_evaluation_recovery"] is True
     assert authority["network_or_provider_request"] is False
     assert authority["env_or_secret_read"] is False
+    assert authority["read_candidate_or_post_entry_return"] is False
+
+
+def test_r4_accepts_only_one_exact_nontrading_start_anchor() -> None:
+    recovery = yaml.safe_load(RECOVERY_R4.read_text(encoding="utf-8"))
+    failure = recovery["r3_quality_failure"]
+    policy = recovery["exact_boundary_anchor_policy"]
+    authority = recovery["r4_authority"]
+    assert recovery["status"] == "RESULT_UNKNOWN_EXACT_START_BOUNDARY_ANCHOR_FROZEN"
+    assert failure["unexpected_date_count"] == 1
+    assert failure["unexpected_dates"] == ["20190101"]
+    assert failure["missing_official_open_date_count"] == 0
+    assert failure["derived_file_count"] == 0
+    assert policy["maximum_anchor_count"] == 1
+    assert policy["anchor_date_must_equal_requested_start_date"] == "20190101"
+    assert policy["anchor_OHLC_must_all_be_null"] is True
+    assert policy["exclude_from_derived_daily"] is True
+    assert policy["after_exclusion_date_set_must_equal_official_open_days"] is True
+    assert authority["network_or_provider_request"] is False
     assert authority["read_candidate_or_post_entry_return"] is False

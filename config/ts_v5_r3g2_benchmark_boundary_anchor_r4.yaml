@@ -1,0 +1,57 @@
+recovery_id: ts-v5-r3g2-h00906-boundary-anchor-operationalization-r4
+recovery_date_utc8: 2026-08-14
+status: RESULT_UNKNOWN_EXACT_START_BOUNDARY_ANCHOR_FROZEN
+
+parent_recovery:
+  path: config/ts_v5_r3g2_benchmark_evaluation_recovery_r3.yaml
+  sha256: 87c0d80dd514decb1be7281aff418cc0e6bd0dcae8090b579ab81d2bbccfa627
+
+r3_quality_failure:
+  image_git_head: b040122cb2b42c7035a9b314433e2095968833e8
+  code_snapshot_sha256: c17211e24bd115b709bd5fe801b433831d7fbb9cf18c0e272fef1678609d4a93
+  raw_row_count: 1846
+  official_open_day_count: 1845
+  missing_official_open_date_count: 0
+  duplicate_key_count: 0
+  invalid_close_count: 0
+  complete_ohlc_row_count: 0
+  unexpected_date_count: 1
+  unexpected_dates: ["20190101"]
+  derived_file_count: 0
+  report_file_count: 0
+  same_r3_evaluation_retry_authorized: false
+
+exact_boundary_anchor_policy:
+  maximum_anchor_count: 1
+  anchor_date_must_equal_requested_start_date: "20190101"
+  anchor_date_must_not_be_official_open_day: true
+  anchor_index_code: H00906
+  anchor_OHLC_must_all_be_null: true
+  anchor_close_must_be_finite_and_positive: true
+  anchor_role: SOURCE_BOUNDARY_ANCHOR_NOT_A_TRADING_OBSERVATION
+  exclude_from_derived_daily: true
+  after_exclusion_date_set_must_equal_official_open_days: true
+  any_other_non_open_date: fail_closed
+  missing_open_day_after_exclusion: fail_closed
+
+frozen_raw_inputs:
+  factsheet_sha256: 15c9cb54edb45ea2294c7b8614bce5bff35e5d6daa94c2ebad45dd0ed11942b7
+  history_first_sha256: 85472a434ddb094a18007b3e2733c825c0643001c605b643df2692ca41e34b2a
+  history_second_sha256: 85472a434ddb094a18007b3e2733c825c0643001c605b643df2692ca41e34b2a
+  new_network_request_count: 0
+
+r4_authority:
+  one_offline_evaluation_recovery: true
+  one_offline_independent_audit: true
+  network_or_provider_request: false
+  env_or_secret_read: false
+  read_candidate_or_post_entry_return: false
+  parameter_search_or_effect_comparison: false
+  model_training_prediction_or_backtest: false
+  paper_web_scheduler_or_production_change: false
+
+verdicts:
+  failure: NO_GO_H00906_LINEAGE_DATA_GATE
+  go: GO_H00906_LINEAGE_DATA_GATE_ONLY
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
