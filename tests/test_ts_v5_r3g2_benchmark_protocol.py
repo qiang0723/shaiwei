@@ -5,6 +5,8 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT / "config/ts_v5_r3g2_benchmark_lineage_v1.yaml"
+COMPOSE = ROOT / "compose.ts-v5-r3g2-benchmark.yaml"
+DOCKERFILE = ROOT / "Dockerfile.ts-v5-r3g2-benchmark"
 
 
 def _load() -> dict:
@@ -68,3 +70,27 @@ def test_protocol_fails_closed_on_coverage_identity_or_drift() -> None:
     assert gate["response_drift_between_two_requests"] == "forbidden"
     assert document["verdicts"]["strategy_effective"] == "NOT_EVALUATED"
     assert document["verdicts"]["production_authorization"] == "none"
+
+
+def test_container_contract_has_no_secret_mount_and_offline_audit() -> None:
+    compose = yaml.safe_load(COMPOSE.read_text(encoding="utf-8"))
+    base = compose["x-r3g2-benchmark-base"]
+    services = compose["services"]
+    serialized = COMPOSE.read_text(encoding="utf-8")
+    assert "env_file" not in serialized
+    assert ".env" not in serialized
+    assert base["read_only"] is True
+    assert base["cap_drop"] == ["ALL"]
+    assert all("ledger/ingest_batches.csv" in str(volume) or "data" in str(volume) for volume in base["volumes"])
+    assert services["ts-v5-r3g2-benchmark-audit"]["network_mode"] == "none"
+    assert "scheduler" not in services
+
+
+def test_release_image_is_pinned_to_frozen_r3g1_parent() -> None:
+    dockerfile = DOCKERFILE.read_text(encoding="utf-8")
+    assert dockerfile.startswith(
+        "FROM shaiwei@sha256:3b81e501c134e7d91217d6102f4d033e16047310b89496dd1296d1684c9a42d9"
+    )
+    assert "COPY src ./src" in dockerfile
+    assert "COPY config ./config" in dockerfile
+    assert "COPY tests ./tests" in dockerfile

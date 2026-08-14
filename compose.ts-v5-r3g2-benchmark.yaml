@@ -1,0 +1,39 @@
+x-r3g2-benchmark-base: &r3g2-benchmark-base
+  image: shaiwei:ts-v5-r3g2-benchmark
+  pull_policy: never
+  init: true
+  user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs:
+    - "/tmp:rw,noexec,nosuid,size=128m,mode=1777"
+  pids_limit: 64
+  mem_limit: 2g
+  cpus: 2
+  environment:
+    HOME: /tmp
+    PYTHONPYCACHEPREFIX: /tmp/pycache
+    HTTP_PROXY: ""
+    HTTPS_PROXY: ""
+    ALL_PROXY: ""
+    http_proxy: ""
+    https_proxy: ""
+    all_proxy: ""
+    NO_PROXY: "www.csindex.com.cn,oss-ch.csindex.com.cn,localhost,127.0.0.1"
+    no_proxy: "www.csindex.com.cn,oss-ch.csindex.com.cn,localhost,127.0.0.1"
+  volumes:
+    - {type: bind, source: ./data, target: /workspace/data, read_only: true, bind: {create_host_path: false}}
+    - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1, target: /workspace/data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1, bind: {create_host_path: false}}
+    - {type: bind, source: ./ledger/ingest_batches.csv, target: /workspace/ledger/ingest_batches.csv, read_only: true, bind: {create_host_path: false}}
+
+services:
+  ts-v5-r3g2-benchmark-fetch:
+    <<: *r3g2-benchmark-base
+    profiles: [ts-v5-r3g2-benchmark-fetch]
+    command: [python, -m, shaiwei.research.trend_swing.benchmark_lineage_run]
+  ts-v5-r3g2-benchmark-audit:
+    <<: *r3g2-benchmark-base
+    profiles: [ts-v5-r3g2-benchmark-audit]
+    network_mode: none
+    command: [python, -m, shaiwei.research.trend_swing.benchmark_lineage_audit]
