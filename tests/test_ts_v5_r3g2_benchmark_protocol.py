@@ -88,8 +88,11 @@ def test_container_contract_has_no_secret_mount_and_offline_audit() -> None:
 
 def test_release_image_is_pinned_to_frozen_r3g1_parent() -> None:
     dockerfile = DOCKERFILE.read_text(encoding="utf-8")
-    assert dockerfile.startswith(
-        "FROM shaiwei@sha256:3b81e501c134e7d91217d6102f4d033e16047310b89496dd1296d1684c9a42d9"
+    assert dockerfile.startswith("FROM shaiwei:ts-v5-r3g1-recent-density-r2\n")
+    assert (
+        'shaiwei.parent.image.id="sha256:'
+        '3b81e501c134e7d91217d6102f4d033e16047310b89496dd1296d1684c9a42d9"'
+        in dockerfile
     )
     assert "COPY src ./src" in dockerfile
     assert "COPY config ./config" in dockerfile

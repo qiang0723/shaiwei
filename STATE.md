@@ -14,6 +14,9 @@
   参数比较、模型/回测、模拟仓、Web、scheduler和生产仍禁止。通过也只允许另立R3G-2效果协议，策略
   仍`NOT_EVALUATED`、生产授权none。见
   `docs/TS_V5_R3G2_BENCHMARK_LINEAGE_PROTOCOL_20260814.md`。
+- 首轮镜像构建在容器/请求/读取前因BuildKit把本地digest引用解析为Docker Hub拉取而失败；零scope
+  消耗。恢复只改用已核验本地标签并把精确父镜像ID写入label和测试，协议与数据门不变。见
+  `docs/TS_V5_R3G2_BENCHMARK_IMAGE_RECOVERY_20260814.md`。
 
 ## 2026-08-13 · TS-v5-R3G-1近期密度R2部分GO
 
