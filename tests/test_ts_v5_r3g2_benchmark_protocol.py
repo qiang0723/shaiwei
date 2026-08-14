@@ -6,6 +6,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT / "config/ts_v5_r3g2_benchmark_lineage_v1.yaml"
 RECOVERY = ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r1.yaml"
+RECOVERY_R2 = ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r2.yaml"
 COMPOSE = ROOT / "compose.ts-v5-r3g2-benchmark.yaml"
 DOCKERFILE = ROOT / "Dockerfile.ts-v5-r3g2-benchmark"
 
@@ -118,3 +119,20 @@ def test_transport_recovery_only_moves_public_bytes_to_host() -> None:
     assert authority["read_candidate_or_post_entry_return"] is False
     assert recovery["post_transfer"]["evaluation_network_mode"] == "none"
     assert recovery["post_transfer"]["audit_network_mode"] == "none"
+
+
+def test_transport_r2_adds_only_output_preflight() -> None:
+    recovery = yaml.safe_load(RECOVERY_R2.read_text(encoding="utf-8"))
+    failure = recovery["r1_failure"]
+    preflight = recovery["r2_preflight"]
+    authority = recovery["r2_authority"]
+    assert recovery["status"] == "RESULT_UNKNOWN_HOST_OUTPUT_PREFLIGHT_RECOVERY_FROZEN"
+    assert failure["curl_exit_code"] == 23
+    assert failure["persisted_file_count"] == 0
+    assert failure["history_request_attempt_count"] == 0
+    assert failure["same_r1_retry_authorized"] is False
+    assert all(preflight.values())
+    assert authority["inherits_exact_three_public_requests_from_r1"] is True
+    assert authority["maximum_transport_attempts_per_logical_request"] == 1
+    assert authority["env_or_secret_read"] is False
+    assert authority["read_candidate_or_post_entry_return"] is False

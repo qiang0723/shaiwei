@@ -20,6 +20,9 @@
 - 首次真实网络容器在事实表TLS握手阶段失败，完整HTTP响应、历史请求、文件写入、数据门评价均为0；
   原网络scope关闭。R1只把固定三份公开bytes传输移到宿主，随后Docker断网评价和审计；不读secret、
   不换来源或门槛。见`docs/TS_V5_R3G2_BENCHMARK_TRANSPORT_RECOVERY_R1_20260814.md`。
+- R1首次宿主传输因`raw/`未预建以curl 23失败，文件落盘、历史请求和评价仍为0；R1关闭。R2只新增
+  项目内目录存在/可写/三目标为空的请求前硬门，其他三请求和权限不变。见
+  `docs/TS_V5_R3G2_BENCHMARK_TRANSPORT_RECOVERY_R2_20260814.md`。
 
 ## 2026-08-13 · TS-v5-R3G-1近期密度R2部分GO
 

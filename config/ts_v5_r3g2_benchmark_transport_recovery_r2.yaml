@@ -1,0 +1,44 @@
+recovery_id: ts-v5-r3g2-h00906-benchmark-transport-recovery-r2
+recovery_date_utc8: 2026-08-14
+status: RESULT_UNKNOWN_HOST_OUTPUT_PREFLIGHT_RECOVERY_FROZEN
+
+parent_recovery:
+  path: config/ts_v5_r3g2_benchmark_transport_recovery_r1.yaml
+  sha256: c0945de50895fb013648c05b0d7335c679015c5903b40b81e2b85075696d31bc
+
+r1_failure:
+  stage: first_factsheet_host_transfer_output_open
+  curl_exit_code: 23
+  remote_response_started: true
+  persisted_file_count: 0
+  history_request_attempt_count: 0
+  data_gate_evaluation_count: 0
+  independent_audit_count: 0
+  secret_read_count: 0
+  strategy_effect_attempt_count: 0
+  same_r1_retry_authorized: false
+
+r2_preflight:
+  raw_directory_must_exist: true
+  raw_directory_must_be_project_local: true
+  raw_directory_must_be_writable: true
+  three_target_files_must_be_absent: true
+  preflight_must_pass_before_any_request: true
+
+r2_authority:
+  inherits_exact_three_public_requests_from_r1: true
+  maximum_transport_attempts_per_logical_request: 1
+  docker_offline_evaluation_once: true
+  docker_offline_independent_audit_once: true
+  env_or_secret_read: false
+  extra_source_or_substitute: false
+  read_candidate_or_post_entry_return: false
+  parameter_search_or_effect_comparison: false
+  model_training_prediction_or_backtest: false
+  paper_web_scheduler_or_production_change: false
+
+verdicts:
+  transport_or_data_failure: NO_GO_H00906_LINEAGE_DATA_GATE
+  go: GO_H00906_LINEAGE_DATA_GATE_ONLY
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
