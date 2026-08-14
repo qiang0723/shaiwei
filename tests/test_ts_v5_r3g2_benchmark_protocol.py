@@ -1,0 +1,70 @@
+from pathlib import Path
+
+import yaml
+
+
+ROOT = Path(__file__).resolve().parents[1]
+PROTOCOL = ROOT / "config/ts_v5_r3g2_benchmark_lineage_v1.yaml"
+
+
+def _load() -> dict:
+    return yaml.safe_load(PROTOCOL.read_text(encoding="utf-8"))
+
+
+def test_protocol_binds_H00906_and_forbids_price_proxy() -> None:
+    document = _load()
+    benchmark = document["benchmark"]
+    assert document["status"] == "RESULT_BLIND_BENCHMARK_LINEAGE_PROTOCOL_FROZEN"
+    assert benchmark["logical_identifier"] == "CSI_H00906_TOTAL_RETURN"
+    assert benchmark["index_code"] == "H00906"
+    assert benchmark["price_index_code"] == "000906"
+    assert benchmark["price_index_substitution"] == "forbidden"
+    assert benchmark["locally_derived_dividend_proxy"] == "forbidden"
+
+
+def test_protocol_covers_current_roles_without_reusing_partial_year() -> None:
+    document = _load()
+    benchmark = document["benchmark"]
+    assert benchmark["required_start_date"] == "20190101"
+    assert benchmark["required_end_date"] == "20260811"
+    assert benchmark["r3g_roles"] == {
+        "selectable_discovery": ["20210104", "20231229"],
+        "frozen_stability_holdout": ["20240102", "20251231"],
+        "current_partial_year_monitor": ["20260105", "20260811"],
+    }
+    assert benchmark["partial_year_role"] == (
+        "NOT_FOR_SELECTION_NOT_FOR_VERDICT_PARTIAL_YEAR"
+    )
+
+
+def test_protocol_has_fixed_official_requests_and_zero_effect_authority() -> None:
+    document = _load()
+    authority = document["authority"]
+    sources = document["official_sources"]
+    assert sources["daily_history"]["query"] == {
+        "indexCode": "H00906",
+        "startDate": "20190101",
+        "endDate": "20260811",
+    }
+    assert sources["daily_history"]["logical_request_count"] == 2
+    assert sources["daily_history"]["responses_must_be_canonically_identical_before_persist"]
+    assert authority["exactly_one_official_factsheet_request"]
+    assert authority["exactly_two_identical_official_history_requests"]
+    assert authority["read_candidate_or_post_entry_return"] is False
+    assert authority["parameter_search_or_effect_comparison"] is False
+    assert authority["model_training_prediction_or_backtest"] is False
+    assert authority["tushare_or_other_secret_read"] is False
+    assert authority["paper_web_scheduler_or_production_change"] is False
+
+
+def test_protocol_fails_closed_on_coverage_identity_or_drift() -> None:
+    document = _load()
+    gate = document["quality_gate"]
+    assert gate["date_set_equals_official_open_days"]
+    assert gate["duplicate_index_date_key_maximum"] == 0
+    assert gate["unexpected_index_code_maximum"] == 0
+    assert gate["missing_official_open_date_maximum"] == 0
+    assert gate["non_official_date_maximum"] == 0
+    assert gate["response_drift_between_two_requests"] == "forbidden"
+    assert document["verdicts"]["strategy_effective"] == "NOT_EVALUATED"
+    assert document["verdicts"]["production_authorization"] == "none"

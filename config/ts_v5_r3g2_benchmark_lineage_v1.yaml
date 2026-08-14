@@ -1,0 +1,102 @@
+protocol_id: ts-v5-r3g2-h00906-benchmark-lineage-v1
+protocol_date_utc8: 2026-08-14
+status: RESULT_BLIND_BENCHMARK_LINEAGE_PROTOCOL_FROZEN
+stage: R3G2_PRE_EFFECT_BENCHMARK_DATA_GATE
+
+predecessor:
+  r3g1_scope_path: config/ts_v5_r3g1_recent_density_scope_v1.yaml
+  r3g1_scope_sha256: 3b83d8a569886b2af78298c85789b8c6495b0cf8903975b2ddb0c48367040381
+  r3g1_acceptance_path: docs/TS_V5_R3G1_RECENT_DENSITY_RECOVERY_R2_ACCEPTANCE_20260813.md
+  r3g1_acceptance_sha256: 53bb5005c062a4aa6975ef6d89f1d9e6f0b0f57d39e7953c79440a0489df6d27
+  r3g1_verdict: PARTIAL_GO_DENSE_MECHANISMS_ONLY
+  strategy_effective: NOT_EVALUATED
+
+decision:
+  question: can_H00906_total_return_be_bound_as_an_auditable_benchmark_before_R3G2_effect
+  allowed_next_on_go: freeze_R3G2_effect_protocol_for_three_locked_BREAKOUT_RETEST_points
+  allowed_next_on_no_go: stop_and_report_exact_source_or_quality_gap
+  production_authorization: none
+
+authority:
+  read_official_H00906_identity_and_daily_levels: true
+  read_project_local_SSE_calendar_and_price_index_keys_for_quality_only: true
+  exactly_two_identical_official_history_requests: true
+  exactly_one_official_factsheet_request: true
+  persist_immutable_raw_and_derived_benchmark_evidence: true
+  one_data_gate_evaluation: true
+  one_independent_audit: true
+  read_candidate_or_post_entry_return: false
+  read_alpha158_value_or_rank: false
+  parameter_search_or_effect_comparison: false
+  model_training_prediction_or_backtest: false
+  tushare_or_other_secret_read: false
+  paid_or_third_party_benchmark_substitution: false
+  paper_web_scheduler_or_production_change: false
+
+benchmark:
+  logical_identifier: CSI_H00906_TOTAL_RETURN
+  index_code: H00906
+  display_name: 中证800全收益指数
+  price_index_code: 000906
+  price_index_substitution: forbidden
+  locally_derived_dividend_proxy: forbidden
+  required_start_date: "20190101"
+  required_end_date: "20260811"
+  r3g_roles:
+    selectable_discovery: ["20210104", "20231229"]
+    frozen_stability_holdout: ["20240102", "20251231"]
+    current_partial_year_monitor: ["20260105", "20260811"]
+  partial_year_role: NOT_FOR_SELECTION_NOT_FOR_VERDICT_PARTIAL_YEAR
+
+official_sources:
+  identity_factsheet:
+    authority: China_Securities_Index_Company
+    url: https://oss-ch.csindex.com.cn/static/html/csindex/public/uploads/indices/detail/files/zh_CN/000906factsheet.pdf
+    required_identity_mapping:
+      price_return_code: "000906"
+      net_return_code: N00906
+      total_return_code: H00906
+  daily_history:
+    authority: China_Securities_Index_Company
+    url: https://www.csindex.com.cn/csindex-home/perf/index-perf
+    method: GET
+    query:
+      indexCode: H00906
+      startDate: "20190101"
+      endDate: "20260811"
+    logical_request_count: 2
+    responses_must_be_canonically_identical_before_persist: true
+    accepted_row_shape: 16_positional_fields
+
+quality_gate:
+  official_SSE_calendar_source: existing_immutable_tushare_trade_cal
+  date_set_equals_official_open_days: true
+  duplicate_index_date_key_maximum: 0
+  unexpected_index_code_maximum: 0
+  close_must_be_finite_and_positive: true
+  optional_OHLC_if_present_must_be_consistent: true
+  non_official_date_maximum: 0
+  missing_official_open_date_maximum: 0
+  future_date_maximum: 0
+  response_drift_between_two_requests: forbidden
+  factsheet_and_history_identity_must_agree: true
+  price_index_value_used_as_total_return: forbidden
+  revision_limit: current_official_snapshot_is_frozen_by_content_hash_and_future_drift_must_fail_closed
+
+outputs:
+  ignored_root: data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1
+  raw_factsheet: raw/000906factsheet.pdf
+  raw_history_first: raw/H00906-history-first.json
+  raw_history_second: raw/H00906-history-second.json
+  derived_daily: H00906-daily.parquet
+  report: data_gate_report.json
+  independent_audit: independent_audit.json
+  tracked_manifest: config/ts_v5_r3g2_benchmark_manifest_v1.json
+  write_once: true
+
+verdicts:
+  go: GO_H00906_LINEAGE_DATA_GATE_ONLY
+  no_go: NO_GO_H00906_LINEAGE_DATA_GATE
+  blocked_network: BLOCKED_OFFICIAL_SOURCE_NETWORK
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
