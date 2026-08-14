@@ -8,8 +8,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-from pypdf import PdfReader
-
 from shaiwei.config import PROJECT_ROOT
 from shaiwei.ledger import INGEST
 from shaiwei.provenance import code_snapshot_sha256, git_head
@@ -20,6 +18,7 @@ from shaiwei.research.trend_swing.benchmark_lineage import (
     FIRST_HISTORY_PATH,
     MANIFEST_DRAFT_PATH,
     PROTOCOL_SHA256,
+    RECOVERY_R2_SHA256,
     RECOVERY_SHA256,
     REPORT_PATH,
     SECOND_HISTORY_PATH,
@@ -34,6 +33,8 @@ from shaiwei.research.trend_swing.v5_evidence import write_once
 
 def factsheet_text(raw: bytes) -> str:
     try:
+        from pypdf import PdfReader
+
         reader = PdfReader(BytesIO(raw))
         return "\n".join(page.extract_text() or "" for page in reader.pages)
     except Exception as exc:  # pypdf exposes multiple backend-specific exceptions
@@ -127,7 +128,8 @@ def evaluate_and_persist(
     report["implementation_snapshot_sha256"] = code_snapshot_sha256()
     if transport_recovery is not None:
         report["transport_recovery"] = transport_recovery
-        report["transport_recovery_sha256"] = RECOVERY_SHA256
+        report["transport_recovery_sha256"] = RECOVERY_R2_SHA256
+        report["parent_transport_recovery_sha256"] = RECOVERY_SHA256
     if raw_already_persisted:
         expected = (
             (FACTSHEET_PATH, factsheet),

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import argparse
 import json
+import os
+from pathlib import Path
 
 from shaiwei.research.trend_swing.benchmark_lineage import (
     DAILY_PATH,
@@ -11,9 +14,33 @@ from shaiwei.research.trend_swing.benchmark_lineage import (
     MANIFEST_DRAFT_PATH,
     REPORT_PATH,
     SECOND_HISTORY_PATH,
+    OUTPUT_ROOT,
     load_recovery,
 )
 from shaiwei.research.trend_swing.benchmark_lineage_evidence import evaluate_and_persist
+
+
+def validate_output_preflight(
+    raw_directory: Path,
+    targets: tuple[Path, ...],
+) -> dict[str, object]:
+    load_recovery()
+    resolved_root = OUTPUT_ROOT.resolve()
+    resolved_raw = raw_directory.resolve()
+    if raw_directory.is_symlink() or not raw_directory.is_dir():
+        raise RuntimeError("H00906 raw output directory is absent or a symlink")
+    if not resolved_raw.is_relative_to(resolved_root):
+        raise RuntimeError("H00906 raw output directory escapes the frozen root")
+    if not os.access(resolved_raw, os.W_OK):
+        raise RuntimeError("H00906 raw output directory is not writable")
+    if any(target.exists() or target.is_symlink() for target in targets):
+        raise RuntimeError("H00906 host-transfer target already exists")
+    return {
+        "verdict": "PASS",
+        "raw_directory": raw_directory.as_posix(),
+        "target_count": len(targets),
+        "all_targets_absent": True,
+    }
 
 
 def run_once() -> dict:
@@ -29,7 +56,7 @@ def run_once() -> dict:
         SECOND_HISTORY_PATH.read_bytes(),
         raw_already_persisted=True,
         transport_recovery={
-            "prior_failed_transport_attempt_count": 1,
+            "prior_failed_transport_attempt_count": 2,
             "recovery_completed_response_count": 3,
             "secret_read_count": 0,
         },
@@ -37,7 +64,17 @@ def run_once() -> dict:
     return report
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("action", choices=("preflight", "evaluate"), nargs="?", default="evaluate")
+    args = parser.parse_args(argv)
+    if args.action == "preflight":
+        report = validate_output_preflight(
+            FACTSHEET_PATH.parent,
+            (FACTSHEET_PATH, FIRST_HISTORY_PATH, SECOND_HISTORY_PATH),
+        )
+        print(json.dumps(report, sort_keys=True))
+        return 0
     report = run_once()
     print(
         json.dumps(

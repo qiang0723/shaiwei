@@ -22,6 +22,8 @@ PROTOCOL_PATH = PROJECT_ROOT / "config/ts_v5_r3g2_benchmark_lineage_v1.yaml"
 PROTOCOL_SHA256 = "48ce1e403e13c4921688cda19a7c437490428f53c2e6c457cf5a57e0f4764de7"
 RECOVERY_PATH = PROJECT_ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r1.yaml"
 RECOVERY_SHA256 = "c0945de50895fb013648c05b0d7335c679015c5903b40b81e2b85075696d31bc"
+RECOVERY_R2_PATH = PROJECT_ROOT / "config/ts_v5_r3g2_benchmark_transport_recovery_r2.yaml"
+RECOVERY_R2_SHA256 = "30eb0458091b39f019c21aa817e731e3826b926cceb5611609000ecbcb2838bb"
 OUTPUT_ROOT = PROJECT_ROOT / "data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1"
 FACTSHEET_PATH = OUTPUT_ROOT / "raw/000906factsheet.pdf"
 FIRST_HISTORY_PATH = OUTPUT_ROOT / "raw/H00906-history-first.json"
@@ -77,7 +79,10 @@ def load_protocol(path: Path = PROTOCOL_PATH) -> dict[str, Any]:
     return value
 
 
-def load_recovery(path: Path = RECOVERY_PATH) -> dict[str, Any]:
+def load_recovery(
+    path: Path = RECOVERY_PATH,
+    r2_path: Path = RECOVERY_R2_PATH,
+) -> dict[str, Any]:
     if path.is_symlink() or sha256_file(path) != RECOVERY_SHA256:
         raise BenchmarkLineageError("H00906 transport recovery identity differs")
     value = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -93,7 +98,21 @@ def load_recovery(path: Path = RECOVERY_PATH) -> dict[str, Any]:
         or value.get("post_transfer", {}).get("evaluation_network_mode") != "none"
     ):
         raise BenchmarkLineageError("H00906 transport recovery authority differs")
-    return value
+    if r2_path.is_symlink() or sha256_file(r2_path) != RECOVERY_R2_SHA256:
+        raise BenchmarkLineageError("H00906 output preflight recovery identity differs")
+    r2 = yaml.safe_load(r2_path.read_text(encoding="utf-8"))
+    if not isinstance(r2, dict):
+        raise BenchmarkLineageError("H00906 output preflight recovery is not a mapping")
+    r2_authority = r2.get("r2_authority", {})
+    if (
+        r2.get("status") != "RESULT_UNKNOWN_HOST_OUTPUT_PREFLIGHT_RECOVERY_FROZEN"
+        or r2.get("parent_recovery", {}).get("sha256") != RECOVERY_SHA256
+        or not all(r2.get("r2_preflight", {}).values())
+        or r2_authority.get("inherits_exact_three_public_requests_from_r1") is not True
+        or r2_authority.get("env_or_secret_read") is not False
+    ):
+        raise BenchmarkLineageError("H00906 output preflight recovery authority differs")
+    return r2
 
 
 def canonical_history_data(raw: bytes) -> bytes:

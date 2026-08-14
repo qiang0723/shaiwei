@@ -41,4 +41,9 @@ services:
     <<: *r3g2-benchmark-base
     profiles: [ts-v5-r3g2-benchmark-recovery]
     network_mode: none
-    command: [python, -m, shaiwei.research.trend_swing.benchmark_lineage_recovery]
+    command: [python, -m, shaiwei.research.trend_swing.benchmark_lineage_recovery, evaluate]
+  ts-v5-r3g2-benchmark-preflight:
+    <<: *r3g2-benchmark-base
+    profiles: [ts-v5-r3g2-benchmark-preflight]
+    network_mode: none
+    command: [python, -m, shaiwei.research.trend_swing.benchmark_lineage_recovery, preflight]

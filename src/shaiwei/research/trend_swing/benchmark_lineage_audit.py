@@ -6,7 +6,6 @@ from io import BytesIO
 import json
 
 import pandas as pd
-from pypdf import PdfReader
 
 from shaiwei.ledger import INGEST
 from shaiwei.provenance import code_snapshot_sha256, git_head
@@ -16,7 +15,7 @@ from shaiwei.research.trend_swing.benchmark_lineage import (
     FIRST_HISTORY_PATH,
     MANIFEST_DRAFT_PATH,
     PROTOCOL_SHA256,
-    RECOVERY_SHA256,
+    RECOVERY_R2_SHA256,
     REPORT_PATH,
     SECOND_HISTORY_PATH,
     evaluate_quality,
@@ -32,6 +31,8 @@ AUDIT_PATH = REPORT_PATH.with_name("independent_audit.json")
 
 
 def _factsheet_text() -> str:
+    from pypdf import PdfReader
+
     reader = PdfReader(BytesIO(FACTSHEET_PATH.read_bytes()))
     return "\n".join(page.extract_text() or "" for page in reader.pages)
 
@@ -97,10 +98,10 @@ def audit_once() -> dict:
         "zero_effect_attempt": report["strategy_effect_attempt_count"] == 0,
         "zero_secret_read": report["tushare_or_secret_read_count"] == 0,
         "transport_recovery_identity": report.get("transport_recovery_sha256")
-        == RECOVERY_SHA256,
+        == RECOVERY_R2_SHA256,
         "transport_attempt_accounting": report.get("transport_recovery")
         == {
-            "prior_failed_transport_attempt_count": 1,
+            "prior_failed_transport_attempt_count": 2,
             "recovery_completed_response_count": 3,
             "secret_read_count": 0,
         },

@@ -11,6 +11,7 @@ from shaiwei.research.trend_swing.benchmark_lineage import (
     parse_history,
     validate_identity_text,
 )
+from shaiwei.research.trend_swing.benchmark_lineage_recovery import validate_output_preflight
 
 
 def _raw(rows: list[list[object]]) -> bytes:
@@ -114,3 +115,24 @@ def test_daily_frame_can_roundtrip_parquet(tmp_path: Path) -> None:
     target = tmp_path / "daily.parquet"
     frame.to_parquet(target, index=False)
     assert pd.read_parquet(target).equals(frame)
+
+
+def test_transport_preflight_requires_empty_project_local_directory(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    raw = tmp_path / "raw"
+    raw.mkdir()
+    targets = tuple(raw / name for name in ("factsheet.pdf", "first.json", "second.json"))
+    monkeypatch.setattr(
+        "shaiwei.research.trend_swing.benchmark_lineage_recovery.load_recovery",
+        lambda: {},
+    )
+    monkeypatch.setattr(
+        "shaiwei.research.trend_swing.benchmark_lineage_recovery.OUTPUT_ROOT",
+        tmp_path,
+    )
+    assert validate_output_preflight(raw, targets)["verdict"] == "PASS"
+    targets[0].write_bytes(b"occupied")
+    with pytest.raises(RuntimeError, match="already exists"):
+        validate_output_preflight(raw, targets)
