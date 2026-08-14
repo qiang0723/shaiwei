@@ -1,0 +1,51 @@
+{
+  "authority": "official.csi_total_return",
+  "calendar_ledger_sha256": "55e6e07fd03d66c05b6c4d9560b012c207a8916c120a221ed553a489903b522b",
+  "data_gate_report": {
+    "byte_count": 2896,
+    "path": "data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1/data_gate_report.json",
+    "sha256": "04f4accb2c69ba36f63b0798adc5d86367583a9222a6f4c0759c9dcea8c8885a"
+  },
+  "production_authorization": "none",
+  "protocol_id": "ts-v5-r3g2-h00906-benchmark-lineage-v1",
+  "protocol_sha256": "48ce1e403e13c4921688cda19a7c437490428f53c2e6c457cf5a57e0f4764de7",
+  "raw_evidence": {
+    "factsheet": {
+      "byte_count": 447639,
+      "path": "data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1/raw/000906factsheet.pdf",
+      "sha256": "15c9cb54edb45ea2294c7b8614bce5bff35e5d6daa94c2ebad45dd0ed11942b7"
+    },
+    "history_first": {
+      "byte_count": 657988,
+      "path": "data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1/raw/H00906-history-first.json",
+      "sha256": "85472a434ddb094a18007b3e2733c825c0643001c605b643df2692ca41e34b2a"
+    },
+    "history_second": {
+      "byte_count": 657988,
+      "path": "data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1/raw/H00906-history-second.json",
+      "sha256": "85472a434ddb094a18007b3e2733c825c0643001c605b643df2692ca41e34b2a"
+    }
+  },
+  "schema_version": "ts-v5-r3g2-h00906-benchmark-manifest-v1",
+  "sources": {
+    "official.csi_total_return": {
+      "artifact_count": 1,
+      "artifacts": [
+        {
+          "content_sha256": "464a72c1a3dee015863b638d02019f6482ec83acd65bea1ad8c66999dac8efa6",
+          "params": {
+            "end_date": "20260811",
+            "index_id": "H00906",
+            "start_date": "20190101"
+          },
+          "path": "data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1/H00906-daily.parquet",
+          "row_count": 1845
+        }
+      ],
+      "row_count": 1845
+    }
+  },
+  "strategy_effective": "NOT_EVALUATED",
+  "transport_recovery_sha256": "eab808eb39305373b3cf96fea75602e4a3951af8a87d2f66b9c77984131d3e5a",
+  "verdict": "GO_H00906_LINEAGE_DATA_GATE_ONLY"
+}
