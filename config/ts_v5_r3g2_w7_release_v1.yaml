@@ -1,0 +1,84 @@
+schema_version: ts-v5-r3g2-w7-release-protocol-v1
+protocol_id: ts-v5-r3g2-w7-lineage-release-001
+prepared_on: "2026-08-17"
+status: RESULT_BLIND_W7_LINEAGE_RELEASE_PREPARATION_ONLY
+production_authorization: none
+
+parent_effect_protocol:
+  path: config/ts_v5_r3g2_effect_v1.yaml
+  sha256: c3aa5a2bef199d8745b6e0399085dcf5a60d9f28f29a5426ea0104831f3572bf
+
+objective:
+  primary: build_the_single_clean_2025_W7_score_lineage_before_any_TS_effect_release
+  result_read: score_identity_and_coverage_only
+  strategy_effect_evaluation: false
+
+authority_before_explicit_approval:
+  release_metadata_and_synthetic_fixture: true
+  real_qlib_feature_or_label_read: false
+  real_w7_model_fit_or_prediction: false
+  rankic_return_benchmark_or_portfolio_read: false
+  external_network_or_provider: false
+  env_or_secret_read: false
+  experiment_ledger_write: false
+  paper_web_scheduler_or_production_change: false
+
+execution_after_exact_approval:
+  approval_action: TS_R3G2_W7_SCORE_LINEAGE_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT
+  runner_invocation_count: 1
+  complete_internal_passes: [first_pass, replay]
+  independent_auditor_invocation_count: 1
+  strategy_effect_attempt_count: 0
+  same_release_retry_authorized: false
+  labels_allowed_only_for_purged_train_and_valid_fit: true
+  test_label_rankic_return_benchmark_or_portfolio_metric: forbidden
+
+frozen_provider:
+  qlib_manifest_sha256: 62cae2f46b57020db202bee1748f072e7859e209663046747f76aaa008f605a9
+  qlib_tree_sha256: 0532f6cd7c2c78f0936f92a986aef83a848175fe6f332274e06c7ed6e8c11778
+  qlib_file_count: 54464
+  calendar_sha256: 80ddefd8e3cce5137bb99f6b53dbe090de1b1bd234db1a19f31ef3ddb2bd8bdb
+  calendar_row_count: 2557
+
+docker:
+  image: shaiwei:ts-v5-r3g2-w7-lineage-v1
+  compose_file: compose.ts-v5-r3g2-w7.yaml
+  network_mode: none
+  read_only_root: true
+  run_as_non_root: true
+  env_file_mounted: false
+  docker_socket_mounted: false
+  full_project_root_mounted: false
+  production_ledger_mounted: false
+  runner:
+    service: ts-v5-r3g2-w7-runner
+    cpus: 6
+    memory: 12g
+    pids_limit: 256
+    mounts:
+      - {source: data/qlib_bin, target: /qlib, access: read_only}
+      - {source: config/ts_v5_r3g2_w7_release_scope_v1.json, target: /inputs/release.json, access: read_only}
+      - {source: data/control/ts-v5-r3g2-w7/approval.json, target: /inputs/approval.json, access: read_only}
+      - {source: data/research/trend_swing/ts-v5-r3g2-w7-lineage, target: /outputs, access: read_write}
+  auditor:
+    service: ts-v5-r3g2-w7-auditor
+    cpus: 2
+    memory: 4g
+    pids_limit: 256
+    mounts:
+      - {source: config/ts_v5_r3g2_w7_release_scope_v1.json, target: /inputs/release.json, access: read_only}
+      - {source: data/control/ts-v5-r3g2-w7/approval.json, target: /inputs/approval.json, access: read_only}
+      - {source: data/research/trend_swing/ts-v5-r3g2-w7-lineage, target: /outputs, access: read_only}
+      - {source: data/research/trend_swing/ts-v5-r3g2-w7-lineage-audit, target: /audit, access: read_write}
+
+outputs:
+  lineage_root: data/research/trend_swing/ts-v5-r3g2-w7-lineage
+  audit_root: data/research/trend_swing/ts-v5-r3g2-w7-lineage-audit
+  tracked_release_scope: config/ts_v5_r3g2_w7_release_scope_v1.json
+  tracked_manifest_after_go: config/ts_v5_r3g2_w7_manifest_v1.json
+  gitignored_model_prediction_report_and_audit: true
+
+successor_control:
+  w7_lineage_go_authorizes_effect_read: false
+  separate_effect_release_scope_and_explicit_user_approval_required: true
+  paper_or_production_authorized: false

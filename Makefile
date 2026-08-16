@@ -165,6 +165,23 @@ docker-ts-v5-r3g1-profile:
 
 docker-ts-v5-r3g1-audit:
 	docker compose -f compose.ts-v5-r3g1.yaml --profile ts-v5-r3g1-audit run --rm --no-deps ts-v5-r3g1-audit
+
+.PHONY: docker-ts-v5-r3g2-w7-build docker-ts-v5-r3g2-w7-fixture docker-ts-v5-r3g2-w7-run docker-ts-v5-r3g2-w7-audit
+docker-ts-v5-r3g2-w7-build: ## 以已推送实现构建W7断网谱系镜像，不训练或读取效果
+	@test -n "$(TS_V5_R3G2_W7_RELEASE_GIT_HEAD)" || (echo "TS_V5_R3G2_W7_RELEASE_GIT_HEAD is required"; exit 2)
+	@test "$(TS_V5_R3G2_W7_RELEASE_GIT_HEAD)" = "$$(git rev-parse HEAD)" || (echo "W7 release Git differs from HEAD"; exit 2)
+	@test "$(TS_V5_R3G2_W7_RELEASE_GIT_HEAD)" = "$$(git rev-parse origin/main)" || (echo "W7 release Git differs from origin/main"; exit 2)
+	SHAIWEI_TS_R3G2_W7_RELEASE_GIT_HEAD="$(TS_V5_R3G2_W7_RELEASE_GIT_HEAD)" docker compose -f compose.ts-v5-r3g2-w7.yaml --profile w7-fixture build ts-v5-r3g2-w7-fixture
+
+docker-ts-v5-r3g2-w7-fixture: ## 最终W7镜像内断网运行合成双跑与独立审计
+	docker compose -f compose.ts-v5-r3g2-w7.yaml --profile w7-fixture run --rm --no-deps ts-v5-r3g2-w7-fixture
+
+docker-ts-v5-r3g2-w7-run: ## 精确scope获批后唯一一次W7训练与分数双跑，效果尝试仍为0
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.ts-v5-r3g2-w7.yaml --profile w7-live run --rm --no-deps ts-v5-r3g2-w7-runner
+
+docker-ts-v5-r3g2-w7-audit: ## 无Qlib挂载的独立进程复核W7谱系
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.ts-v5-r3g2-w7.yaml --profile w7-live run --rm --no-deps ts-v5-r3g2-w7-auditor
+
 docker-ts-recovery-build: ## 以已推送实现身份构建R3短命研究镜像
 	@test -n "$(TS_RECOVERY_RELEASE_GIT_HEAD)" || (echo "TS_RECOVERY_RELEASE_GIT_HEAD is required"; exit 2)
 	SHAIWEI_TS_RECOVERY_RELEASE_GIT_HEAD="$(TS_RECOVERY_RELEASE_GIT_HEAD)" docker compose -f compose.ts-recovery.yaml --profile ts-recovery-network build ts-recovery-network

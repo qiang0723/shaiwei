@@ -31,6 +31,7 @@ CONTROLLED_FILES = {
     "compose.ts-v5-r3g.yaml",
     "compose.ts-v5-r3g1.yaml",
     "compose.ts-v5-r3g2-benchmark.yaml",
+    "compose.ts-v5-r3g2-w7.yaml",
     "compose.ts-v5-llm.yaml",
     "pyproject.toml",
     "requirements.lock",

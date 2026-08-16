@@ -1,0 +1,141 @@
+x-w7-base: &w7-base
+  image: shaiwei:ts-v5-r3g2-w7-lineage-v1
+  pull_policy: never
+  init: true
+  restart: "no"
+  user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+  read_only: true
+  network_mode: none
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  environment:
+    HOME: /tmp
+    MPLCONFIGDIR: /tmp/matplotlib
+    PYTHONPYCACHEPREFIX: /tmp/pycache
+    OMP_NUM_THREADS: "6"
+    OPENBLAS_NUM_THREADS: "6"
+    MKL_NUM_THREADS: "6"
+    NUMEXPR_NUM_THREADS: "6"
+
+services:
+  ts-v5-r3g2-w7-fixture:
+    <<: *w7-base
+    profiles: [w7-fixture]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_TS_R3G2_W7_RELEASE_GIT_HEAD:-}
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=1g,mode=1777
+    pids_limit: 128
+    mem_limit: 4g
+    cpus: 2.0
+    command:
+      - python
+      - -m
+      - pytest
+      - -q
+      - tests/test_ts_v5_r3g2_w7_lineage.py
+      - tests/test_ts_v5_r3g2_w7_run.py
+
+  ts-v5-r3g2-w7-runner:
+    <<: *w7-base
+    profiles: [w7-live]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=4g,mode=1777
+    pids_limit: 256
+    mem_limit: 12g
+    cpus: 6.0
+    volumes:
+      - type: bind
+        source: ./data/qlib_bin
+        target: /qlib
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./config/ts_v5_r3g2_w7_release_scope_v1.json
+        target: /inputs/release.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/control/ts-v5-r3g2-w7/approval.json
+        target: /inputs/approval.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/trend_swing/ts-v5-r3g2-w7-lineage
+        target: /outputs
+        read_only: false
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.r3g2.w7_run
+      - --release
+      - /inputs/release.json
+      - --approval
+      - /inputs/approval.json
+      - --provider-root
+      - /qlib
+      - --output-root
+      - /outputs
+
+  ts-v5-r3g2-w7-auditor:
+    <<: *w7-base
+    profiles: [w7-live]
+    environment:
+      HOME: /tmp
+      MPLCONFIGDIR: /tmp/matplotlib
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=1g,mode=1777
+    pids_limit: 256
+    mem_limit: 4g
+    cpus: 2.0
+    volumes:
+      - type: bind
+        source: ./config/ts_v5_r3g2_w7_release_scope_v1.json
+        target: /inputs/release.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/control/ts-v5-r3g2-w7/approval.json
+        target: /inputs/approval.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/trend_swing/ts-v5-r3g2-w7-lineage
+        target: /outputs
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/research/trend_swing/ts-v5-r3g2-w7-lineage-audit
+        target: /audit
+        read_only: false
+        bind:
+          create_host_path: false
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.r3g2.w7_audit_run
+      - --release
+      - /inputs/release.json
+      - --approval
+      - /inputs/approval.json
+      - --lineage-root
+      - /outputs
+      - --audit-root
+      - /audit

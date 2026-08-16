@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-17 · TS-v5-R3G-2 W7谱系预执行工程完成
+
+- 2025 W7已完成结果盲工程入口，但尚未训练：严格继承M6干净Alpha158/LightGBM与t+11成熟度口径，
+  只允许模型和`datetime/instrument/score`产物，不读测试标签、RankIC、收益、基准或组合。
+- first pass/replay、write-once、失败封存、精确scope/approval和无Qlib独立auditor均已完成；W7失败仍
+  不计策略效果尝试。7类职责拆分后生产模块最大227行，没有增长既有热点文件。
+- 专项22项、全仓1347项、架构门13项、Ruff、Compose解析和diff-check已PASS；release协议/Compose哈希为
+  `4fef44db...98f0`/`fa258ea4...5c54`。当前裁决仅为
+  `READY_FOR_IMMUTABLE_IMAGE_BUILD_NOT_EXECUTION`，外网/secret/真实训练/效果/模拟仓/生产均为0。
+- 下一步先推送实现，再构建不可变镜像并运行合成fixture；随后生成仍未授权执行的唯一release scope，
+  取得用户精确批准后才可真实训练W7。见
+  `docs/TS_V5_R3G2_W7_PREEXECUTION_ENGINEERING_20260817.md`。
+
 ## 2026-08-17 · TS-v5-R3G-2真实效果协议结果前冻结
 
 - 唯一效果族固定为R3G-1机械锁定的`BREAKOUT_RETEST`主点与两个邻居，首次效果读取合计3次尝试；
