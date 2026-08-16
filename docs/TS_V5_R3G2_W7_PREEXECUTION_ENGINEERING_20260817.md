@@ -2,7 +2,7 @@
 
 日期：2026-08-17（UTC+8）
 
-裁决：`READY_FOR_IMMUTABLE_IMAGE_BUILD_NOT_EXECUTION`
+裁决：`READY_FOR_EXACT_USER_APPROVAL_NOT_EXECUTED`
 
 策略效果：`NOT_EVALUATED`
 生产授权：`none`
@@ -46,8 +46,22 @@ R3G-2新代码按`contract / evidence / lineage / control / run / audit / releas
 Dockerfile、Compose与LLM锁文件。该候选没有进入release scope或真实W7；修复后必须以新提交重建，
 并重新通过同一集合与逐文件哈希门。
 
+## 最终release真身
+
+- 实现/修复提交：`205af847287ba42840259074bccda3b48f38cbbb`，已与`origin/main`一致。
+- 最终镜像：`shaiwei:ts-v5-r3g2-w7-lineage-v1`，内容ID
+  `sha256:4daccf51b51318393feb98330b3c8e6703ad6237d68883bc656ce6058b262117`，平台`linux/arm64`。
+- 镜像内受控代码快照：`d6b7a543394e284f35684543fccf5914d6ab8e5c0b5fde05884d628592c2160a`；
+  906个host/image受控文件集合与逐文件哈希完全一致。
+- 镜像release manifest SHA-256：
+  `bf4f228c707c66380643af9b70002b8ce19c41af933457ba314cd168272c5c8d`。
+- 最终镜像断网、只读、非root合成fixture为10项PASS；只读根导致pytest缓存不可写的1条warning符合隔离预期。
+- 未授权release scope为`config/ts_v5_r3g2_w7_release_scope_v1.json`，scope SHA-256
+  `5d2389429aa4ba272371d60214fd04866405372f61b7d3933db67e8a7b7838ad`，文件SHA-256
+  `f8155b516c52de2c9a7efddbd2a8ba3fb6418ada957769ca7d954d74b381cb79`。
+- 首个被拒镜像的manifest只保留在Git忽略证据区，不进入任何授权链。
+
 ## 下一步
 
-先提交并推送当前实现，再用精确提交构建不可变镜像，在最终镜像内只运行合成fixture。镜像通过后才
-允许生成`config/ts_v5_r3g2_w7_release_scope_v1.json`；该文件本身仍是“准备完成、执行未授权”。只有
-用户逐字批准唯一scope，才运行一次真实W7双跑和一次独立审计。W7数据GO也不自动授权TS效果读取。
+当前只等待用户逐字批准唯一scope，之后才运行一次真实W7 first pass/replay和一次无Qlib独立审计。
+W7数据GO也不自动授权TS效果读取，后续仍须另立三点效果release scope并再次取得明确批准。
