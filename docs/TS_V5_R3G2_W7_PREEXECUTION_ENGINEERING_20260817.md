@@ -39,8 +39,12 @@ R3G-2新代码按`contract / evidence / lineage / control / run / audit / releas
 227行，没有增长既有大文件或建立万能工具。合成fixture覆盖确定性双跑、write-once、`.BJ`与非有限
 分数、额外标签文件、漂移、重复执行、运行中失败、批准错配和独立审计。
 
-本机专项22项、全仓1347项与架构门13项均PASS；Ruff、Compose解析和`git diff --check`也通过。
+本机专项23项、全仓1348项与架构门13项均PASS；Ruff、Compose解析和`git diff --check`也通过。
 既有17条warning均来自已登记的第三方弃用提示或M7数据构造路径，本次没有新增warning。
+
+首个镜像候选在host/image受控文件集合核验时被拒绝：通用Dockerfile此前没有复制12个已经登记的
+Dockerfile、Compose与LLM锁文件。该候选没有进入release scope或真实W7；修复后必须以新提交重建，
+并重新通过同一集合与逐文件哈希门。
 
 ## 下一步
 

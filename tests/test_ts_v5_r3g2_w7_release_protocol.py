@@ -62,6 +62,15 @@ def test_w7_compose_is_part_of_the_controlled_image_snapshot() -> None:
     assert "compose.ts-v5-r3g2-w7.yaml" in dockerfile
 
 
+def test_generic_release_image_copies_every_controlled_root_file() -> None:
+    copied: set[str] = set()
+    for line in DOCKERFILE.read_text(encoding="utf-8").splitlines():
+        if line.startswith("COPY "):
+            copied.update(line.split()[1:-1])
+
+    assert CONTROLLED_FILES <= copied
+
+
 def test_release_builder_rejects_an_unpushed_implementation() -> None:
     protocol = EffectProtocol.load()
     release, digest = load_release_protocol(protocol)

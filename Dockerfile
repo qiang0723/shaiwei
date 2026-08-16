@@ -18,7 +18,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 WORKDIR /workspace
 
-COPY .dockerignore .env.example Dockerfile Makefile compose.yaml compose.research.yaml compose.m6-attribution.yaml compose.m6-topk-conversion-release.yaml compose.ts-recovery.yaml compose.ts-v5-r3g2-w7.yaml pyproject.toml requirements.lock ./
+COPY .dockerignore .env.example Dockerfile Dockerfile.ts-v5-llm Dockerfile.ts-v5-r3g Dockerfile.ts-v5-r3g1 Dockerfile.ts-v5-r3g2-benchmark Makefile pyproject.toml requirements.lock requirements.ts-v5-llm.lock ./
+COPY compose.yaml compose.research.yaml compose.m6-attribution.yaml compose.m6-topk-conversion-release.yaml compose.ts-recovery.yaml compose.ts-v5-llm.yaml compose.ts-v5-r2.yaml compose.ts-v5-r3c.yaml compose.ts-v5-r3f.yaml compose.ts-v5-r3g.yaml compose.ts-v5-r3g1.yaml compose.ts-v5-r3g2-benchmark.yaml compose.ts-v5-r3g2-w7.yaml ./
 COPY src ./src
 COPY config ./config
 COPY templates ./templates
