@@ -318,6 +318,7 @@ def test_release_document_is_metadata_only_and_compose_matches(tmp_path: Path) -
         image_platform="linux/arm64",
         image_git_commit="a" * 40,
         image_release_manifest_path=image_manifest,
+        bound_input_hashes=protocol.bound_input_contract(),
     )
     assert document["scope"]["authority"] == expected_scope_authority()
     assert document["scope"]["execution"]["strategy_effect_attempt_count"] == 3

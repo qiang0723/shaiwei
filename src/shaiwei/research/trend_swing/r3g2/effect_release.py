@@ -100,9 +100,12 @@ def build_release_document(
     image_platform: str,
     image_git_commit: str,
     image_release_manifest_path: Path,
+    bound_input_hashes: dict[str, str],
 ) -> dict[str, Any]:
     if implementation_git_commit != origin_main_commit or image_git_commit != implementation_git_commit:
         raise R3G2Error("R3G-2 implementation is not the pushed image identity")
+    if bound_input_hashes != protocol.bound_input_contract():
+        raise R3G2Error("R3G-2 validated bound-input claims differ from the protocol")
     manifest = _manifest(image_release_manifest_path)
     if manifest.get("code_snapshot_sha256") != code_snapshot:
         raise R3G2Error("R3G-2 image and host code snapshots differ")
@@ -127,7 +130,7 @@ def build_release_document(
         },
         "inputs": {
             "pre_effect_preflight_sha256": canonical_sha256(preflight),
-            "bound_input_hashes": protocol.validate_bound_inputs(),
+            "bound_input_hashes": dict(bound_input_hashes),
             "w7_recovery_manifest_sha256": release_protocol.document["predecessors"]["w7_recovery_manifest"]["sha256"],
         },
         "execution": {
@@ -194,12 +197,15 @@ def build(
         raise R3G2Error("R3G-2 controlled host tree differs from the built image")
     release_protocol = ReleaseProtocol.load()
     release_protocol.validate_bound_predecessors()
+    protocol = EffectProtocol.load()
+    bound_input_hashes = protocol.validate_bound_inputs()
     document = build_release_document(
-        protocol=EffectProtocol.load(), release_protocol=release_protocol,
+        protocol=protocol, release_protocol=release_protocol,
         preflight=json.loads(PREFLIGHT_PATH.read_text(encoding="utf-8")),
         created_at=created_at, implementation_git_commit=head, origin_main_commit=origin,
         code_snapshot=snapshot, image_id=image_id, image_platform=image_platform,
         image_git_commit=image_git_commit, image_release_manifest_path=image_release_manifest,
+        bound_input_hashes=bound_input_hashes,
     )
     digest, reused = write_once_json(output, document)
     return {

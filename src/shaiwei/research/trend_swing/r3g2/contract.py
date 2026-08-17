@@ -148,6 +148,10 @@ class EffectProtocol:
             self._input_bindings(include_disallowed_reference=True)
         )
 
+    def bound_input_contract(self) -> dict[str, str]:
+        """Return frozen path/hash claims without opening data-bearing inputs."""
+        return dict(self._input_bindings(include_disallowed_reference=True))
+
     def validate_authorized_effect_inputs(self) -> dict[str, str]:
         """Validate only inputs that the real-effect runtime may actually mount."""
         return self._validate_bindings(
