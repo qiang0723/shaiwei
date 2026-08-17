@@ -9,7 +9,8 @@
   原效果目录只保留失败回执`8bfd0685...58d2`，不能记作策略失败。
 - 独立恢复协议只修入口映射并绑定原scope/批准/失败回执/原输出根；协议提交`37b2f78`、实现
   `02da4f4`、最终提交`9e295993...c3d`均已推送。最终镜像`sha256:0081742e...2874c`精确绑定
-  `HEAD=origin/main`，938文件快照`3df4ceaa...4ecb`与宿主一致，断网fixture 18 PASS/1 skip。
+  scope生成时的`HEAD=origin/main`，938文件快照`3df4ceaa...4ecb`与宿主一致，断网fixture
+  18 PASS/1 skip。
 - key-only预检报告仍为`3cc735ee...114d0`、`GO_PRE_EFFECT_KEYS_ONLY`、`reused=true`；未读效果且尝试0。
   新recovery scope为`c78d6851...7193a`，文档SHA`698bc010...95245`；approval不存在，恢复效果/审计根
   为空，`execution_authorized=false`。

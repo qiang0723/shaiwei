@@ -23,7 +23,7 @@
 ## 最小恢复与独立边界
 
 - 恢复协议先行冻结提交：`37b2f78`；实现提交：`02da4f4`；干净镜像夹具去除宿主隐式依赖的测试修复
-  提交：`9e295993ee4a6ad35ed40dc324621805b9703c4d`，与 `origin/main` 一致。
+  提交：`9e295993ee4a6ad35ed40dc324621805b9703c4d`，在镜像构建和 scope 生成时与 `origin/main` 一致。
 - 恢复只修 runner/auditor CLI 参数映射，并增加独立 authority selector、恢复控制、发布构建器和专用
   Docker profile。没有改变三个冻结参数点、样本期、买卖规则、成本、硬门或发现期防火墙。
 - recovery 使用新协议、scope、批准 schema、镜像和输出目录；原 scope、批准、失败回执和原输出根
@@ -35,7 +35,7 @@
 
 - 恢复协议 SHA-256：`34a115e93e29d854676ce3607c12dc184c400ccc0fe5372e016feaba29719f67`。
 - 不可变镜像：`sha256:0081742e9f0f4b5a4a4683e99c0f2435dbdb85d96da968c3825de3839cd2874c`，
-  `linux/arm64`，内嵌 Git 提交与 `HEAD=origin/main` 精确一致。
+  `linux/arm64`，内嵌 Git 提交与 scope 生成时的 `HEAD=origin/main` 精确一致。
 - 发布清单 SHA-256：`01f2e6ff36defbf28e7f633b7d883c184a8416a35529e27826eaab59c0e0c694`；
   938 个受控文件，代码快照
   `3df4ceaa4f7044023a6e9fcde310999fc46c1df112942209ee5e689a3f044ecb`，宿主逐文件复核一致。
