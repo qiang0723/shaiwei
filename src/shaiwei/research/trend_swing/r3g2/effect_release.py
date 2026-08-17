@@ -64,6 +64,9 @@ def _mounts() -> tuple[list[dict[str, str]], list[dict[str, str]]]:
         ("data/raw", "/workspace/data/raw"),
         ("data/research/trend_swing/ts-v3-data-gate-r3", "/workspace/data/research/trend_swing/ts-v3-data-gate-r3"),
         ("data/research/trend_swing/ts-v5-r3g-executable-semantics", "/workspace/data/research/trend_swing/ts-v5-r3g-executable-semantics"),
+        ("data/research/trend_swing/ts-v5-r3f-canary-001", "/workspace/data/research/trend_swing/ts-v5-r3f-canary-001"),
+        ("ledger/ts_v5_r3f_llm_attempts.csv", "/workspace/ledger/ts_v5_r3f_llm_attempts.csv"),
+        ("ledger/ts_v5_r3f_llm_transports.csv", "/workspace/ledger/ts_v5_r3f_llm_transports.csv"),
         ("data/research/trend_swing/ts-v5-r3g1-recent-density-r2", "/workspace/data/research/trend_swing/ts-v5-r3g1-recent-density-r2"),
         ("data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1", "/workspace/data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1"),
         ("data/research/m6_csi800_model_attribution_v1/effect/first_pass", "/workspace/data/research/m6_csi800_model_attribution_v1/effect/first_pass"),
@@ -151,6 +154,7 @@ def build_release_document(
             "cap_drop_all": True, "no_new_privileges": True, "env_file_mounted": False,
             "docker_socket_mounted": False, "full_project_root_mounted": False,
             "production_ledger_mounted": False,
+            "frozen_research_lineage_ledgers_mounted": True,
             "runner": {
                 "service": "ts-v5-r3g2-effect-runner", "command": RUNNER_COMMAND,
                 "mounts": runner_mounts, "cpus": 6, "memory": "14g", "pids_limit": 256,

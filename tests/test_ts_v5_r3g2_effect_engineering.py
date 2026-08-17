@@ -61,6 +61,7 @@ def _scope(preflight: dict, manifest_sha256: str) -> dict:
             "env_file_mounted": False,
             "docker_socket_mounted": False,
             "production_ledger_mounted": False,
+            "frozen_research_lineage_ledgers_mounted": True,
             "full_project_root_mounted": False,
             "runner": {"command": RUNNER_COMMAND},
             "auditor": {"command": AUDITOR_COMMAND},
@@ -349,6 +350,12 @@ def test_release_document_is_metadata_only_and_compose_matches(tmp_path: Path) -
 
     assert mounts(runner["volumes"]) == expected_runner
     assert mounts(auditor["volumes"]) == expected_auditor
+    research_ledgers = {
+        "ledger/ts_v5_r3f_llm_attempts.csv",
+        "ledger/ts_v5_r3f_llm_transports.csv",
+    }
+    assert {row["source"] for row in expected_runner} & research_ledgers == research_ledgers
+    assert not any(row["source"].rstrip("/") == "ledger" for row in expected_runner)
     assert not any("p1-moneyflow-alpha158" in row["source"] for row in expected_runner)
     assert "compose.ts-v5-r3g2-effect.yaml" in CONTROLLED_FILES
     assert "compose.ts-v5-r3g2-effect.yaml" in (ROOT / "Dockerfile").read_text()

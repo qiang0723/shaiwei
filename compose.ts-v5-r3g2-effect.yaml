@@ -36,6 +36,9 @@ services:
       - {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v3-data-gate-r3, target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g-executable-semantics, target: /workspace/data/research/trend_swing/ts-v5-r3g-executable-semantics, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3f-canary-001, target: /workspace/data/research/trend_swing/ts-v5-r3f-canary-001, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./ledger/ts_v5_r3f_llm_attempts.csv, target: /workspace/ledger/ts_v5_r3f_llm_attempts.csv, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./ledger/ts_v5_r3f_llm_transports.csv, target: /workspace/ledger/ts_v5_r3f_llm_transports.csv, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g1-recent-density-r2, target: /workspace/data/research/trend_swing/ts-v5-r3g1-recent-density-r2, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1, target: /workspace/data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/m6_csi800_model_attribution_v1/effect/first_pass, target: /workspace/data/research/m6_csi800_model_attribution_v1/effect/first_pass, read_only: true, bind: {create_host_path: false}}
@@ -71,6 +74,9 @@ services:
       - {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v3-data-gate-r3, target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g-executable-semantics, target: /workspace/data/research/trend_swing/ts-v5-r3g-executable-semantics, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3f-canary-001, target: /workspace/data/research/trend_swing/ts-v5-r3f-canary-001, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./ledger/ts_v5_r3f_llm_attempts.csv, target: /workspace/ledger/ts_v5_r3f_llm_attempts.csv, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./ledger/ts_v5_r3f_llm_transports.csv, target: /workspace/ledger/ts_v5_r3f_llm_transports.csv, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g1-recent-density-r2, target: /workspace/data/research/trend_swing/ts-v5-r3g1-recent-density-r2, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1, target: /workspace/data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/m6_csi800_model_attribution_v1/effect/first_pass, target: /workspace/data/research/m6_csi800_model_attribution_v1/effect/first_pass, read_only: true, bind: {create_host_path: false}}

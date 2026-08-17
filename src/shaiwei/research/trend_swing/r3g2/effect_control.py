@@ -120,6 +120,7 @@ def _validate_scope(scope: Mapping[str, Any], protocol: EffectProtocol, release:
         or container.get("env_file_mounted") is not False
         or container.get("docker_socket_mounted") is not False
         or container.get("production_ledger_mounted") is not False
+        or container.get("frozen_research_lineage_ledgers_mounted") is not True
         or container.get("full_project_root_mounted") is not False
         or container.get("runner", {}).get("command") != RUNNER_COMMAND
         or container.get("auditor", {}).get("command") != AUDITOR_COMMAND
