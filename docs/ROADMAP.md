@@ -4,6 +4,14 @@
 > Web，以及长期 LLM 多源因子研究。
 > 领先不是验收标准；只有可复现、扣除成本、通过预注册门槛的增量结果才算完成。
 
+## 2026-08-17 TS-v5 R3G-2 W7入口恢复数据门GO
+
+recovery scope`f61a2365...44b5`唯一runner完成固定W7 first/replay，无Qlib独立auditor裁决
+`GO_W7_SCORE_LINEAGE_DATA_ONLY`；194,329行分数谱系覆盖2025年，两遍模型/预测/summary逐内容一致。
+原scope未重跑，RankIC、收益、H00906、组合和策略效果均未读，效果尝试0、策略NOT_EVALUATED、生产
+none。本scope关闭；下一步只能另立TS效果release并重新取得用户精确批准。见
+`docs/TS_V5_R3G2_W7_LINEAGE_RECOVERY_ACCEPTANCE_20260817.md`。
+
 ## 2026-08-17 TS-v5 R3G-2 W7入口恢复发布准备
 
 新恢复协议仅修复runner/auditor CLI参数映射，并绑定原scope、原批准、失败回执和两个空输出根；使用新

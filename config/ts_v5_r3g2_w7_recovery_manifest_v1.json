@@ -1,0 +1,60 @@
+{
+  "artifact_identity": {
+    "audit_sha256": "d5cd43c34dadcd59dc6097294dbb36c32e2dee072e482ca354117c678eb7276d",
+    "first_pass_manifest_sha256": "67fa92dc804545570ba6a32f6501fdda1f523f64a00bfef01ccc53c61efacb8b",
+    "lineage_bundle_sha256": "5842f87d28d9ab703410376f1d0e78a17534f36be11d2a4bcae25baae3062f93",
+    "lineage_file_count": 11,
+    "lineage_report_sha256": "d3c51f89997a9f070e8c733a43b2cc1d6da07e9ac4d37898792b72b4f4a274d0",
+    "model_sha256": "999e9839c67c4546dd954e3f62bbc00234c413f716e2cdd8bf8988e2694ec0b2",
+    "prediction_sha256": "0c8befa943ab39ad0e6b02247869460624e296b829fba6e44d5d25e99f6a8321",
+    "replay_manifest_sha256": "67fa92dc804545570ba6a32f6501fdda1f523f64a00bfef01ccc53c61efacb8b",
+    "summary_sha256": "30daa9923eb52031f7bbb50bd22473aa8dd309993b5cf8b65a725c741185adcb"
+  },
+  "authority": {
+    "effect_release_authorized": false,
+    "external_network_used": false,
+    "label_rankic_return_or_effect_read": false,
+    "paper_web_scheduler_or_production_change": false,
+    "production_authorization": "none",
+    "strategy_effect_attempt_count": 0
+  },
+  "completed_at": "2026-08-17T10:50:22+08:00",
+  "execution_identity": {
+    "approval_sha256": "a1cabe78fbd41040b47977671ed388f2ee5294e854c1e671256d915641804179",
+    "auditor_invocation_count": 1,
+    "code_snapshot_sha256": "a6102897274ba4346921edc08aac3d2ebb07b5bfc759940762449783c5a3cda0",
+    "image_id": "sha256:39a5fa1363e72e507b5cd951b0e5e430754b1193d679a416c3a2c56b86e11398",
+    "implementation_git_commit": "8c228342205223f1e6820a136b61bc76671b3296",
+    "internal_passes": [
+      "first_pass",
+      "replay"
+    ],
+    "release_scope_document_sha256": "235bfac2d00933a56ae4c642ef65b2b964837582365498703868351f7bf6b395",
+    "release_scope_sha256": "f61a236518282018c3525864eff5cd5fa0ed6fe01e3c26c04ff10224087144b5",
+    "runner_invocation_count": 1
+  },
+  "frozen_provider": {
+    "calendar_row_count": 2557,
+    "calendar_sha256": "80ddefd8e3cce5137bb99f6b53dbe090de1b1bd234db1a19f31ef3ddb2bd8bdb",
+    "qlib_file_count": 54464,
+    "qlib_manifest_sha256": "62cae2f46b57020db202bee1748f072e7859e209663046747f76aaa008f605a9",
+    "qlib_tree_sha256": "0532f6cd7c2c78f0936f92a986aef83a848175fe6f332274e06c7ed6e8c11778"
+  },
+  "predecessor_failure": {
+    "failure_receipt_sha256": "cdfe44d19c6601ed529b112f4fe901e0423e4176f39eb5ad27cb47dacbcb99bb",
+    "original_release_scope_sha256": "5d2389429aa4ba272371d60214fd04866405372f61b7d3933db67e8a7b7838ad",
+    "original_scope_real_qlib_read_started": false,
+    "original_scope_runner_invocation_count": 1,
+    "original_scope_strategy_effect_attempt_count": 0
+  },
+  "protocol_sha256": "c3aa5a2bef199d8745b6e0399085dcf5a60d9f28f29a5426ea0104831f3572bf",
+  "schema_version": "ts-v5-r3g2-w7-recovery-manifest-v1",
+  "score_coverage": {
+    "prediction_date_max": "2025-12-31",
+    "prediction_date_min": "2025-01-02",
+    "prediction_row_count": 194329,
+    "w7_score_last_mature_signal_for_metric_only": "2025-12-16"
+  },
+  "strategy_effective": "NOT_EVALUATED",
+  "verdict": "GO_W7_SCORE_LINEAGE_DATA_ONLY"
+}

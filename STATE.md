@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-17 · TS-v5-R3G-2 W7入口恢复数据门GO
+
+- recovery scope`f61a2365...44b5`按用户逐字批准唯一执行；runner内部first/replay及无Qlib独立auditor
+  均完成，权威`GO_W7_SCORE_LINEAGE_DATA_ONLY`。原scope`5d238942...38ad`未重跑。
+- W7谱系194,329行、2025-01-02—2025-12-31；两遍bundle均为`5842f87d...2f93`，模型、预测、summary
+  与manifest逐内容一致。runner report/audit SHA-256为`d3c51f89...274d`/`d5cd43c3...276d`。
+- 只读取允许的W7模型与分数谱系，未读取RankIC、收益、H00906、组合或效果；效果尝试0，策略
+  `NOT_EVALUATED`，生产授权none。外网/secret/实验账本/模拟仓/Web/生产变更均为0。
+- recovery scope已关闭且不得重跑。下一步若进入TS真实效果，必须另立效果release scope并再次精确
+  批准；W7数据GO不自动授权效果。全仓1,356项、架构13项、脱敏manifest逐项复算均PASS，scheduler
+  原容器保持healthy。见`docs/TS_V5_R3G2_W7_LINEAGE_RECOVERY_ACCEPTANCE_20260817.md`。
+
 ## 2026-08-17 · TS-v5-R3G-2 W7入口恢复scope待精确批准
 
 - 新恢复协议只修runner/auditor CLI参数映射，绑定原scope`5d238942...38ad`、原批准`9f513150...0f28`、
