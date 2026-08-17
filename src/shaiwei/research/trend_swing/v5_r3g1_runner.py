@@ -96,6 +96,72 @@ def project_events(
     return events
 
 
+def project_effect_events(
+    rows: Sequence[Mapping[str, Any]],
+    registered: RegisteredCandidate,
+    point: Mapping[str, str],
+    role: str,
+) -> list[dict[str, Any]]:
+    """Reproject events with the frozen episode references needed by R3G-2."""
+    events: list[dict[str, Any]] = []
+    active_code, episode, signal = "", Episode(), None
+    point_hash = _point_hash(point)
+    for original in rows:
+        row = dict(original)
+        code = str(row["ts_code"])
+        if code != active_code:
+            active_code, episode, signal = code, Episode(), None
+        if episode.status == EpisodeStatus.CONFIRMED:
+            if bool(row["has_bar"]):
+                row["same_adjustment_factor"] = Decimal(str(row["adj_factor"])) == Decimal(
+                    str(signal["adj_factor"])
+                )
+                try:
+                    terminal = execute_next_open(
+                        registered.candidate,
+                        episode,
+                        next_open_input(registered.candidate, point, signal, row),
+                    )
+                except (D1ControlError, TypeError, ValueError, ArithmeticError):
+                    terminal = Episode(status=EpisodeStatus.CANCELLED)
+                if terminal.status == EpisodeStatus.EXECUTED:
+                    event = _event(role, registered, point_hash, code, signal, row)
+                    event.update(
+                        frozen_reference_adjusted=float(episode.reference),
+                        initial_stop_adjusted=float(episode.structure_low),
+                        industry=str(signal["industry"]),
+                    )
+                    events.append(event)
+            episode, signal = Episode(), None
+        if not bool(row["has_bar"]):
+            if episode.status == EpisodeStatus.ARMED:
+                episode = advance_without_security_bar(
+                    registered.candidate,
+                    point,
+                    episode,
+                    sequence=int(row["role_sequence"]),
+                    market_sector_gate=bool(row["f_daily"]),
+                )
+                if episode.status == EpisodeStatus.CANCELLED:
+                    episode = Episode()
+            continue
+        try:
+            episode = transition(
+                registered.candidate,
+                point,
+                episode,
+                daily_input(registered.candidate, point, row),
+            )
+        except (D1ControlError, TypeError, ValueError, ArithmeticError):
+            episode = Episode()
+            continue
+        if episode.status == EpisodeStatus.CONFIRMED:
+            signal = row
+        elif episode.status == EpisodeStatus.CANCELLED:
+            episode = Episode()
+    return events
+
+
 def _event(
     role: str,
     registered: RegisteredCandidate,

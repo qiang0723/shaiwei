@@ -113,7 +113,7 @@ class EffectProtocol:
             "score_last_signal": frozen["score_last_mature_signal_for_metric_only"],
         }
 
-    def validate_bound_inputs(self) -> dict[str, str]:
+    def _input_bindings(self, *, include_disallowed_reference: bool) -> list[tuple[str, str]]:
         bindings: list[tuple[str, str]] = []
         for row in self.document["predecessors"].values():
             if isinstance(row, dict) and {"path", "sha256"} <= set(row):
@@ -121,11 +121,17 @@ class EffectProtocol:
         benchmark = self.document["benchmark"]
         bindings.append((benchmark["path"], benchmark["sha256"]))
         lineage = self.document["ranking_lineage"]
-        bindings.append((lineage["old_p1_cache"]["path"], lineage["old_p1_cache"]["sha256"]))
+        if include_disallowed_reference:
+            bindings.append(
+                (lineage["old_p1_cache"]["path"], lineage["old_p1_cache"]["sha256"])
+            )
         clean = lineage["clean_m6_lineage"]
         bindings.append((clean["protocol_path"], clean["protocol_sha256"]))
         for row in clean["reusable_predictions"].values():
             bindings.append((row["path"], row["sha256"]))
+        return bindings
+
+    def _validate_bindings(self, bindings: list[tuple[str, str]]) -> dict[str, str]:
         observed: dict[str, str] = {}
         for relative, expected in bindings:
             path = project_path(relative)
@@ -136,3 +142,14 @@ class EffectProtocol:
                 raise R3G2Error(f"R3G-2 bound input hash differs: {relative}")
             observed[relative] = actual
         return observed
+
+    def validate_bound_inputs(self) -> dict[str, str]:
+        return self._validate_bindings(
+            self._input_bindings(include_disallowed_reference=True)
+        )
+
+    def validate_authorized_effect_inputs(self) -> dict[str, str]:
+        """Validate only inputs that the real-effect runtime may actually mount."""
+        return self._validate_bindings(
+            self._input_bindings(include_disallowed_reference=False)
+        )
