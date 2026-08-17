@@ -1,0 +1,73 @@
+schema_version: ts-v6-entry-quality-operationalization-addendum-v1
+addendum_id: ts-v6-entry-quality-operationalization-addendum-001
+prepared_on: "2026-08-17"
+status: RESULT_BLIND_OPERATIONALIZATION_FROZEN
+production_authorization: none
+
+parent_protocol:
+  path: config/ts_v6_entry_quality_preflight_v1.yaml
+  sha256: a518862b224b120b04f0a0ab6d1543a7827cbb9c245a3e8806e443c062d7332b
+
+purpose: >-
+  remove event-timing and retry ambiguity before any real TS-v6 semantic feature read;
+  this addendum does not alter the candidate family, parameter levels, density gates, time roles,
+  result firewall, effect-attempt count, or production authority
+
+authoritative_parent_event_set:
+  point_hash: 81833a47b1edb59455c997c422bb36b63454f1da84e29696269c9c950e019784
+  key: [ts_code, signal_date, next_open_date]
+  source_path: data/research/trend_swing/ts-v5-r3g1-recent-density-r2/events.parquet
+  child_may_create_new_parent_episode_or_event: false
+  exact_key_reconciliation_required_before_candidate_profile: true
+  duplicate_parent_key_policy: BLOCKED_INPUT_CONTRACT
+  missing_or_extra_reconstructed_parent_key_policy: BLOCKED_INPUT_CONTRACT
+
+feature_observation_timing:
+  pullback_amount_ratio:
+    observation_row: first_parent_episode_arm_or_retest_row
+    numerator: same_row_amount_rmb
+    denominator: prior_20_valid_security_bar_amount_rmb_median
+    current_row_excluded_from_denominator: true
+    insufficient_or_nonpositive_denominator_policy: fail_closed
+  recovery_close_location:
+    observation_row: parent_recovery_confirmation_signal_row
+    formula: adjusted_close_minus_adjusted_low_divided_by_adjusted_high_minus_adjusted_low
+    zero_or_negative_adjusted_range_policy: fail_closed
+  pre_entry_10d_return_percentile:
+    observation_row: parent_recovery_confirmation_signal_row
+    return_formula: same_row_adjusted_close_divided_by_tenth_prior_valid_security_bar_adjusted_close_minus_one
+    current_and_lagged_bars_must_be_complete: true
+    cross_section: same_day_pit_csi800_eligible_members
+    percentile_method: percent_rank_ascending_with_equal_values_tied
+    insufficient_cross_section_policy: fail_closed
+
+candidate_filter_semantics:
+  apply_quality_gates_to_parent_legal_events_only: true
+  gate_order_for_diagnostics:
+    - MAX_PULLBACK_AMOUNT_RATIO
+    - MIN_RECOVERY_CLOSE_LOCATION
+    - MAX_PRE_ENTRY_10D_RETURN_PERCENTILE
+  all_three_gates_required: true
+  failed_quality_gate_result: reject_parent_event
+  rearm_or_retry_inside_same_parent_episode: forbidden
+  rescan_to_create_alternative_signal_date: forbidden
+  next_open_execution_or_parent_exit_change: forbidden
+  child_event_key_must_equal_surviving_parent_event_key: true
+
+firewall_and_authority:
+  semantic_read_started_before_real_feature_read: true
+  post_entry_outcome_read: false
+  holdout_outcome_read: false
+  current_partial_year_read: false
+  alpha158_read: false
+  effect_attempt_increment: 0
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+
+change_control:
+  modifies_parent_protocol: false
+  changes_research_hypothesis: false
+  changes_parameter_or_density_gate: false
+  changes_time_partition: false
+  changes_selection_order: false
+  future_change_requires_new_result_blind_addendum_or_protocol: true

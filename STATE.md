@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-17 · TS-v6-0结果盲操作化附录已冻结
+
+- 在读取任何真实TS-v6特征前，进一步冻结父事件严格子集语义：质量门失败只剔除该父事件，不得在
+  同一episode内重新武装、延后确认或创造替代信号日；父事件键须与R3G-1冻结产物精确对账。
+- 回踩成交额比固定取首次武装行且分母排除当日；恢复收盘位置和10日涨幅横截面分位固定取父信号
+  行。历史不足、无有效区间或横截面不足均fail closed。
+- 机器真身`config/ts_v6_entry_quality_operationalization_addendum_v1.yaml`，SHA-256
+  `ffa0e1f745853841aa58e0eb0e0efc00142a61523cf4bd1c3f269bb2452f441b`。本附录不改主协议的分位、
+  密度门、时间划分或权限，仍为零效果、策略`NOT_EVALUATED`、生产授权none。见
+  `docs/TS_V6_ENTRY_QUALITY_OPERATIONALIZATION_ADDENDUM_20260817.md`。
+
 ## 2026-08-17 · TS-v6-0入场质量零效果预检协议已冻结
 
 - 用户确认按TS复盘建议继续；下一代只改变`HEALTHY_RETEST_ENTRY_QUALITY`，以回踩缩量、恢复收盘
