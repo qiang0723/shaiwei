@@ -50,3 +50,19 @@ H00906、组合或策略效果，也不授权模拟仓、Web和生产。
 - 原失败回执、原批准、原scope和两个空输出目录已由恢复发布器逐项复核一致。
 
 以上仅证明恢复发布准备可构建，不是恢复执行或W7数据GO。
+
+## 不可变恢复scope
+
+- 准备提交：`8c228342205223f1e6820a136b61bc76671b3296`，已先推送`origin/main`。
+- 镜像：`shaiwei:ts-v5-r3g2-w7-lineage-recovery-v1`；内容ID
+  `sha256:39a5fa13...1398`；平台`linux/arm64`；嵌入commit`8c22834`。
+- 镜像manifest：911个受控文件；manifest SHA-256 `bb569dad...a2f`；代码快照
+  `a6102897...cda0`。host/image逐文件一致。
+- recovery scope：`f61a236518282018c3525864eff5cd5fa0ed6fe01e3c26c04ff10224087144b5`；文档
+  SHA-256 `235bfac2...b395`。
+- scope生成后没有创建approval或recovery输出目录，runner/auditor均未调用；scheduler仍为原容器
+  `183b8c6c5edd`且healthy。
+
+下一动作只可为用户逐字批准：
+`TS_R3G2_W7_SCORE_LINEAGE_ENTRYPOINT_RECOVERY_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT`。批准仍只允许
+一个runner（内部first/replay）和一个无Qlib auditor；同scope不得重跑。

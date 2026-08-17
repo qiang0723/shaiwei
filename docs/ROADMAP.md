@@ -7,9 +7,10 @@
 ## 2026-08-17 TS-v5 R3G-2 W7入口恢复发布准备
 
 新恢复协议仅修复runner/auditor CLI参数映射，并绑定原scope、原批准、失败回执和两个空输出根；使用新
-镜像、新scope、新批准schema和新输出目录，原scope永久禁止重跑。当前只施工结果盲发布链与synthetic
-fixture，真实Qlib/W7/RankIC/收益/效果仍为0。待准备提交推送、不可变镜像与host/image哈希门通过后，
-生成唯一新recovery scope并再次取得用户逐字批准；恢复GO也不自动授权TS效果、模拟仓或生产。见
+镜像、新scope、新批准schema和新输出目录，原scope永久禁止重跑。准备提交`8c22834`、镜像
+`sha256:39a5fa...1398`、911文件host/image门和断网fixture已PASS；唯一未授权scope为
+`f61a2365...44b5`。真实Qlib/W7/RankIC/收益/效果仍为0，下一步必须再次取得用户逐字批准；恢复GO也不
+自动授权TS效果、模拟仓或生产。见
 `docs/TS_V5_R3G2_W7_ENTRYPOINT_RECOVERY_PREPARATION_20260817.md`。
 
 ## 2026-08-17 TS-v5 R3G-2 W7入口失败与恢复边界

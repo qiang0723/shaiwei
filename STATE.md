@@ -2,15 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-08-17 · TS-v5-R3G-2 W7入口恢复发布准备中
+## 2026-08-17 · TS-v5-R3G-2 W7入口恢复scope待精确批准
 
 - 新恢复协议只修runner/auditor CLI参数映射，绑定原scope`5d238942...38ad`、原批准`9f513150...0f28`、
   失败回执`cdfe44d1...99bb`及原lineage/audit文件数0；原scope永久不得重跑。
 - 恢复使用独立镜像、独立scope/approval schema和独立输出目录；继承同一W7/provider/双跑/审计合同，
   继续禁止RankIC、收益、H00906、组合、外网、模拟仓、Web和生产。
-- 当前仅有协议、发布适配器、Docker编排与synthetic测试，真实Qlib/W7训练/分数/auditor/效果新增仍为0。
-  专项23项、全仓1,356项、架构13项及Ruff/Compose/diff/脱敏均PASS；下一步先推送准备提交，再构建
-  不可变镜像与生成新scope；新scope仍须用户逐字批准。
+- 准备提交`8c22834`已推送；恢复镜像`sha256:39a5fa...1398`内18项断网fixture PASS，911个受控文件
+  与host逐项一致，快照`a6102897...cda0`。生产scheduler仍为原容器`183b8c6c5edd`且healthy。
+- 唯一未授权recovery scope为`f61a2365...44b5`，文档SHA-256为`235bfac2...b395`；没有创建approval或
+  recovery输出目录，runner/auditor均未调用，真实Qlib/W7训练/分数/效果新增仍为0。
+- 下一步仅可逐字批准动作
+  `TS_R3G2_W7_SCORE_LINEAGE_ENTRYPOINT_RECOVERY_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT`；批准前不得执行，
+  执行后同scope仍不得重跑。
 - 见`docs/TS_V5_R3G2_W7_ENTRYPOINT_RECOVERY_PREPARATION_20260817.md`。
 
 ## 2026-08-17 · TS-v5-R3G-2 W7原scope入口失败封存
@@ -19,8 +23,8 @@
   `release_path/approval_path`，在进入`run()`前TypeError；原scope次数已消费且不得重跑，auditor未调用。
 - 无`lineage_read_started.json`，真实Qlib、W7模型/分数、RankIC、收益、基准、组合均未读；策略效果尝试
   仍为0，不能记作策略失败。Git忽略失败receipt SHA-256为`cdfe44d1...99bb`。
-- runner和auditor两个入口已做最小参数映射修复，并增加直接调用两个`main()`的回归测试；专项25项PASS。
-  下一步须提交/推送修复，再另立绑定前序失败的新镜像与recovery scope；再次取得用户精确批准前不读W7。
+- runner和auditor两个入口已做最小参数映射修复，并增加直接调用两个`main()`的回归测试；修复与失败
+  已由`54fc96a`封存。后续恢复准备已另立新镜像与scope；再次取得用户精确批准前不读W7。
   见`docs/TS_V5_R3G2_W7_ENTRYPOINT_FAILURE_20260817.md`。
 
 ## 2026-08-17 · TS-v5-R3G-2 W7谱系预执行工程完成
