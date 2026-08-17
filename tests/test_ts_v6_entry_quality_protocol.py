@@ -61,3 +61,10 @@ def test_v6_package_respects_module_size_and_no_generic_dumping_ground() -> None
     sizes = {path.name: len(path.read_text(encoding="utf-8").splitlines()) for path in package.glob("*.py")}
     assert sizes and max(sizes.values()) <= 400
     assert not ({"utils.py", "helpers.py", "common.py"} & set(sizes))
+
+
+def test_profile_preserves_bounded_pre_marker_failure_receipts() -> None:
+    source = (ROOT / "src/shaiwei/research/trend_swing/v6/profile.py").read_text(encoding="utf-8")
+    assert 'glob("pre_marker_failure_*.json")' in source
+    assert "len(receipts) > 2" in source
+    assert '"pre_marker_failure_receipts": receipts' in source

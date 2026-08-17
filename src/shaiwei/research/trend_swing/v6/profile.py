@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import hashlib
+import json
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -60,6 +61,30 @@ def _write_json_once(path: Path, document: Mapping[str, Any]) -> str:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(payload)
     return hashlib.sha256(payload).hexdigest()
+
+
+def _pre_marker_receipts() -> list[dict[str, Any]]:
+    receipts = []
+    for path in sorted(OUTPUT_ROOT.glob("pre_marker_failure_*.json")):
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise D1ControlError("TS-v6 pre-marker failure receipt is invalid") from exc
+        if (
+            not isinstance(document, dict)
+            or document.get("real_feature_read") is not False
+            or document.get("semantic_read_marker_exists") is not False
+            or document.get("strategy_or_density_attempt_increment") != 0
+        ):
+            raise D1ControlError("TS-v6 pre-marker failure receipt authority differs")
+        receipts.append({
+            "path": path.relative_to(PROJECT_ROOT).as_posix(),
+            "sha256": sha256_file(path),
+            "failure_class": document.get("failure_class"),
+        })
+    if len(receipts) > 2:
+        raise D1ControlError("TS-v6 pre-marker technical repair budget exceeded")
+    return receipts
 
 
 def _write_observations(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
@@ -248,6 +273,7 @@ def run_profile_once() -> dict[str, Any]:
     validate_bound_inputs(scope)
     identity = runtime_identity()
     OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
+    receipts = _pre_marker_receipts()
     marker = {
         "schema_version": "ts-v6-semantic-read-marker-v1",
         "semantic_read_started": True,
@@ -255,6 +281,7 @@ def run_profile_once() -> dict[str, Any]:
         "protocol_sha256": scope.sha256,
         "operationalization_addendum_sha256": scope.addendum_sha256,
         "release_identity": identity,
+        "pre_marker_technical_failure_receipts": receipts,
     }
     marker_sha = _write_json_once(MARKER_PATH, marker)
     observations = _real_observations(scope)
@@ -268,9 +295,11 @@ def run_profile_once() -> dict[str, Any]:
         },
         "parent_observations": _write_observations(observations),
         "candidate_events": _write_candidate_events(candidate_events),
+        "pre_marker_failure_receipts": receipts,
     }
     first["machine_artifacts"] = artifacts
     first["internal_deterministic_replay_pass"] = True
+    first["pre_marker_technical_failure_count"] = len(receipts)
     first["canonical_payload_sha256"] = canonical_sha256({
         key: value for key, value in first.items() if key != "canonical_payload_sha256"
     })
