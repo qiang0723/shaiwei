@@ -47,6 +47,8 @@ def test_docker_boundary_is_offline_read_only_and_secret_free() -> None:
         assert service["restart"] == "no"
         assert service["cap_drop"] == ["ALL"]
     profile = document["services"]["ts-v6-entry-quality-profile"]
+    fixture = document["services"]["ts-v6-entry-quality-fixture"]
+    assert fixture["build"]["network"] == "none"
     writable = [row for row in profile["volumes"] if row["read_only"] is False]
     assert len(writable) == 1
     assert writable[0]["source"].endswith("ts-v6-entry-quality-preflight-v1")

@@ -28,6 +28,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.ts-v6-entry-quality
+      network: none
       args:
         SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_TS_V6_RELEASE_GIT_HEAD:-}
     command: [python, -m, pytest, -q, tests/test_ts_v6_entry_quality_protocol.py, tests/test_ts_v6_entry_quality_engine.py]
