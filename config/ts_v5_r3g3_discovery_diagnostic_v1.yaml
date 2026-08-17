@@ -1,0 +1,154 @@
+schema_version: ts-v5-r3g3-discovery-diagnostic-protocol-v1
+protocol_id: ts-v5-r3g3-discovery-failure-diagnostic-001
+prepared_on: "2026-08-17"
+status: RESULT_KNOWN_DETAIL_BLIND_DIAGNOSTIC_PROTOCOL_FROZEN_PENDING_IMPLEMENTATION
+strategy_family: trend-swing
+production_authorization: none
+
+objective:
+  primary: >-
+    explain_the_closed_r3g2_discovery_failure_without_creating_a_new_effect_attempt_or_opening_holdout
+  decision: identify_the_dominant_observed_bottleneck_and_define_questions_for_a_future_ts_v6_protocol
+  strategy_rescue_or_parameter_selection: forbidden
+
+frozen_parent:
+  result_root: data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1
+  result_report:
+    path: data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/report.json
+    sha256: 515e891bec3e43e94f62e3796804bcf2283215395aab58eccaf74a7e35ffd528
+  independent_audit:
+    path: data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1-audit/audit.json
+    sha256: 79de6dabf229630036af67ab840176a1f31cf19b5a2c4231a30b72d60866046f
+  first_pass_manifest:
+    path: data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/manifest.json
+    sha256: d00f2fce1c4be5cd6a8af07436416e65d015f3f053470525ee8bd5e005bac41c
+    bundle_sha256: f36bc46fe8cd499f19c886951a761235cfdbd89cb8d0954172279d5d774f12a9
+  first_pass_summary:
+    path: data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/pass_summary.json
+    sha256: 844229aaf8fa361246328274d6508a62fa59ff3e4c7f8760e20403adac0474db
+  discovery_partition_summary:
+    path: >-
+      data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/discovery/partition_summary.json
+    sha256: 0f759801ce60fe36f03442639a6af7d093a52138ad153a26311896b2771eec85
+  authoritative_verdict: REJECT_TS_V5_R3G2_DISCOVERY
+  strategy_effective: REJECT
+  effect_attempts_already_consumed: 3
+
+allowed_read_boundary:
+  partition: discovery
+  start: "20210104"
+  end: "20231229"
+  pass: first_pass
+  points:
+    primary: 81833a47b1edb59455c997c422bb36b63454f1da84e29696269c9c950e019784
+    confirmation_neighbour: 09bceb50259b20a82b8af30c41d24af7e2b543ff78790aa893c814f72dfc2ea5
+    tolerance_neighbour: 355926341879e2a55dc3268d9e0f80c3a82bae5c56c96f59516087b365ac8076
+  detailed_parquet_each_point:
+    scenario: base_1x
+    files: [nav.parquet, orders.parquet, trades.parquet]
+  aggregate_json_each_point:
+    scenarios: [base_1x, all_costs_2x, base_plus_10bp_slippage_each_side]
+    file: summary.json
+  replay_detail_read: forbidden
+  holdout_path_or_value_read: forbidden
+  partial_2026_path_or_value_read: forbidden
+  raw_market_security_list_score_prediction_or_model_read: forbidden
+
+diagnostic_questions:
+  - id: DQ1_PARTICIPATION_FUNNEL
+    question: is_capital_inactivity_explained_by_event_scarcity_or_by_rejected_and_pending_orders
+    frozen_metrics:
+      - first_batch_orders_by_status_and_reason
+      - first_batch_fill_rate
+      - second_batch_orders_by_status_and_reason
+      - second_batch_fill_rate_and_entry_notional_share
+      - days_with_any_position_and_days_with_any_new_entry
+      - position_count_distribution
+  - id: DQ2_SIZING_AND_EXECUTION
+    question: do_weight_risk_capacity_lot_or_execution_constraints_bind_after_an_event_arrives
+    frozen_metrics:
+      - gross_weight_all_days_and_invested_days
+      - cash_ratio_all_days_and_invested_days
+      - filled_entry_notional_as_same_day_nav_share
+      - capacity_limited_orders_by_side_and_status
+      - rejected_or_pending_orders_by_reason
+      - maximum_positions_and_maximum_weights
+  - id: DQ3_TRADE_ECONOMICS
+    question: which_terminal_exit_and_holding_duration_groups_explain_negative_expectancy
+    frozen_metrics:
+      - gross_pnl_fees_and_net_pnl_reconciliation
+      - terminal_exit_reason_count_win_rate_net_pnl_and_absolute_pnl_share
+      - holding_day_bucket_count_win_rate_and_net_pnl
+      - calendar_year_count_win_rate_and_net_pnl
+      - winner_mean_loser_mean_profit_loss_ratio_and_expectancy
+  - id: DQ4_COST_AND_LOCAL_ROBUSTNESS
+    question: is_the_failure_consistent_across_cost_scenarios_and_the_two_frozen_neighbours
+    frozen_metrics:
+      - pooled_net_return_by_point_and_cost_scenario
+      - cost_scenario_delta_from_base
+      - point_level_cash_participation_and_trade_economics_comparison
+
+frozen_groupings:
+  holding_trade_days:
+    - {label: D01_05, minimum: 1, maximum: 5}
+    - {label: D06_10, minimum: 6, maximum: 10}
+    - {label: D11_15, minimum: 11, maximum: 15}
+    - {label: D16_PLUS, minimum: 16, maximum: null}
+  calendar_years: [2021, 2022, 2023]
+  order_sides: [BUY, SELL]
+  order_statuses: [FILLED, PARTIAL, PENDING, REJECTED]
+  denominator_policy:
+    order_fill_rate: filled_or_partial_orders_div_all_orders_within_same_side_and_batch
+    invested_day: position_count_strictly_positive_at_daily_close
+    new_entry_day: at_least_one_filled_buy_order
+    pnl_share: group_absolute_net_pnl_div_sum_of_absolute_group_net_pnl
+  security_and_industry_labels_in_tracked_outputs: forbidden
+
+driver_classification:
+  verified: arithmetic_reconciliation_or_direct_count_from_frozen_artifacts
+  likely: directional_inference_supported_by_at_least_two_independent_frozen_metrics
+  unresolved: requires_counterfactual_new_effect_attempt_or_unavailable_event_stage_data
+  causal_claim_from_observational_slice: forbidden
+  future_parameter_or_mechanism_recommendation_from_same_results: question_only_not_selection
+
+execution_contract:
+  diagnostic_runner_invocation_count: 1
+  independent_auditor_invocation_count: 1
+  deterministic_internal_replay: required
+  strategy_effect_attempt_increment: 0
+  model_training_prediction_or_backtest: forbidden
+  parameter_search_or_threshold_change: forbidden
+  experiment_ledger_write: forbidden
+  external_network_or_provider: forbidden
+  env_or_secret_read: forbidden
+  deepseek_calls: 0
+  paper_web_scheduler_or_production_change: forbidden
+  write_scope:
+    machine_root: data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1
+    audit_root: data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1-audit
+    portable_report_root: artifacts/ts-v5-r3g3-discovery-diagnostic-v1
+    overwrite_existing_output: forbidden
+
+report_contract:
+  audience: product_stakeholders
+  answer_first: true
+  required_sections:
+    - Executive_Summary
+    - Findings_with_visual_evidence
+    - Recommendations
+    - Further_questions
+    - Caveats
+  minimum_visuals:
+    - point_level_participation_comparison
+    - primary_terminal_exit_pnl_contribution
+  portable_self_contained_html: true
+  canonical_artifact_json: true
+  source_paths_are_project_relative_and_non_sensitive: true
+  raw_security_trade_or_order_rows_in_report: forbidden
+
+terminal_boundary:
+  r3g2_verdict_may_change: false
+  holdout_may_open: false
+  ts_v6_effect_authorized: false
+  simulation_or_production_authorized: false
+  next_step_if_diagnostic_passes: separately_freeze_one_mechanically_distinct_ts_v6_hypothesis

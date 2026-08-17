@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-17 · TS-v5 R3G-3发现期失败诊断协议已冻结
+
+- R3G-2 的权威 `REJECT` 与未读留出期保持不变；R3G-3 只解释已封存 2021—2023 发现期为什么
+  平均现金接近98%、单笔期望为负，不以诊断挽救旧策略。
+- 已在逐订单/逐交易值读取前冻结四类问题、分母、持有期桶和证据分层；明细只允许 first-pass
+  discovery 三点的 base 场景，成本邻场景只读聚合 summary，replay/holdout/2026 明细均禁止。
+- 下一步施工一次断网 diagnostic runner、一次内部确定性 replay 和一次独立 auditor；新增效果尝试0，
+  不运行模型、预测、回测、参数搜索或外部API，不改模拟仓、Web、scheduler或生产。
+- 协议：`config/ts_v5_r3g3_discovery_diagnostic_v1.yaml`；说明：
+  `docs/TS_V5_R3G3_DISCOVERY_DIAGNOSTIC_PROTOCOL_20260817.md`。
+
 ## 2026-08-17 · TS-v5 R3G-2真实效果权威REJECT，留出期未读
 
 - recovery scope`c78d6851...7193a`按用户逐字批准唯一执行；原scope未重跑。runner first/replay与独立
