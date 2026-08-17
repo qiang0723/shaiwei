@@ -192,8 +192,10 @@ def build(
     snapshot = code_snapshot_sha256()
     if verify_release_manifest(image_release_manifest, root=PROJECT_ROOT) != snapshot:
         raise R3G2Error("R3G-2 controlled host tree differs from the built image")
+    release_protocol = ReleaseProtocol.load()
+    release_protocol.validate_bound_predecessors()
     document = build_release_document(
-        protocol=EffectProtocol.load(), release_protocol=ReleaseProtocol.load(),
+        protocol=EffectProtocol.load(), release_protocol=release_protocol,
         preflight=json.loads(PREFLIGHT_PATH.read_text(encoding="utf-8")),
         created_at=created_at, implementation_git_commit=head, origin_main_commit=origin,
         code_snapshot=snapshot, image_id=image_id, image_platform=image_platform,

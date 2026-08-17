@@ -70,13 +70,19 @@ class ReleaseProtocol:
             or document.get("release", {}).get("approval_action") != ACTION
         ):
             raise R3G2Error("R3G-2 release protocol identity differs")
-        for row in document["predecessors"].values():
+        return cls(document, sha256_file(RELEASE_PROTOCOL_PATH))
+
+    def validate_bound_predecessors(self) -> dict[str, str]:
+        """Validate data-bearing predecessors only where their mounts are authorized."""
+        observed: dict[str, str] = {}
+        for row in self.document["predecessors"].values():
             if not isinstance(row, dict) or not {"path", "sha256"} <= set(row):
                 continue
             path = PROJECT_ROOT / row["path"]
             if not path.is_file() or sha256_file(path) != row["sha256"]:
                 raise R3G2Error(f"R3G-2 release predecessor differs: {path.name}")
-        return cls(document, sha256_file(RELEASE_PROTOCOL_PATH))
+            observed[row["path"]] = row["sha256"]
+        return observed
 
 
 def expected_scope_authority() -> dict[str, Any]:
