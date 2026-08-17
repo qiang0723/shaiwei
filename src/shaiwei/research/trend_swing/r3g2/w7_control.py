@@ -13,12 +13,33 @@ from shaiwei.config import PROJECT_ROOT
 from shaiwei.provenance import code_snapshot_sha256, git_head
 from shaiwei.research.model_attribution.contract import ProtocolBundle
 from shaiwei.research.trend_swing.contract import canonical_sha256
-from shaiwei.research.trend_swing.r3g2.contract import EffectProtocol, R3G2Error, sha256_file
+from shaiwei.research.trend_swing.r3g2.contract import (
+    EffectProtocol,
+    R3G2Error,
+    project_path,
+    sha256_file,
+)
 
 
 ACTION = "TS_R3G2_W7_SCORE_LINEAGE_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT"
 SCOPE_KIND = "W7_LINEAGE_RELEASE_READY_NOT_EXECUTION_APPROVAL"
 RELEASE_PROTOCOL_PATH = PROJECT_ROOT / "config/ts_v5_r3g2_w7_release_v1.yaml"
+RECOVERY_ACTION = (
+    "TS_R3G2_W7_SCORE_LINEAGE_ENTRYPOINT_RECOVERY_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT"
+)
+RECOVERY_SCOPE_KIND = "W7_LINEAGE_ENTRYPOINT_RECOVERY_RELEASE_READY_NOT_EXECUTION_APPROVAL"
+RECOVERY_PROTOCOL_PATH = (
+    PROJECT_ROOT / "config/ts_v5_r3g2_w7_entrypoint_recovery_release_v1.yaml"
+)
+EXPECTED_FAILURE_FACTS = {
+    "runner_invocation_count": 1,
+    "container_created": True,
+    "lineage_read_started": False,
+    "real_qlib_read_started": False,
+    "auditor_invocation_count": 0,
+    "strategy_effect_attempt_count": 0,
+    "same_release_retry_authorized": False,
+}
 RUNNER_COMMAND = [
     "python", "-m", "shaiwei.research.trend_swing.r3g2.w7_run",
     "--release", "/inputs/release.json", "--approval", "/inputs/approval.json",
@@ -63,16 +84,96 @@ def load_release_protocol(protocol: EffectProtocol) -> tuple[dict[str, Any], str
     return document, sha256_file(RELEASE_PROTOCOL_PATH)
 
 
+def recovery_predecessor_record(document: dict[str, Any]) -> dict[str, Any]:
+    predecessor = document["predecessor"]
+    failure = predecessor["failure_receipt"]["frozen_facts"]
+    empty_roots = predecessor["preserved_empty_roots"]
+    return {
+        "original_release_scope_sha256": predecessor["original_release"]["scope_sha256"],
+        "original_release_document_sha256": predecessor["original_release"][
+            "document_sha256"
+        ],
+        "original_approval_sha256": predecessor["original_approval"]["sha256"],
+        "failure_receipt_sha256": predecessor["failure_receipt"]["sha256"],
+        "original_lineage_file_count": empty_roots["lineage"]["expected_file_count"],
+        "original_audit_file_count": empty_roots["audit"]["expected_file_count"],
+        **failure,
+    }
+
+
+def load_recovery_protocol(protocol: EffectProtocol) -> tuple[dict[str, Any], str]:
+    try:
+        document = yaml.safe_load(RECOVERY_PROTOCOL_PATH.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as error:
+        raise R3G2Error("R3G-2 W7 recovery protocol is invalid") from error
+    if not isinstance(document, dict):
+        raise R3G2Error("R3G-2 W7 recovery protocol is not a mapping")
+    if (
+        document.get("schema_version")
+        != "ts-v5-r3g2-w7-entrypoint-recovery-release-protocol-v1"
+        or document.get("status") != "RESULT_BLIND_W7_ENTRYPOINT_RECOVERY_PREPARATION_ONLY"
+        or document.get("parent_effect_protocol", {}).get("sha256") != protocol.sha256
+    ):
+        raise R3G2Error("R3G-2 W7 recovery protocol binding differs")
+    authority = document.get("authority_before_explicit_approval", {})
+    enabled = {
+        key for key, value in authority.items() if isinstance(value, bool) and value
+    }
+    if enabled != {"release_metadata_and_synthetic_fixture"}:
+        raise R3G2Error("R3G-2 W7 recovery preapproval authority was broadened")
+    if document.get("fix_boundary") != {
+        "runner_cli_mapping": "release_to_release_path_and_approval_to_approval_path",
+        "auditor_cli_mapping": "release_to_release_path_and_approval_to_approval_path",
+        "direct_main_regression_tests": "required",
+        "lineage_model_or_protocol_change": "forbidden",
+    }:
+        raise R3G2Error("R3G-2 W7 recovery fix boundary differs")
+    if document.get("execution_after_exact_approval") != {
+        "approval_action": RECOVERY_ACTION,
+        "runner_invocation_count": 1,
+        "complete_internal_passes": ["first_pass", "replay"],
+        "independent_auditor_invocation_count": 1,
+        "strategy_effect_attempt_count": 0,
+        "same_release_retry_authorized": False,
+        "original_release_retry_authorized": False,
+        "labels_allowed_only_for_purged_train_and_valid_fit": True,
+        "test_label_rankic_return_benchmark_or_portfolio_metric": "forbidden",
+    }:
+        raise R3G2Error("R3G-2 W7 recovery execution boundary differs")
+    predecessor = document.get("predecessor", {})
+    original = predecessor.get("original_release", {})
+    original_path = project_path(str(original.get("path", "")))
+    if (
+        not original_path.is_file()
+        or sha256_file(original_path) != original.get("document_sha256")
+        or _json(original_path).get("release_scope_sha256") != original.get("scope_sha256")
+    ):
+        raise R3G2Error("R3G-2 W7 recovery predecessor release differs")
+    if predecessor.get("failure_receipt", {}).get("frozen_facts") != EXPECTED_FAILURE_FACTS:
+        raise R3G2Error("R3G-2 W7 recovery failure facts differ")
+    return document, sha256_file(RECOVERY_PROTOCOL_PATH)
+
+
 def _expected_mounts(release_protocol: dict[str, Any], role: str) -> list[dict[str, str]]:
     return [dict(row) for row in release_protocol["docker"][role]["mounts"]]
 
 
 def _validate_scope(
-    scope: dict[str, Any], protocol: EffectProtocol, release_protocol: dict[str, Any]
+    scope: dict[str, Any],
+    protocol: EffectProtocol,
+    release_protocol: dict[str, Any],
+    *,
+    release_protocol_path: Path = RELEASE_PROTOCOL_PATH,
+    scope_kind: str = SCOPE_KIND,
+    action: str = ACTION,
+    predecessor_failure: dict[str, Any] | None = None,
 ) -> None:
-    if scope.get("scope_kind") != SCOPE_KIND or scope.get("protocol_sha256") != protocol.sha256:
+    if (
+        scope.get("scope_kind") != scope_kind
+        or scope.get("protocol_sha256") != protocol.sha256
+    ):
         raise R3G2Error("R3G-2 W7 release protocol binding differs")
-    if scope.get("release_protocol_sha256") != sha256_file(RELEASE_PROTOCOL_PATH):
+    if scope.get("release_protocol_sha256") != sha256_file(release_protocol_path):
         raise R3G2Error("R3G-2 W7 release preparation hash differs")
     implementation, image = scope.get("implementation", {}), scope.get("image", {})
     commit = implementation.get("git_commit")
@@ -97,7 +198,7 @@ def _validate_scope(
     if scope.get("inputs") != expected_inputs:
         raise R3G2Error("R3G-2 W7 provider identity differs")
     if scope.get("execution") != {
-        "approval_action": ACTION,
+        "approval_action": action,
         "runner_invocation_count": 1,
         "complete_internal_passes": ["first_pass", "replay"],
         "independent_auditor_invocation_count": 1,
@@ -156,6 +257,16 @@ def _validate_scope(
         "experiment_ledger_write_authorized": False,
     }:
         raise R3G2Error("R3G-2 W7 output boundary differs")
+    if predecessor_failure is None:
+        if "predecessor_failure" in scope:
+            raise R3G2Error("R3G-2 W7 unexpected predecessor failure")
+    else:
+        expected_predecessor = recovery_predecessor_record(release_protocol)
+        if (
+            predecessor_failure != expected_predecessor
+            or scope.get("predecessor_failure") != expected_predecessor
+        ):
+            raise R3G2Error("R3G-2 W7 recovery predecessor failure differs")
 
 
 @dataclass(frozen=True)
@@ -167,11 +278,22 @@ class ReleaseScope:
 
     @classmethod
     def load(cls, path: Path, protocol: EffectProtocol) -> "ReleaseScope":
-        release_protocol, _release_protocol_sha = load_release_protocol(protocol)
         document = _json(path.resolve())
         if set(document) != {"schema_version", "release_scope_sha256", "scope"}:
             raise R3G2Error("R3G-2 W7 release fields differ")
-        if document.get("schema_version") != "ts-v5-r3g2-w7-release-scope-v1":
+        schema = document.get("schema_version")
+        if schema == "ts-v5-r3g2-w7-release-scope-v1":
+            release_protocol, _release_protocol_sha = load_release_protocol(protocol)
+            validation = {}
+        elif schema == "ts-v5-r3g2-w7-entrypoint-recovery-scope-v1":
+            release_protocol, _release_protocol_sha = load_recovery_protocol(protocol)
+            validation = {
+                "release_protocol_path": RECOVERY_PROTOCOL_PATH,
+                "scope_kind": RECOVERY_SCOPE_KIND,
+                "action": RECOVERY_ACTION,
+                "predecessor_failure": recovery_predecessor_record(release_protocol),
+            }
+        else:
             raise R3G2Error("R3G-2 W7 release schema differs")
         scope = document.get("scope")
         if not isinstance(scope, dict):
@@ -179,7 +301,7 @@ class ReleaseScope:
         digest = canonical_sha256(scope)
         if document.get("release_scope_sha256") != digest:
             raise R3G2Error("R3G-2 W7 release scope hash differs")
-        _validate_scope(scope, protocol, release_protocol)
+        _validate_scope(scope, protocol, release_protocol, **validation)
         return cls(path=path.resolve(), document=document, scope=scope, sha256=digest)
 
     def verify_runtime_identity(self) -> dict[str, str]:
@@ -217,10 +339,16 @@ class Approval:
     @classmethod
     def load(cls, path: Path, release: ReleaseScope) -> "Approval":
         document = _json(path.resolve())
+        approval_schema = (
+            "ts-v5-r3g2-w7-entrypoint-recovery-explicit-approval-v1"
+            if release.document["schema_version"]
+            == "ts-v5-r3g2-w7-entrypoint-recovery-scope-v1"
+            else "ts-v5-r3g2-w7-explicit-approval-v1"
+        )
         if document != {
-            "schema_version": "ts-v5-r3g2-w7-explicit-approval-v1",
+            "schema_version": approval_schema,
             "release_scope_sha256": release.sha256,
-            "action": ACTION,
+            "action": release.scope["execution"]["approval_action"],
             "approved": True,
         }:
             raise R3G2Error("R3G-2 W7 explicit approval differs")

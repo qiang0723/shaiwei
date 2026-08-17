@@ -18,6 +18,7 @@ from shaiwei.research.trend_swing.r3g2.evidence import write_once_json
 from shaiwei.research.trend_swing.r3g2.w7_control import (
     ACTION,
     AUDITOR_COMMAND,
+    RELEASE_PROTOCOL_PATH,
     RUNNER_COMMAND,
     SCOPE_KIND,
     _expected_mounts,
@@ -67,6 +68,11 @@ def build_release_document(
     image_release_manifest_sha256: str,
     image_release_manifest_file_count: int,
     inputs: dict[str, Any],
+    document_schema: str = "ts-v5-r3g2-w7-release-scope-v1",
+    scope_kind: str = SCOPE_KIND,
+    action: str = ACTION,
+    release_protocol_path: Path = RELEASE_PROTOCOL_PATH,
+    predecessor_failure: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if implementation_git_commit != origin_main_commit:
         raise R3G2Error("R3G-2 W7 implementation is not pushed to origin/main")
@@ -76,7 +82,7 @@ def build_release_document(
         raise R3G2Error("R3G-2 W7 image platform differs")
     docker = release_protocol["docker"]
     scope = {
-        "scope_kind": SCOPE_KIND,
+        "scope_kind": scope_kind,
         "created_at": created_at,
         "protocol_sha256": protocol.sha256,
         "release_protocol_sha256": release_protocol_sha256,
@@ -96,7 +102,7 @@ def build_release_document(
         },
         "inputs": inputs,
         "execution": {
-            "approval_action": ACTION,
+            "approval_action": action,
             "runner_invocation_count": 1,
             "complete_internal_passes": ["first_pass", "replay"],
             "independent_auditor_invocation_count": 1,
@@ -145,9 +151,19 @@ def build_release_document(
             "production_authorization": "none",
         },
     }
-    _validate_scope(scope, protocol, release_protocol)
+    if predecessor_failure is not None:
+        scope["predecessor_failure"] = predecessor_failure
+    _validate_scope(
+        scope,
+        protocol,
+        release_protocol,
+        release_protocol_path=release_protocol_path,
+        scope_kind=scope_kind,
+        action=action,
+        predecessor_failure=predecessor_failure,
+    )
     return {
-        "schema_version": "ts-v5-r3g2-w7-release-scope-v1",
+        "schema_version": document_schema,
         "release_scope_sha256": canonical_sha256(scope),
         "scope": scope,
     }

@@ -4,6 +4,14 @@
 > Web，以及长期 LLM 多源因子研究。
 > 领先不是验收标准；只有可复现、扣除成本、通过预注册门槛的增量结果才算完成。
 
+## 2026-08-17 TS-v5 R3G-2 W7入口恢复发布准备
+
+新恢复协议仅修复runner/auditor CLI参数映射，并绑定原scope、原批准、失败回执和两个空输出根；使用新
+镜像、新scope、新批准schema和新输出目录，原scope永久禁止重跑。当前只施工结果盲发布链与synthetic
+fixture，真实Qlib/W7/RankIC/收益/效果仍为0。待准备提交推送、不可变镜像与host/image哈希门通过后，
+生成唯一新recovery scope并再次取得用户逐字批准；恢复GO也不自动授权TS效果、模拟仓或生产。见
+`docs/TS_V5_R3G2_W7_ENTRYPOINT_RECOVERY_PREPARATION_20260817.md`。
+
 ## 2026-08-17 TS-v5 R3G-2 W7入口失败与恢复边界
 
 原scope`5d238942...38ad`唯一runner在进入真实执行函数前因CLI参数名错配失败；runner次数已消费且不得

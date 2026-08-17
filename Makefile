@@ -182,6 +182,22 @@ docker-ts-v5-r3g2-w7-run: ## 精确scope获批后唯一一次W7训练与分数�
 docker-ts-v5-r3g2-w7-audit: ## 无Qlib挂载的独立进程复核W7谱系
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.ts-v5-r3g2-w7.yaml --profile w7-live run --rm --no-deps ts-v5-r3g2-w7-auditor
 
+.PHONY: docker-ts-v5-r3g2-w7-recovery-build docker-ts-v5-r3g2-w7-recovery-fixture docker-ts-v5-r3g2-w7-recovery-run docker-ts-v5-r3g2-w7-recovery-audit
+docker-ts-v5-r3g2-w7-recovery-build: ## 以已推送修复构建W7入口恢复镜像，不读取真实W7
+	@test -n "$(TS_V5_R3G2_W7_RECOVERY_GIT_HEAD)" || (echo "TS_V5_R3G2_W7_RECOVERY_GIT_HEAD is required"; exit 2)
+	@test "$(TS_V5_R3G2_W7_RECOVERY_GIT_HEAD)" = "$$(git rev-parse HEAD)" || (echo "W7 recovery Git differs from HEAD"; exit 2)
+	@test "$(TS_V5_R3G2_W7_RECOVERY_GIT_HEAD)" = "$$(git rev-parse origin/main)" || (echo "W7 recovery Git differs from origin/main"; exit 2)
+	SHAIWEI_TS_R3G2_W7_RECOVERY_GIT_HEAD="$(TS_V5_R3G2_W7_RECOVERY_GIT_HEAD)" docker compose -f compose.ts-v5-r3g2-w7-recovery.yaml --profile w7-recovery-fixture build ts-v5-r3g2-w7-recovery-fixture
+
+docker-ts-v5-r3g2-w7-recovery-fixture: ## 恢复镜像内断网运行合成双跑、CLI与独立审计测试
+	docker compose -f compose.ts-v5-r3g2-w7-recovery.yaml --profile w7-recovery-fixture run --rm --no-deps ts-v5-r3g2-w7-recovery-fixture
+
+docker-ts-v5-r3g2-w7-recovery-run: ## 新recovery scope获批后唯一一次W7分数谱系恢复
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.ts-v5-r3g2-w7-recovery.yaml --profile w7-recovery-live run --rm --no-deps ts-v5-r3g2-w7-recovery-runner
+
+docker-ts-v5-r3g2-w7-recovery-audit: ## 无Qlib挂载的独立进程复核恢复W7谱系
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.ts-v5-r3g2-w7-recovery.yaml --profile w7-recovery-live run --rm --no-deps ts-v5-r3g2-w7-recovery-auditor
+
 docker-ts-recovery-build: ## 以已推送实现身份构建R3短命研究镜像
 	@test -n "$(TS_RECOVERY_RELEASE_GIT_HEAD)" || (echo "TS_RECOVERY_RELEASE_GIT_HEAD is required"; exit 2)
 	SHAIWEI_TS_RECOVERY_RELEASE_GIT_HEAD="$(TS_RECOVERY_RELEASE_GIT_HEAD)" docker compose -f compose.ts-recovery.yaml --profile ts-recovery-network build ts-recovery-network
