@@ -17,7 +17,7 @@ x-r3g3-diagnostic: &r3g3-diagnostic
     OPENBLAS_NUM_THREADS: "2"
     MKL_NUM_THREADS: "2"
     NUMEXPR_NUM_THREADS: "2"
-  tmpfs: [/tmp:rw,noexec,nosuid,size=1g,mode=1777]
+  tmpfs: ["/tmp:rw,noexec,nosuid,size=1g,mode=1777"]
 
 services:
   ts-v5-r3g3-diagnostic-fixture:
