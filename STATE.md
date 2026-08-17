@@ -4,6 +4,8 @@
 
 ## 2026-08-17 · TS-v5 R3G-3发现期失败诊断协议已冻结
 
+- R2 runner 已完成且内部双跑一致；原独立auditor仍在进入函数前因同类CLI映射错误失败，audit输出
+  为空。runner不重跑；已另立auditor-only恢复scope，只修参数映射并绑定R2报告/manifest哈希。
 - 第一入口恢复在授权后、明细读取前因把父 runner 的审计前`PENDING_INDEPENDENT_AUDIT`错当成最终
   `REJECT`而fail closed；只读父report/audit聚合JSON，未读NAV/orders/trades、未计算诊断，效果尝试0。
   该恢复不重跑；R2只分离runner审计前状态与audit最终状态，绑定旧授权哈希并使用独立输出根。

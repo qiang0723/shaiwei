@@ -24,6 +24,10 @@ RECOVERY_R2_ACTION = (
     "TS_R3G3_DISCOVERY_FAILURE_DIAGNOSTIC_PARENT_AUTHORITY_RECOVERY_ONCE_WITH_REPLAY_"
     "AND_INDEPENDENT_AUDIT"
 )
+AUDIT_RECOVERY_SCHEMA = "ts-v5-r3g3-diagnostic-auditor-entrypoint-recovery-scope-v1"
+AUDIT_RECOVERY_ACTION = (
+    "TS_R3G3_DISCOVERY_FAILURE_DIAGNOSTIC_INDEPENDENT_AUDIT_ENTRYPOINT_RECOVERY_ONCE"
+)
 POINT_ROLES = ("primary", "confirmation_neighbour", "tolerance_neighbour")
 SCENARIOS = ("base_1x", "all_costs_2x", "base_plus_10bp_slippage_each_side")
 
@@ -136,6 +140,44 @@ def verify_entrypoint_recovery(
     if not valid_prior:
         raise R3G3Error("R3G-3 prior recovery evidence differs")
     return sha256_file(path), str(action)
+
+
+def verify_auditor_recovery(
+    path: Path,
+    protocol: DiagnosticProtocol,
+    diagnostic_root: Path,
+) -> tuple[str, str]:
+    document = _mapping(path)
+    prior = document.get("prior_invocation", {})
+    diagnostic = document.get("frozen_diagnostic", {})
+    recovery = document.get("recovery", {})
+    bindings = {
+        "authorization.json": diagnostic.get("authorization_sha256"),
+        "report.json": diagnostic.get("report_sha256"),
+        "manifest.json": diagnostic.get("manifest_sha256"),
+    }
+    if (
+        document.get("schema_version") != AUDIT_RECOVERY_SCHEMA
+        or document.get("status") != "FROZEN_BEFORE_AUDITOR_RECOVERY_EXECUTION"
+        or document.get("action") != AUDIT_RECOVERY_ACTION
+        or document.get("parent_protocol_sha256") != protocol.sha256
+        or prior.get("failure_stage") != "argparse_dispatch_before_audit_function"
+        or prior.get("diagnostic_detail_read") is not False
+        or prior.get("audit_output_written") is not False
+        or recovery.get("invocation_count") != 1
+        or recovery.get("runner_may_rerun") is not False
+        or recovery.get("external_network") is not False
+        or recovery.get("holdout_read") is not False
+        or recovery.get("production_authorization") != "none"
+        or any(
+            expected is None
+            or not (diagnostic_root / name).is_file()
+            or sha256_file(diagnostic_root / name) != expected
+            for name, expected in bindings.items()
+        )
+    ):
+        raise R3G3Error("R3G-3 auditor recovery scope differs")
+    return sha256_file(path), AUDIT_RECOVERY_ACTION
 
 
 def _verify_first_pass_manifest(protocol: DiagnosticProtocol, inputs: Path) -> dict[str, Any]:

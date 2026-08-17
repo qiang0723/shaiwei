@@ -14,6 +14,7 @@ from shaiwei.research.trend_swing.r3g3.contract import DiagnosticProtocol
 from shaiwei.research.trend_swing.r3g3.evidence import R3G3Error, canonical_json
 from shaiwei.research.trend_swing.r3g3.reader import DiagnosticInputs, PointInputs
 from shaiwei.research.trend_swing.r3g3 import run as run_module
+from shaiwei.research.trend_swing.r3g3 import audit as audit_module
 
 
 ROOT = Path(__file__).parents[1]
@@ -193,3 +194,34 @@ def test_runner_cli_maps_public_names_to_internal_paths(monkeypatch, tmp_path, c
         "output_root": tmp_path / "outputs",
     }
     assert '"verdict": "fixture"' in capsys.readouterr().out
+
+
+def test_auditor_cli_maps_public_names_to_internal_paths(monkeypatch, tmp_path, capsys) -> None:
+    captured = {}
+
+    def fake_audit(**kwargs):
+        captured.update(kwargs)
+        return {"independent_audit": "fixture"}
+
+    monkeypatch.setattr(audit_module, "audit", fake_audit)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "r3g3-audit",
+            "--protocol", str(tmp_path / "protocol.yaml"),
+            "--recovery-scope", str(tmp_path / "recovery.yaml"),
+            "--input-root", str(tmp_path / "inputs"),
+            "--diagnostic-root", str(tmp_path / "diagnostic"),
+            "--audit-root", str(tmp_path / "audit"),
+        ],
+    )
+    assert audit_module.main() == 0
+    assert captured == {
+        "protocol_path": tmp_path / "protocol.yaml",
+        "recovery_scope_path": tmp_path / "recovery.yaml",
+        "input_root": tmp_path / "inputs",
+        "diagnostic_root": tmp_path / "diagnostic",
+        "audit_root": tmp_path / "audit",
+    }
+    assert '"independent_audit": "fixture"' in capsys.readouterr().out

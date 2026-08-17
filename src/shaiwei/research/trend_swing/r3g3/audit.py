@@ -10,7 +10,11 @@ from typing import Any
 
 import numpy as np
 
-from shaiwei.research.trend_swing.r3g3.contract import DiagnosticProtocol, SCENARIOS
+from shaiwei.research.trend_swing.r3g3.contract import (
+    DiagnosticProtocol,
+    SCENARIOS,
+    verify_auditor_recovery,
+)
 from shaiwei.research.trend_swing.r3g3.evidence import (
     R3G3Error,
     canonical_json,
@@ -71,11 +75,19 @@ def _point_checks(source: Any, report: dict[str, Any]) -> dict[str, bool]:
 
 
 def audit(
-    *, protocol_path: Path, input_root: Path, diagnostic_root: Path, audit_root: Path
+    *,
+    protocol_path: Path,
+    recovery_scope_path: Path,
+    input_root: Path,
+    diagnostic_root: Path,
+    audit_root: Path,
 ) -> dict[str, Any]:
     if any(audit_root.iterdir()) if audit_root.exists() else False:
         raise R3G3Error("R3G-3 audit output is not empty")
     protocol = DiagnosticProtocol.load(protocol_path)
+    recovery_scope_sha, recovery_action = verify_auditor_recovery(
+        recovery_scope_path, protocol, diagnostic_root
+    )
     first = _json(diagnostic_root / "first_pass/diagnostic.json")
     replay = _json(diagnostic_root / "replay/diagnostic.json")
     final = _json(diagnostic_root / "report.json")
@@ -108,6 +120,8 @@ def audit(
     document = {
         "schema_version": "ts-v5-r3g3-discovery-diagnostic-audit-v1",
         "protocol_sha256": protocol.sha256,
+        "audit_recovery_scope_sha256": recovery_scope_sha,
+        "audit_action": recovery_action,
         "diagnostic_report_sha256": sha256_file(diagnostic_root / "report.json"),
         "diagnostic_manifest_sha256": sha256_file(diagnostic_root / "manifest.json"),
         "checks": checks,
@@ -124,11 +138,24 @@ def audit(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--protocol", type=Path, required=True)
+    parser.add_argument("--recovery-scope", type=Path, required=True)
     parser.add_argument("--input-root", type=Path, required=True)
     parser.add_argument("--diagnostic-root", type=Path, required=True)
     parser.add_argument("--audit-root", type=Path, required=True)
     args = parser.parse_args()
-    print(json.dumps(audit(**vars(args)), ensure_ascii=False, sort_keys=True))
+    print(
+        json.dumps(
+            audit(
+                protocol_path=args.protocol,
+                recovery_scope_path=args.recovery_scope,
+                input_root=args.input_root,
+                diagnostic_root=args.diagnostic_root,
+                audit_root=args.audit_root,
+            ),
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+    )
     return 0
 
 
