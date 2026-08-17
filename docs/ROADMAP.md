@@ -4,6 +4,18 @@
 > Web，以及长期 LLM 多源因子研究。
 > 领先不是验收标准；只有可复现、扣除成本、通过预注册门槛的增量结果才算完成。
 
+## 2026-08-17 TS-v5 R3G-2真实效果权威REJECT
+
+recovery scope`c78d6851...7193a`唯一runner与独立auditor完成，原scope未重跑；审计9/9 PASS，权威
+`REJECT_TS_V5_R3G2_DISCOVERY`、策略`REJECT`、生产none。三个冻结点虽然相对H00906少跌19.47%—
+24.50%，但基础绝对净收益为-6.15%/-1.90%/-1.12%，2倍成本和额外10bp场景也全部为负；主点DSR
+78.09%低于95%冻结门，平均现金高于97.99%。
+
+first/replay各38文件逐内容一致，bundle同为`f36bc46f...12a9`；发现期失败后留出期保持物理未读，
+2026也未读。原scope与recovery scope均关闭，不调门槛、不追加点、不重跑。下一节点先做零新增效果
+尝试的失败诊断，再决定是否另立有实质机制变化的TS-v6；本结论不否决TS方向，也不授权模拟仓或生产。
+见`docs/TS_V5_R3G2_EFFECT_RECOVERY_ACCEPTANCE_20260817.md`。
+
 ## 2026-08-17 TS-v5 R3G-2效果入口恢复待新批准
 
 原scope`961b62f2...e19db75`在唯一runner进入真实执行函数前因CLI参数映射错误失败，已消费且永久不得
@@ -15,6 +27,8 @@ scope、批准、失败回执和原输出根；最终镜像`sha256:0081742e...28
 为空。下一步须重新逐字批准固定恢复动作；原scope与recovery scope均不得重跑，发现期失败不得读取
 留出期，外网、2026、额外参数、模型训练、模拟仓、Web和生产仍禁止。见
 `docs/TS_V5_R3G2_EFFECT_ENTRYPOINT_RECOVERY_PREPARATION_20260817.md`。
+
+本段待办已由上方权威REJECT覆盖；recovery scope已执行并关闭。
 
 ## 2026-08-17 TS-v5 R3G-2效果预执行工程完成
 

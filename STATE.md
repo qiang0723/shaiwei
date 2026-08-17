@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-17 · TS-v5 R3G-2真实效果权威REJECT，留出期未读
+
+- recovery scope`c78d6851...7193a`按用户逐字批准唯一执行；原scope未重跑。runner first/replay与独立
+  auditor全部完成，审计9/9 PASS，权威`REJECT_TS_V5_R3G2_DISCOVERY`、策略`REJECT`、生产none。
+- 三个冻结点基础净收益为-6.15%/-1.90%/-1.12%，H00906净超额为+19.47%/+23.72%/+24.50%；
+  但基础绝对收益、2倍成本和额外10bp场景全部为负。主点DSR概率78.09%，低于95%冻结门；平均现金
+  97.99%—98.85%，单笔期望三点均负。
+- 首次效果读取消费恰好3个冻结尝试；两遍各38文件、bundle同为`f36bc46f...12a9`，逐文件一致。
+  报告/audit SHA为`515e891b...d528`/`79de6dab...046f`。
+- 发现期失败后`holdout=null`且产物树无holdout目录；2024—2025和2026结果均未读。原scope与
+  recovery scope现均关闭且不得重跑，也不得事后放宽门槛或追加点。
+- 本结果只否决当前冻结的BREAKOUT_RETEST实现，不否决TS方向。下一合法节点是零新增效果尝试的结果
+  诊断，再决定是否另立有实质机制变化的TS-v6；模拟仓/生产仍未授权。scheduler原容器保持healthy。
+  见`docs/TS_V5_R3G2_EFFECT_RECOVERY_ACCEPTANCE_20260817.md`。
+
 ## 2026-08-17 · TS-v5 R3G-2效果原scope入口失败，独立恢复scope待新批准
 
 - 原scope`961b62f2...e19db75`在唯一runner进入真实执行函数前因CLI参数映射TypeError失败；该scope已
@@ -18,6 +33,7 @@
   发现期失败不得读留出期，外网、2026、额外参数、模型训练、模拟仓、Web和生产继续禁止。scheduler
   仍为原容器且healthy。见
   `docs/TS_V5_R3G2_EFFECT_ENTRYPOINT_RECOVERY_PREPARATION_20260817.md`。
+- 本段“待新批准”状态已由上方权威REJECT覆盖；recovery scope已执行并关闭。
 
 ## 2026-08-17 · TS-v5 R3G-2效果预执行工程完成，待精确批准
 
