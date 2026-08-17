@@ -1,0 +1,143 @@
+x-r3g2-effect-recovery: &r3g2-effect-recovery
+  image: shaiwei:ts-v5-r3g2-effect-entrypoint-recovery-v1
+  pull_policy: never
+  init: true
+  restart: "no"
+  user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+  working_dir: /workspace
+  read_only: true
+  network_mode: none
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  pids_limit: 256
+  environment:
+    HOME: /tmp
+    PYTHONPYCACHEPREFIX: /tmp/pycache
+    OMP_NUM_THREADS: "6"
+    OPENBLAS_NUM_THREADS: "6"
+    MKL_NUM_THREADS: "6"
+    NUMEXPR_NUM_THREADS: "6"
+
+services:
+  ts-v5-r3g2-effect-recovery-fixture:
+    <<: *r3g2-effect-recovery
+    profiles: [ts-v5-r3g2-effect-recovery-fixture]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_TS_R3G2_EFFECT_RECOVERY_GIT_HEAD:-}
+    cpus: 2.0
+    mem_limit: 4g
+    pids_limit: 128
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=1g,mode=1777
+    command:
+      - python
+      - -m
+      - pytest
+      - -q
+      - tests/test_ts_v5_r3g2_effect_engineering.py
+      - tests/test_ts_v5_r3g2_effect_entrypoint_recovery_protocol.py
+      - tests/test_ts_v5_r3g2_effect_entrypoint_recovery.py
+
+  ts-v5-r3g2-effect-recovery-preflight:
+    <<: *r3g2-effect-recovery
+    profiles: [ts-v5-r3g2-effect-recovery-preflight]
+    cpus: 6.0
+    mem_limit: 14g
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=6g,mode=1777
+    volumes:
+      - {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v3-data-gate-r3, target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g-executable-semantics, target: /workspace/data/research/trend_swing/ts-v5-r3g-executable-semantics, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3f-canary-001, target: /workspace/data/research/trend_swing/ts-v5-r3f-canary-001, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./ledger/ts_v5_r3f_llm_attempts.csv, target: /workspace/ledger/ts_v5_r3f_llm_attempts.csv, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./ledger/ts_v5_r3f_llm_transports.csv, target: /workspace/ledger/ts_v5_r3f_llm_transports.csv, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g1-recent-density-r2, target: /workspace/data/research/trend_swing/ts-v5-r3g1-recent-density-r2, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1, target: /workspace/data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_model_attribution_v1/effect/first_pass, target: /workspace/data/research/m6_csi800_model_attribution_v1/effect/first_pass, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-w7-lineage-recovery, target: /workspace/data/research/trend_swing/ts-v5-r3g2-w7-lineage-recovery, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-w7-lineage-recovery-audit, target: /workspace/data/research/trend_swing/ts-v5-r3g2-w7-lineage-recovery-audit, read_only: true, bind: {create_host_path: false}}
+      - type: bind
+        source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-preflight-v1
+        target: /preflight
+        read_only: false
+        bind: {create_host_path: false}
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.r3g2.effect_preflight
+      - --output
+      - /preflight/report.json
+      - --temporary-root
+      - /tmp/r3g2
+
+  ts-v5-r3g2-effect-recovery-runner:
+    <<: *r3g2-effect-recovery
+    profiles: [ts-v5-r3g2-effect-recovery]
+    cpus: 6.0
+    mem_limit: 14g
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=6g,mode=1777
+    volumes:
+      - {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v3-data-gate-r3, target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g-executable-semantics, target: /workspace/data/research/trend_swing/ts-v5-r3g-executable-semantics, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3f-canary-001, target: /workspace/data/research/trend_swing/ts-v5-r3f-canary-001, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./ledger/ts_v5_r3f_llm_attempts.csv, target: /workspace/ledger/ts_v5_r3f_llm_attempts.csv, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./ledger/ts_v5_r3f_llm_transports.csv, target: /workspace/ledger/ts_v5_r3f_llm_transports.csv, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g1-recent-density-r2, target: /workspace/data/research/trend_swing/ts-v5-r3g1-recent-density-r2, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1, target: /workspace/data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_model_attribution_v1/effect/first_pass, target: /workspace/data/research/m6_csi800_model_attribution_v1/effect/first_pass, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-w7-lineage-recovery, target: /workspace/data/research/trend_swing/ts-v5-r3g2-w7-lineage-recovery, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-w7-lineage-recovery-audit, target: /workspace/data/research/trend_swing/ts-v5-r3g2-w7-lineage-recovery-audit, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/ts_v5_r3g2_effect_entrypoint_recovery_scope_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/ts-v5-r3g2-effect-entrypoint-recovery-v1/approval.json, target: /inputs/approval.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1, target: /outputs, read_only: false, bind: {create_host_path: false}}
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.r3g2.effect_run
+      - --release
+      - /inputs/release.json
+      - --approval
+      - /inputs/approval.json
+      - --output-root
+      - /outputs
+      - --temporary-root
+      - /tmp/r3g2
+
+  ts-v5-r3g2-effect-recovery-auditor:
+    <<: *r3g2-effect-recovery
+    profiles: [ts-v5-r3g2-effect-recovery]
+    cpus: 2.0
+    mem_limit: 4g
+    environment:
+      HOME: /tmp
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=1g,mode=1777
+    volumes:
+      - {type: bind, source: ./config/ts_v5_r3g2_effect_entrypoint_recovery_scope_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/ts-v5-r3g2-effect-entrypoint-recovery-v1/approval.json, target: /inputs/approval.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1, target: /outputs, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1-audit, target: /audit, read_only: false, bind: {create_host_path: false}}
+    command:
+      - python
+      - -m
+      - shaiwei.research.trend_swing.r3g2.effect_audit
+      - --release
+      - /inputs/release.json
+      - --approval
+      - /inputs/approval.json
+      - --effect-root
+      - /outputs
+      - --audit-root
+      - /audit

@@ -11,7 +11,7 @@ import pandas as pd
 
 from shaiwei.research.trend_swing.r3g2.contract import EffectProtocol, R3G2Error
 from shaiwei.research.trend_swing.r3g2.effect_artifacts import save_simulation, seal_pass
-from shaiwei.research.trend_swing.r3g2.effect_control import EffectApproval, EffectReleaseScope
+from shaiwei.research.trend_swing.r3g2.effect_authority import load_effect_authority
 from shaiwei.research.trend_swing.r3g2.effect_execution import simulate
 from shaiwei.research.trend_swing.r3g2.effect_inputs import RealInputAdapter
 from shaiwei.research.trend_swing.r3g2.effect_metrics import evaluate_partition, summarize
@@ -122,8 +122,7 @@ def run(
     pass_runner: PassRunner = execute_pass,
 ) -> dict[str, Any]:
     protocol = EffectProtocol.load()
-    release = EffectReleaseScope.load(release_path, protocol)
-    approval = EffectApproval.load(approval_path, release)
+    release, approval = load_effect_authority(release_path, approval_path, protocol)
     runtime = release.verify_runtime()
     _empty(output_root)
     effect_started = False
@@ -205,8 +204,10 @@ def main() -> int:
     parser.add_argument("--approval", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--temporary-root", type=Path, required=True)
-    args = parser.parse_args()
-    print(json.dumps(run(**vars(args)), sort_keys=True))
+    args = vars(parser.parse_args())
+    args["release_path"] = args.pop("release")
+    args["approval_path"] = args.pop("approval")
+    print(json.dumps(run(**args), sort_keys=True))
     return 0
 
 

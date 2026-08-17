@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 
 from shaiwei.research.trend_swing.r3g2.contract import EffectProtocol, R3G2Error, sha256_file
-from shaiwei.research.trend_swing.r3g2.effect_control import EffectApproval, EffectReleaseScope
+from shaiwei.research.trend_swing.r3g2.effect_authority import load_effect_authority
 from shaiwei.research.trend_swing.r3g2.evidence import canonical_json, write_once_json
 
 
@@ -105,13 +105,11 @@ def _summary(root: Path) -> dict[str, Any]:
         for row in closed.itertuples(index=False)
     ]
     absolute_pnl = float(pnls.abs().sum())
-
     def concentration(column: str) -> float | None:
         if closed.empty or absolute_pnl <= 0:
             return None
         grouped = closed.groupby(column, sort=False)["closed_trade_pnl"].sum().abs()
         return float(grouped.max() / absolute_pnl)
-
     return {
         "calendar_day_count": len(nav),
         "closed_trade_count": len(closed),
@@ -329,8 +327,7 @@ def audit(
     *, release_path: Path, approval_path: Path, effect_root: Path, audit_root: Path
 ) -> dict[str, Any]:
     protocol = EffectProtocol.load()
-    release = EffectReleaseScope.load(release_path, protocol)
-    approval = EffectApproval.load(approval_path, release)
+    release, approval = load_effect_authority(release_path, approval_path, protocol)
     runtime = release.verify_runtime()
     audit_root.mkdir(parents=True, exist_ok=True)
     if any(audit_root.iterdir()):
@@ -391,8 +388,10 @@ def main() -> int:
     parser.add_argument("--approval", type=Path, required=True)
     parser.add_argument("--effect-root", type=Path, required=True)
     parser.add_argument("--audit-root", type=Path, required=True)
-    args = parser.parse_args()
-    print(json.dumps(audit(**vars(args)), sort_keys=True))
+    args = vars(parser.parse_args())
+    args["release_path"] = args.pop("release")
+    args["approval_path"] = args.pop("approval")
+    print(json.dumps(audit(**args), sort_keys=True))
     return 0
 
 

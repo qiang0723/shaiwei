@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import sys
 
 import pandas as pd
 import pytest
 import yaml
 
+from shaiwei.research.trend_swing.r3g2 import effect_audit as effect_audit_module
+from shaiwei.research.trend_swing.r3g2 import effect_run as effect_run_module
 from shaiwei.provenance import (
     CONTROLLED_FILES,
     code_snapshot_sha256,
@@ -369,3 +372,43 @@ def test_auditor_does_not_import_primary_execution_or_gate_modules() -> None:
     assert ".effect_metrics" not in source
     assert ".effect_orders" not in source
     assert ".effect_artifacts" not in source
+
+
+def test_runner_and_auditor_cli_map_public_flags(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    observed: list[dict] = []
+    monkeypatch.setattr(effect_run_module, "run", lambda **values: observed.append(values) or {})
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "effect-run",
+            "--release", str(tmp_path / "release.json"),
+            "--approval", str(tmp_path / "approval.json"),
+            "--output-root", str(tmp_path / "effect"),
+            "--temporary-root", str(tmp_path / "tmp"),
+        ],
+    )
+    assert effect_run_module.main() == 0
+    assert set(observed.pop()) == {
+        "release_path", "approval_path", "output_root", "temporary_root"
+    }
+    capsys.readouterr()
+
+    monkeypatch.setattr(effect_audit_module, "audit", lambda **values: observed.append(values) or {})
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "effect-audit",
+            "--release", str(tmp_path / "release.json"),
+            "--approval", str(tmp_path / "approval.json"),
+            "--effect-root", str(tmp_path / "effect"),
+            "--audit-root", str(tmp_path / "audit"),
+        ],
+    )
+    assert effect_audit_module.main() == 0
+    assert set(observed.pop()) == {
+        "release_path", "approval_path", "effect_root", "audit_root"
+    }

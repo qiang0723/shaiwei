@@ -34,6 +34,7 @@ CONTROLLED_FILES = {
     "compose.ts-v5-r3g2-w7.yaml",
     "compose.ts-v5-r3g2-w7-recovery.yaml",
     "compose.ts-v5-r3g2-effect.yaml",
+    "compose.ts-v5-r3g2-effect-recovery.yaml",
     "compose.ts-v5-llm.yaml",
     "pyproject.toml",
     "requirements.lock",
