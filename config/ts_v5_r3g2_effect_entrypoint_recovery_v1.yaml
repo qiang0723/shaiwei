@@ -1,0 +1,104 @@
+schema_version: ts-v5-r3g2-effect-entrypoint-recovery-protocol-v1
+protocol_id: ts-v5-r3g2-breakout-retest-effect-entrypoint-recovery-001
+frozen_at: "2026-08-17T18:27:00+08:00"
+status: RESULT_BLIND_ENTRYPOINT_RECOVERY_ONLY
+production_authorization: none
+
+predecessor:
+  effect_protocol:
+    path: config/ts_v5_r3g2_effect_v1.yaml
+    sha256: c3aa5a2bef199d8745b6e0399085dcf5a60d9f28f29a5426ea0104831f3572bf
+  original_release:
+    path: config/ts_v5_r3g2_effect_release_scope_v1.json
+    document_sha256: 994a5d710510b48d9f32253c894024fd410d02f66f326bc2f2e1f679254ff075
+    scope_sha256: 961b62f288f61a6ae19f88ef04c0697f93f27bf52390ddb48b7c49064e19db75
+    runner_invocation_consumed: true
+    same_scope_retry_authorized: false
+  original_approval:
+    path: data/control/ts-v5-r3g2-effect-v1/approval.json
+    sha256: fb597b870b99f6e9737b59d25d97fcb24d1a176d3629c0ddec09efe9dc16ba3d
+  failure_receipt:
+    path: data/research/trend_swing/ts-v5-r3g2-effect-v1/failure.json
+    sha256: 8bfd0685724569ab17e48429782a5195fcf1c0ba039a054129499a94811858d2
+    error_type: TypeError
+    error_message: "run() got an unexpected keyword argument 'release'"
+    frozen_facts:
+      runner_container_created: true
+      effect_read_started: false
+      real_event_score_value_or_rank_read: false
+      real_post_entry_price_or_benchmark_value_read: false
+      strategy_effect_attempt_count: 0
+      audit_invoked: false
+      production_authorization: none
+  preserved_original_outputs:
+    effect_root: data/research/trend_swing/ts-v5-r3g2-effect-v1
+    expected_files: [failure.json]
+    audit_root: data/research/trend_swing/ts-v5-r3g2-effect-v1-audit
+    expected_audit_file_count: 0
+
+repair:
+  allowed_changes:
+    - map_runner_cli_release_to_release_path
+    - map_runner_cli_approval_to_approval_path
+    - map_auditor_cli_release_to_release_path
+    - map_auditor_cli_approval_to_approval_path
+    - add_direct_main_entrypoint_regression
+    - add_recovery_control_and_orchestration
+  economic_parameter_change: false
+  effect_protocol_change: false
+  point_or_window_change: false
+  threshold_cost_or_execution_change: false
+  data_or_score_lineage_change: false
+  discovery_firewall_change: false
+  model_training: false
+
+authority:
+  result_blind_recovery_engineering: true
+  synthetic_fixture_only_before_release: true
+  immutable_recovery_image: true
+  exact_recovery_scope_generation: true
+  original_scope_rerun: false
+  real_event_score_value_or_rank_read: false
+  real_post_entry_price_or_benchmark_value_read: false
+  strategy_effect_or_backtest: false
+  external_network: false
+  env_or_secret_read: false
+  experiment_ledger_write: false
+  paper_web_scheduler_or_production_change: false
+  production_authorization: none
+
+execution:
+  discovery_first: true
+  holdout_open_only_if_discovery_passes: true
+  complete_internal_passes: [first_pass, replay]
+  independent_audit: true
+  cumulative_effect_attempts_before_recovery: 0
+  effect_attempts_consumed_at_first_recovery_value_read: 3
+  same_recovery_scope_retry: forbidden
+  partial_2026_read: forbidden
+
+release:
+  scope_path: config/ts_v5_r3g2_effect_entrypoint_recovery_scope_v1.json
+  scope_kind: REAL_EFFECT_ENTRYPOINT_RECOVERY_READY_NOT_EXECUTION_APPROVAL
+  approval_path: data/control/ts-v5-r3g2-effect-entrypoint-recovery-v1/approval.json
+  approval_action: TS_R3G2_BREAKOUT_RETEST_EFFECT_ENTRYPOINT_RECOVERY_ONCE_WITH_DISCOVERY_FIREWALL_REPLAY_AND_INDEPENDENT_AUDIT
+  effect_root: data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1
+  audit_root: data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1-audit
+  exact_user_approval_required: true
+  prior_approval_reuse: false
+  prior_authority_inheritance: false
+
+docker:
+  compose_file: compose.ts-v5-r3g2-effect-recovery.yaml
+  image: shaiwei:ts-v5-r3g2-effect-entrypoint-recovery-v1
+  network_mode: none
+  read_only_root: true
+  full_project_root_mounted: false
+  production_ledger_mounted: false
+  external_network: false
+
+stop_condition:
+  stop_after_recovery_scope_is_committed_and_pushed: true
+  no_real_effect_value_read_before_new_exact_approval: true
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
