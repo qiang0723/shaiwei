@@ -4,6 +4,18 @@
 > Web，以及长期 LLM 多源因子研究。
 > 领先不是验收标准；只有可复现、扣除成本、通过预注册门槛的增量结果才算完成。
 
+## 2026-08-17 TS-v5 R3G-2效果入口恢复待新批准
+
+原scope`961b62f2...e19db75`在唯一runner进入真实执行函数前因CLI参数映射错误失败，已消费且永久不得
+重跑；真实分数/收益/基准/留出期未读，效果尝试0，auditor未调用。独立恢复只修入口映射并绑定原
+scope、批准、失败回执和原输出根；最终镜像`sha256:0081742e...2874c`与推送提交
+`9e295993...c3d`、938文件快照逐项一致，断网fixture与key-only预检均PASS。
+
+唯一未授权recovery scope为`c78d6851...7193a`，文档SHA`698bc010...95245`；approval不存在、恢复输出根
+为空。下一步须重新逐字批准固定恢复动作；原scope与recovery scope均不得重跑，发现期失败不得读取
+留出期，外网、2026、额外参数、模型训练、模拟仓、Web和生产仍禁止。见
+`docs/TS_V5_R3G2_EFFECT_ENTRYPOINT_RECOVERY_PREPARATION_20260817.md`。
+
 ## 2026-08-17 TS-v5 R3G-2效果预执行工程完成
 
 结果盲runner、独立auditor、合成夹具、不可变镜像、键级预检和唯一release scope均已完成。最终镜像
@@ -13,6 +25,8 @@
 `READY_FOR_EXACT_USER_APPROVAL_NOT_EXECUTED`。用户逐字批准前不得执行；发现期失败时留出期保持物理
 未读，同scope重跑、外网、2026、额外参数、模拟仓、Web和生产继续禁止。见
 `docs/TS_V5_R3G2_EFFECT_PREEXECUTION_ENGINEERING_20260817.md`。
+
+本段待办已由上方入口失败与独立恢复scope覆盖；原scope不再可执行。
 
 ## 2026-08-17 TS-v5 R3G-2 W7入口恢复数据门GO
 

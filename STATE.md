@@ -2,6 +2,22 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-17 · TS-v5 R3G-2效果原scope入口失败，独立恢复scope待新批准
+
+- 原scope`961b62f2...e19db75`在唯一runner进入真实执行函数前因CLI参数映射TypeError失败；该scope已
+  消费且永久不得重跑。auditor未调用，真实分数/排名、入场后价格、H00906和留出期均未读，效果尝试0，
+  原效果目录只保留失败回执`8bfd0685...58d2`，不能记作策略失败。
+- 独立恢复协议只修入口映射并绑定原scope/批准/失败回执/原输出根；协议提交`37b2f78`、实现
+  `02da4f4`、最终提交`9e295993...c3d`均已推送。最终镜像`sha256:0081742e...2874c`精确绑定
+  `HEAD=origin/main`，938文件快照`3df4ceaa...4ecb`与宿主一致，断网fixture 18 PASS/1 skip。
+- key-only预检报告仍为`3cc735ee...114d0`、`GO_PRE_EFFECT_KEYS_ONLY`、`reused=true`；未读效果且尝试0。
+  新recovery scope为`c78d6851...7193a`，文档SHA`698bc010...95245`；approval不存在，恢复效果/审计根
+  为空，`execution_authorized=false`。
+- 下一步必须由用户对固定恢复动作和新scope再次逐字批准。原scope与recovery scope均不得重跑；
+  发现期失败不得读留出期，外网、2026、额外参数、模型训练、模拟仓、Web和生产继续禁止。scheduler
+  仍为原容器且healthy。见
+  `docs/TS_V5_R3G2_EFFECT_ENTRYPOINT_RECOVERY_PREPARATION_20260817.md`。
+
 ## 2026-08-17 · TS-v5 R3G-2效果预执行工程完成，待精确批准
 
 - 最终实现提交`3b43b6b...e725bf`、代码快照`9cc5e40a...170278`、不可变镜像
@@ -16,6 +32,7 @@
 - scheduler保持原容器`183b8c6c5edd`、原镜像和创建时间且healthy。下一步必须由用户逐字批准固定
   动作后才可首次读取3个冻结效果尝试；同scope重跑、外网、2026、额外参数、模拟仓/Web/生产禁止。
   见`docs/TS_V5_R3G2_EFFECT_PREEXECUTION_ENGINEERING_20260817.md`。
+- 本段“待批准”状态已由上方入口失败与独立恢复scope覆盖；原scope不再是可执行待办。
 
 ## 2026-08-17 · TS-v5 R3G-2效果工程/发布协议已结果前冻结
 
