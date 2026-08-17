@@ -1,0 +1,35 @@
+schema_version: ts-v5-r3g3-diagnostic-entrypoint-recovery-scope-v1
+scope_id: ts-v5-r3g3-discovery-diagnostic-entrypoint-recovery-001
+prepared_at: "2026-08-17T19:54:00+08:00"
+status: FROZEN_BEFORE_RECOVERY_EXECUTION
+action: >-
+  TS_R3G3_DISCOVERY_FAILURE_DIAGNOSTIC_ENTRYPOINT_RECOVERY_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT
+parent_protocol_sha256: dba4200576168a39c50fc419c938e076299ded7f4c0005bf0a1d2e07a00256aa
+
+prior_invocation:
+  action: TS_R3G3_DISCOVERY_FAILURE_DIAGNOSTIC_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT
+  invoked_at: "2026-08-17T19:53:59+08:00"
+  failure_stage: argparse_dispatch_before_run_function
+  error_type: TypeError
+  error_summary: cli_protocol_argument_was_not_mapped_to_protocol_path
+  sealed_input_read: false
+  authorization_written: false
+  output_written: false
+  strategy_effect_attempt_increment: 0
+  scope_may_rerun: false
+
+recovery:
+  invocation_count: 1
+  only_code_change: map_public_cli_argument_names_to_internal_path_parameters
+  parent_protocol_or_question_change: false
+  input_or_output_boundary_change: false
+  strategy_effect_attempt_increment: 0
+  external_network: false
+  holdout_read: false
+  partial_2026_read: false
+  model_training_prediction_or_backtest: false
+  parameter_search: false
+  deepseek_calls: 0
+  paper_web_scheduler_change: false
+  production_authorization: none
+  same_scope_may_rerun: false

@@ -1,10 +1,18 @@
 from pathlib import Path
 
+import pytest
 import yaml
+
+from shaiwei.research.trend_swing.r3g3.contract import (
+    DiagnosticProtocol,
+    verify_entrypoint_recovery,
+)
+from shaiwei.research.trend_swing.r3g3.evidence import R3G3Error
 
 
 ROOT = Path(__file__).parents[1]
 PROTOCOL = ROOT / "config/ts_v5_r3g3_discovery_diagnostic_v1.yaml"
+RECOVERY = ROOT / "config/ts_v5_r3g3_discovery_diagnostic_entrypoint_recovery_v1.yaml"
 
 
 def _load() -> dict:
@@ -104,3 +112,14 @@ def test_terminal_boundary_does_not_implicitly_authorize_ts_v6() -> None:
             "separately_freeze_one_mechanically_distinct_ts_v6_hypothesis"
         ),
     }
+
+
+def test_entrypoint_recovery_is_bound_to_original_protocol_and_zero_attempt(tmp_path) -> None:
+    protocol = DiagnosticProtocol.load(PROTOCOL)
+    assert len(verify_entrypoint_recovery(RECOVERY, protocol)) == 64
+    document = yaml.safe_load(RECOVERY.read_text(encoding="utf-8"))
+    document["recovery"]["strategy_effect_attempt_increment"] = 1
+    tampered = tmp_path / "recovery.yaml"
+    tampered.write_text(yaml.safe_dump(document), encoding="utf-8")
+    with pytest.raises(R3G3Error, match="recovery scope differs"):
+        verify_entrypoint_recovery(tampered, protocol)

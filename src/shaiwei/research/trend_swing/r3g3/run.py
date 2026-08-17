@@ -9,7 +9,11 @@ from pathlib import Path
 
 from shaiwei.provenance import verify_release_manifest
 from shaiwei.research.trend_swing.r3g3.compute import compute_diagnostic
-from shaiwei.research.trend_swing.r3g3.contract import DiagnosticProtocol
+from shaiwei.research.trend_swing.r3g3.contract import (
+    DiagnosticProtocol,
+    RECOVERY_ACTION,
+    verify_entrypoint_recovery,
+)
 from shaiwei.research.trend_swing.r3g3.evidence import (
     R3G3Error,
     canonical_json,
@@ -17,9 +21,6 @@ from shaiwei.research.trend_swing.r3g3.evidence import (
     write_once_json,
 )
 from shaiwei.research.trend_swing.r3g3.reader import load_inputs
-
-
-ACTION = "TS_R3G3_DISCOVERY_FAILURE_DIAGNOSTIC_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT"
 
 
 def _runtime_identity() -> dict[str, str]:
@@ -31,18 +32,27 @@ def _runtime_identity() -> dict[str, str]:
     return {"git_commit": revision, "code_snapshot_sha256": snapshot}
 
 
-def run(*, protocol_path: Path, input_root: Path, output_root: Path) -> dict[str, object]:
+def run(
+    *,
+    protocol_path: Path,
+    recovery_scope_path: Path,
+    input_root: Path,
+    output_root: Path,
+) -> dict[str, object]:
     if not output_root.is_dir() or any(output_root.iterdir()):
         raise R3G3Error("R3G-3 output root is absent or non-empty")
     protocol = DiagnosticProtocol.load(protocol_path)
+    recovery_scope_sha = verify_entrypoint_recovery(recovery_scope_path, protocol)
     runtime = _runtime_identity()
     write_once_json(
         output_root / "authorization.json",
         {
             "schema_version": "ts-v5-r3g3-diagnostic-authorization-v1",
-            "action": ACTION,
+            "action": RECOVERY_ACTION,
             "protocol_sha256": protocol.sha256,
-            "diagnostic_runner_invocation_count": 1,
+            "entrypoint_recovery_scope_sha256": recovery_scope_sha,
+            "prior_runner_invocation_count": 1,
+            "recovery_runner_invocation_count": 1,
             "strategy_effect_attempt_increment": 0,
             "external_network": False,
             "holdout_read": False,
@@ -72,13 +82,24 @@ def run(*, protocol_path: Path, input_root: Path, output_root: Path) -> dict[str
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--protocol", type=Path, required=True)
+    parser.add_argument("--recovery-scope", type=Path, required=True)
     parser.add_argument("--input-root", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     args = parser.parse_args()
-    print(json.dumps(run(**vars(args)), ensure_ascii=False, sort_keys=True))
+    print(
+        json.dumps(
+            run(
+                protocol_path=args.protocol,
+                recovery_scope_path=args.recovery_scope,
+                input_root=args.input_root,
+                output_root=args.output_root,
+            ),
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+    )
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

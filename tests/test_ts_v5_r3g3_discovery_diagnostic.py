@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sys
 
 import pandas as pd
 import pytest
@@ -12,6 +13,7 @@ from shaiwei.research.trend_swing.r3g3.compute import compute_diagnostic
 from shaiwei.research.trend_swing.r3g3.contract import DiagnosticProtocol
 from shaiwei.research.trend_swing.r3g3.evidence import R3G3Error, canonical_json
 from shaiwei.research.trend_swing.r3g3.reader import DiagnosticInputs, PointInputs
+from shaiwei.research.trend_swing.r3g3 import run as run_module
 
 
 ROOT = Path(__file__).parents[1]
@@ -162,3 +164,32 @@ def test_r3g3_modules_remain_small_and_role_specific() -> None:
     sizes = {path.name: len(path.read_text(encoding="utf-8").splitlines()) for path in package.glob("*.py")}
     assert sizes and max(sizes.values()) <= 400
     assert not ({"utils.py", "helpers.py", "common.py"} & set(sizes))
+
+
+def test_runner_cli_maps_public_names_to_internal_paths(monkeypatch, tmp_path, capsys) -> None:
+    captured = {}
+
+    def fake_run(**kwargs):
+        captured.update(kwargs)
+        return {"verdict": "fixture"}
+
+    monkeypatch.setattr(run_module, "run", fake_run)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "r3g3-run",
+            "--protocol", str(tmp_path / "protocol.yaml"),
+            "--recovery-scope", str(tmp_path / "recovery.yaml"),
+            "--input-root", str(tmp_path / "inputs"),
+            "--output-root", str(tmp_path / "outputs"),
+        ],
+    )
+    assert run_module.main() == 0
+    assert captured == {
+        "protocol_path": tmp_path / "protocol.yaml",
+        "recovery_scope_path": tmp_path / "recovery.yaml",
+        "input_root": tmp_path / "inputs",
+        "output_root": tmp_path / "outputs",
+    }
+    assert '"verdict": "fixture"' in capsys.readouterr().out

@@ -14,6 +14,11 @@ from shaiwei.research.trend_swing.r3g3.evidence import R3G3Error, canonical_sha2
 
 EXPECTED_SCHEMA = "ts-v5-r3g3-discovery-diagnostic-protocol-v1"
 EXPECTED_STATUS = "RESULT_KNOWN_DETAIL_BLIND_DIAGNOSTIC_PROTOCOL_FROZEN_PENDING_IMPLEMENTATION"
+RECOVERY_SCHEMA = "ts-v5-r3g3-diagnostic-entrypoint-recovery-scope-v1"
+RECOVERY_ACTION = (
+    "TS_R3G3_DISCOVERY_FAILURE_DIAGNOSTIC_ENTRYPOINT_RECOVERY_ONCE_WITH_REPLAY_AND_"
+    "INDEPENDENT_AUDIT"
+)
 POINT_ROLES = ("primary", "confirmation_neighbour", "tolerance_neighbour")
 SCENARIOS = ("base_1x", "all_costs_2x", "base_plus_10bp_slippage_each_side")
 
@@ -79,6 +84,30 @@ class DiagnosticProtocol:
         return tuple(self.document["allowed_read_boundary"]["points"].items())
 
 
+def verify_entrypoint_recovery(path: Path, protocol: DiagnosticProtocol) -> str:
+    document = _mapping(path)
+    prior = document.get("prior_invocation", {})
+    recovery = document.get("recovery", {})
+    if (
+        document.get("schema_version") != RECOVERY_SCHEMA
+        or document.get("status") != "FROZEN_BEFORE_RECOVERY_EXECUTION"
+        or document.get("action") != RECOVERY_ACTION
+        or document.get("parent_protocol_sha256") != protocol.sha256
+        or prior.get("failure_stage") != "argparse_dispatch_before_run_function"
+        or prior.get("sealed_input_read") is not False
+        or prior.get("authorization_written") is not False
+        or prior.get("output_written") is not False
+        or prior.get("strategy_effect_attempt_increment") != 0
+        or recovery.get("invocation_count") != 1
+        or recovery.get("strategy_effect_attempt_increment") != 0
+        or recovery.get("external_network") is not False
+        or recovery.get("holdout_read") is not False
+        or recovery.get("production_authorization") != "none"
+    ):
+        raise R3G3Error("R3G-3 entrypoint recovery scope differs")
+    return sha256_file(path)
+
+
 def _verify_first_pass_manifest(protocol: DiagnosticProtocol, inputs: Path) -> dict[str, Any]:
     manifest = read_json(inputs / "first-pass-manifest.json")
     files: dict[str, str] = {}
@@ -132,4 +161,3 @@ def verify_parent_sources(protocol: DiagnosticProtocol, inputs: Path) -> dict[st
         "first_pass_manifest_sha256": parent["first_pass_manifest"]["sha256"],
         "first_pass_bundle_sha256": manifest["bundle_sha256"],
     }
-
