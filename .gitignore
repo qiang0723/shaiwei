@@ -25,4 +25,5 @@ web-ui/test-results/
 web-ui/test-results-real/
 web-ui/.cache/
 web-ui/*.tsbuildinfo
+artifacts/ts-v5-r3g3-discovery-diagnostic-v1/
 !ledger/*.csv
