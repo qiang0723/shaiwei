@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-17 · TS-v5 R3G-2效果工程/发布协议已结果前冻结
+
+- 下一节点只允许施工独立runner/auditor、完全synthetic验收、不可变镜像和唯一release scope；真实
+  分数值、排名、入场后行情、H00906、收益、回测、实验账本、模拟仓、Web和生产均未授权。
+- W7只认entrypoint recovery的权威`GO_W7_SCORE_LINEAGE_DATA_ONLY`真身；原失败scope不删除、不
+  改写，也不能被当作可用分数源。
+- 结果前补清涨跌停历史档位、20日容量、部分卖出、分批T+1、退出优先级、成本场景独立路径和分区末
+  未退出失败关闭；不改变三个点、资金、风险、止盈止损或效果硬门。
+- 当前`strategy_effective=NOT_EVALUATED`、`production_authorization=none`。唯一scope推送后仍须用户
+  精确授权，才可首次读取三个真实效果尝试。
+
 ## 2026-08-17 · TS-v5-R3G-2 W7入口恢复数据门GO
 
 - recovery scope`f61a2365...44b5`按用户逐字批准唯一执行；runner内部first/replay及无Qlib独立auditor

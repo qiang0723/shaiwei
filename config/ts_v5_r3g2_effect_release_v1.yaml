@@ -1,0 +1,163 @@
+schema_version: ts-v5-r3g2-effect-release-protocol-v1
+protocol_id: ts-v5-r3g2-breakout-retest-effect-release-001
+frozen_at: "2026-08-17T12:00:02+08:00"
+status: RESULT_BLIND_EFFECT_ENGINEERING_AND_RELEASE_PREPARATION_ONLY
+production_authorization: none
+
+predecessors:
+  effect_protocol:
+    path: config/ts_v5_r3g2_effect_v1.yaml
+    sha256: c3aa5a2bef199d8745b6e0399085dcf5a60d9f28f29a5426ea0104831f3572bf
+  w7_recovery_manifest:
+    path: config/ts_v5_r3g2_w7_recovery_manifest_v1.json
+    sha256: fe7b7aeedc9d0d63d44ff56ad17046ff61290f81ca7f99e93888994bddf1579f
+    verdict: GO_W7_SCORE_LINEAGE_DATA_ONLY
+  w7_prediction:
+    path: data/research/trend_swing/ts-v5-r3g2-w7-lineage-recovery/first_pass/predictions.parquet
+    sha256: 0c8befa943ab39ad0e6b02247869460624e296b829fba6e44d5d25e99f6a8321
+  w7_first_pass_manifest:
+    path: data/research/trend_swing/ts-v5-r3g2-w7-lineage-recovery/first_pass/manifest.json
+    sha256: 67fa92dc804545570ba6a32f6501fdda1f523f64a00bfef01ccc53c61efacb8b
+  w7_independent_audit:
+    path: data/research/trend_swing/ts-v5-r3g2-w7-lineage-recovery-audit/audit.json
+    sha256: d5cd43c34dadcd59dc6097294dbb36c32e2dee072e482ca354117c678eb7276d
+  preserve_without_rewrite: true
+
+authority:
+  result_blind_implementation: true
+  synthetic_fixture_only_before_release: true
+  immutable_image_build: true
+  metadata_and_key_only_preflight: true
+  exact_release_scope_generation: true
+  real_event_score_value_or_rank_read: false
+  real_post_entry_price_or_benchmark_value_read: false
+  strategy_effect_or_backtest: false
+  formal_effect_output_write: false
+  experiment_ledger_write: false
+  external_network: false
+  env_or_secret_read: false
+  paper_web_scheduler_or_production_change: false
+  production_authorization: none
+
+execution_clarifications:
+  authority: deterministic_operationalization_of_frozen_effect_protocol_only
+  economic_parameter_change: false
+  price_tick_rmb: 0.01
+  raw_open_limit_gate:
+    comparison: opening_change_against_prior_valid_raw_close_with_one_tick_tolerance
+    main_board: 0.10
+    star_board: 0.20
+    chinext_before_2020_08_24: 0.10
+    chinext_on_or_after_2020_08_24: 0.20
+    st: forbidden_upstream
+    first_five_official_listing_sessions: no_limit_gate
+    buy_at_limit_up: cancel_without_retry
+    sell_at_limit_down: pending_until_legal
+  capacity:
+    prior_20_completed_security_bars_only: true
+    current_day_amount_for_capacity: forbidden
+    invalid_or_fewer_than_20_observations: no_fill_or_pending_sell
+    maximum_notional_fraction: 0.05
+    buy: floor_to_100_share_lot_and_cancel_unfilled_remainder
+    sell: partial_fill_up_to_capacity_then_keep_remainder_pending
+  lots_and_t_plus_one:
+    track_each_batch_separately: true
+    sell_only_lots_filled_before_current_trade_date: true
+    same_day_second_batch_cannot_be_sold_intraday: true
+    exit_signal_remains_pending_for_all_unsold_lots: true
+  position_rules:
+    stop_and_target_are_frozen_from_first_fill: true
+    second_batch_does_not_reset_holding_age_stop_or_target: true
+    same_security_new_event_while_any_lot_remains: ignore
+    position_count_includes_any_nonzero_lot: true
+  order_clock:
+    open_order_priority: [pending_exit, eligible_second_batch, new_first_batch]
+    close_processing_priority: [stop_trigger, second_batch_opportunity]
+    take_profit_open_gap_before_intraday_target: true
+    stop_or_time_exit_dominates_take_profit: true
+  cost_scenarios:
+    each_scenario_runs_independent_cash_lot_and_capacity_path: true
+    all_costs_2x_multiplies_commission_minimum_transfer_and_stamp_tax: true
+    extra_10bp_slippage_changes_execution_price_before_quantity_and_fee_calculation: true
+  annual_metrics:
+    portfolio_does_not_restart_inside_partition: true
+    calendar_year_return_is_subperiod_nav_return: true
+  unresolved_exit:
+    at_partition_end: BLOCKED_PRE_EFFECT
+    no_forced_fictional_liquidation: true
+
+firewall:
+  pre_effect_checks_before_attempt_consumption:
+    - immutable_input_hashes
+    - rederived_event_key_identity
+    - duplicate_and_bse_zero
+    - score_key_coverage_at_least_95_percent_without_score_values
+    - partition_end_exit_schedulability
+    - empty_write_once_output_roots
+    - exact_runtime_release_and_approval_identity
+  effect_attempts_consumed_at_first_real_value_read: 3
+  discovery_first: true
+  holdout_input_adapter_may_not_open_outcome_or_benchmark_values_before_discovery_pass: true
+  discovery_failure_requires_holdout_artifact_absence: true
+  same_scope_retry: forbidden
+  partial_2026_read: forbidden
+
+artifact_contract:
+  output_root: data/research/trend_swing/ts-v5-r3g2-effect-v1
+  audit_root: data/research/trend_swing/ts-v5-r3g2-effect-v1-audit
+  passes: [first_pass, replay]
+  per_partition_point_scenario:
+    - daily_economic_nav_and_benchmark_return
+    - orders_fills_and_closed_trade_identity
+    - exposure_capacity_cost_and_unfilled_diagnostics
+  canonical_report: report.json
+  independent_audit: audit.json
+  failure_receipt: failure.json
+  write_once: true
+  canonical_outputs_exclude_generated_timestamp: true
+  complete_replay_content_identity: true
+  failed_run_evidence_preserved: true
+
+independent_audit:
+  separate_entrypoint: true
+  imports_primary_portfolio_or_gate_modules: false
+  source_market_score_or_benchmark_mount: false
+  recompute_from_sealed_daily_nav_trade_and_benchmark_artifacts: true
+  verify_discovery_first_firewall: true
+  verify_attempt_count_and_terminal_verdict: true
+
+release:
+  scope_path: config/ts_v5_r3g2_effect_release_scope_v1.json
+  scope_kind: REAL_EFFECT_RELEASE_READY_NOT_EXECUTION_APPROVAL
+  approval_path: data/control/ts-v5-r3g2-effect-v1/approval.json
+  approval_action: TS_R3G2_BREAKOUT_RETEST_EFFECT_ONCE_WITH_DISCOVERY_FIREWALL_REPLAY_AND_INDEPENDENT_AUDIT
+  scope_binds:
+    - effect_and_release_protocol_hashes
+    - w2_through_w7_score_artifact_hashes
+    - event_market_benchmark_input_hashes
+    - implementation_git_commit_and_code_snapshot
+    - immutable_image_id_and_release_manifest
+    - exact_commands_mounts_resources_and_empty_outputs
+  exact_user_approval_required: true
+  prior_authority_inheritance: false
+
+docker:
+  compose_file: compose.ts-v5-r3g2-effect.yaml
+  image: shaiwei:ts-v5-r3g2-effect-release-v1
+  network_mode: none
+  read_only_root: true
+  run_as_non_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  env_file_mounted: false
+  docker_socket_mounted: false
+  full_project_root_mounted: false
+  production_ledger_mounted: false
+  high_load_runs_serial_only: true
+  scheduler_restart_or_change: false
+
+stop_condition:
+  stop_after_exact_release_scope_is_committed_and_pushed: true
+  no_real_effect_value_read_before_exact_approval: true
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
