@@ -26,6 +26,9 @@ RECOVERY_R2 = (
 AUDIT_RECOVERY = (
     ROOT / "config/ts_v5_r3g3_discovery_diagnostic_auditor_entrypoint_recovery_v1.yaml"
 )
+AUDIT_SERIALIZATION_RECOVERY = (
+    ROOT / "config/ts_v5_r3g3_discovery_diagnostic_auditor_serialization_recovery_v1.yaml"
+)
 
 
 def _load() -> dict:
@@ -217,3 +220,24 @@ def test_auditor_recovery_binds_completed_diagnostic(tmp_path) -> None:
     recovery.write_text(yaml.safe_dump(document, sort_keys=False), encoding="utf-8")
     digest, action = verify_auditor_recovery(recovery, protocol, diagnostic)
     assert len(digest) == 64 and action.endswith("AUDIT_ENTRYPOINT_RECOVERY_ONCE")
+
+
+def test_auditor_serialization_recovery_keeps_same_diagnostic_bindings(tmp_path) -> None:
+    protocol = DiagnosticProtocol.load(PROTOCOL)
+    diagnostic = tmp_path / "diagnostic"
+    diagnostic.mkdir()
+    for name in ("authorization.json", "report.json", "manifest.json"):
+        (diagnostic / name).write_text(json.dumps({"name": name}), encoding="utf-8")
+    document = yaml.safe_load(AUDIT_SERIALIZATION_RECOVERY.read_text(encoding="utf-8"))
+    document["frozen_diagnostic"].update(
+        {
+            f"{name.removesuffix('.json').replace('-', '_')}_sha256": sha256_file(
+                diagnostic / name
+            )
+            for name in ("authorization.json", "report.json", "manifest.json")
+        }
+    )
+    recovery = tmp_path / "audit-serialization-recovery.yaml"
+    recovery.write_text(yaml.safe_dump(document, sort_keys=False), encoding="utf-8")
+    digest, action = verify_auditor_recovery(recovery, protocol, diagnostic)
+    assert len(digest) == 64 and action.endswith("AUDIT_SERIALIZATION_RECOVERY_ONCE")

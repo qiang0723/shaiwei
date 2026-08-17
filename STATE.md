@@ -4,6 +4,8 @@
 
 ## 2026-08-17 · TS-v5 R3G-3发现期失败诊断协议已冻结
 
+- auditor入口恢复已完成全部检查，但在写JSON时因`numpy.bool_`不可序列化而失败，audit-r3为空。
+  runner和该auditor均不重跑；序列化恢复只转原生bool、绑定同一R2三哈希并写独立audit-r4。
 - R2 runner 已完成且内部双跑一致；原独立auditor仍在进入函数前因同类CLI映射错误失败，audit输出
   为空。runner不重跑；已另立auditor-only恢复scope，只修参数映射并绑定R2报告/manifest哈希。
 - 第一入口恢复在授权后、明细读取前因把父 runner 的审计前`PENDING_INDEPENDENT_AUDIT`错当成最终

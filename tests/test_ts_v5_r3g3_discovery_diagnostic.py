@@ -127,6 +127,8 @@ def test_independent_point_arithmetic_recomputes_all_critical_metrics() -> None:
     report = compute_diagnostic(protocol, inputs)
     checks = _point_checks(inputs.points["primary"], report["points"]["primary"])
     assert checks and all(checks.values())
+    assert all(type(value) is bool for value in checks.values())
+    canonical_json(checks)
 
 
 def test_episode_pnl_tamper_fails_closed() -> None:

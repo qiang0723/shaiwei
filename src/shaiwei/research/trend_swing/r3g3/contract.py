@@ -28,6 +28,12 @@ AUDIT_RECOVERY_SCHEMA = "ts-v5-r3g3-diagnostic-auditor-entrypoint-recovery-scope
 AUDIT_RECOVERY_ACTION = (
     "TS_R3G3_DISCOVERY_FAILURE_DIAGNOSTIC_INDEPENDENT_AUDIT_ENTRYPOINT_RECOVERY_ONCE"
 )
+AUDIT_SERIALIZATION_SCHEMA = (
+    "ts-v5-r3g3-diagnostic-auditor-serialization-recovery-scope-v1"
+)
+AUDIT_SERIALIZATION_ACTION = (
+    "TS_R3G3_DISCOVERY_FAILURE_DIAGNOSTIC_INDEPENDENT_AUDIT_SERIALIZATION_RECOVERY_ONCE"
+)
 POINT_ROLES = ("primary", "confirmation_neighbour", "tolerance_neighbour")
 SCENARIOS = ("base_1x", "all_costs_2x", "base_plus_10bp_slippage_each_side")
 
@@ -156,13 +162,14 @@ def verify_auditor_recovery(
         "report.json": diagnostic.get("report_sha256"),
         "manifest.json": diagnostic.get("manifest_sha256"),
     }
+    schema, action = document.get("schema_version"), document.get("action")
     if (
-        document.get("schema_version") != AUDIT_RECOVERY_SCHEMA
+        schema not in {AUDIT_RECOVERY_SCHEMA, AUDIT_SERIALIZATION_SCHEMA}
         or document.get("status") != "FROZEN_BEFORE_AUDITOR_RECOVERY_EXECUTION"
-        or document.get("action") != AUDIT_RECOVERY_ACTION
+        or action not in {AUDIT_RECOVERY_ACTION, AUDIT_SERIALIZATION_ACTION}
+        or (schema == AUDIT_RECOVERY_SCHEMA and action != AUDIT_RECOVERY_ACTION)
+        or (schema == AUDIT_SERIALIZATION_SCHEMA and action != AUDIT_SERIALIZATION_ACTION)
         or document.get("parent_protocol_sha256") != protocol.sha256
-        or prior.get("failure_stage") != "argparse_dispatch_before_audit_function"
-        or prior.get("diagnostic_detail_read") is not False
         or prior.get("audit_output_written") is not False
         or recovery.get("invocation_count") != 1
         or recovery.get("runner_may_rerun") is not False
@@ -177,7 +184,21 @@ def verify_auditor_recovery(
         )
     ):
         raise R3G3Error("R3G-3 auditor recovery scope differs")
-    return sha256_file(path), AUDIT_RECOVERY_ACTION
+    if schema == AUDIT_RECOVERY_SCHEMA:
+        valid_prior = (
+            prior.get("failure_stage") == "argparse_dispatch_before_audit_function"
+            and prior.get("diagnostic_detail_read") is False
+        )
+    else:
+        valid_prior = (
+            prior.get("failure_stage") == "audit_document_serialization_after_all_checks"
+            and prior.get("diagnostic_detail_read") is True
+            and prior.get("all_checks_computed") is True
+            and prior.get("failure_type") == "numpy_bool_not_json_serializable"
+        )
+    if not valid_prior:
+        raise R3G3Error("R3G-3 prior auditor recovery evidence differs")
+    return sha256_file(path), str(action)
 
 
 def _verify_first_pass_manifest(protocol: DiagnosticProtocol, inputs: Path) -> dict[str, Any]:

@@ -47,23 +47,25 @@ def _point_checks(source: Any, report: dict[str, Any]) -> dict[str, bool]:
     scenario_values = report["cost_scenarios"]["pooled_net_return"]
     return {
         "closed_trade_count": int(len(closed)) == economics["closed_trade_count"],
-        "stored_net_pnl": np.isclose(
+        "stored_net_pnl": bool(np.isclose(
             float(closed["closed_trade_pnl"].sum()), economics["net_pnl_rmb"], rtol=0, atol=1e-6
-        ),
-        "gross_pnl": np.isclose(
+        )),
+        "gross_pnl": bool(np.isclose(
             sell_gross - buy_gross, economics["gross_pnl_before_fees_rmb"], rtol=0, atol=1e-6
-        ),
-        "fees": np.isclose(fees, economics["fees_rmb"], rtol=0, atol=1e-6),
-        "mean_cash": np.isclose(
+        )),
+        "fees": bool(np.isclose(fees, economics["fees_rmb"], rtol=0, atol=1e-6)),
+        "mean_cash": bool(np.isclose(
             float(nav["cash_ratio"].mean()), participation["cash_ratio_all_days"]["mean"],
             rtol=0, atol=1e-12,
+        )),
+        "invested_days": bool(
+            int(nav["position_count"].gt(0).sum()) == participation["invested_day_count"]
         ),
-        "invested_days": int(nav["position_count"].gt(0).sum()) == participation["invested_day_count"],
         "order_count": len(orders) == funnel["total_order_count"],
-        "exit_group_pnl": np.isclose(
+        "exit_group_pnl": bool(np.isclose(
             sum(row["net_pnl_rmb"] for row in economics["terminal_exit_groups"]),
             economics["net_pnl_rmb"], rtol=0, atol=1e-6,
-        ),
+        )),
         "cost_summaries": all(
             np.isclose(
                 float(source.summaries[scenario]["pooled_net_return"]),

@@ -6,6 +6,9 @@
 
 ## 2026-08-17 TS-v5 R3G-3发现期失败诊断协议冻结
 
+auditor入口恢复已完成检查但因`numpy.bool_`不能写入JSON而fail closed，audit-r3为空；本scope关闭。
+序列化恢复仅规范布尔类型并绑定同一R2三哈希，不改公式/容差/指标，也不重跑runner。
+
 R2 runner 已完成并内部双跑一致；原auditor仍在调用审计函数前因CLI参数映射错误失败，audit根为空。
 runner不重跑；auditor-only恢复只修参数映射并绑定R2报告/manifest，在独立audit根运行一次。
 
