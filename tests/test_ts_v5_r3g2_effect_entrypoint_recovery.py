@@ -21,6 +21,7 @@ from shaiwei.research.trend_swing.r3g2.effect_recovery_control import (
     RECOVERY_SCOPE_PATH,
     RecoveryProtocol,
     expected_recovery_approval,
+    predecessor_record,
     recovery_mounts,
 )
 from shaiwei.research.trend_swing.r3g2.effect_recovery_release import (
@@ -53,7 +54,7 @@ def _document(tmp_path: Path) -> tuple[dict, Path, SyntheticAdapter]:
     document = build_release_document(
         protocol=protocol,
         recovery=recovery,
-        predecessor=verify_predecessor_evidence(protocol, recovery),
+        predecessor=predecessor_record(recovery),
         inputs=inputs,
         created_at="2026-08-17T12:00:00+00:00",
         implementation_git_commit=git_head(),
@@ -84,6 +85,9 @@ def _control(tmp_path: Path) -> tuple[Path, Path, Path, SyntheticAdapter]:
 
 def test_recovery_binds_failure_and_original_scope_remains_consumed() -> None:
     protocol, recovery = EffectProtocol.load(), RecoveryProtocol.load(EffectProtocol.load())
+    original_approval = ROOT / recovery.document["predecessor"]["original_approval"]["path"]
+    if not original_approval.is_file():
+        pytest.skip("host-only predecessor evidence is intentionally absent from clean image")
     predecessor = verify_predecessor_evidence(protocol, recovery)
 
     assert predecessor["original_release_scope_sha256"] == (
