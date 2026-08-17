@@ -1,0 +1,66 @@
+x-r3g3-diagnostic: &r3g3-diagnostic
+  image: shaiwei:ts-v5-r3g3-discovery-diagnostic-v1
+  pull_policy: never
+  init: true
+  restart: "no"
+  user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+  working_dir: /workspace
+  read_only: true
+  network_mode: none
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 128
+  environment:
+    HOME: /tmp
+    PYTHONPYCACHEPREFIX: /tmp/pycache
+    OMP_NUM_THREADS: "2"
+    OPENBLAS_NUM_THREADS: "2"
+    MKL_NUM_THREADS: "2"
+    NUMEXPR_NUM_THREADS: "2"
+  tmpfs: [/tmp:rw,noexec,nosuid,size=1g,mode=1777]
+
+services:
+  ts-v5-r3g3-diagnostic-fixture:
+    <<: *r3g3-diagnostic
+    profiles: [ts-v5-r3g3-diagnostic-fixture]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_TS_R3G3_DIAGNOSTIC_GIT_HEAD:-}
+    cpus: 2.0
+    mem_limit: 4g
+    command: [python, -m, pytest, -q, tests/test_ts_v5_r3g3_discovery_diagnostic_protocol.py, tests/test_ts_v5_r3g3_discovery_diagnostic.py]
+
+  ts-v5-r3g3-diagnostic-runner:
+    <<: *r3g3-diagnostic
+    profiles: [ts-v5-r3g3-diagnostic]
+    cpus: 2.0
+    mem_limit: 4g
+    volumes:
+      - {type: bind, source: ./config/ts_v5_r3g3_discovery_diagnostic_v1.yaml, target: /inputs/protocol.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/report.json, target: /inputs/report.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1-audit/audit.json, target: /inputs/parent-audit.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/manifest.json, target: /inputs/first-pass-manifest.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/pass_summary.json, target: /inputs/first-pass-summary.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/discovery/partition_summary.json, target: /inputs/partition-summary.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/discovery, target: /inputs/discovery, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1, target: /outputs, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.trend_swing.r3g3.run, --protocol, /inputs/protocol.yaml, --input-root, /inputs, --output-root, /outputs]
+
+  ts-v5-r3g3-diagnostic-auditor:
+    <<: *r3g3-diagnostic
+    profiles: [ts-v5-r3g3-diagnostic]
+    cpus: 2.0
+    mem_limit: 4g
+    volumes:
+      - {type: bind, source: ./config/ts_v5_r3g3_discovery_diagnostic_v1.yaml, target: /inputs/protocol.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/report.json, target: /inputs/report.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1-audit/audit.json, target: /inputs/parent-audit.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/manifest.json, target: /inputs/first-pass-manifest.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/pass_summary.json, target: /inputs/first-pass-summary.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/discovery/partition_summary.json, target: /inputs/partition-summary.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/discovery, target: /inputs/discovery, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1, target: /outputs, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1-audit, target: /audit, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.trend_swing.r3g3.audit, --protocol, /inputs/protocol.yaml, --input-root, /inputs, --diagnostic-root, /outputs, --audit-root, /audit]
