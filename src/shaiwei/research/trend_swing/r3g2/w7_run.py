@@ -118,7 +118,17 @@ def main() -> int:
     args = parser.parse_args()
     import json
 
-    print(json.dumps(run(**vars(args)), sort_keys=True))
+    print(
+        json.dumps(
+            run(
+                release_path=args.release,
+                approval_path=args.approval,
+                provider_root=args.provider_root,
+                output_root=args.output_root,
+            ),
+            sort_keys=True,
+        )
+    )
     return 0
 
 

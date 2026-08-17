@@ -2,7 +2,7 @@
 
 日期：2026-08-17（UTC+8）
 
-裁决：`READY_FOR_EXACT_USER_APPROVAL_NOT_EXECUTED`
+裁决：`ORIGINAL_SCOPE_CONSUMED_BY_ENTRYPOINT_FAILURE`
 
 策略效果：`NOT_EVALUATED`
 生产授权：`none`
@@ -63,5 +63,6 @@ Dockerfile、Compose与LLM锁文件。该候选没有进入release scope或真�
 
 ## 下一步
 
-当前只等待用户逐字批准唯一scope，之后才运行一次真实W7 first pass/replay和一次无Qlib独立审计。
-W7数据GO也不自动授权TS效果读取，后续仍须另立三点效果release scope并再次取得明确批准。
+原scope已在用户逐字批准后调用一次，但于进入`run()`前发生CLI参数映射TypeError；没有读取真实W7，
+同scope不得重跑。后续只允许按`docs/TS_V5_R3G2_W7_ENTRYPOINT_FAILURE_20260817.md`另立recovery
+scope并再次取得明确批准。W7数据GO仍不自动授权TS效果读取。

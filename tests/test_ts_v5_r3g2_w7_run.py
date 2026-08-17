@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import sys
 from typing import Any
 
 import pandas as pd
 import pytest
 
+from shaiwei.research.trend_swing.r3g2 import w7_audit_run, w7_run
 from shaiwei.research.trend_swing.r3g2.contract import EffectProtocol, R3G2Error
 from shaiwei.research.trend_swing.r3g2.w7_audit_run import run_audit
 from shaiwei.research.trend_swing.r3g2.w7_control import ACTION, load_release_protocol
@@ -174,3 +176,75 @@ def test_approval_must_match_the_exact_scope(tmp_path: Path) -> None:
             input_verifier=lambda _release, _root: INPUTS,
             runtime_verifier=_runtime,
         )
+
+
+def test_runner_cli_maps_external_names_to_internal_paths(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    captured: dict[str, Any] = {}
+
+    def fake_run(**kwargs: Any) -> dict[str, str]:
+        captured.update(kwargs)
+        return {"verdict": "SYNTHETIC"}
+
+    monkeypatch.setattr(w7_run, "run", fake_run)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "w7_run",
+            "--release",
+            "release.json",
+            "--approval",
+            "approval.json",
+            "--provider-root",
+            "qlib",
+            "--output-root",
+            "output",
+        ],
+    )
+
+    assert w7_run.main() == 0
+    assert captured == {
+        "release_path": Path("release.json"),
+        "approval_path": Path("approval.json"),
+        "provider_root": Path("qlib"),
+        "output_root": Path("output"),
+    }
+    assert json.loads(capsys.readouterr().out) == {"verdict": "SYNTHETIC"}
+
+
+def test_auditor_cli_maps_external_names_to_internal_paths(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    captured: dict[str, Any] = {}
+
+    def fake_run_audit(**kwargs: Any) -> dict[str, str]:
+        captured.update(kwargs)
+        return {"verdict": "SYNTHETIC_AUDIT"}
+
+    monkeypatch.setattr(w7_audit_run, "run_audit", fake_run_audit)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "w7_audit_run",
+            "--release",
+            "release.json",
+            "--approval",
+            "approval.json",
+            "--lineage-root",
+            "lineage",
+            "--audit-root",
+            "audit",
+        ],
+    )
+
+    assert w7_audit_run.main() == 0
+    assert captured == {
+        "release_path": Path("release.json"),
+        "approval_path": Path("approval.json"),
+        "lineage_root": Path("lineage"),
+        "audit_root": Path("audit"),
+    }
+    assert json.loads(capsys.readouterr().out) == {"verdict": "SYNTHETIC_AUDIT"}

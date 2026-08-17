@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-17 · TS-v5-R3G-2 W7原scope入口失败封存
+
+- 原scope`5d238942...38ad`已按用户批准创建一次runner容器，但CLI把`release/approval`错误映射给
+  `release_path/approval_path`，在进入`run()`前TypeError；原scope次数已消费且不得重跑，auditor未调用。
+- 无`lineage_read_started.json`，真实Qlib、W7模型/分数、RankIC、收益、基准、组合均未读；策略效果尝试
+  仍为0，不能记作策略失败。Git忽略失败receipt SHA-256为`cdfe44d1...99bb`。
+- runner和auditor两个入口已做最小参数映射修复，并增加直接调用两个`main()`的回归测试；专项25项PASS。
+  下一步须提交/推送修复，再另立绑定前序失败的新镜像与recovery scope；再次取得用户精确批准前不读W7。
+  见`docs/TS_V5_R3G2_W7_ENTRYPOINT_FAILURE_20260817.md`。
+
 ## 2026-08-17 · TS-v5-R3G-2 W7谱系预执行工程完成
 
 - 2025 W7已完成结果盲工程入口，但尚未训练：严格继承M6干净Alpha158/LightGBM与t+11成熟度口径，

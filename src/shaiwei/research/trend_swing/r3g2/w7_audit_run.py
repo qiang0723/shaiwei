@@ -91,7 +91,17 @@ def main() -> int:
     parser.add_argument("--lineage-root", type=Path, required=True)
     parser.add_argument("--audit-root", type=Path, required=True)
     args = parser.parse_args()
-    print(json.dumps(run_audit(**vars(args)), sort_keys=True))
+    print(
+        json.dumps(
+            run_audit(
+                release_path=args.release,
+                approval_path=args.approval,
+                lineage_root=args.lineage_root,
+                audit_root=args.audit_root,
+            ),
+            sort_keys=True,
+        )
+    )
     return 0
 
 

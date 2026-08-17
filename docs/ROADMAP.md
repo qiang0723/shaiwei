@@ -4,6 +4,13 @@
 > Web，以及长期 LLM 多源因子研究。
 > 领先不是验收标准；只有可复现、扣除成本、通过预注册门槛的增量结果才算完成。
 
+## 2026-08-17 TS-v5 R3G-2 W7入口失败与恢复边界
+
+原scope`5d238942...38ad`唯一runner在进入真实执行函数前因CLI参数名错配失败；runner次数已消费且不得
+重跑，auditor/真实Qlib/W7模型与分数/策略效果均为0。两个CLI入口已最小修复并加入直接main回归；
+下一步只允许另立绑定原scope、approval和失败receipt的新recovery scope，重新取得精确批准。见
+`docs/TS_V5_R3G2_W7_ENTRYPOINT_FAILURE_20260817.md`。
+
 ## 2026-08-17 TS-v5 R3G-2 W7谱系预执行工程
 
 2025 W7已完成分层工程入口、双跑、write-once、精确批准和无Qlib独立审计，但真实训练与分数仍为0，
