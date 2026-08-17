@@ -1,0 +1,210 @@
+schema_version: ts-v6-entry-quality-preflight-v1
+protocol_id: ts-v6-entry-quality-preflight-001
+prepared_on: "2026-08-17"
+status: RESULT_INFORMED_ZERO_EFFECT_PREFLIGHT_FROZEN
+production_authorization: none
+
+objective:
+  strategy_family: TS
+  candidate_id: TS6_HEALTHY_BREAKOUT_RETEST_ENTRY_QUALITY_V1
+  primary_question: >-
+    whether a healthy-retest entry-quality mechanism can preserve evaluable event density while
+    materially changing the rejected TS-v5 R3G-2 entry set without reading any new outcome
+  downstream_decision: freeze_at_most_one_candidate_for_a_separate_effect_protocol
+  strategy_effect_evaluation: false
+
+result_informed_parent:
+  parent_protocol_path: config/ts_v5_r3g2_effect_v1.yaml
+  parent_protocol_sha256: c3aa5a2bef199d8745b6e0399085dcf5a60d9f28f29a5426ea0104831f3572bf
+  parent_mechanism: BREAKOUT_RETEST
+  parent_primary_point_hash: 81833a47b1edb59455c997c422bb36b63454f1da84e29696269c9c950e019784
+  parent_effect_verdict: REJECT_TS_V5_R3G2_DISCOVERY
+  parent_strategy_effective: REJECT
+  parent_holdout_outcomes_opened: false
+  known_diagnostic:
+    report_path: data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1-r2/report.json
+    report_sha256: 118a528ca0ff4a3877d8a3c28e5fd61dcbe05f1b8d0a8380e68e1b42384ca919
+    manifest_path: data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1-r2/manifest.json
+    manifest_sha256: 7ea41562e29b32388bd4a85fae9bc837c9e65b322bcb01abe49f21da9832c96c
+    audit_path: data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1-audit-r4/audit.json
+    audit_sha256: 34cb944a9653a20019c8aea0f44432ba40d075f0e66a059f731683f368064b59
+  permitted_interpretation:
+    - parent_pre_fee_expectancy_was_negative
+    - stop_exits_and_11_15_day_holds_were_loss_concentrations_not_causal_proof
+    - participation_must_not_be_increased_before_pre_fee_expectancy_improves
+  forbidden_interpretation:
+    - select_a_parameter_from_parent_outcomes
+    - infer_that_a_10_day_exit_is_optimal
+    - open_or_proxy_2024_2025_outcomes
+
+frozen_inputs:
+  r3_manifest_path: data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json
+  r3_manifest_sha256: c2206a6fddc83500293ee7e7d8fd399cdc8df3709579f92f16a228bc16494a63
+  parent_density_profile_path: data/research/trend_swing/ts-v5-r3g1-recent-density-r2/density_profile.json
+  parent_density_profile_sha256: 9ab1719de7fbeae6b94ed9e7d4234fd45be13f216f670ee7e8fb4cdbdf667a67
+  parent_event_path: data/research/trend_swing/ts-v5-r3g1-recent-density-r2/events.parquet
+  parent_event_sha256: 2e68af1cfa10d8d49c2f5b6b766b880463b52192be6a570fe0aa01dcd03fd08a
+  parent_density_audit_path: data/research/trend_swing/ts-v5-r3g1-recent-density-r2/audit.json
+  parent_density_audit_sha256: 40cfb62e5e8c397d31f24c3afde58030a024b5bfb894a9a3d2bbee89052f0964
+  source_context: {start: "20160101", end: "20260811"}
+  universe_id: csi800-pit-v1
+  bse_allowed: false
+
+chronological_roles:
+  development_distribution_and_density:
+    start: "20210104"
+    end: "20231229"
+    required_calendar_years: [2021, 2022, 2023]
+    may_derive_feature_levels: true
+    may_select_one_density_candidate: true
+    post_entry_outcomes_allowed: false
+  conditional_density_only_holdout:
+    start: "20240102"
+    end: "20251231"
+    required_calendar_years: [2024, 2025]
+    may_change_feature_levels_or_candidate: false
+    post_entry_outcomes_allowed: false
+    use: selected_candidate_event_density_pass_fail_only
+  current_partial_year:
+    start: "20260105"
+    end: "20260811"
+    data_read_allowed: false
+    role: RESERVED_NOT_READ
+
+inherited_parent_semantics:
+  breakout_lookback_weeks: 4
+  retest_tolerance_atr: 1.5
+  maximum_wait_days: 10
+  recovery_confirmation_days: 1
+  market_sector_security_liquidity_gates: exact_from_ts_v5_r3g
+  next_open_execution: exact_from_ts_v5_r3g
+  alpha158_read: false
+  exit_rules_changed: false
+  sizing_or_risk_rules_changed: false
+
+entry_quality_mechanism:
+  primary_change: HEALTHY_RETEST_ENTRY_QUALITY
+  one_primary_mechanism_change_only: true
+  retest_arm:
+    parent_breakout_and_retest_conditions_required: true
+    pullback_amount_ratio: retest_day_amount_rmb_divided_by_prior_20d_median_amount_rmb
+    maximum_pullback_amount_ratio_parameter: true
+  recovery_confirmation:
+    parent_close_reclaims_frozen_breakout_reference_required: true
+    recovery_close_location: adjusted_close_minus_adjusted_low_divided_by_adjusted_high_minus_adjusted_low
+    zero_or_negative_adjusted_range_policy: fail_closed
+    minimum_recovery_close_location_parameter: true
+    pre_entry_10d_return: adjusted_close_divided_by_lagged_10d_adjusted_close_minus_one
+    same_day_pit_csi800_cross_sectional_percentile: true
+    maximum_pre_entry_10d_return_percentile_parameter: true
+  sector_strength_gate: exact_inherited_not_parameterized
+  parameter_axes:
+    - MAX_PULLBACK_AMOUNT_RATIO
+    - MIN_RECOVERY_CLOSE_LOCATION
+    - MAX_PRE_ENTRY_10D_RETURN_PERCENTILE
+
+result_blind_level_derivation:
+  source: parent_compatible_development_episodes_only
+  interpolation: linear_quantile_cont
+  numeric_rounding_decimal_places: 8
+  duplicate_level_policy: BLOCKED_PARAMETER_LEVEL_COLLAPSE
+  levels:
+    MAX_PULLBACK_AMOUNT_RATIO: [0.40, 0.60, 0.80]
+    MIN_RECOVERY_CLOSE_LOCATION: [0.40, 0.60, 0.80]
+    MAX_PRE_ENTRY_10D_RETURN_PERCENTILE: [0.60, 0.75, 0.90]
+  values_are_quantile_positions_not_parameter_values: true
+
+density_design:
+  design: fixed_l9_three_factors_three_levels
+  design_point_count: 9
+  level_index_rows:
+    - [0, 0, 0]
+    - [0, 1, 1]
+    - [0, 2, 2]
+    - [1, 0, 1]
+    - [1, 1, 2]
+    - [1, 2, 0]
+    - [2, 0, 2]
+    - [2, 1, 0]
+    - [2, 2, 1]
+  effect_attempt_increment: 0
+  grid_expansion_after_profile: forbidden
+
+density_and_distinctness_gate:
+  development:
+    minimum_legal_events: 90
+    minimum_distinct_signal_days: 36
+    minimum_events_each_calendar_year: 10
+  conditional_density_only_holdout:
+    minimum_distinct_signal_days: 20
+    minimum_events_each_calendar_year: 10
+  parent_event_key: [ts_code, signal_date, next_open_date]
+  candidate_must_be_strict_subset_of_parent_events: true
+  parent_event_retention_ratio: {minimum: 0.30, maximum: 0.90}
+  every_parameter_axis_must_change_at_least_one_parent_event: true
+  threshold_change_after_profile: forbidden
+
+mechanical_selection:
+  maximum_selected_candidates: 1
+  eligible_points_only: true
+  order:
+    - maximum_minimum_development_calendar_year_event_count
+    - minimum_development_calendar_year_event_count_coefficient_of_variation
+    - minimum_absolute_distance_from_120_development_events
+    - minimum_total_distance_from_middle_level
+    - minimum_canonical_parameter_hash
+  holdout_density_may_not_replace_selection: true
+
+result_firewall:
+  allowed:
+    - pit_feature_distributions_and_quantile_levels
+    - parent_and_candidate_event_keys
+    - state_transition_and_rejection_counts
+    - legal_event_count_and_distinct_signal_days
+    - event_count_by_calendar_year
+    - event_overlap_and_retention_ratio
+    - input_output_code_and_runtime_hashes
+  forbidden:
+    - post_entry_price_path
+    - pnl_or_return
+    - win_rate_or_expectancy
+    - mae_or_mfe
+    - benchmark_value_or_excess_return
+    - alpha158_value_or_rank
+    - model_training_prediction_or_backtest
+
+execution_control:
+  one_real_result_blind_profile: true
+  one_independent_audit: true
+  external_network_or_provider: false
+  env_or_secret_read: false
+  docker_network_mode: none
+  source_mounts_read_only: true
+  output_write_once: true
+  exact_cli_entrypoints_must_pass_fixture_before_semantic_read: true
+  canonical_json_must_normalize_library_scalar_types_before_semantic_read: true
+  semantic_read_marker_required: true
+  pre_marker_technical_release_repairs_maximum: 2
+  pre_marker_failure_consumes_strategy_or_density_attempt: false
+  pre_marker_failure_receipt_must_be_preserved: true
+  post_marker_same_scope_rerun: forbidden
+  paper_web_scheduler_or_production_change: false
+
+successor_requirements:
+  preflight_go_authorizes_effect: false
+  separate_effect_protocol_and_user_approval_required: true
+  effect_protocol_must_keep_2024_2025_outcomes_closed_until_development_passes: true
+  effect_protocol_must_report:
+    - absolute_cash_net_result
+    - full_h00906_context
+    - exposure_matched_h00906_plus_cash
+    - relevant_sector_context
+  effect_protocol_must_not_raise_position_or_risk_limits: true
+  future_exit_mechanism_must_be_separate_successor: true
+
+verdicts:
+  selected_candidate_passes_development_and_conditional_density_only_holdout: GO_TS_V6_ENTRY_QUALITY_EFFECT_SCOPE_PROPOSAL_ONLY
+  no_dense_nonduplicate_candidate: STOP_TS_V6_ENTRY_QUALITY_NO_DENSE_NONDUPLICATE_POINT
+  input_contract_or_execution_failure: BLOCKED_TS_V6_INPUT_OR_EXECUTION
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
