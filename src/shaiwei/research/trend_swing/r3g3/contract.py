@@ -14,10 +14,15 @@ from shaiwei.research.trend_swing.r3g3.evidence import R3G3Error, canonical_sha2
 
 EXPECTED_SCHEMA = "ts-v5-r3g3-discovery-diagnostic-protocol-v1"
 EXPECTED_STATUS = "RESULT_KNOWN_DETAIL_BLIND_DIAGNOSTIC_PROTOCOL_FROZEN_PENDING_IMPLEMENTATION"
-RECOVERY_SCHEMA = "ts-v5-r3g3-diagnostic-entrypoint-recovery-scope-v1"
-RECOVERY_ACTION = (
+RECOVERY_R1_SCHEMA = "ts-v5-r3g3-diagnostic-entrypoint-recovery-scope-v1"
+RECOVERY_R1_ACTION = (
     "TS_R3G3_DISCOVERY_FAILURE_DIAGNOSTIC_ENTRYPOINT_RECOVERY_ONCE_WITH_REPLAY_AND_"
     "INDEPENDENT_AUDIT"
+)
+RECOVERY_R2_SCHEMA = "ts-v5-r3g3-diagnostic-parent-authority-recovery-scope-v1"
+RECOVERY_R2_ACTION = (
+    "TS_R3G3_DISCOVERY_FAILURE_DIAGNOSTIC_PARENT_AUTHORITY_RECOVERY_ONCE_WITH_REPLAY_"
+    "AND_INDEPENDENT_AUDIT"
 )
 POINT_ROLES = ("primary", "confirmation_neighbour", "tolerance_neighbour")
 SCENARIOS = ("base_1x", "all_costs_2x", "base_plus_10bp_slippage_each_side")
@@ -84,20 +89,22 @@ class DiagnosticProtocol:
         return tuple(self.document["allowed_read_boundary"]["points"].items())
 
 
-def verify_entrypoint_recovery(path: Path, protocol: DiagnosticProtocol) -> str:
+def verify_entrypoint_recovery(
+    path: Path,
+    protocol: DiagnosticProtocol,
+    prior_authorization_path: Path | None = None,
+) -> tuple[str, str]:
     document = _mapping(path)
     prior = document.get("prior_invocation", {})
     recovery = document.get("recovery", {})
+    schema, action = document.get("schema_version"), document.get("action")
     if (
-        document.get("schema_version") != RECOVERY_SCHEMA
+        schema not in {RECOVERY_R1_SCHEMA, RECOVERY_R2_SCHEMA}
+        or action not in {RECOVERY_R1_ACTION, RECOVERY_R2_ACTION}
+        or (schema == RECOVERY_R1_SCHEMA and action != RECOVERY_R1_ACTION)
+        or (schema == RECOVERY_R2_SCHEMA and action != RECOVERY_R2_ACTION)
         or document.get("status") != "FROZEN_BEFORE_RECOVERY_EXECUTION"
-        or document.get("action") != RECOVERY_ACTION
         or document.get("parent_protocol_sha256") != protocol.sha256
-        or prior.get("failure_stage") != "argparse_dispatch_before_run_function"
-        or prior.get("sealed_input_read") is not False
-        or prior.get("authorization_written") is not False
-        or prior.get("output_written") is not False
-        or prior.get("strategy_effect_attempt_increment") != 0
         or recovery.get("invocation_count") != 1
         or recovery.get("strategy_effect_attempt_increment") != 0
         or recovery.get("external_network") is not False
@@ -105,7 +112,30 @@ def verify_entrypoint_recovery(path: Path, protocol: DiagnosticProtocol) -> str:
         or recovery.get("production_authorization") != "none"
     ):
         raise R3G3Error("R3G-3 entrypoint recovery scope differs")
-    return sha256_file(path)
+    if schema == RECOVERY_R1_SCHEMA:
+        valid_prior = (
+            prior.get("failure_stage") == "argparse_dispatch_before_run_function"
+            and prior.get("sealed_input_read") is False
+            and prior.get("authorization_written") is False
+            and prior.get("output_written") is False
+            and prior.get("strategy_effect_attempt_increment") == 0
+        )
+    else:
+        expected_authorization = document.get("prior_recovery", {}).get(
+            "authorization_sha256"
+        )
+        valid_prior = (
+            prior_authorization_path is not None
+            and prior_authorization_path.is_file()
+            and sha256_file(prior_authorization_path) == expected_authorization
+            and prior.get("failure_stage") == "parent_authority_validation_before_detail_read"
+            and prior.get("detail_parquet_read") is False
+            and prior.get("diagnostic_computed") is False
+            and prior.get("strategy_effect_attempt_increment") == 0
+        )
+    if not valid_prior:
+        raise R3G3Error("R3G-3 prior recovery evidence differs")
+    return sha256_file(path), str(action)
 
 
 def _verify_first_pass_manifest(protocol: DiagnosticProtocol, inputs: Path) -> dict[str, Any]:
@@ -148,9 +178,11 @@ def verify_parent_sources(protocol: DiagnosticProtocol, inputs: Path) -> dict[st
     report, audit = read_json(inputs / "report.json"), read_json(inputs / "parent-audit.json")
     if (
         report.get("verdict") != parent["authoritative_verdict"]
-        or report.get("strategy_effective") != parent["strategy_effective"]
+        or report.get("strategy_effective") != "PENDING_INDEPENDENT_AUDIT"
         or report.get("holdout") is not None
         or audit.get("independent_audit") != "PASS"
+        or audit.get("verdict") != parent["authoritative_verdict"]
+        or audit.get("strategy_effective") != parent["strategy_effective"]
     ):
         raise R3G3Error("R3G-3 parent authority or holdout firewall differs")
     manifest = _verify_first_pass_manifest(protocol, inputs)

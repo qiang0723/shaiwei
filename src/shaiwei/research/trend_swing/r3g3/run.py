@@ -11,7 +11,6 @@ from shaiwei.provenance import verify_release_manifest
 from shaiwei.research.trend_swing.r3g3.compute import compute_diagnostic
 from shaiwei.research.trend_swing.r3g3.contract import (
     DiagnosticProtocol,
-    RECOVERY_ACTION,
     verify_entrypoint_recovery,
 )
 from shaiwei.research.trend_swing.r3g3.evidence import (
@@ -42,13 +41,17 @@ def run(
     if not output_root.is_dir() or any(output_root.iterdir()):
         raise R3G3Error("R3G-3 output root is absent or non-empty")
     protocol = DiagnosticProtocol.load(protocol_path)
-    recovery_scope_sha = verify_entrypoint_recovery(recovery_scope_path, protocol)
+    recovery_scope_sha, recovery_action = verify_entrypoint_recovery(
+        recovery_scope_path,
+        protocol,
+        input_root / "prior-recovery-authorization.json",
+    )
     runtime = _runtime_identity()
     write_once_json(
         output_root / "authorization.json",
         {
             "schema_version": "ts-v5-r3g3-diagnostic-authorization-v1",
-            "action": RECOVERY_ACTION,
+            "action": recovery_action,
             "protocol_sha256": protocol.sha256,
             "entrypoint_recovery_scope_sha256": recovery_scope_sha,
             "prior_runner_invocation_count": 1,

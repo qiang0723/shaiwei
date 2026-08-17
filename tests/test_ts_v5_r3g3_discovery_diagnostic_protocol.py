@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -6,13 +7,21 @@ import yaml
 from shaiwei.research.trend_swing.r3g3.contract import (
     DiagnosticProtocol,
     verify_entrypoint_recovery,
+    verify_parent_sources,
 )
-from shaiwei.research.trend_swing.r3g3.evidence import R3G3Error
+from shaiwei.research.trend_swing.r3g3.evidence import (
+    R3G3Error,
+    canonical_sha256,
+    sha256_file,
+)
 
 
 ROOT = Path(__file__).parents[1]
 PROTOCOL = ROOT / "config/ts_v5_r3g3_discovery_diagnostic_v1.yaml"
 RECOVERY = ROOT / "config/ts_v5_r3g3_discovery_diagnostic_entrypoint_recovery_v1.yaml"
+RECOVERY_R2 = (
+    ROOT / "config/ts_v5_r3g3_discovery_diagnostic_parent_authority_recovery_v1.yaml"
+)
 
 
 def _load() -> dict:
@@ -116,10 +125,74 @@ def test_terminal_boundary_does_not_implicitly_authorize_ts_v6() -> None:
 
 def test_entrypoint_recovery_is_bound_to_original_protocol_and_zero_attempt(tmp_path) -> None:
     protocol = DiagnosticProtocol.load(PROTOCOL)
-    assert len(verify_entrypoint_recovery(RECOVERY, protocol)) == 64
+    digest, action = verify_entrypoint_recovery(RECOVERY, protocol)
+    assert len(digest) == 64 and "ENTRYPOINT_RECOVERY" in action
     document = yaml.safe_load(RECOVERY.read_text(encoding="utf-8"))
     document["recovery"]["strategy_effect_attempt_increment"] = 1
     tampered = tmp_path / "recovery.yaml"
     tampered.write_text(yaml.safe_dump(document), encoding="utf-8")
     with pytest.raises(R3G3Error, match="recovery scope differs"):
         verify_entrypoint_recovery(tampered, protocol)
+
+
+def test_parent_authority_uses_pre_audit_report_and_final_independent_audit(tmp_path) -> None:
+    protocol_document = _load()
+    inputs, discovery = tmp_path / "inputs", tmp_path / "inputs/discovery"
+    discovery.mkdir(parents=True)
+    documents = {
+        "report.json": {
+            "verdict": "REJECT_TS_V5_R3G2_DISCOVERY",
+            "strategy_effective": "PENDING_INDEPENDENT_AUDIT",
+            "holdout": None,
+        },
+        "parent-audit.json": {
+            "independent_audit": "PASS",
+            "verdict": "REJECT_TS_V5_R3G2_DISCOVERY",
+            "strategy_effective": "REJECT",
+        },
+        "first-pass-summary.json": {},
+        "partition-summary.json": {},
+    }
+    for name, document in documents.items():
+        (inputs / name).write_text(json.dumps(document, sort_keys=True), encoding="utf-8")
+    files = {"pass_summary.json": sha256_file(inputs / "first-pass-summary.json")}
+    manifest = {
+        "schema_version": "ts-v5-r3g2-effect-pass-manifest-v1",
+        "file_count": 1,
+        "files": files,
+        "bundle_sha256": canonical_sha256(files),
+    }
+    manifest_path = inputs / "first-pass-manifest.json"
+    manifest_path.write_text(json.dumps(manifest, sort_keys=True), encoding="utf-8")
+    parent = protocol_document["frozen_parent"]
+    parent["result_report"]["sha256"] = sha256_file(inputs / "report.json")
+    parent["independent_audit"]["sha256"] = sha256_file(inputs / "parent-audit.json")
+    parent["first_pass_summary"]["sha256"] = sha256_file(inputs / "first-pass-summary.json")
+    parent["discovery_partition_summary"]["sha256"] = sha256_file(
+        inputs / "partition-summary.json"
+    )
+    parent["first_pass_manifest"]["sha256"] = sha256_file(manifest_path)
+    parent["first_pass_manifest"]["bundle_sha256"] = manifest["bundle_sha256"]
+    protocol_path = tmp_path / "protocol.yaml"
+    protocol_path.write_text(
+        yaml.safe_dump(protocol_document, sort_keys=False), encoding="utf-8"
+    )
+
+    identity = verify_parent_sources(DiagnosticProtocol.load(protocol_path), inputs)
+    assert identity["first_pass_bundle_sha256"] == manifest["bundle_sha256"]
+
+
+def test_parent_authority_recovery_binds_prior_authorization(tmp_path) -> None:
+    protocol = DiagnosticProtocol.load(PROTOCOL)
+    document = yaml.safe_load(RECOVERY_R2.read_text(encoding="utf-8"))
+    assert document["parent_protocol_sha256"] == protocol.sha256
+    assert document["prior_recovery"]["authorization_sha256"] == (
+        "88f37f3754b8e8768dc11f00000d6dfcf75dd6ef66a01c5e7363a68791b55b8d"
+    )
+    authorization = tmp_path / "authorization.json"
+    authorization.write_text('{"fixture":true}', encoding="utf-8")
+    document["prior_recovery"]["authorization_sha256"] = sha256_file(authorization)
+    recovery = tmp_path / "recovery-r2.yaml"
+    recovery.write_text(yaml.safe_dump(document, sort_keys=False), encoding="utf-8")
+    digest, action = verify_entrypoint_recovery(recovery, protocol, authorization)
+    assert len(digest) == 64 and "PARENT_AUTHORITY_RECOVERY" in action

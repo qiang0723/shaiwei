@@ -4,6 +4,9 @@
 
 ## 2026-08-17 · TS-v5 R3G-3发现期失败诊断协议已冻结
 
+- 第一入口恢复在授权后、明细读取前因把父 runner 的审计前`PENDING_INDEPENDENT_AUDIT`错当成最终
+  `REJECT`而fail closed；只读父report/audit聚合JSON，未读NAV/orders/trades、未计算诊断，效果尝试0。
+  该恢复不重跑；R2只分离runner审计前状态与audit最终状态，绑定旧授权哈希并使用独立输出根。
 - 原 runner 唯一调用在进入诊断函数前因 CLI `protocol` 未映射为 `protocol_path` 而失败；输出根为空、
   未读封存数据、未写授权、效果尝试增量0，原入口不重跑。已另立只修参数映射的入口恢复 scope，
   原诊断问题、数据边界和停止条件均不变；恢复仍仅允许一次 runner、内部 replay 与独立 auditor。

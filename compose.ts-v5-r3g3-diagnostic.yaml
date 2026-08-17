@@ -39,14 +39,15 @@ services:
     mem_limit: 4g
     volumes:
       - {type: bind, source: ./config/ts_v5_r3g3_discovery_diagnostic_v1.yaml, target: /inputs/protocol.yaml, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./config/ts_v5_r3g3_discovery_diagnostic_entrypoint_recovery_v1.yaml, target: /inputs/recovery.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/ts_v5_r3g3_discovery_diagnostic_parent_authority_recovery_v1.yaml, target: /inputs/recovery.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1/authorization.json, target: /inputs/prior-recovery-authorization.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/report.json, target: /inputs/report.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1-audit/audit.json, target: /inputs/parent-audit.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/manifest.json, target: /inputs/first-pass-manifest.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/pass_summary.json, target: /inputs/first-pass-summary.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/discovery/partition_summary.json, target: /inputs/partition-summary.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/discovery, target: /inputs/discovery, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1, target: /outputs, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1-r2, target: /outputs, read_only: false, bind: {create_host_path: false}}
     command: [python, -m, shaiwei.research.trend_swing.r3g3.run, --protocol, /inputs/protocol.yaml, --recovery-scope, /inputs/recovery.yaml, --input-root, /inputs, --output-root, /outputs]
 
   ts-v5-r3g3-diagnostic-auditor:
@@ -62,6 +63,6 @@ services:
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/pass_summary.json, target: /inputs/first-pass-summary.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/discovery/partition_summary.json, target: /inputs/partition-summary.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass/discovery, target: /inputs/discovery, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1, target: /outputs, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1-audit, target: /audit, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1-r2, target: /outputs, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1-audit-r2, target: /audit, read_only: false, bind: {create_host_path: false}}
     command: [python, -m, shaiwei.research.trend_swing.r3g3.audit, --protocol, /inputs/protocol.yaml, --input-root, /inputs, --diagnostic-root, /outputs, --audit-root, /audit]

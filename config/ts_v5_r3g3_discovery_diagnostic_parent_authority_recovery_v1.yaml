@@ -1,0 +1,44 @@
+schema_version: ts-v5-r3g3-diagnostic-parent-authority-recovery-scope-v1
+scope_id: ts-v5-r3g3-discovery-diagnostic-parent-authority-recovery-001
+prepared_at: "2026-08-17T20:05:00+08:00"
+status: FROZEN_BEFORE_RECOVERY_EXECUTION
+action: >-
+  TS_R3G3_DISCOVERY_FAILURE_DIAGNOSTIC_PARENT_AUTHORITY_RECOVERY_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT
+parent_protocol_sha256: dba4200576168a39c50fc419c938e076299ded7f4c0005bf0a1d2e07a00256aa
+
+prior_recovery:
+  scope_sha256: f02e396f9a2cd172cc2aa96456bca651f96f8a6049585d21a1a05903a722fb55
+  authorization_sha256: 88f37f3754b8e8768dc11f00000d6dfcf75dd6ef66a01c5e7363a68791b55b8d
+  output_root: data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1
+
+prior_invocation:
+  invoked_at: "2026-08-17T20:04:43+08:00"
+  failure_stage: parent_authority_validation_before_detail_read
+  error_type: R3G3Error
+  error_summary: pre_audit_report_strategy_state_was_compared_to_final_audit_state
+  aggregate_parent_report_and_audit_read: true
+  sealed_file_hashes_checked_before_failure: true
+  detail_parquet_read: false
+  first_pass_manifest_read: false
+  diagnostic_computed: false
+  output_written: authorization_only
+  strategy_effect_attempt_increment: 0
+  scope_may_rerun: false
+
+recovery:
+  invocation_count: 1
+  only_code_change: validate_pre_audit_report_and_final_independent_audit_as_separate_states
+  parent_protocol_or_diagnostic_question_change: false
+  detailed_input_or_metric_change: false
+  output_root: data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1-r2
+  audit_root: data/research/trend_swing/ts-v5-r3g3-discovery-diagnostic-v1-audit-r2
+  strategy_effect_attempt_increment: 0
+  external_network: false
+  holdout_read: false
+  partial_2026_read: false
+  model_training_prediction_or_backtest: false
+  parameter_search: false
+  deepseek_calls: 0
+  paper_web_scheduler_change: false
+  production_authorization: none
+  same_scope_may_rerun: false
