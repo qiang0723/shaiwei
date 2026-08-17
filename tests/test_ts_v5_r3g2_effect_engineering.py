@@ -331,6 +331,8 @@ def test_release_document_is_metadata_only_and_compose_matches(tmp_path: Path) -
     assert runner["network_mode"] == auditor["network_mode"] == "none"
     assert runner["command"] == RUNNER_COMMAND
     assert auditor["command"] == AUDITOR_COMMAND
+    assert runner["mem_limit"] == "14g"
+    assert runner["tmpfs"] == ["/tmp:rw,noexec,nosuid,size=6g,mode=1777"]
     assert "/workspace/data/raw" not in [row["target"] for row in auditor["volumes"]]
     assert "env_file" not in runner and "env_file" not in auditor
     expected_runner, expected_auditor = _mounts()

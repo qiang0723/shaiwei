@@ -29,9 +29,9 @@ services:
       args:
         SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_TS_R3G2_EFFECT_RELEASE_GIT_HEAD:-}
     cpus: 6.0
-    mem_limit: 12g
+    mem_limit: 14g
     tmpfs:
-      - /tmp:rw,noexec,nosuid,size=4g,mode=1777
+      - /tmp:rw,noexec,nosuid,size=6g,mode=1777
     volumes:
       - {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v3-data-gate-r3, target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3, read_only: true, bind: {create_host_path: false}}
@@ -64,9 +64,9 @@ services:
       args:
         SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_TS_R3G2_EFFECT_RELEASE_GIT_HEAD:-}
     cpus: 6.0
-    mem_limit: 12g
+    mem_limit: 14g
     tmpfs:
-      - /tmp:rw,noexec,nosuid,size=4g,mode=1777
+      - /tmp:rw,noexec,nosuid,size=6g,mode=1777
     volumes:
       - {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v3-data-gate-r3, target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3, read_only: true, bind: {create_host_path: false}}

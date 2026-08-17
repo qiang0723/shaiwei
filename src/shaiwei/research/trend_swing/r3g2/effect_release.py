@@ -153,7 +153,7 @@ def build_release_document(
             "production_ledger_mounted": False,
             "runner": {
                 "service": "ts-v5-r3g2-effect-runner", "command": RUNNER_COMMAND,
-                "mounts": runner_mounts, "cpus": 6, "memory": "12g", "pids_limit": 256,
+                "mounts": runner_mounts, "cpus": 6, "memory": "14g", "pids_limit": 256,
             },
             "auditor": {
                 "service": "ts-v5-r3g2-effect-auditor", "command": AUDITOR_COMMAND,
