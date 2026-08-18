@@ -1,0 +1,275 @@
+schema_version: ts-v6-4-no-takeprofit-effect-protocol-v1
+protocol_id: ts-v6-4-no-takeprofit-effect-001
+prepared_on: "2026-08-18"
+status: RESULT_BLIND_EFFECT_PROTOCOL_FROZEN_PENDING_USER_APPROVAL_AND_ENGINEERING
+strategy_family: trend-swing
+production_authorization: none
+
+objective:
+  primary: >-
+    determine_whether_removing_the_fixed_take_profit_and_letting_the_structural_weekly_low_ratchet
+    plus the day_15_time_exit_decide_exits_changes_the_parent_discovery_economics_with_identical
+    entry_sizing_and_execution_semantics
+  single_variable_vs_parent: fixed_take_profit_mechanism_removed_no_other_change
+  hypothesis_economic_logic: >-
+    trend_following_requires_right_tail_capture; a fixed 1.5r take_profit converts potential
+    larger winners into capped exits while losses continue to the full structural stop, which at
+    the parent win rate cannot deliver positive expectancy; this is a mechanism deletion chosen
+    from the trend literature already cited in ts_0, not a threshold tuned from parent outcomes
+  forbidden_derivation: tuning_any_take_profit_multiple_or_time_exit_length_from_observed_results
+  historical_result_only: true
+  downstream_decision: reject_and_close_lane_or_authorize_drafting_holdout_protocol_with_new_budget_decision
+  direct_paper_or_production_decision: forbidden
+
+authority_at_freeze:
+  protocol_and_contract_tests: true
+  implementation: false
+  alpha158_score_value_or_rank_read: false
+  post_entry_return_or_benchmark_value_read: false
+  strategy_effect_or_backtest: false
+  external_network_or_provider: false
+  env_or_secret_read: false
+  deepseek_calls: 0
+  tushare_calls: 0
+  paper_web_scheduler_or_production_change: false
+  user_approval_of_this_frozen_protocol_before_engineering: required
+
+user_rulings_20260818_binding:
+  ts_lane_remaining_effect_protocol_budget_before_this_protocol: 1
+  this_protocol_consumes_effect_attempts: 1
+  budget_after_this_protocol: 0
+  on_reject: authoritative_ts_lane_closure_with_evidence_preserved
+  on_discovery_pass: >-
+    only drafting a separate holdout protocol is authorized, and it requires a new explicit
+    budget decision by the user; nothing else is authorized
+  outcome_conditional_analysis_outside_this_protocols_frozen_reads: forbidden
+
+predecessors:
+  parent_effect_protocol:
+    path: config/ts_v5_r3g2_effect_v1.yaml
+    sha256: c3aa5a2bef199d8745b6e0399085dcf5a60d9f28f29a5426ea0104831f3572bf
+  parent_effect_report:
+    path: data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/report.json
+    sha256: 515e891bec3e43e94f62e3796804bcf2283215395aab58eccaf74a7e35ffd528
+  v6_3_protocol:
+    path: config/ts_v6_3_ranked_subset_effect_v1.yaml
+    sha256: 74a9111ae620f15072555188e48ba25ef22cf98daa81ad31a7f471412169b3f9
+  v6_3_recovery_scope:
+    path: config/ts_v6_3_ranked_subset_effect_recovery_r2.yaml
+    sha256: 26a4c84ed4ee3371a05f423f05d8d45dd5559fe1cf135fd37d398821e32192d4
+  v6_3_effect_report:
+    path: data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1-r2/report.json
+    sha256: 87379a83e2138868f492fec5330f6ae649b5abd23e9e4afa31843c668a9d4cec
+  v6_3_effect_audit:
+    path: data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1-r2/audit.json
+    sha256: 5cca476569cd2d0211a212782fc1e6903dfa1691a5ef7fc5be090ab658c45243
+  r3g1_events:
+    path: data/research/trend_swing/ts-v5-r3g1-recent-density-r2/events.parquet
+    sha256: 2e68af1cfa10d8d49c2f5b6b766b880463b52192be6a570fe0aa01dcd03fd08a
+  executable_registry:
+    path: data/research/trend_swing/ts-v5-r3g-executable-semantics/candidate_registry.json
+    sha256: 9e51a58e080676d52797d551d3cd0e4fbcde3715655303c2cd0c04ac8846eaf4
+  r3_input_manifest:
+    path: data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json
+    sha256: c2206a6fddc83500293ee7e7d8fd399cdc8df3709579f92f16a228bc16494a63
+
+benchmark:
+  logical_identifier: CSI_H00906_TOTAL_RETURN
+  path: data/research/trend_swing/ts-v5-r3g2-benchmark-lineage-v1/H00906-daily.parquet
+  sha256: 464a72c1a3dee015863b638d02019f6482ec83acd65bea1ad8c66999dac8efa6
+  price_index_substitution: forbidden
+  locally_derived_dividend_proxy: forbidden
+
+selected_effect_point:
+  mechanism: BREAKOUT_RETEST
+  point_hash: 81833a47b1edb59455c997c422bb36b63454f1da84e29696269c9c950e019784
+  parameters:
+    BREAKOUT_LOOKBACK_WEEKS: 4
+    MAXIMUM_WAIT_DAYS: 10
+    RECOVERY_CONFIRMATION_DAYS: 1
+    RETEST_TOLERANCE_ATR: 1.5
+  event_subset: full_parent_188_discovery_events_no_quality_filter
+  sensitivity_neighbours: none
+  extra_mechanism_point_or_parameter_change: forbidden
+
+exit_mechanism_change:
+  fixed_take_profit: REMOVED
+  removed_semantics: min_first_fill_plus_1_5_initial_risk_and_first_fill_times_1_20
+  take_profit_open_gap_and_intraday_paths: removed_with_the_target_line
+  retained_exits:
+    structural_stop_ratchet: unchanged_frozen_week_low_times_0_98_may_only_move_up
+    time_exit_day_15: unchanged
+  no_new_exit_or_threshold_added: true
+  stop_risk_time_parameters_unchanged: true
+
+event_identity_gate:
+  rederive_events_from_bound_r3_inputs_and_frozen_semantics: true
+  rederived_event_keys_must_equal_bound_r3g1_event_keys: true
+  key: [point_hash, ts_code, signal_date, execution_date]
+  duplicate_key_maximum: 0
+  bse_row_maximum: 0
+  event_or_reference_drift_policy: BLOCKED_PRE_EFFECT
+
+universe_and_eligibility:
+  universe_id: csi800-pit-v1
+  point_in_time_membership_required: true
+  bse_allowed: false
+  st_allowed: false
+  delisted_or_not_yet_listed_at_signal: forbidden
+  inherited_market_sector_security_liquidity_and_execution_gates: exact_from_bound_r3g_semantics
+  entry_gate_relaxation_after_event_generation: forbidden
+
+chronological_roles:
+  discovery_effect:
+    start: "20210104"
+    end: "20231229"
+    required_calendar_years: [2021, 2022, 2023]
+  conditional_frozen_holdout_effect:
+    status: NOT_PART_OF_THIS_PROTOCOL
+    outcome_unread: true
+  current_partial_year:
+    start: "20260101"
+    role: RESERVED_NOT_READ
+  maximum_signal_to_scheduled_final_exit_trade_days: 16
+  purge_signal_if_scheduled_exit_exceeds_partition_end: true
+  unresolved_legal_exit_at_partition_end: BLOCKED_PRE_EFFECT
+  cross_partition_position_or_outcome: forbidden
+
+ranking_lineage:
+  role: ranking_only_after_all_entry_eligibility_gates
+  score_observation: last_official_open_date_strictly_before_signal_iso_week_monday
+  ordering: score_descending_then_ts_code_ascending
+  missing_score_policy: exclude_event_without_fallback
+  minimum_event_key_score_coverage: 0.95
+  coverage_below_minimum_policy: BLOCKED_PRE_EFFECT
+  clean_m6_lineage:
+    reusable_predictions:
+      W2:
+        path: data/research/m6_csi800_model_attribution_v1/effect/first_pass/W2/test_predictions/clean_lgbm_control_v1.parquet
+        sha256: 6a330c5ff95d81133a99d8d4fd6f91cea0161d0e1a45867e99c927105c56fded
+      W3:
+        path: data/research/m6_csi800_model_attribution_v1/effect/first_pass/W3/test_predictions/clean_lgbm_control_v1.parquet
+        sha256: 47887524f41d81f7c5706bed69ba5a4ea48910d64eb159611fab300fe3573fb5
+      W4:
+        path: data/research/m6_csi800_model_attribution_v1/effect/first_pass/W4/test_predictions/clean_lgbm_control_v1.parquet
+        sha256: 71924444af076222ab555689b2ce445223d6f57ec12c38bd27dc76eda8b7fc5e
+      W5:
+        path: data/research/m6_csi800_model_attribution_v1/effect/first_pass/W5/test_predictions/clean_lgbm_control_v1.parquet
+        sha256: f54ce45d1a4f6825d87ba831d9d6f5d27ddc30c9acd7798a51775e22ef83a66b
+      W6:
+        path: data/research/m6_csi800_model_attribution_v1/effect/first_pass/W6/test_predictions/clean_lgbm_control_v1.parquet
+        sha256: 8ff11ca76c7eabf2d83cde1be340969ac6fd5dd862dbd36dfb1b8a5e9d0366e7
+  w7:
+    status: NOT_USED_DISCOVERY_ONLY_PROTOCOL
+    use_w7_or_any_2024_2026_score: forbidden
+
+portfolio:
+  initial_capital_rmb_each_arm_partition: 500000
+  maximum_positions: 7
+  minimum_positions: 0
+  maximum_gross_weight_at_new_fill: 0.70
+  maximum_security_weight_at_new_fill: 0.10
+  maximum_industry_weight_at_new_fill: 0.30
+  maximum_entry_batches: 2
+  maximum_each_batch_weight: 0.05
+  maximum_first_batch_equity_risk: 0.0025
+  maximum_two_batch_equity_risk: 0.005
+  maximum_portfolio_open_risk_at_new_fill: 0.03
+  cash_when_insufficient_eligible_names: required
+  integer_board_lot_shares: 100
+  buy_quantity_rounding: floor_to_board_lot
+  order_priority:
+    - scheduled_risk_or_time_exits
+    - eligible_second_batches_by_original_signal_rank
+    - new_first_batches_by_frozen_weekly_rank
+  no_position_or_risk_limit_may_be_raised_vs_parent: true
+
+execution_and_economic_nav:
+  raw_open_high_low_close_volume_and_tick_for_legality_capacity_and_fees: true
+  adjusted_prices_for_structure_stop_target_and_economic_return: true
+  lot_economic_value_formula: entry_raw_notional_times_current_adjusted_price_div_entry_adjusted_price
+  corporate_action_overlap: disclose_count_and_economic_equivalent_treatment
+  result_type: research_economic_nav_not_broker_legal_cash_ledger
+  maximum_each_side_prior_20_day_median_amount_fraction: 0.05
+  suspended_or_limit_blocked_order: pending_sell_or_cancel_buy_per_frozen_clock
+  fictional_fill: forbidden
+
+costs:
+  scenarios: [base_1x, all_costs_2x, base_plus_10bp_slippage_each_side]
+  commission_rate_each_side: 0.0003
+  minimum_commission_rmb: 5.0
+  transfer_fee_rate_each_side_before_2022_04_29: 0.00002
+  transfer_fee_rate_each_side_on_or_after_2022_04_29: 0.00001
+  stamp_tax_sell_rate_before_2023_08_28: 0.001
+  stamp_tax_sell_rate_on_or_after_2023_08_28: 0.0005
+  all_costs_2x_includes_minimum_commission_and_statutory_fees: true
+  extra_slippage_each_side: 0.001
+  slippage_direction: adverse_buy_up_sell_down
+
+effect_metrics:
+  pre_fee_per_trade_expectancy_rmb: mean_closed_trade_pnl_before_any_fee_or_slippage
+  required_diagnostics:
+    - closed_trades_and_counts_by_year
+    - absolute_and_h00906_relative_returns
+    - pre_fee_and_after_fee_expectancy_contrast_against_parent_minus_88_80_rmb
+    - exit_reason_group_pnl_contrast_against_parent_stop_takeprofit_time_groups
+    - maximum_drawdown_and_duration
+    - win_rate_profit_loss_ratio_and_expectancy
+    - holding_days_cash_ratio_and_exposure_drift
+    - security_industry_and_trade_pnl_concentration
+    - exposure_matched_h00906_plus_cash_comparison
+    - relevant_sector_context
+
+discovery_gate:
+  candidate:
+    minimum_closed_trades: 30
+    minimum_closed_trades_each_calendar_year: 5
+    pre_fee_per_trade_expectancy_strictly_positive: true
+    pooled_base_net_return_strictly_positive: true
+    pooled_h00906_net_excess_strictly_positive: true
+    minimum_positive_h00906_net_excess_calendar_years: 2
+    maximum_drawdown: 0.20
+    all_costs_2x_pooled_net_return_minimum: 0.0
+    extra_10bp_each_side_pooled_net_return_minimum: 0.0
+    minimum_deflated_sharpe_probability: 0.95
+  deflated_sharpe:
+    authority: shaiwei.research.g1.deflated_sharpe_probability
+    return_series: candidate_daily_net_h00906_active_return
+    periodic_sharpes: three_frozen_r3g2_points_plus_v6_3_candidate_plus_this_candidate
+    sharpe_source: bound_sealed_artifacts_mechanical_recompute_only
+    trial_count: 5
+    minimum_observations: 252
+  failure_verdict: REJECT_TS_V6_4_NO_TAKEPROFIT_DISCOVERY
+
+attempt_and_firewall:
+  strategy_effect_attempt_count_on_first_effect_read: 1
+  years_cost_scenarios_and_metrics_are_not_additional_attempts: true
+  blocked_or_sparse_candidate_still_counts_after_first_effect_read: true
+  same_scope_effect_rerun: forbidden
+  extra_point_neighbour_parameter_tuning_or_threshold_change: forbidden
+  discovery_outcomes_allowed_before_gate: true
+  holdout_outcomes_read: forbidden_by_this_protocol
+  partial_2026_outcomes: forbidden
+  outcome_driven_mechanism_or_gate_change_after_read: forbidden
+
+verdicts:
+  pre_effect_identity_or_coverage_failure: BLOCKED_PRE_EFFECT
+  discovery_failure: REJECT_TS_V6_4_NO_TAKEPROFIT_DISCOVERY_AND_LANE_CLOSES
+  discovery_pass: GO_TS_V6_4_DRAFT_HOLDOUT_PROTOCOL_REQUIRES_NEW_BUDGET_DECISION
+  discovery_pass_authorizes_holdout_read: false
+  discovery_pass_authorizes_paper_or_production: false
+  production_authorization_for_every_outcome: none
+
+future_execution_not_authorized_here:
+  protocol_commit_must_be_pushed_before_implementation: true
+  explicit_user_approval_of_this_frozen_protocol_before_engineering: required
+  one_offline_first_pass: true
+  one_offline_deterministic_replay: true
+  one_independent_audit: true
+  runner_and_auditor_must_be_separate_entrypoints: true
+  immutable_write_once_outputs: true
+  docker_network_mode: none
+  project_env_or_secret_mount: forbidden
+  source_mounts_read_only: true
+  high_load_runs_serial_only: true
+  scheduler_restart_or_change: forbidden
