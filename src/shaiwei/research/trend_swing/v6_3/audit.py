@@ -15,12 +15,11 @@ from shaiwei.research.trend_swing.r3g2.effect_metrics import summarize
 from shaiwei.research.trend_swing.r3g2.effect_models import SCENARIOS
 from shaiwei.research.trend_swing.r3g2.evidence import canonical_json, write_once_json
 from shaiwei.research.trend_swing.v6_3.contract import (
-    AUDIT_PATH,
-    OUTPUT_ROOT,
-    PREFLIGHT_PATH,
-    REPORT_PATH,
+    ORIGINAL_OUTPUT_ROOT,
     V63Error,
+    V63Recovery,
     V63Scope,
+    active_output_root,
     validate_authorized_effect_inputs,
 )
 from shaiwei.research.trend_swing.v6_3.inputs import V63Adapter, frozen_candidate_keys
@@ -61,14 +60,19 @@ def _pass_trees_equal(first: Path, replay: Path) -> bool:
 
 
 def audit_once() -> dict[str, Any]:
-    if AUDIT_PATH.exists():
-        raise V63Error("TS-v6-3 audit exists; same-scope audit rerun is forbidden")
     scope = V63Scope.load()
+    recovery = V63Recovery.load_if_present()
+    root = active_output_root(recovery)
+    audit_path = root / "audit.json"
+    if audit_path.exists():
+        raise V63Error("TS-v6-3 audit exists; same-scope audit rerun is forbidden")
+    if recovery is not None:
+        recovery.validate_parent_evidence()
     validate_authorized_effect_inputs(scope)
-    report = _read_json(REPORT_PATH)
+    report = _read_json(root / "report.json")
     point = scope.selected_point_hashes[0]
-    first = OUTPUT_ROOT / "first_pass"
-    replay = OUTPUT_ROOT / "replay"
+    first = root / "first_pass"
+    replay = root / "replay"
     _manifest(first)
     _manifest(replay)
     if not _pass_trees_equal(first, replay):
@@ -99,9 +103,9 @@ def audit_once() -> dict[str, Any]:
         for row in episodes.itertuples(index=False)
     }
     candidate_projection = {(code, signal) for code, signal, _ in candidate_keys}
-    adapter = V63Adapter(scope, OUTPUT_ROOT / "duckdb-tmp-audit")
+    adapter = V63Adapter(scope, root / "duckdb-tmp-audit")
     preflight = adapter.preflight()
-    sealed = _read_json(PREFLIGHT_PATH)
+    sealed = _read_json(ORIGINAL_OUTPUT_ROOT / "pre_effect_preflight.json")
     expected_verdict = (
         "GO_TS_V6_3_DRAFT_SEPARATE_HOLDOUT_PROTOCOL_ONLY"
         if gate["passed"]
@@ -128,7 +132,8 @@ def audit_once() -> dict[str, Any]:
     audit = {
         "schema_version": "ts-v6-3-ranked-subset-effect-independent-audit-v1",
         "protocol_sha256": scope.sha256,
-        "report_sha256": sha256_file(REPORT_PATH),
+        "recovery_scope_sha256": None if recovery is None else recovery.sha256,
+        "report_sha256": sha256_file(root / "report.json"),
         "checks": checks,
         "independent_recomputed_payload_sha256": hashlib.sha256(
             canonical_json({"gate": gate, "verdict": expected_verdict})
@@ -139,7 +144,7 @@ def audit_once() -> dict[str, Any]:
         "production_authorization": "none",
         "independent_audit": verdict,
     }
-    write_once_json(AUDIT_PATH, audit)
+    write_once_json(audit_path, audit)
     if verdict != "PASS":
         raise V63Error("TS-v6-3 independent audit failed")
     return audit

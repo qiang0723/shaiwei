@@ -57,7 +57,7 @@ def test_docker_boundary_is_offline_read_only_and_secret_free() -> None:
         service = document["services"][name]
         writable = [row for row in service["volumes"] if row["read_only"] is False]
         assert len(writable) == 1
-        assert writable[0]["source"].endswith("ts-v6-3-ranked-subset-effect-v1")
+        assert "ts-v6-3-ranked-subset-effect-v1" in writable[0]["source"]
     assert "Dockerfile.ts-v6-3-ranked-subset" in CONTROLLED_FILES
     assert COMPOSE.name in CONTROLLED_FILES
 

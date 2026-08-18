@@ -67,7 +67,8 @@ services:
       - {type: bind, source: ./data/research/trend_swing/ts-v6-1-entry-quality-ranking-preflight-v1, target: /workspace/data/research/trend_swing/ts-v6-1-entry-quality-ranking-preflight-v1, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/report.json, target: /workspace/data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/report.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass, target: /workspace/data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1, target: /workspace/data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1, target: /workspace/data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1-r2, target: /workspace/data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1-r2, read_only: false, bind: {create_host_path: false}}
     command: [python, -m, shaiwei.research.trend_swing.v6_3.cli, run]
 
   ts-v6-3-effect-auditor:
@@ -86,5 +87,6 @@ services:
       - {type: bind, source: ./data/research/trend_swing/ts-v6-1-entry-quality-ranking-preflight-v1, target: /workspace/data/research/trend_swing/ts-v6-1-entry-quality-ranking-preflight-v1, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/report.json, target: /workspace/data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/report.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass, target: /workspace/data/research/trend_swing/ts-v5-r3g2-effect-entrypoint-recovery-v1/first_pass, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1, target: /workspace/data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1, target: /workspace/data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1-r2, target: /workspace/data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1-r2, read_only: false, bind: {create_host_path: false}}
     command: [python, -m, shaiwei.research.trend_swing.v6_3.cli, audit]

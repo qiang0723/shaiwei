@@ -1,0 +1,60 @@
+schema_version: ts-v6-3-ranked-subset-effect-recovery-r2-v1
+recovery_id: ts-v6-3-ranked-subset-effect-recovery-r2-001
+prepared_on: "2026-08-18"
+status: RESULT_BLIND_EFFECT_RECOVERY_SCOPE_FROZEN_ZERO_NEW_ATTEMPT
+strategy_family: trend-swing
+production_authorization: none
+
+parent_scope:
+  protocol_path: config/ts_v6_3_ranked_subset_effect_v1.yaml
+  protocol_sha256: 74a9111ae620f15072555188e48ba25ef22cf98daa81ad31a7f471412169b3f9
+  sealed_preflight_path: data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1/pre_effect_preflight.json
+  sealed_preflight_sha256: af2541c394dbdb40aa8cdf256dd24629b76a3474ea641174ac7383e99603b196
+  effect_marker_path: data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1/effect_read_started.json
+  effect_marker_sha256: 2a866ca3d4b42c624cba97fc2eb6124aae337d2f864a2ab704e25cd7ec4556f4
+  failure_receipt_path: data/research/trend_swing/ts-v6-3-ranked-subset-effect-v1/failure.json
+  failure_receipt_sha256: bf4639ddc1fcb297b41502971fb02c091ca0cf19982a842138420aedbf6bfde6
+  failure_class: V63Error_bound_r3g2_first_pass_bundle_differs
+  candidate_outcome_read_before_failure: false
+  first_pass_or_replay_output_created: false
+  original_scope_closed_no_same_scope_rerun: true
+
+user_ruling_20260818:
+  ruling: user_approved_option_a_zero_new_attempt_accounting
+  failed_scope_effect_attempts_consumed: 0
+  rationale: >-
+    failure occurred in parent-bundle binding validation before any candidate outcome
+    computation or read; repository precedent (r3g2 original effect entrypoint recovery,
+    r3g3 runner recovery) records zero new attempts for pre-outcome technical failures
+  this_recovery_consumes_effect_attempts: 1
+  ts_lane_budget_after_this_recovery: 1
+
+engineering_fixes:
+  correct_parent_first_pass_bundle_sha256_to: f36bc46fe8cd499f19c886951a761235cfdbd89cb8d0954172279d5d774f12a9
+  prior_constant_was_manifest_file_sha_not_bundle_sha: true
+  parent_bundle_validation_moved_before_semantic_marker: true
+  frozen_candidate_set_or_score_or_gate_change: forbidden
+  protocol_semantics_change: none
+
+authority:
+  fixed_action: TS_V6_3_R2_ONE_DISCOVERY_RUNNER_AND_ONE_AUDITOR_WITH_DETERMINISTIC_REPLAY
+  candidate_set: v6_1_frozen_top_94_development_keys_unchanged
+  discovery_only_holdout_physically_unread: true
+  sealed_parent_preflight_reused_not_recomputed_for_values: true
+  external_network_or_provider: false
+  env_or_secret_read: false
+  docker_network_mode: none
+  source_mounts_read_only: true
+  original_output_mount_read_only: true
+  output_write_once: true
+  scheduler_restart_or_change: forbidden
+  post_marker_same_scope_rerun: forbidden
+  paper_web_scheduler_or_production_change: false
+
+verdicts:
+  pre_effect_identity_or_coverage_failure: BLOCKED_PRE_EFFECT
+  discovery_failure: REJECT_TS_V6_3_RANKED_SUBSET_DISCOVERY
+  discovery_pass: GO_TS_V6_3_DRAFT_SEPARATE_HOLDOUT_PROTOCOL_ONLY
+  discovery_pass_authorizes_holdout_read: false
+  discovery_pass_authorizes_paper_or_production: false
+  production_authorization_for_every_outcome: none

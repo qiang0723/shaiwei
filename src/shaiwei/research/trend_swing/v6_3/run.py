@@ -14,13 +14,11 @@ from shaiwei.research.trend_swing.r3g2.effect_metrics import summarize
 from shaiwei.research.trend_swing.r3g2.effect_models import SCENARIOS, scenario
 from shaiwei.research.trend_swing.r3g2.evidence import canonical_json, write_once_json
 from shaiwei.research.trend_swing.v6_3.contract import (
-    FAILURE_PATH,
-    MARKER_PATH,
-    OUTPUT_ROOT,
-    PREFLIGHT_PATH,
-    REPORT_PATH,
+    ORIGINAL_OUTPUT_ROOT,
     V63Error,
+    V63Recovery,
     V63Scope,
+    active_output_root,
     runtime_identity,
     validate_authorized_effect_inputs,
 )
@@ -36,9 +34,9 @@ def _frame(rows: tuple[dict[str, Any], ...]) -> pd.DataFrame:
     return pd.DataFrame(list(rows))
 
 
-def _pre_marker_receipts() -> list[dict[str, Any]]:
+def _pre_marker_receipts(root: Path) -> list[dict[str, Any]]:
     receipts = []
-    for path in sorted(OUTPUT_ROOT.glob("pre_marker_failure_*.json")):
+    for path in sorted(root.glob("pre_marker_failure_*.json")):
         try:
             document = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
@@ -50,10 +48,7 @@ def _pre_marker_receipts() -> list[dict[str, Any]]:
             or document.get("strategy_effect_attempt_increment") != 0
         ):
             raise V63Error("TS-v6-3 pre-marker failure receipt authority differs")
-        receipts.append({
-            "path": path.name,
-            "failure_class": document.get("failure_class"),
-        })
+        receipts.append({"path": path.name, "failure_class": document.get("failure_class")})
     if len(receipts) > 2:
         raise V63Error("TS-v6-3 pre-marker technical repair budget exceeded")
     return receipts
@@ -132,30 +127,40 @@ def _execute_pass(
 
 def run_once() -> dict[str, Any]:
     scope = V63Scope.load()
+    recovery = V63Recovery.load_if_present()
+    root = active_output_root(recovery)
+    if recovery is not None:
+        recovery.validate_parent_evidence()
     validate_authorized_effect_inputs(scope)
     identity = runtime_identity()
-    OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
-    if MARKER_PATH.exists() or REPORT_PATH.exists() or FAILURE_PATH.exists():
+    root.mkdir(parents=True, exist_ok=True)
+    marker_path = root / "effect_read_started.json"
+    report_path = root / "report.json"
+    failure_path = root / "failure.json"
+    if marker_path.exists() or report_path.exists() or failure_path.exists():
         raise V63Error("TS-v6-3 effect output exists; same-scope rerun is forbidden")
-    if not PREFLIGHT_PATH.is_file():
+    preflight_path = ORIGINAL_OUTPUT_ROOT / "pre_effect_preflight.json"
+    if not preflight_path.is_file():
         raise V63Error("TS-v6-3 key-only preflight must be sealed before the effect read")
     try:
-        preflight = json.loads(PREFLIGHT_PATH.read_text(encoding="utf-8"))
+        preflight = json.loads(preflight_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise V63Error("TS-v6-3 sealed preflight is invalid") from exc
     effect_started = False
     try:
-        adapter = V63Adapter(scope, OUTPUT_ROOT / "duckdb-tmp")
+        adapter = V63Adapter(scope, root / "duckdb-tmp")
         recomputed = adapter.preflight()
         if canonical_json(recomputed) != canonical_json(preflight):
             raise V63Error("TS-v6-3 pre-effect key preflight identity differs")
-        receipts = _pre_marker_receipts()
+        legacy = legacy_r3g2_sharpes()
+        receipts = _pre_marker_receipts(root)
         write_once_json(
-            MARKER_PATH,
+            marker_path,
             {
                 "schema_version": "ts-v6-3-effect-read-marker-v1",
                 "effect_read_started": True,
                 "protocol_sha256": scope.sha256,
+                "recovery_scope_sha256": None if recovery is None else recovery.sha256,
                 "release_identity": identity,
                 "strategy_effect_attempt_count": 1,
                 "discovery_only_holdout_physically_unread": True,
@@ -163,15 +168,15 @@ def run_once() -> dict[str, Any]:
             },
         )
         effect_started = True
-        legacy = legacy_r3g2_sharpes()
-        first = _execute_pass(OUTPUT_ROOT / "first_pass", scope, adapter, legacy)
-        replay = _execute_pass(OUTPUT_ROOT / "replay", scope, adapter, legacy)
+        first = _execute_pass(root / "first_pass", scope, adapter, legacy)
+        replay = _execute_pass(root / "replay", scope, adapter, legacy)
         comparable = ("bundle_sha256", "summary_sha256", "verdict")
         if any(first[key] != replay[key] for key in comparable):
             raise V63Error("TS-v6-3 first pass and replay differ")
         report = {
             "schema_version": "ts-v6-3-effect-report-v1",
             "protocol_sha256": scope.sha256,
+            "recovery_scope_sha256": None if recovery is None else recovery.sha256,
             "release_identity": identity,
             "pre_effect_key_preflight": recomputed,
             "first_pass": first,
@@ -183,7 +188,7 @@ def run_once() -> dict[str, Any]:
             "strategy_effective": "PENDING_INDEPENDENT_AUDIT",
             "production_authorization": "none",
         }
-        digest, _ = write_once_json(REPORT_PATH, report)
+        digest, _ = write_once_json(report_path, report)
         return {
             "report_sha256": digest,
             "verdict": report["verdict"],
@@ -192,10 +197,11 @@ def run_once() -> dict[str, Any]:
         }
     except Exception as error:
         write_once_json(
-            FAILURE_PATH,
+            failure_path,
             {
                 "schema_version": "ts-v6-3-effect-failure-v1",
                 "protocol_sha256": scope.sha256,
+                "recovery_scope_sha256": None if recovery is None else recovery.sha256,
                 "effect_read_started": effect_started,
                 "strategy_effect_attempt_count": 1 if effect_started else 0,
                 "same_scope_retry_authorized": False,
@@ -212,13 +218,15 @@ def preflight_once() -> dict[str, Any]:
     scope = V63Scope.load()
     validate_authorized_effect_inputs(scope)
     runtime_identity()
-    OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
+    ORIGINAL_OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
     if any(
-        path.exists()
-        for path in (PREFLIGHT_PATH, MARKER_PATH, REPORT_PATH, FAILURE_PATH)
+        (ORIGINAL_OUTPUT_ROOT / name).exists()
+        for name in (
+            "pre_effect_preflight.json", "effect_read_started.json", "report.json", "failure.json"
+        )
     ):
         raise V63Error("TS-v6-3 preflight or effect output exists; rerun is forbidden")
-    adapter = V63Adapter(scope, OUTPUT_ROOT / "duckdb-tmp-preflight")
+    adapter = V63Adapter(scope, ORIGINAL_OUTPUT_ROOT / "duckdb-tmp-preflight")
     document = adapter.preflight()
-    write_once_json(PREFLIGHT_PATH, document)
+    write_once_json(ORIGINAL_OUTPUT_ROOT / "pre_effect_preflight.json", document)
     return document
