@@ -1,0 +1,107 @@
+schema_version: ts-c-trigger-qualification-v1
+protocol_id: ts-c-trigger-qualification-001
+prepared_on: "2026-08-19"
+status: RESULT_BLIND_QUALIFICATION_PREFLIGHT_FROZEN_PENDING_USER_APPROVAL
+strategy_family: TS-C
+production_authorization: none
+
+objective:
+  primary_question: >-
+    which of the three mechanically distinct pullback trigger definitions produce a dense and
+    legal enough confirmed-event stream on the frozen TS-C eligibility stack to justify a forward
+    tournament arm, measured by event counts and coverage only, never by outcomes
+  downstream_decision: advance_surviving_triggers_to_the_frozen_tournament_protocol
+  strategy_effect_evaluation: false
+  post_entry_outcomes_allowed: false
+
+user_rulings_20260819_binding:
+  forward_tournament_approved_in_principle: true
+  historical_outcome_comparison_is_contaminated_and_forbidden: true
+  this_preflight_reads_event_density_and_legality_only: true
+  effect_attempts_consumed: 0
+
+eligibility_stack:
+  universe: pit_csi800_no_bj_no_st
+  market_permission: index_000906_prev_month_close_above_sma6_and_sma6_rising
+  stock_permission: same_monthly_sma6_rule_per_stock
+  minimum_total_mv_rmb: 20000000000
+  minimum_prior_complete_week_amount_rmb: 5000000000
+  weekly_structure: three_complete_weekly_candles_lows_not_declining
+  history_requirement: seven_complete_month_ends_and_twenty_valid_daily_bars
+  sector_market_gate: exact_r3g1_market_sector_gate_for_this_preflight
+  note: the tournament protocol will freeze the sector caliber separately
+
+trigger_arms:
+  - trigger_id: VWAP_ANCHOR_PULLBACK
+    definition: day_low_at_or_below_prior_complete_week_vwap_minus_1x_atr20
+    normalization: frozen_atr20_at_prior_week_close
+  - trigger_id: HIGH20_DRAWDOWN
+    definition: day_low_at_or_below_20d_max_adjusted_close_minus_1x_atr20
+    normalization: same
+  - trigger_id: MA20_PULLBACK
+    definition: day_low_at_or_below_ma20_and_close_at_or_above_ma20
+    normalization: ma20_of_adjusted_close
+
+shared_event_semantics:
+  signal_evaluation: after_official_close_using_completed_daily_bars_only
+  recovery_confirmation: close_above_prior_day_high_and_close_above_open_and_index_000906_close_above_sma20
+  maximum_wait_open_days: 10
+  invalidation: close_below_arm_reference_minus_1x_atr20
+  same_day_arm_and_confirm_allowed: true
+  rearm_inside_same_episode: forbidden
+  event_key: [ts_code, signal_date]
+
+qualification_period:
+  start: "20190102"
+  end: "20251231"
+  required_calendar_years: [2019, 2020, 2021, 2022, 2023, 2024, 2025]
+  rationale: aligned_with_verified_field_profile_period_and_score_lineage
+
+density_gate:
+  per_trigger_minimum_confirmed_events: 120
+  per_trigger_minimum_events_each_calendar_year: 10
+  per_trigger_minimum_distinct_signal_days: 40
+  bse_row_maximum: 0
+  gate_rationale: forward_evidence_viability_only_not_outcome_derived
+  threshold_change_after_profile: forbidden
+  no_trigger_parameter_tuning: true
+
+result_firewall:
+  allowed:
+    - confirmed_event_counts_and_distinct_signal_days
+    - event_counts_by_calendar_year
+    - state_transition_and_cancellation_counts
+    - legality_and_coverage_counts
+  forbidden:
+    - post_entry_price_path
+    - pnl_or_return
+    - win_rate_or_expectancy
+    - mae_or_mfe
+    - benchmark_value_or_excess_return
+    - alpha158_value_or_rank
+    - model_training_prediction_or_backtest
+
+execution_control:
+  fixtures_must_pass_before_real_profile: true
+  one_real_profile: true
+  one_independent_audit: true
+  external_network_or_provider: false
+  env_or_secret_read: false
+  docker_network_mode: none
+  source_mounts_read_only: true
+  output_write_once: true
+  deepseek_or_any_llm_call: false
+  paper_web_scheduler_or_production_change: false
+  same_scope_rerun: forbidden
+
+verdicts:
+  at_least_one_trigger_survives: GO_TS_C_TOURNAMENT_PROTOCOL_DRAFT_ONLY
+  no_trigger_survives: STOP_TS_C_NO_DENSE_LEGAL_TRIGGER
+  input_or_execution_failure: BLOCKED_TS_C_QUALIFICATION
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+
+successor_boundary:
+  preflight_go_authorizes_only_tournament_protocol_drafting: true
+  tournament_requires_frozen_protocol_and_user_approval: true
+  forward_accounts_only_after_tournament_protocol_freeze: true
