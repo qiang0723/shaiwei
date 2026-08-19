@@ -11,6 +11,12 @@
 关闭，证据链完整归档。主线模拟仓与其他支线不受影响。
 见`docs/TS_V6_4_NO_TAKEPROFIT_EFFECT_ACCEPTANCE_20260819.md`。
 
+## 2026-08-19 RF缺口谱系诊断完成
+
+5个未解释成员日全部被独立Baostock状态确认为真实停牌（Tushare suspend_d漏记），审计6/6
+PASS。RF-0B裁决不变；RF继续需另立全新预检协议。
+见`docs/RF_0B_GAP_LINEAGE_DIAGNOSTIC_ACCEPTANCE_20260819.md`。
+
 ## 2026-08-19 RF-0B字段与身份预检BLOCKED_DATA
 
 隔夜跳空×日内反转机制的字段画像：135万成员日中5个未解释无bar缺失超过冻结上限，机制按
