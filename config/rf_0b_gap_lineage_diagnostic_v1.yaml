@@ -1,0 +1,87 @@
+schema_version: rf-0b-gap-lineage-diagnostic-v1
+protocol_id: rf-0b-gap-lineage-diagnostic-001
+prepared_on: "2026-08-19"
+status: RESULT_BLIND_DATA_LINEAGE_DIAGNOSTIC_FROZEN_PENDING_USER_APPROVAL
+production_authorization: none
+
+objective:
+  primary: >-
+    identify the exact member-day keys of the five NO_BAR_UNEXPLAINED rows sealed by the RF-0B
+    field profile and explain each key's source from bound raw evidence layers only
+  scope_limit: lineage_explanation_only
+  candidate_value_or_score_computation: false
+  outcome_or_return_read: false
+  gate_change_or_re_evaluation: forbidden
+  rf_mechanism_status_unchanged: BLOCKED_DATA_until_a_separate_future_protocol
+
+parent_authority:
+  rf_0b_protocol:
+    path: config/rf_0b_field_identity_preflight_v1.yaml
+    sha256: f98cecc7568b91d3ba30a1389127227d42d5646e85dd9acd69585fe70910a5b7
+  rf_0b_acceptance: docs/RF_0B_FIELD_IDENTITY_PREFLIGHT_ACCEPTANCE_20260819.md
+  r2_profile:
+    path: data/research/rf/rf-0b-field-identity-preflight-v1-r2/profile.json
+    sha256: d32a631b0790900e281145ae21afdd674074344e6c1803ce1c31d088a863377d
+  r2_field_profile:
+    path: data/research/rf/rf-0b-field-identity-preflight-v1-r2/field_profile.json
+    sha256: f7bc18e477460584bf0c5b946f44ca9ae59b4b8e800daef81755bf4f4b5eb761
+  r2_audit_r3:
+    path: data/research/rf/rf-0b-field-identity-preflight-v1-r2/audit_r3.json
+    sha256: e9eeab37595b938905ad593b41bf9bfb86f538a8ef0351d6b1c82ef9ce5fcf21
+
+frozen_inputs:
+  raw_market_store:
+    r3_frozen_input_manifest:
+      path: data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json
+      sha256: c2206a6fddc83500293ee7e7d8fd399cdc8df3709579f92f16a228bc16494a63
+    required_layers: [tushare.daily, tushare.adj_factor, tushare.index_weight, tushare.trade_cal, tushare.stock_basic, tushare.suspend_d, baostock.history_k_data_plus]
+  raw_data_mutation_authorized: false
+  network_requests_authorized: false
+
+diagnostic_method:
+  key_derivation: >-
+    recompute the identical RF-0B member-day panel from the bound immutable raw snapshot and
+    select exactly the rows classified NO_BAR_UNEXPLAINED; the count must equal five, keys must
+    be a strict subset of the PIT member-day panel, and recomputation must match the sealed
+    profile's count
+  per_key_evidence_layers:
+    - tushare_daily_bar_absence
+    - tushare_suspend_d_record_any_timing
+    - baostock_independent_trade_status
+    - lifecycle_list_delist_proximity
+    - index_weight_membership_context
+  explanation_classes:
+    - SUSPENDED_BY_INDEPENDENT_BAOSTOCK_STATUS
+    - SUSPENDED_BY_SUSPEND_D_WITH_TIMING_ANNOTATION
+    - LIFECYCLE_LIST_OR_DELIST_EDGE
+    - MEMBERSHIP_FORMATION_EDGE
+    - UNEXPLAINED_REMAINS
+  every_key_must_carry_at_least_one_evidence_layer: true
+  multi_class_per_key_allowed_with_all_layers_reported: true
+
+verdicts:
+  all_five_keys_authoritatively_explained: DIAGNOSIS_COMPLETE_ALL_EXPLAINED
+  some_keys_unexplained: DIAGNOSIS_COMPLETE_UNEXPLAINED_REMAINS
+  key_derivation_or_input_failure: BLOCKED_DIAGNOSTIC
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
+
+successor_boundary:
+  diagnosis_does_not_reopen_rf: true
+  diagnosis_does_not_lower_the_failed_gate: true
+  any_rf_continuation_requires_a_separate_new_preflight_protocol_and_user_approval: true
+  diagnosis_report_may_only_support_evidence_not_verdicts: true
+
+execution_control:
+  fixtures_must_pass_before_real_read: true
+  one_real_diagnostic: true
+  one_independent_audit: true
+  external_network_or_provider: false
+  env_or_secret_read: false
+  docker_network_mode: none
+  source_mounts_read_only: true
+  output_write_once: true
+  deepseek_or_any_llm_call: false
+  model_training_prediction_or_backtest: false
+  paper_web_scheduler_or_production_change: false
+  same_scope_rerun: forbidden
