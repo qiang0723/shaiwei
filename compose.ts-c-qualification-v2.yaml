@@ -1,0 +1,56 @@
+x-ts-c-v2-base: &ts-c-v2-base
+  image: shaiwei:ts-c-trigger-qualification-v2
+  pull_policy: never
+  init: true
+  restart: "no"
+  user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+  working_dir: /workspace
+  read_only: true
+  network_mode: none
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 128
+  cpus: 4.0
+  mem_limit: 10g
+  environment:
+    HOME: /tmp
+    PYTHONPYCACHEPREFIX: /tmp/pycache
+    OMP_NUM_THREADS: "2"
+    OPENBLAS_NUM_THREADS: "2"
+    MKL_NUM_THREADS: "2"
+    NUMEXPR_NUM_THREADS: "2"
+  tmpfs: ["/tmp:rw,noexec,nosuid,size=2g,mode=1777"]
+
+services:
+  ts-c-v2-fixture:
+    <<: *ts-c-v2-base
+    profiles: [ts-c-v2-fixture]
+    build:
+      context: .
+      dockerfile: Dockerfile.ts-c-qualification-v2
+      network: none
+      args:
+        SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_TS_C_V2_RELEASE_GIT_HEAD:-}
+    command: [python, -m, pytest, -q, tests/test_ts_c_qualification_v2.py, tests/test_ts_c_qualification_engine.py]
+
+  ts-c-v2-profile:
+    <<: *ts-c-v2-base
+    profiles: [ts-c-v2-live]
+    volumes:
+      - {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json, target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-c-trigger-qualification-v1-r2, target: /workspace/data/research/trend_swing/ts-c-trigger-qualification-v1-r2, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/ts_c_trigger_qualification_v1.yaml, target: /workspace/config/ts_c_trigger_qualification_v1.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-c-trigger-qualification-v2, target: /workspace/data/research/trend_swing/ts-c-trigger-qualification-v2, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.trend_swing.ts_c.cli_v2, profile]
+
+  ts-c-v2-auditor:
+    <<: *ts-c-v2-base
+    profiles: [ts-c-v2-live]
+    volumes:
+      - {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json, target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-c-trigger-qualification-v1-r2, target: /workspace/data/research/trend_swing/ts-c-trigger-qualification-v1-r2, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/ts_c_trigger_qualification_v1.yaml, target: /workspace/config/ts_c_trigger_qualification_v1.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-c-trigger-qualification-v2, target: /workspace/data/research/trend_swing/ts-c-trigger-qualification-v2, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.trend_swing.ts_c.cli_v2, audit]

@@ -34,6 +34,67 @@ RECOVERY_SCOPE_SHA256 = "efebfb103c495e5edd1519f1c0439628b070432168f9e452351cf4f
 RECOVERY_OUTPUT_ROOT = PROJECT_ROOT / "data/research/trend_swing/ts-c-trigger-qualification-v1-r2"
 
 
+V2_PROTOCOL_PATH = PROJECT_ROOT / "config/ts_c_trigger_qualification_v2.yaml"
+V2_PROTOCOL_SHA256 = "f89292253e2819db199df307fee37310a0147bcf2aa1ef309964580cd2e8e2c2"
+V2_OUTPUT_ROOT = PROJECT_ROOT / "data/research/trend_swing/ts-c-trigger-qualification-v2"
+V1_EVENTS_PATH = PROJECT_ROOT / (
+    "data/research/trend_swing/ts-c-trigger-qualification-v1-r2/events.parquet"
+)
+
+
+@dataclass(frozen=True)
+class TQC2Scope:
+    document: dict[str, Any]
+    sha256: str = V2_PROTOCOL_SHA256
+
+    @classmethod
+    def load(cls) -> "TQC2Scope":
+        if V2_PROTOCOL_PATH.is_symlink() or sha256_file(V2_PROTOCOL_PATH) != V2_PROTOCOL_SHA256:
+            raise TQCError("TS-C v2 frozen protocol differs")
+        try:
+            document = yaml.safe_load(V2_PROTOCOL_PATH.read_text(encoding="utf-8"))
+        except (OSError, yaml.YAMLError) as exc:
+            raise TQCError("TS-C v2 frozen YAML is invalid") from exc
+        if not isinstance(document, dict):
+            raise TQCError("TS-C v2 frozen YAML is not a mapping")
+        objective = document.get("objective", {})
+        execution = document.get("execution_control", {})
+        gate = document.get("density_gate", {})
+        rule = document.get("permission_on_year_rule", {})
+        ruling = document.get("user_rulings_20260819_binding", {})
+        if (
+            document.get("schema_version") != "ts-c-trigger-qualification-v2"
+            or document.get("status")
+            != "RESULT_BLIND_QUALIFICATION_PREFLIGHT_FROZEN_PENDING_USER_APPROVAL"
+            or document.get("production_authorization") != "none"
+            or objective.get("post_entry_outcomes_allowed") is not False
+            or ruling.get("v1_verdict_unchanged_and_preserved") is not True
+            or rule.get("not_derived_from_event_counts") is not True
+            or rule.get("minimum_permission_on_years_required") != 4
+            or gate.get("per_trigger_minimum_confirmed_events") != 120
+            or gate.get("per_trigger_minimum_events_each_permission_on_calendar_year") != 10
+            or gate.get("per_trigger_minimum_distinct_signal_days") != 40
+            or gate.get("threshold_change_after_profile") != "forbidden"
+            or execution.get("docker_network_mode") != "none"
+            or execution.get("same_scope_rerun") != "forbidden"
+            or document.get("verdicts", {}).get("strategy_effective") != "NOT_EVALUATED"
+        ):
+            raise TQCError("TS-C v2 authority or contract differs")
+        return cls(document)
+
+
+def validate_v2_bound_inputs(scope: TQC2Scope, root: Path = PROJECT_ROOT) -> None:
+    manifest = scope.document["frozen_inputs"]["raw_market_store"]["r3_frozen_input_manifest"]
+    checks = {manifest["path"]: manifest["sha256"]}
+    for name in ("v1_protocol", "v1_profile", "v1_audit"):
+        row = scope.document["predecessor_chain"][name]
+        checks[row["path"]] = row["sha256"]
+    for relative, expected in checks.items():
+        path = root / relative
+        if path.is_symlink() or not path.is_file() or sha256_file(path) != expected:
+            raise TQCError(f"TS-C v2 bound input differs: {relative}")
+
+
 @dataclass(frozen=True)
 class TQCRecovery:
     document: dict[str, Any]
