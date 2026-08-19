@@ -11,15 +11,10 @@ from shaiwei.config import PROJECT_ROOT
 from shaiwei.research.trend_swing.v6.engine import canonical_json, canonical_sha256, native
 from shaiwei.research.rf_0b.fields import evaluate_field_gate
 from shaiwei.research.rf_0c.contract import (
-    AUDIT_PATH,
-    FIELD_PROFILE_PATH,
-    MANIFEST_PATH,
-    MARKER_PATH,
-    OUTPUT_ROOT,
-    PROFILE_PATH,
-    REGISTRY_PATH,
     RFCError,
+    RFCRecovery,
     RFCScope,
+    active_root,
     runtime_identity,
     validate_bound_inputs,
 )
@@ -78,24 +73,36 @@ def build_profile(
 
 
 def run_profile_once() -> dict[str, Any]:
-    outputs = (MARKER_PATH, REGISTRY_PATH, FIELD_PROFILE_PATH, PROFILE_PATH, MANIFEST_PATH, AUDIT_PATH)
-    if any(path.exists() for path in outputs):
-        raise RFCError("RF-0C output exists; same-scope rerun is forbidden")
     scope = RFCScope.load()
+    recovery = RFCRecovery.load_if_present()
+    root = active_root(recovery)
+    if recovery is not None:
+        recovery.validate_parent_evidence()
+    paths = {
+        "marker": root / "semantic_read_started.json",
+        "registry": root / "identity_registry.json",
+        "field_profile": root / "field_profile.json",
+        "profile": root / "profile.json",
+        "manifest": root / "manifest.json",
+        "audit": root / "audit.json",
+    }
+    if any(path.exists() for path in paths.values()):
+        raise RFCError("RF-0C output exists; same-scope rerun is forbidden")
     validate_bound_inputs(scope)
     identity = runtime_identity()
-    OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
+    root.mkdir(parents=True, exist_ok=True)
     marker = {
         "schema_version": "rf-0c-semantic-read-marker-v1",
         "semantic_read_started": True,
         "started_at": datetime.now(timezone.utc).isoformat(),
         "protocol_sha256": scope.sha256,
+        "recovery_scope_sha256": None if recovery is None else recovery.sha256,
         "release_identity": identity,
     }
-    marker_sha = _write_json_once(MARKER_PATH, marker)
-    first, registry, fields = build_profile(scope, identity, OUTPUT_ROOT / "duckdb-tmp")
+    marker_sha = _write_json_once(paths["marker"], marker)
+    first, registry, fields = build_profile(scope, identity, root / "duckdb-tmp")
     second, registry_replay, fields_replay = build_profile(
-        scope, identity, OUTPUT_ROOT / "duckdb-tmp-replay"
+        scope, identity, root / "duckdb-tmp-replay"
     )
     if (
         canonical_json(first) != canonical_json(second)
@@ -104,27 +111,32 @@ def run_profile_once() -> dict[str, Any]:
     ):
         raise RFCError("RF-0C internal deterministic replay differs")
     artifacts = {
-        "semantic_read_marker": {"path": _relative(MARKER_PATH), "sha256": marker_sha},
+        "semantic_read_marker": {"path": _relative(paths["marker"]), "sha256": marker_sha},
         "identity_registry": {
-            "path": _relative(REGISTRY_PATH), "sha256": _write_json_once(REGISTRY_PATH, registry)
+            "path": _relative(paths["registry"]),
+            "sha256": _write_json_once(paths["registry"], registry),
         },
         "field_profile": {
-            "path": _relative(FIELD_PROFILE_PATH),
-            "sha256": _write_json_once(FIELD_PROFILE_PATH, fields),
+            "path": _relative(paths["field_profile"]),
+            "sha256": _write_json_once(paths["field_profile"], fields),
         },
     }
     first["machine_artifacts"] = artifacts
     first["internal_deterministic_replay_pass"] = True
     first["canonical_payload_sha256"] = canonical_sha256(first)
-    profile_sha = _write_json_once(PROFILE_PATH, first)
+    profile_sha = _write_json_once(paths["profile"], first)
     manifest = {
         "schema_version": "rf-0c-field-identity-preflight-manifest-v1",
         "protocol_sha256": scope.sha256,
+        "recovery_scope_sha256": None if recovery is None else recovery.sha256,
         "release_identity": identity,
-        "artifacts": {**artifacts, "profile": {"path": _relative(PROFILE_PATH), "sha256": profile_sha}},
+        "artifacts": {
+            **artifacts,
+            "profile": {"path": _relative(paths["profile"]), "sha256": profile_sha},
+        },
         "contains_outcome": False,
         "contains_security_identifiers": False,
         "production_authorization": "none",
     }
-    _write_json_once(MANIFEST_PATH, manifest)
+    _write_json_once(paths["manifest"], manifest)
     return first

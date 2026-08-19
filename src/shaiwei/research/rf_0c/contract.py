@@ -31,6 +31,56 @@ AUDIT_PATH = OUTPUT_ROOT / "audit.json"
 SEALED_RF_0B_REGISTRY_PATH = PROJECT_ROOT / (
     "data/research/rf/rf-0b-field-identity-preflight-v1-r2/identity_registry.json"
 )
+RECOVERY_SCOPE_PATH = PROJECT_ROOT / "config/rf_0c_field_identity_preflight_recovery_r2.yaml"
+RECOVERY_SCOPE_SHA256 = "b992c90cc592ee6527f070037163007b53d730fb46de338c43d43c10a8d8f83d"
+RECOVERY_OUTPUT_ROOT = PROJECT_ROOT / "data/research/rf/rf-0c-field-identity-preflight-v1-r2"
+
+
+@dataclass(frozen=True)
+class RFCRecovery:
+    document: dict[str, Any]
+    sha256: str = RECOVERY_SCOPE_SHA256
+
+    @classmethod
+    def load_if_present(cls) -> "RFCRecovery | None":
+        if not RECOVERY_SCOPE_PATH.is_file():
+            return None
+        if RECOVERY_SCOPE_PATH.is_symlink() or sha256_file(RECOVERY_SCOPE_PATH) != RECOVERY_SCOPE_SHA256:
+            raise RFCError("RF-0C recovery scope differs")
+        try:
+            document = yaml.safe_load(RECOVERY_SCOPE_PATH.read_text(encoding="utf-8"))
+        except (OSError, yaml.YAMLError) as exc:
+            raise RFCError("RF-0C recovery YAML is invalid") from exc
+        if not isinstance(document, dict):
+            raise RFCError("RF-0C recovery YAML is not a mapping")
+        parent = document.get("parent_scope", {})
+        authority = document.get("authority", {})
+        if (
+            document.get("schema_version") != "rf-0c-field-identity-preflight-recovery-r2-v1"
+            or document.get("status") != "RESULT_BLIND_RECOVERY_SCOPE_FROZEN"
+            or document.get("production_authorization") != "none"
+            or parent.get("protocol_sha256") != PROTOCOL_SHA256
+            or parent.get("original_scope_closed_no_same_scope_rerun") is not True
+            or document.get("recovery", {}).get("candidate_or_effect_attempts_consumed") != 0
+            or authority.get("fixture_must_pass_before_profile") is not True
+            or authority.get("docker_network_mode") != "none"
+            or authority.get("env_or_secret_read") is not False
+            or authority.get("original_output_mount_read_only") is not True
+        ):
+            raise RFCError("RF-0C recovery authority or contract differs")
+        return cls(document)
+
+    def validate_parent_evidence(self, root: Path = PROJECT_ROOT) -> None:
+        parent = self.document["parent_scope"]
+        for name in ("marker", "profile"):
+            relative, expected = parent[f"{name}_path"], parent[f"{name}_sha256"]
+            path = root / relative
+            if path.is_symlink() or not path.is_file() or sha256_file(path) != expected:
+                raise RFCError(f"RF-0C recovery parent evidence differs: {relative}")
+
+
+def active_root(recovery: RFCRecovery | None) -> Path:
+    return RECOVERY_OUTPUT_ROOT if recovery is not None else OUTPUT_ROOT
 
 
 @dataclass(frozen=True)

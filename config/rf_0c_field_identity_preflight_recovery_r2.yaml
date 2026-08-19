@@ -1,0 +1,47 @@
+schema_version: rf-0c-field-identity-preflight-recovery-r2-v1
+recovery_id: rf-0c-field-identity-preflight-recovery-r2-001
+prepared_on: "2026-08-19"
+status: RESULT_BLIND_RECOVERY_SCOPE_FROZEN
+production_authorization: none
+
+parent_scope:
+  protocol_path: config/rf_0c_field_identity_preflight_v1.yaml
+  protocol_sha256: 28c8524b96f726968a507d42ef661b435ca000746d218634d76b768d5cd5cc66
+  marker_path: data/research/rf/rf-0c-field-identity-preflight-v1/semantic_read_started.json
+  marker_sha256: a1ac4bbb89e8a2e295d3aaf6326c327cf41ecd3301d92faee1930bd8ed848ac7
+  profile_path: data/research/rf/rf-0c-field-identity-preflight-v1/profile.json
+  profile_sha256: af8e5544fe46f09f29335cd9d705a32e687c1825b06ca61a05effff54d3623d6
+  failure_class: fixture_gate_did_not_run_before_the_real_profile
+  failure_detail: >-
+    the host command chain piped make through tail and swallowed the fixture's non-zero exit
+    code, so the real profile executed without the frozen fixture gate; the fixture container
+    also lacked the ledger and sealed-registry mounts; profile content is deterministic and
+    zero-effect but the frozen execution order was violated
+  original_scope_closed_no_same_scope_rerun: true
+
+recovery:
+  fixed_action: RF_0C_R2_ONE_PROFILE_AND_ONE_AUDIT_AFTER_GREEN_FIXTURE
+  new_output_root: data/research/rf/rf-0c-field-identity-preflight-v1-r2
+  engineering_fix: fixture_service_mounts_ledgers_and_sealed_registry_read_only
+  protocol_semantics_change: none
+  candidate_or_effect_attempts_consumed: 0
+  zero_effect_profile_rerun_carries_no_outcome_information: true
+
+authority:
+  fixture_must_pass_before_profile: true
+  external_network_or_provider: false
+  env_or_secret_read: false
+  docker_network_mode: none
+  source_mounts_read_only: true
+  original_output_mount_read_only: true
+  output_write_once: true
+  deepseek_or_any_llm_call: false
+  paper_web_scheduler_or_production_change: false
+  same_scope_rerun: forbidden
+
+verdicts:
+  all_gates_pass: GO_FORMAL_PROTOCOL
+  duplicate_or_no_legal_identity_space: REJECT_DUPLICATE
+  data_or_coverage_failure: BLOCKED_DATA
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
