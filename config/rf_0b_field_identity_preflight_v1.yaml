@@ -50,7 +50,11 @@ frozen_inputs:
   raw_market_store:
     ledger: ledger/ingest_batches.csv
     verify_latest_batch_row_count_and_sha256: true
-    required_apis: [tushare.trade_cal, tushare.daily, tushare.adj_factor, tushare.index_weight]
+    required_apis: [tushare.trade_cal, tushare.daily, tushare.adj_factor, tushare.index_weight, tushare.stock_basic, tushare.suspend_d]
+    r3_frozen_input_manifest:
+      path: data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json
+      sha256: c2206a6fddc83500293ee7e7d8fd399cdc8df3709579f92f16a228bc16494a63
+      role: verified_immutable_raw_snapshot_binding
     raw_data_mutation_authorized: false
     network_requests_authorized: false
   universe_id: csi800-pit-v1
@@ -59,7 +63,7 @@ frozen_inputs:
 field_profile_scope:
   panel: pit_csi800_member_days
   period: {start: "20190102", end: "20251231"}
-  fields: [trade_date, ts_code, open, close, adj_factor, pre_limit_trade_status]
+  fields: [trade_date, ts_code, open, high, low, close, pre_close, vol, adj_factor]
   allowed_outputs:
     - member_day_counts_and_coverage_ratios
     - missing_or_invalid_field_counts_by_failure_class
