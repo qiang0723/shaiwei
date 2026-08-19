@@ -1,0 +1,109 @@
+schema_version: rf-1-formal-single-mechanism-protocol-v1
+protocol_id: rf-1-overnight-intraday-state-001
+prepared_on: "2026-08-19"
+status: RESULT_BLIND_FORMAL_PROTOCOL_FROZEN_PENDING_USER_APPROVAL_AND_R2_1_CHECKPOINT
+strategy_family: RF
+production_authorization: none
+
+objective:
+  mechanism: overnight_gap_intraday_absorption_reversal_state
+  primary_question: >-
+    whether the joint state of the overnight gap and the intraday absorption/reversal component
+    provides stable, non-duplicate, cost-adjusted incremental information beyond Alpha158 and the
+    core industry/size exposures for PIT CSI800 members
+  falsification_first: true
+  downstream_decision: g1_admission_judge_decides_pass_or_reject
+  direct_production_or_mainline_change: forbidden
+
+authority_chain:
+  rf_0a_preparation: docs/RF_0A_CSI800_SINGLE_MECHANISM_PREPARATION_20260812.md
+  rf_0c_preflight_protocol:
+    path: config/rf_0c_field_identity_preflight_v1.yaml
+    sha256: 28c8524b96f726968a507d42ef661b435ca000746d218634d76b768d5cd5cc66
+  rf_0c_acceptance: docs/RF_0C_FIELD_IDENTITY_PREFLIGHT_ACCEPTANCE_20260819.md
+  rf_0c_identity_registry:
+    path: data/research/rf/rf-0c-field-identity-preflight-v1-r2/identity_registry.json
+    sha256: ab97bf51e54f09a189c926275f864184fee5d9c62b32aa5bec4f34237dd9e323
+    role: canonical_dedup_authority
+  execution_requires_all_of:
+    - r2_1_natural_forward_checkpoint_completed
+    - explicit_user_batch_authorization
+    - frozen_execution_release_before_any_llm_call
+
+batch_contract:
+  provider: deepseek
+  model: deepseek-v4-pro
+  completed_responses_maximum: 8
+  qualified_candidates_maximum: 3
+  single_batch_hard_ceiling_usd: 1.00
+  total_rf1_ceiling_usd: 2.00
+  transport_retries_per_attempt_maximum: 2
+  prompt_tokens_per_attempt_maximum: 16000
+  output_tokens_per_attempt_maximum: 8000
+  duplicate_or_failed_responses_count_toward_budget: true
+  no_backfill_or_substitution: true
+  serial_calls_only: true
+
+candidate_contract:
+  dsl: d1_safe_ast_subset
+  allowed_fields: [open, high, low, close, vwap, volume]
+  must_reference_open_and_close: true
+  maximum_lookback_trade_days: 50
+  maximum_expression_tokens: 20
+  maximum_ast_nodes: 80
+  canonical_expression_required: true
+  economic_rationale_required: true
+  placeholder_rationale_forbidden: true
+
+dedup_five_layers:
+  - canonical_ast_vs_sealed_rf_0c_registry: reject_on_equality
+  - semantic_mechanism_review: formal_batch_blind_review
+  - factor_exposure_vs_alpha158_and_core_exposures: frozen_at_effect_stage
+  - incremental_ic_after_residualization: frozen_at_effect_stage
+  - incremental_portfolio_net_result: frozen_at_effect_stage
+
+discovery_evaluation:
+  universe_id: csi800-pit-v1
+  period: {start: "20160601", end: "20181231"}
+  label_clock: t_plus_1_open_entry_t_plus_11_open_exit
+  minimum_valid_daily_ic_observations: 252
+  selection: mechanical_top1_top2_by_absolute_discovery_rank_ic
+  direction_frozen_once_at_selection: true
+  discovery_is_candidate_design_not_effect_trial: true
+  no_parameter_grid: true
+
+effect_stage:
+  authority: shaiwei.research.g1_frozen_judge
+  gate: g1_admission_all_frozen_gates
+  attempted_candidates: top1_then_top2_only
+  holdout_or_2026_read: forbidden
+
+attempt_accounting:
+  llm_generation_attempts_counted_including_failures: true
+  discovery_evaluations_are_design_search_not_effect_trials: true
+  g1_admission_attempts_counted_per_g1_rules: true
+  budget_exhaustion_closes_rf_1: true
+
+result_firewall:
+  forbidden:
+    - holdout_2024_2025_read
+    - partial_2026_read
+    - production_or_mainline_model_change
+    - paper_or_scheduler_change
+    - web_change
+
+execution_control:
+  external_network_only_deepseek_https: true
+  secret_read_scoped_to_deepseek_key_only: true
+  docker_network_none_except_authorized_llm_lane: true
+  source_mounts_read_only: true
+  output_write_once: true
+  same_scope_rerun: forbidden
+  audit_per_batch: independent
+
+verdicts:
+  g1_pass: GO_SEPARATE_PAPER_PROTOCOL_PROPOSAL_ONLY
+  g1_reject_or_batch_exhausted: REJECT_RF_1_AND_CLOSE
+  contract_or_execution_failure: BLOCKED_RF_1
+  strategy_effective: NOT_EVALUATED_until_g1
+  production_authorization: none
