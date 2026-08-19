@@ -1,0 +1,138 @@
+schema_version: rf-0c-field-identity-preflight-v1
+protocol_id: rf-0c-field-identity-preflight-001
+prepared_on: "2026-08-19"
+status: RESULT_BLIND_DATA_AND_IDENTITY_PREFLIGHT_FROZEN_PENDING_USER_APPROVAL
+strategy_family: RF
+production_authorization: none
+
+objective:
+  mechanism: overnight_gap_intraday_absorption_reversal_state
+  primary_question: >-
+    whether the open/prev-close field chain for PIT CSI800 members passes the frozen field
+    quality gates once genuine suspensions are also confirmed by the independent Baostock trade
+    status layer, and whether the sealed identity registry reproduces exactly, without computing
+    any candidate value or return
+  downstream_decision: GO_FORMAL_PROTOCOL_or_REJECT_DUPLICATE_or_BLOCKED_DATA
+  candidate_generation: false
+  strategy_effect_evaluation: false
+
+predecessor_chain:
+  rf_0b_protocol:
+    path: config/rf_0b_field_identity_preflight_v1.yaml
+    sha256: f98cecc7568b91d3ba30a1389127227d42d5646e85dd9acd69585fe70910a5b7
+  rf_0b_profile:
+    path: data/research/rf/rf-0b-field-identity-preflight-v1-r2/profile.json
+    sha256: d32a631b0790900e281145ae21afdd674074344e6c1803ce1c31d088a863377d
+  rf_0b_identity_registry:
+    path: data/research/rf/rf-0b-field-identity-preflight-v1-r2/identity_registry.json
+    sha256: d3777d7a87fe308bdd003bf96d1d6e2f1f37f35369d619e70b92f19dad7c56b0
+    reproduction_rule: exact_equality_required
+  rf_0b_gap_diagnostic_report:
+    path: data/research/rf/rf-0b-gap-lineage-diagnostic-v1/report.json
+    sha256: c6fe58fead7bf72917151ee7e6a91e178dbc6d3250d18a27251767f36c3d25fd
+  rf_0b_gap_diagnostic_audit:
+    path: data/research/rf/rf-0b-gap-lineage-diagnostic-v1/audit.json
+    sha256: 3849debfbbb4d8ea5b52aa499b74fb39e39dbe80e302c0ff33385c5ef08062f4
+
+caliber_change_vs_rf_0b:
+  single_change: supplementary_suspension_evidence_layer
+  detail: >-
+    a member day with no daily bar is classified as suspended when EITHER the primary Tushare
+    suspend_d layer records it OR the independent Baostock trade status for that day equals '0';
+    the sealed gap diagnostic proved the five historical gaps were genuine suspensions missed by
+    suspend_d
+  gate_thresholds_unchanged_from_rf_0b: true
+  no_other_semantics_change: true
+
+frozen_inputs:
+  attempt_ledger_d1_v2:
+    path: ledger/llm_factor_attempts_v2.csv
+    sha256: 80bf00a8f415b818877a3d91993eecd474cb1bb5d39ccddd8e29db5f2b47c1b3
+  attempt_ledger_m1:
+    path: ledger/m1_star50_factor_attempts.csv
+    sha256: 262fcbb8a5141829c27658e551c23f3ee8ef61281e1e618b50f2ff6e66794092
+  attempt_ledger_m3:
+    path: ledger/m3_multi_pool_factor_attempts.csv
+    sha256: 84d655665177698ba64ce1395043ffc28744d872f408cfc51fe60fa7ebfee344
+  g1_admission_ledger:
+    path: ledger/factor_admissions.csv
+    sha256: 0a61018ab3e8f8b0a0c5fe66623cb6a6f4f009e2aba341181a4348cfaafa12cc
+  ledger_columns_allowed: [attempt_id, research_family, topic, canonical_expression, expression_sha256, expression_tokens, ast_nodes, max_lookback_days, duplicate_of_attempt_id, failure_class, candidate_status]
+  ledger_columns_forbidden: [discovery_rank_ic, discovery_daily_ic_count, discovery_coverage, result_json, trial_count, valid_trial_sharpes, admitted, failed_gates]
+  alpha158_expression_family:
+    source: qlib.contrib.data.loader.Alpha158DL_static_extraction
+    record_expression_count_and_hashes_only: true
+  raw_market_store:
+    r3_frozen_input_manifest:
+      path: data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json
+      sha256: c2206a6fddc83500293ee7e7d8fd399cdc8df3709579f92f16a228bc16494a63
+    required_layers: [tushare.trade_cal, tushare.daily, tushare.adj_factor, tushare.index_weight, tushare.stock_basic, tushare.suspend_d, baostock.history_k_data_plus]
+    raw_data_mutation_authorized: false
+    network_requests_authorized: false
+  universe_id: csi800-pit-v1
+  bse_allowed: false
+
+field_profile_scope:
+  panel: pit_csi800_member_days
+  period: {start: "20190102", end: "20251231"}
+  fields: [trade_date, ts_code, open, high, low, close, pre_close, vol, adj_factor, baostock_trade_status]
+  allowed_outputs:
+    - member_day_counts_and_coverage_ratios
+    - missing_or_invalid_field_counts_by_failure_class
+    - suspension_counts_by_evidence_layer
+    - corporate_action_adj_factor_change_day_counts
+    - limit_at_open_counts
+    - new_listing_buffer_day_counts
+    - bse_row_count_must_be_zero
+  forbidden_outputs:
+    - any_candidate_value_or_score
+    - any_return_or_outcome
+    - any_distribution_of_gap_or_intraday_values
+
+field_quality_gate:
+  open_coverage_minimum_of_member_days: 0.99
+  prev_close_join_minimum_of_member_days: 0.99
+  bse_row_maximum: 0
+  unclassified_missing_field_rows_maximum: 0
+  threshold_change_after_profile: forbidden
+
+identity_registry:
+  build_canonical_registry: true
+  inputs_parse_completely_or_fail: true
+  must_equal_sealed_rf_0b_registry: true
+  outputs: [identity_counts, canonical_expression_sha256_set, duplicate_cluster_counts]
+  forbidden_registry_content: [discovery_metrics, outcomes, admission_verdict_details]
+  future_candidate_dedup_rule: canonical_ast_equality_or_semantic_equivalence_is_reject
+
+adversarial_fixtures:
+  required_cases:
+    - suspension_missing_bar
+    - suspension_confirmed_only_by_independent_baostock_status
+    - corporate_action_factor_change_between_signal_and_entry
+    - first_listing_day_without_prior_close
+    - missing_open_with_present_close
+    - cross_non_trading_day_prev_close_reference
+    - bse_row_rejection
+    - synonymous_canonical_ast_dedup
+  fixtures_are_synthetic_only: true
+
+execution_control:
+  fixtures_must_pass_before_real_profile: true
+  one_real_field_profile: true
+  one_independent_audit: true
+  external_network_or_provider: false
+  env_or_secret_read: false
+  docker_network_mode: none
+  source_mounts_read_only: true
+  output_write_once: true
+  deepseek_or_any_llm_call: false
+  model_training_prediction_or_backtest: false
+  paper_web_scheduler_or_production_change: false
+  same_scope_rerun: forbidden
+
+verdicts:
+  all_gates_pass: GO_FORMAL_PROTOCOL
+  duplicate_or_no_legal_identity_space: REJECT_DUPLICATE
+  data_or_coverage_failure: BLOCKED_DATA
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
