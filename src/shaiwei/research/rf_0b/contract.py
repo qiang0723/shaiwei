@@ -113,6 +113,52 @@ def active_output_paths(recovery: RFBRecovery | None) -> OutputPaths:
     return OutputPaths(root)
 
 
+AUDITOR_R3_SCOPE_PATH = PROJECT_ROOT / "config/rf_0b_field_identity_preflight_recovery_r3_auditor.yaml"
+AUDITOR_R3_SCOPE_SHA256 = "dd14317d748bc78fc4b091062b23d023bbb2dadf95488755c782c911a32bb604"
+
+
+@dataclass(frozen=True)
+class RFBR3AuditorRecovery:
+    document: dict[str, Any]
+    sha256: str = AUDITOR_R3_SCOPE_SHA256
+
+    @classmethod
+    def load_if_present(cls) -> "RFBR3AuditorRecovery | None":
+        if not AUDITOR_R3_SCOPE_PATH.is_file():
+            return None
+        if AUDITOR_R3_SCOPE_PATH.is_symlink() or sha256_file(AUDITOR_R3_SCOPE_PATH) != AUDITOR_R3_SCOPE_SHA256:
+            raise RFBError("RF-0B R3 auditor recovery scope differs")
+        try:
+            document = yaml.safe_load(AUDITOR_R3_SCOPE_PATH.read_text(encoding="utf-8"))
+        except (OSError, yaml.YAMLError) as exc:
+            raise RFBError("RF-0B R3 recovery YAML is invalid") from exc
+        if not isinstance(document, dict):
+            raise RFBError("RF-0B R3 recovery YAML is not a mapping")
+        chain = document.get("parent_chain", {})
+        if (
+            document.get("schema_version") != "rf-0b-field-identity-preflight-recovery-r3-auditor-v1"
+            or document.get("status") != "RESULT_BLIND_AUDITOR_RECOVERY_SCOPE_FROZEN"
+            or document.get("production_authorization") != "none"
+            or chain.get("protocol_sha256") != PROTOCOL_SHA256
+            or chain.get("r2_recovery_sha256") != RECOVERY_SCOPE_SHA256
+            or chain.get("runner_rerun") != "forbidden"
+            or document.get("recovery", {}).get("fixed_action") != "RF_0B_R3_ONE_AUDITOR_ONLY"
+            or document.get("recovery", {}).get("candidate_or_effect_attempts_consumed") != 0
+            or document.get("authority", {}).get("docker_network_mode") != "none"
+            or document.get("authority", {}).get("env_or_secret_read") is not False
+        ):
+            raise RFBError("RF-0B R3 auditor recovery authority or contract differs")
+        return cls(document)
+
+    def validate_parent_evidence(self, root: Path = PROJECT_ROOT) -> None:
+        chain = self.document["parent_chain"]
+        for name in ("r2_profile", "r2_manifest", "r2_failed_audit"):
+            relative, expected = chain[f"{name}_path"], chain[f"{name}_sha256"]
+            path = root / relative
+            if path.is_symlink() or not path.is_file() or sha256_file(path) != expected:
+                raise RFBError(f"RF-0B R3 parent evidence differs: {relative}")
+
+
 @dataclass(frozen=True)
 class RFBScope:
     document: dict[str, Any]

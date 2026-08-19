@@ -11,6 +11,7 @@ from shaiwei.research.trend_swing.v6.engine import canonical_json, canonical_sha
 from shaiwei.research.rf_0b.contract import (
     RFBError,
     RFBRecovery,
+    RFBR3AuditorRecovery,
     RFBScope,
     active_output_paths,
     validate_bound_inputs,
@@ -33,10 +34,16 @@ def _read_json(path: Path) -> dict[str, Any]:
 def audit_once() -> dict[str, Any]:
     scope = RFBScope.load()
     recovery = RFBRecovery.load_if_present()
+    r3 = RFBR3AuditorRecovery.load_if_present()
+    if r3 is not None and recovery is None:
+        raise RFBError("RF-0B R3 auditor recovery requires the R2 recovery chain")
     paths = active_output_paths(recovery)
     if recovery is not None:
         recovery.validate_parent_evidence()
-    if paths.audit.exists():
+    if r3 is not None:
+        r3.validate_parent_evidence()
+    audit_path = paths.root / "audit_r3.json" if r3 is not None else paths.audit
+    if audit_path.exists():
         raise RFBError("RF-0B audit exists; same-scope audit rerun is forbidden")
     validate_bound_inputs(scope)
     profile = _read_json(paths.profile)
@@ -62,7 +69,7 @@ def audit_once() -> dict[str, Any]:
             for name, digest in artifact_hashes.items()
         ),
         "profile_payload_hash": profile.get("canonical_payload_sha256") == canonical_sha256(
-            profile
+            {key: value for key, value in profile.items() if key != "canonical_payload_sha256"}
         ),
         "verdict": profile.get("verdict") == expected_verdict,
         "authority": profile.get("strategy_effective") == "NOT_EVALUATED"
@@ -74,6 +81,7 @@ def audit_once() -> dict[str, Any]:
         "schema_version": "rf-0b-field-identity-preflight-independent-audit-v1",
         "protocol_sha256": scope.sha256,
         "recovery_scope_sha256": None if recovery is None else recovery.sha256,
+        "auditor_r3_scope_sha256": None if r3 is None else r3.sha256,
         "profile_sha256": artifact_hashes["profile"],
         "checks": native(checks),
         "independent_recomputed_payload_sha256": canonical_sha256({
@@ -85,7 +93,7 @@ def audit_once() -> dict[str, Any]:
         "production_authorization": "none",
         "independent_audit": verdict,
     }
-    _write_json_once(paths.audit, audit)
+    _write_json_once(audit_path, audit)
     if verdict != "PASS":
         raise RFBError("RF-0B independent audit failed")
     return audit
