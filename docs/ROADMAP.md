@@ -11,6 +11,11 @@
 关闭，证据链完整归档。主线模拟仓与其他支线不受影响。
 见`docs/TS_V6_4_NO_TAKEPROFIT_EFFECT_ACCEPTANCE_20260819.md`。
 
+## 2026-08-19 RF-0C字段与身份预检GO_FORMAL_PROTOCOL
+
+补充停牌证据层后画像全门通过、注册表逐字节复核RF-0B。仅授权起草RF-1正式协议草案；正式批
+须R2-1检查点+用户批准。见`docs/RF_0C_FIELD_IDENTITY_PREFLIGHT_ACCEPTANCE_20260819.md`。
+
 ## 2026-08-19 RF缺口谱系诊断完成
 
 5个未解释成员日全部被独立Baostock状态确认为真实停牌（Tushare suspend_d漏记），审计6/6
