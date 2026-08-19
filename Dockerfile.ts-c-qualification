@@ -1,0 +1,15 @@
+FROM shaiwei@sha256:3b81e501c134e7d91217d6102f4d033e16047310b89496dd1296d1684c9a42d9
+
+ARG SHAIWEI_RELEASE_GIT_HEAD=""
+ENV SHAIWEI_RELEASE_GIT_HEAD=${SHAIWEI_RELEASE_GIT_HEAD}
+ENV SHAIWEI_RELEASE_MANIFEST=/opt/shaiwei/release-manifest.json
+
+USER 0:0
+COPY Dockerfile.ts-c-qualification compose.ts-c-qualification.yaml Makefile pyproject.toml requirements.lock .dockerignore ./
+COPY src ./src
+COPY config ./config
+COPY tests ./tests
+RUN python -m shaiwei.provenance --write-release-manifest /opt/shaiwei/release-manifest.json
+USER 10001:10001
+
+CMD ["python", "-m", "shaiwei.research.trend_swing.ts_c.cli", "fixture"]

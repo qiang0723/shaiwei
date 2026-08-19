@@ -20,6 +20,15 @@ user_rulings_20260819_binding:
   this_preflight_reads_event_density_and_legality_only: true
   effect_attempts_consumed: 0
 
+frozen_inputs:
+  raw_market_store:
+    r3_frozen_input_manifest:
+      path: data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json
+      sha256: c2206a6fddc83500293ee7e7d8fd399cdc8df3709579f92f16a228bc16494a63
+      role: verified_immutable_raw_snapshot_binding
+    raw_data_mutation_authorized: false
+    network_requests_authorized: false
+
 eligibility_stack:
   universe: pit_csi800_no_bj_no_st
   market_permission: index_000906_prev_month_close_above_sma6_and_sma6_rising

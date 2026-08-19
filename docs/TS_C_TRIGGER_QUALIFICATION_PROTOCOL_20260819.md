@@ -1,7 +1,7 @@
 # TS-C 触发器资格赛结果盲预检协议（2026-08-19，待用户批准）
 
-- 机器真身：`config/ts_c_trigger_qualification_v1.yaml`，SHA-256
-  `44dcaf42e1446f07ead27e74d5dfcfc536077bd66def3c0a1780f1f4553a95fa`
+- 机器真身：`config/ts_c_trigger_qualification_v1.yaml`，SHA-256（实现前更正后）
+  `0cf969edf29dfe103d9538e35c1efe983f91d505f027688f89c6dc5815c0bcef`
 - 状态：`RESULT_BLIND_QUALIFICATION_PREFLIGHT_FROZEN_PENDING_USER_APPROVAL`
 - 上位授权：用户 2026-08-19 批准前瞻锦标赛方案与三候选清单
 
