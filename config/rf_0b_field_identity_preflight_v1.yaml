@@ -1,0 +1,121 @@
+schema_version: rf-0b-field-identity-preflight-v1
+protocol_id: rf-0b-field-identity-preflight-001
+prepared_on: "2026-08-19"
+status: RESULT_BLIND_DATA_AND_IDENTITY_PREFLIGHT_FROZEN_PENDING_USER_APPROVAL
+strategy_family: RF
+production_authorization: none
+
+objective:
+  mechanism: overnight_gap_intraday_absorption_reversal_state
+  primary_question: >-
+    whether the open/prev-close field chain for PIT CSI800 members is complete and anomalous-free
+    enough to support the RF mechanism, and whether the canonical identity registry across the
+    three LLM attempt ledgers, G1 admission identities and the Alpha158 formula family leaves a
+    legal non-duplicate identity space for it, without computing any candidate value or return
+  downstream_decision: GO_FORMAL_PROTOCOL_or_REJECT_DUPLICATE_or_BLOCKED_DATA
+  candidate_generation: false
+  strategy_effect_evaluation: false
+
+parent_authority:
+  rf_0a_preparation: docs/RF_0A_CSI800_SINGLE_MECHANISM_PREPARATION_20260812.md
+  rf_0a_verdict: GO_PREP_ONLY_NOT_EXECUTION_AUTHORIZED
+  rf_0b_was_pre_authorized_as_constructible_during_r2_1_wait: true
+  formal_batch_still_requires: r2_1_checkpoint_and_separate_protocol_and_user_approval
+
+user_rulings_20260819_binding:
+  rf_lane_selected_as_next_method_family: true
+  this_preflight_is_zero_effect: true
+  candidate_or_effect_attempts_consumed: 0
+  on_go: only_drafting_the_formal_single_mechanism_protocol_is_authorized
+  on_reject_duplicate_or_blocked_data: rf_mechanism_closes_without_retry
+
+frozen_inputs:
+  attempt_ledger_d1_v2:
+    path: ledger/llm_factor_attempts_v2.csv
+    sha256: 80bf00a8f415b818877a3d91993eecd474cb1bb5d39ccddd8e29db5f2b47c1b3
+  attempt_ledger_m1:
+    path: ledger/m1_star50_factor_attempts.csv
+    sha256: 262fcbb8a5141829c27658e551c23f3ee8ef61281e1e618b50f2ff6e66794092
+  attempt_ledger_m3:
+    path: ledger/m3_multi_pool_factor_attempts.csv
+    sha256: 84d655665177698ba64ce1395043ffc28744d872f408cfc51fe60fa7ebfee344
+  g1_admission_ledger:
+    path: ledger/factor_admissions.csv
+    sha256: 0a61018ab3e8f8b0a0c5fe66623cb6a6f4f009e2aba341181a4348cfaafa12cc
+  ledger_columns_allowed: [attempt_id, research_family, topic, canonical_expression, expression_sha256, expression_tokens, ast_nodes, max_lookback_days, duplicate_of_attempt_id, failure_class, candidate_status]
+  ledger_columns_forbidden: [discovery_rank_ic, discovery_daily_ic_count, discovery_coverage, result_json, trial_count, valid_trial_sharpes, admitted, failed_gates]
+  alpha158_expression_family:
+    source: qlib.contrib.data.loader.Alpha158DL_static_extraction
+    record_expression_count_and_hashes_only: true
+  raw_market_store:
+    ledger: ledger/ingest_batches.csv
+    verify_latest_batch_row_count_and_sha256: true
+    required_apis: [tushare.trade_cal, tushare.daily, tushare.adj_factor, tushare.index_weight]
+    raw_data_mutation_authorized: false
+    network_requests_authorized: false
+  universe_id: csi800-pit-v1
+  bse_allowed: false
+
+field_profile_scope:
+  panel: pit_csi800_member_days
+  period: {start: "20190102", end: "20251231"}
+  fields: [trade_date, ts_code, open, close, adj_factor, pre_limit_trade_status]
+  allowed_outputs:
+    - member_day_counts_and_coverage_ratios
+    - missing_or_invalid_field_counts_by_failure_class
+    - suspension_no_bar_counts
+    - corporate_action_adj_factor_change_day_counts
+    - limit_at_open_counts
+    - new_listing_buffer_day_counts
+    - bse_row_count_must_be_zero
+  forbidden_outputs:
+    - any_candidate_value_or_score
+    - any_return_or_outcome
+    - any_distribution_of_gap_or_intraday_values
+
+field_quality_gate:
+  open_coverage_minimum_of_member_days: 0.99
+  prev_close_join_minimum_of_member_days: 0.99
+  bse_row_maximum: 0
+  unclassified_missing_field_rows_maximum: 0
+  threshold_change_after_profile: forbidden
+
+identity_registry:
+  build_canonical_registry: true
+  inputs_parse_completely_or_fail: true
+  outputs: [identity_counts, canonical_expression_sha256_set, duplicate_cluster_counts]
+  forbidden_registry_content: [discovery_metrics, outcomes, admission_verdict_details]
+  future_candidate_dedup_rule: canonical_ast_equality_or_semantic_equivalence_is_reject
+  registry_change_after_build: forbidden
+
+adversarial_fixtures:
+  required_cases:
+    - suspension_missing_bar
+    - corporate_action_factor_change_between_signal_and_entry
+    - first_listing_day_without_prior_close
+    - missing_open_with_present_close
+    - cross_non_trading_day_prev_close_reference
+    - bse_row_rejection
+    - synonymous_canonical_ast_dedup
+  fixtures_are_synthetic_only: true
+
+execution_control:
+  fixtures_must_pass_before_real_profile: true
+  one_real_field_profile: true
+  one_independent_audit: true
+  external_network_or_provider: false
+  env_or_secret_read: false
+  docker_network_mode: none
+  source_mounts_read_only: true
+  output_write_once: true
+  deepseek_or_any_llm_call: false
+  model_training_prediction_or_backtest: false
+  paper_web_scheduler_or_production_change: false
+  same_scope_rerun: forbidden
+
+verdicts:
+  all_gates_pass: GO_FORMAL_PROTOCOL
+  duplicate_or_no_legal_identity_space: REJECT_DUPLICATE
+  data_or_coverage_failure: BLOCKED_DATA
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none
