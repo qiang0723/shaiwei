@@ -1,0 +1,41 @@
+schema_version: rf-0b-field-identity-preflight-recovery-r2-v1
+recovery_id: rf-0b-field-identity-preflight-recovery-r2-001
+prepared_on: "2026-08-19"
+status: RESULT_BLIND_RECOVERY_SCOPE_FROZEN
+production_authorization: none
+
+parent_scope:
+  protocol_path: config/rf_0b_field_identity_preflight_v1.yaml
+  protocol_sha256: f98cecc7568b91d3ba30a1389127227d42d5646e85dd9acd69585fe70910a5b7
+  marker_path: data/research/rf/rf-0b-field-identity-preflight-v1/semantic_read_started.json
+  marker_sha256: d66b3fd667fc068e62793bdcef1f14111b339cf15867e0faad32e7057f6464dc
+  failure_class: AttributeError_none_temporary_root_before_any_data_read
+  market_or_ledger_data_read_before_failure: false
+  outputs_created_before_failure: marker_only
+  original_scope_closed_no_same_scope_rerun: true
+
+recovery:
+  fixed_action: RF_0B_R2_ONE_PROFILE_AND_ONE_AUDIT
+  new_output_root: data/research/rf/rf-0b-field-identity-preflight-v1-r2
+  engineering_fix: real_duckdb_temporary_path_instead_of_none
+  protocol_semantics_change: none
+  candidate_or_effect_attempts_consumed: 0
+
+authority:
+  external_network_or_provider: false
+  env_or_secret_read: false
+  docker_network_mode: none
+  source_mounts_read_only: true
+  original_output_mount_read_only: true
+  output_write_once: true
+  deepseek_or_any_llm_call: false
+  model_training_prediction_or_backtest: false
+  paper_web_scheduler_or_production_change: false
+  same_scope_rerun: forbidden
+
+verdicts:
+  all_gates_pass: GO_FORMAL_PROTOCOL
+  duplicate_or_no_legal_identity_space: REJECT_DUPLICATE
+  data_or_coverage_failure: BLOCKED_DATA
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none

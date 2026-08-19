@@ -48,7 +48,8 @@ services:
       - {type: bind, source: ./ledger/m1_star50_factor_attempts.csv, target: /workspace/ledger/m1_star50_factor_attempts.csv, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./ledger/m3_multi_pool_factor_attempts.csv, target: /workspace/ledger/m3_multi_pool_factor_attempts.csv, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./ledger/factor_admissions.csv, target: /workspace/ledger/factor_admissions.csv, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/research/rf/rf-0b-field-identity-preflight-v1, target: /workspace/data/research/rf/rf-0b-field-identity-preflight-v1, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/rf/rf-0b-field-identity-preflight-v1, target: /workspace/data/research/rf/rf-0b-field-identity-preflight-v1, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/rf/rf-0b-field-identity-preflight-v1-r2, target: /workspace/data/research/rf/rf-0b-field-identity-preflight-v1-r2, read_only: false, bind: {create_host_path: false}}
     command: [python, -m, shaiwei.research.rf_0b.cli, profile]
 
   rf-0b-auditor:
@@ -61,5 +62,6 @@ services:
       - {type: bind, source: ./ledger/m1_star50_factor_attempts.csv, target: /workspace/ledger/m1_star50_factor_attempts.csv, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./ledger/m3_multi_pool_factor_attempts.csv, target: /workspace/ledger/m3_multi_pool_factor_attempts.csv, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./ledger/factor_admissions.csv, target: /workspace/ledger/factor_admissions.csv, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/research/rf/rf-0b-field-identity-preflight-v1, target: /workspace/data/research/rf/rf-0b-field-identity-preflight-v1, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/rf/rf-0b-field-identity-preflight-v1, target: /workspace/data/research/rf/rf-0b-field-identity-preflight-v1, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/rf/rf-0b-field-identity-preflight-v1-r2, target: /workspace/data/research/rf/rf-0b-field-identity-preflight-v1-r2, read_only: false, bind: {create_host_path: false}}
     command: [python, -m, shaiwei.research.rf_0b.cli, audit]

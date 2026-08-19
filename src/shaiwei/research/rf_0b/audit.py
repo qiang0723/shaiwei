@@ -9,13 +9,10 @@ from typing import Any
 from shaiwei.research.trend_swing.contract import sha256_file
 from shaiwei.research.trend_swing.v6.engine import canonical_json, canonical_sha256, native
 from shaiwei.research.rf_0b.contract import (
-    AUDIT_PATH,
-    FIELD_PROFILE_PATH,
-    MANIFEST_PATH,
-    PROFILE_PATH,
-    REGISTRY_PATH,
     RFBError,
+    RFBRecovery,
     RFBScope,
+    active_output_paths,
     validate_bound_inputs,
 )
 from shaiwei.research.rf_0b.fields import evaluate_field_gate, real_field_profile
@@ -34,25 +31,29 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 def audit_once() -> dict[str, Any]:
-    if AUDIT_PATH.exists():
-        raise RFBError("RF-0B audit exists; same-scope audit rerun is forbidden")
     scope = RFBScope.load()
+    recovery = RFBRecovery.load_if_present()
+    paths = active_output_paths(recovery)
+    if recovery is not None:
+        recovery.validate_parent_evidence()
+    if paths.audit.exists():
+        raise RFBError("RF-0B audit exists; same-scope audit rerun is forbidden")
     validate_bound_inputs(scope)
-    profile = _read_json(PROFILE_PATH)
-    manifest = _read_json(MANIFEST_PATH)
+    profile = _read_json(paths.profile)
+    manifest = _read_json(paths.manifest)
     registry = build_identity_registry(scope)
-    fields = native(real_field_profile(scope))
+    fields = native(real_field_profile(scope, paths.root / "duckdb-tmp-audit"))
     gate = evaluate_field_gate(fields, scope.document["field_quality_gate"])
     expected_verdict = "GO_FORMAL_PROTOCOL" if gate["pass"] else "BLOCKED_DATA"
     artifact_hashes = {
-        "identity_registry": sha256_file(REGISTRY_PATH),
-        "field_profile": sha256_file(FIELD_PROFILE_PATH),
-        "profile": sha256_file(PROFILE_PATH),
+        "identity_registry": sha256_file(paths.registry),
+        "field_profile": sha256_file(paths.field_profile),
+        "profile": sha256_file(paths.profile),
     }
     checks = {
         "protocol_identity": profile.get("protocol_sha256") == scope.sha256,
-        "registry_recomputed": _read_json(REGISTRY_PATH) == json.loads(canonical_json(registry)),
-        "field_profile_recomputed": _read_json(FIELD_PROFILE_PATH) == json.loads(
+        "registry_recomputed": _read_json(paths.registry) == json.loads(canonical_json(registry)),
+        "field_profile_recomputed": _read_json(paths.field_profile) == json.loads(
             canonical_json(fields)
         ),
         "field_gate": profile.get("field_gate") == native(gate),
@@ -72,6 +73,7 @@ def audit_once() -> dict[str, Any]:
     audit = {
         "schema_version": "rf-0b-field-identity-preflight-independent-audit-v1",
         "protocol_sha256": scope.sha256,
+        "recovery_scope_sha256": None if recovery is None else recovery.sha256,
         "profile_sha256": artifact_hashes["profile"],
         "checks": native(checks),
         "independent_recomputed_payload_sha256": canonical_sha256({
@@ -83,7 +85,7 @@ def audit_once() -> dict[str, Any]:
         "production_authorization": "none",
         "independent_audit": verdict,
     }
-    _write_json_once(AUDIT_PATH, audit)
+    _write_json_once(paths.audit, audit)
     if verdict != "PASS":
         raise RFBError("RF-0B independent audit failed")
     return audit

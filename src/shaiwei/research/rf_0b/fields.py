@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Mapping
 
 import duckdb
@@ -71,8 +72,10 @@ def classify_member_day(row: Mapping[str, Any]) -> tuple[str, ...]:
     return tuple(classes)
 
 
-def _prepare_panel(connection: duckdb.DuckDBPyConnection, manifest: Mapping[str, Any]) -> None:
-    configure_store(connection, None)
+def _prepare_panel(
+    connection: duckdb.DuckDBPyConnection, manifest: Mapping[str, Any], temporary: Path
+) -> None:
+    configure_store(connection, temporary)
     prepare_core_tables(connection, manifest, start_date=PERIOD[0], end_date=PERIOD[1])
     connection.execute(
         """
@@ -165,14 +168,14 @@ def evaluate_field_gate(profile: Mapping[str, Any], gate: Mapping[str, Any]) -> 
     return {"checks": checks, "pass": all(checks.values())}
 
 
-def real_field_profile(scope: RFBScope, temporary_root: Any = None) -> dict[str, Any]:
+def real_field_profile(scope: RFBScope, temporary: Path) -> dict[str, Any]:
     manifest_path = PROJECT_ROOT / scope.document["frozen_inputs"]["raw_market_store"][
         "r3_frozen_input_manifest"
     ]["path"]
     manifest = load_r3_manifest(manifest_path)
     connection = duckdb.connect(":memory:")
     try:
-        _prepare_panel(connection, manifest)
+        _prepare_panel(connection, manifest, temporary)
         return field_profile(connection)
     finally:
         connection.close()

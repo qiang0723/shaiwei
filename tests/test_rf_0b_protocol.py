@@ -47,7 +47,7 @@ def test_docker_boundary_is_offline_read_only_and_secret_free() -> None:
     for name in ("rf-0b-profile", "rf-0b-auditor"):
         writable = [row for row in document["services"][name]["volumes"] if row["read_only"] is False]
         assert len(writable) == 1
-        assert writable[0]["source"].endswith("rf-0b-field-identity-preflight-v1")
+        assert "rf-0b-field-identity-preflight-v1" in writable[0]["source"]
     assert "Dockerfile.ts-rf-0b" in CONTROLLED_FILES
     assert COMPOSE.name in CONTROLLED_FILES
 
