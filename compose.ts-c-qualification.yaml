@@ -39,7 +39,8 @@ services:
     volumes:
       - {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json, target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/research/trend_swing/ts-c-trigger-qualification-v1, target: /workspace/data/research/trend_swing/ts-c-trigger-qualification-v1, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-c-trigger-qualification-v1, target: /workspace/data/research/trend_swing/ts-c-trigger-qualification-v1, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-c-trigger-qualification-v1-r2, target: /workspace/data/research/trend_swing/ts-c-trigger-qualification-v1-r2, read_only: false, bind: {create_host_path: false}}
     command: [python, -m, shaiwei.research.trend_swing.ts_c.cli, profile]
 
   ts-c-auditor:
@@ -48,5 +49,6 @@ services:
     volumes:
       - {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json, target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/research/trend_swing/ts-c-trigger-qualification-v1, target: /workspace/data/research/trend_swing/ts-c-trigger-qualification-v1, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-c-trigger-qualification-v1, target: /workspace/data/research/trend_swing/ts-c-trigger-qualification-v1, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/trend_swing/ts-c-trigger-qualification-v1-r2, target: /workspace/data/research/trend_swing/ts-c-trigger-qualification-v1-r2, read_only: false, bind: {create_host_path: false}}
     command: [python, -m, shaiwei.research.trend_swing.ts_c.cli, audit]

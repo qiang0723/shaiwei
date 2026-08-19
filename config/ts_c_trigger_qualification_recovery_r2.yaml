@@ -1,0 +1,39 @@
+schema_version: ts-c-trigger-qualification-recovery-r2-v1
+recovery_id: ts-c-trigger-qualification-recovery-r2-001
+prepared_on: "2026-08-19"
+status: RESULT_BLIND_RECOVERY_SCOPE_FROZEN
+production_authorization: none
+
+parent_scope:
+  protocol_path: config/ts_c_trigger_qualification_v1.yaml
+  protocol_sha256: 0cf969edf29dfe103d9538e35c1efe983f91d505f027688f89c6dc5815c0bcef
+  marker_path: data/research/trend_swing/ts-c-trigger-qualification-v1/semantic_read_started.json
+  marker_sha256: b971cfdd407ef43dce9c3725655926b4ba8d1b412d03caabb3a74044aa103d55
+  failure_class: duckdb_binder_error_in_weekly_atr_sql_before_any_profile_value
+  profile_values_computed_or_written_before_failure: false
+  original_scope_closed_no_same_scope_rerun: true
+
+recovery:
+  fixed_action: TS_C_R2_ONE_PROFILE_AND_ONE_AUDIT
+  new_output_root: data/research/trend_swing/ts-c-trigger-qualification-v1-r2
+  engineering_fix: weekly_atr_sql_uses_arg_max_over_daily_atr_table
+  protocol_semantics_change: none
+  density_gates_unchanged: true
+  candidate_or_effect_attempts_consumed: 0
+
+authority:
+  external_network_or_provider: false
+  env_or_secret_read: false
+  docker_network_mode: none
+  source_mounts_read_only: true
+  original_output_mount_read_only: true
+  output_write_once: true
+  same_scope_rerun: forbidden
+  paper_web_scheduler_or_production_change: false
+
+verdicts:
+  at_least_one_trigger_survives: GO_TS_C_TOURNAMENT_PROTOCOL_DRAFT_ONLY
+  no_trigger_survives: STOP_TS_C_NO_DENSE_LEGAL_TRIGGER
+  input_or_execution_failure: BLOCKED_TS_C_QUALIFICATION
+  strategy_effective: NOT_EVALUATED
+  production_authorization: none

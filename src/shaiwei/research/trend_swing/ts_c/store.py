@@ -27,6 +27,17 @@ def prepare_tsc_stream(connection: duckdb.DuckDBPyConnection, manifest: Mapping[
     )
     connection.execute(
         """
+        CREATE TEMP TABLE tsc_daily_atr AS
+        SELECT ts_code, trade_date,
+               avg(tr) OVER(PARTITION BY ts_code ORDER BY trade_date
+                 ROWS BETWEEN 19 PRECEDING AND CURRENT ROW) AS atr20,
+               count(*) OVER(PARTITION BY ts_code ORDER BY trade_date
+                 ROWS BETWEEN 19 PRECEDING AND CURRENT ROW) AS atr_count
+        FROM tsc_daily_tr
+        """
+    )
+    connection.execute(
+        """
         CREATE TEMP TABLE tsc_stock_week AS
         WITH weekly AS (
           SELECT ts_code,
@@ -40,15 +51,8 @@ def prepare_tsc_stream(connection: duckdb.DuckDBPyConnection, manifest: Mapping[
           SELECT ts_code,
                  strftime(date_trunc('week',strptime(t.trade_date,'%Y%m%d'))
                    + INTERVAL 4 DAY,'%Y%m%d') AS week_end,
-                 avg(t.tr) AS atr20
-          FROM (
-            SELECT ts_code, trade_date,
-                   avg(tr) OVER(PARTITION BY ts_code ORDER BY trade_date
-                     ROWS BETWEEN 19 PRECEDING AND CURRENT ROW) AS atr20,
-                   count(*) OVER(PARTITION BY ts_code ORDER BY trade_date
-                     ROWS BETWEEN 19 PRECEDING AND CURRENT ROW) AS atr_count
-            FROM tsc_daily_tr
-          ) t WHERE t.atr_count=20 GROUP BY 1,2
+                 arg_max(t.atr20, t.trade_date) AS atr20
+          FROM tsc_daily_atr t WHERE t.atr_count=20 GROUP BY 1,2
         )
         SELECT w.*, a.atr20,
                lag(w.week_low) OVER(PARTITION BY w.ts_code ORDER BY w.week_end) AS w1_low,
@@ -118,7 +122,8 @@ def prepare_tsc_stream(connection: duckdb.DuckDBPyConnection, manifest: Mapping[
                t.atr20 AS daily_atr20,
                i.close_above_sma20 AS index_above_sma20
         FROM member_bars m
-        LEFT JOIN tsc_daily_tr t USING(ts_code, trade_date)
+        LEFT JOIN tsc_daily_atr t ON t.ts_code=m.ts_code AND t.trade_date=m.trade_date
+               AND t.atr_count=20
         ASOF LEFT JOIN tsc_stock_week w
           ON m.ts_code=w.ts_code
           AND strptime(m.trade_date,'%Y%m%d') > strptime(w.week_end,'%Y%m%d') + INTERVAL 3 DAY

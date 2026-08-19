@@ -16,12 +16,8 @@ from shaiwei.research.trend_swing.contract import sha256_file
 from shaiwei.research.trend_swing.r4_contract import load_r3_manifest
 from shaiwei.research.trend_swing.v6.engine import canonical_json, canonical_sha256
 from shaiwei.research.trend_swing.ts_c.contract import (
-    AUDIT_PATH,
-    EVENTS_PATH,
-    MANIFEST_PATH,
-    MARKER_PATH,
-    OUTPUT_ROOT,
-    PROFILE_PATH,
+    TQCRecovery,
+    active_root,
     TQCError,
     TQCScope,
     runtime_identity,
@@ -125,48 +121,58 @@ def build_profile(scope: TQCScope, identity: Mapping[str, str], temporary: Path)
 
 
 def run_profile_once() -> dict[str, Any]:
-    outputs = (MARKER_PATH, EVENTS_PATH, PROFILE_PATH, MANIFEST_PATH, AUDIT_PATH)
-    if any(path.exists() for path in outputs):
-        raise TQCError("TS-C output exists; same-scope rerun is forbidden")
     scope = TQCScope.load()
+    recovery = TQCRecovery.load_if_present()
+    root = active_root(recovery)
+    if recovery is not None:
+        recovery.validate_parent_evidence()
+    marker_path = root / "semantic_read_started.json"
+    events_path = root / "events.parquet"
+    profile_path = root / "profile.json"
+    manifest_path = root / "manifest.json"
+    audit_path = root / "audit.json"
+    if any(path.exists() for path in (marker_path, events_path, profile_path, manifest_path, audit_path)):
+        raise TQCError("TS-C output exists; same-scope rerun is forbidden")
     validate_bound_inputs(scope)
     identity = runtime_identity()
-    OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
-    marker_sha = _write_json_once(MARKER_PATH, {
+    root.mkdir(parents=True, exist_ok=True)
+    marker_sha = _write_json_once(marker_path, {
         "schema_version": "ts-c-semantic-read-marker-v1",
         "semantic_read_started": True,
         "started_at": datetime.now(timezone.utc).isoformat(),
         "protocol_sha256": scope.sha256,
+        "recovery_scope_sha256": None if recovery is None else recovery.sha256,
         "release_identity": identity,
     })
-    first, events = build_profile(scope, identity, OUTPUT_ROOT / "duckdb-tmp")
-    second, events_replay = build_profile(scope, identity, OUTPUT_ROOT / "duckdb-tmp-replay")
+    first, events = build_profile(scope, identity, root / "duckdb-tmp")
+    second, events_replay = build_profile(scope, identity, root / "duckdb-tmp-replay")
     if canonical_json(first) != canonical_json(second) or canonical_json(events) != canonical_json(events_replay):
         raise TQCError("TS-C internal deterministic replay differs")
     schema = pa.schema([
         ("trigger_id", pa.string()), ("ts_code", pa.string()), ("signal_date", pa.string()),
     ])
     table = pa.Table.from_pylist(events, schema=schema)
-    pq.write_table(table, EVENTS_PATH, compression="zstd")
+    pq.write_table(table, events_path, compression="zstd")
     artifacts = {
-        "semantic_read_marker": {"path": _relative(MARKER_PATH), "sha256": marker_sha},
+        "semantic_read_marker": {"path": _relative(marker_path), "sha256": marker_sha},
         "events": {
-            "path": _relative(EVENTS_PATH), "row_count": table.num_rows,
-            "sha256": sha256_file(EVENTS_PATH), "contains_post_entry_outcome": False,
+            "path": _relative(events_path), "row_count": table.num_rows,
+            "sha256": sha256_file(events_path), "contains_post_entry_outcome": False,
         },
     }
     first["machine_artifacts"] = artifacts
     first["internal_deterministic_replay_pass"] = True
     first["canonical_payload_sha256"] = canonical_sha256(first)
-    profile_sha = _write_json_once(PROFILE_PATH, first)
+    profile_sha = _write_json_once(profile_path, first)
     manifest = {
         "schema_version": "ts-c-trigger-qualification-manifest-v1",
         "protocol_sha256": scope.sha256,
+        "recovery_scope_sha256": None if recovery is None else recovery.sha256,
         "release_identity": identity,
-        "artifacts": {**artifacts, "profile": {"path": _relative(PROFILE_PATH), "sha256": profile_sha}},
+        "artifacts": {**artifacts, "profile": {"path": _relative(profile_path), "sha256": profile_sha}},
         "contains_outcome": False,
         "contains_security_identifiers": True,
         "production_authorization": "none",
     }
-    _write_json_once(MANIFEST_PATH, manifest)
+    _write_json_once(manifest_path, manifest)
     return first

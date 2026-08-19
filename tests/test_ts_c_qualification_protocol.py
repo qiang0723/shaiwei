@@ -36,7 +36,7 @@ def test_docker_boundary_is_offline_read_only_and_secret_free() -> None:
     for name in ("ts-c-profile", "ts-c-auditor"):
         writable = [row for row in document["services"][name]["volumes"] if row["read_only"] is False]
         assert len(writable) == 1
-        assert writable[0]["source"].endswith("ts-c-trigger-qualification-v1")
+        assert "ts-c-trigger-qualification-v1" in writable[0]["source"]
     assert "Dockerfile.ts-c-qualification" in CONTROLLED_FILES
     assert COMPOSE.name in CONTROLLED_FILES
 
