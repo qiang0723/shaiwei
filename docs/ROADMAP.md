@@ -11,6 +11,12 @@
 关闭，证据链完整归档。主线模拟仓与其他支线不受影响。
 见`docs/TS_V6_4_NO_TAKEPROFIT_EFFECT_ACCEPTANCE_20260819.md`。
 
+## 2026-08-19 TS-C触发器资格赛STOP
+
+三臂触发器总量密但2022年零事件（月许可熊市整年空仓是v3设计行为），年度密度门三臂全败。
+继续需另立协议按"许可开启年"重述密度语义（用户定）。见
+`docs/TS_C_TRIGGER_QUALIFICATION_ACCEPTANCE_20260819.md`。
+
 ## 2026-08-19 RF-0C字段与身份预检GO_FORMAL_PROTOCOL
 
 补充停牌证据层后画像全门通过、注册表逐字节复核RF-0B。仅授权起草RF-1正式协议草案；正式批
