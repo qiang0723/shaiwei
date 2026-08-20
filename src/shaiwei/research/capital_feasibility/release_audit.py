@@ -49,12 +49,10 @@ def _target_checks(bundle: dict[str, Any]) -> bool:
     return True
 
 
-def audit(
-    *, release_path: Path, approval_path: Path, effect_root: Path, audit_root: Path,
+def audit_loaded(
+    *, release: Any, approval: Any, effect_root: Path, audit_root: Path,
 ) -> dict[str, Any]:
-    protocol = ReleaseProtocol.load()
-    release = ReleaseScope.load(release_path, protocol)
-    approval = Approval.load(approval_path, release)
+    """Audit sealed artifacts after a versioned adapter validates authority."""
     runtime = release.verify_runtime_identity()
     actual = {path.relative_to(effect_root).as_posix() for path in effect_root.rglob("*") if path.is_file()}
     if actual != EXPECTED_FILES:
@@ -98,13 +96,31 @@ def audit(
     return {"audit_sha256": digest, "reused": reused, "decision": document["decision"]}
 
 
-def main() -> int:
+def audit(
+    *, release_path: Path, approval_path: Path, effect_root: Path, audit_root: Path,
+) -> dict[str, Any]:
+    protocol = ReleaseProtocol.load()
+    release = ReleaseScope.load(release_path, protocol)
+    approval = Approval.load(approval_path, release)
+    return audit_loaded(
+        release=release, approval=approval, effect_root=effect_root, audit_root=audit_root,
+    )
+
+
+def main(argv: list[str] | None = None, *, auditor: Any = audit) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--release", type=Path, required=True)
     parser.add_argument("--approval", type=Path, required=True)
     parser.add_argument("--effect-root", type=Path, required=True)
     parser.add_argument("--audit-root", type=Path, required=True)
-    print(json.dumps(audit(**vars(parser.parse_args())), sort_keys=True))
+    args = parser.parse_args(argv)
+    result = auditor(
+        release_path=args.release,
+        approval_path=args.approval,
+        effect_root=args.effect_root,
+        audit_root=args.audit_root,
+    )
+    print(json.dumps(result, sort_keys=True))
     return 0
 
 

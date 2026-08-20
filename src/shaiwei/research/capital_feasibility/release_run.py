@@ -25,13 +25,11 @@ def _empty(root: Path) -> None:
         raise ProtocolError("M6-5B effect root is not empty")
 
 
-def run(
-    *, release_path: Path, approval_path: Path, r2_root: Path, r7_audit: Path,
+def execute_loaded(
+    *, release: Any, approval: Any, r2_root: Path, r7_audit: Path,
     raw_manifest: Path, project_root: Path, output_root: Path,
 ) -> dict[str, Any]:
-    protocol = ReleaseProtocol.load()
-    release = ReleaseScope.load(release_path, protocol)
-    approval = Approval.load(approval_path, release)
+    """Run the frozen domain flow after a versioned adapter validates authority."""
     runtime = release.verify_runtime_identity()
     verify_tree(r2_root, release)
     expected_r7 = release.scope["inputs"]["r7_audit"]
@@ -92,7 +90,20 @@ def run(
         raise
 
 
-def main() -> int:
+def run(
+    *, release_path: Path, approval_path: Path, r2_root: Path, r7_audit: Path,
+    raw_manifest: Path, project_root: Path, output_root: Path,
+) -> dict[str, Any]:
+    protocol = ReleaseProtocol.load()
+    release = ReleaseScope.load(release_path, protocol)
+    approval = Approval.load(approval_path, release)
+    return execute_loaded(
+        release=release, approval=approval, r2_root=r2_root, r7_audit=r7_audit,
+        raw_manifest=raw_manifest, project_root=project_root, output_root=output_root,
+    )
+
+
+def main(argv: list[str] | None = None, *, executor: Any = run) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--release", type=Path, required=True)
     parser.add_argument("--approval", type=Path, required=True)
@@ -101,7 +112,17 @@ def main() -> int:
     parser.add_argument("--raw-manifest", type=Path, required=True)
     parser.add_argument("--project-root", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
-    print(json.dumps(run(**vars(parser.parse_args())), sort_keys=True))
+    args = parser.parse_args(argv)
+    result = executor(
+        release_path=args.release,
+        approval_path=args.approval,
+        r2_root=args.r2_root,
+        r7_audit=args.r7_audit,
+        raw_manifest=args.raw_manifest,
+        project_root=args.project_root,
+        output_root=args.output_root,
+    )
+    print(json.dumps(result, sort_keys=True))
     return 0
 
 

@@ -7,6 +7,7 @@
 .PHONY: docker-m6-production-head30-audit-hash-authority-recovery-build docker-m6-production-head30-audit-hash-authority-recovery-fixture docker-m6-production-head30-audit-hash-authority-recovery-run
 .PHONY: docker-m6-production-head30-audit-output-root-recovery-build docker-m6-production-head30-audit-output-root-recovery-fixture docker-m6-production-head30-audit-output-root-recovery-run
 .PHONY: docker-m6-head30-500k-release-build docker-m6-head30-500k-release-fixture docker-m6-head30-500k-release-run docker-m6-head30-500k-release-audit
+.PHONY: docker-m6-head30-500k-entrypoint-recovery-build docker-m6-head30-500k-entrypoint-recovery-fixture docker-m6-head30-500k-entrypoint-recovery-run docker-m6-head30-500k-entrypoint-recovery-audit
 .PHONY: docker-m6-head30-500k-feasibility-build docker-m6-head30-500k-feasibility-fixture
 VENV ?= .venv
 PYTHON_BASE ?= python3
@@ -683,6 +684,14 @@ docker-m6-head30-500k-release-run: ## 仅在恢复scope精确获批后运行一�
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-head30-500k-release.yaml --profile m6-head30-500k-release run --rm --no-deps m6-head30-500k-release-runner
 docker-m6-head30-500k-release-audit: ## 真实runner成功后运行无R2/原始数据挂载的独立审计
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-head30-500k-release.yaml --profile m6-head30-500k-release run --rm --no-deps m6-head30-500k-release-auditor
+docker-m6-head30-500k-entrypoint-recovery-build: ## 构建M6-5B-R1入口恢复镜像；不读真实目标/价格/效果
+	SHAIWEI_M6_HEAD30_500K_ENTRY_RECOVERY_GIT_HEAD="$$(git rev-parse HEAD)" docker compose -f compose.m6-head30-500k-entrypoint-recovery.yaml --profile m6-head30-500k-entrypoint-recovery build m6-head30-500k-entrypoint-recovery-fixture
+docker-m6-head30-500k-entrypoint-recovery-fixture: ## 最终镜像断网穿过runner/auditor CLI和合成双跑
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-head30-500k-entrypoint-recovery.yaml --profile m6-head30-500k-entrypoint-recovery run --rm --no-deps m6-head30-500k-entrypoint-recovery-fixture
+docker-m6-head30-500k-entrypoint-recovery-run: ## 仅在R1新scope精确获批后运行一次真实50万元回放
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-head30-500k-entrypoint-recovery.yaml --profile m6-head30-500k-entrypoint-recovery run --rm --no-deps m6-head30-500k-entrypoint-recovery-runner
+docker-m6-head30-500k-entrypoint-recovery-audit: ## R1 runner成功后运行独立审计
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-head30-500k-entrypoint-recovery.yaml --profile m6-head30-500k-entrypoint-recovery run --rm --no-deps m6-head30-500k-entrypoint-recovery-auditor
 docker-m6-head30-500k-feasibility-build: ## 构建M6-5A结果盲500k纯合成工程镜像
 	M6_HEAD30_500K_GIT_HEAD="$$(git rev-parse HEAD)"; SHAIWEI_M6_HEAD30_500K_GIT_HEAD="$$M6_HEAD30_500K_GIT_HEAD" docker compose -f compose.m6-head30-500k-feasibility.yaml --profile m6-head30-500k-feasibility build m6-head30-500k-feasibility-fixture
 docker-m6-head30-500k-feasibility-fixture: ## daemon断网运行500k费用、整手、现金、容量与裁决合成门
