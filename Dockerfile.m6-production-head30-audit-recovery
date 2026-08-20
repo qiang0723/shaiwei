@@ -1,0 +1,10 @@
+FROM shaiwei:m6-production-head30-price-recovery-v1
+
+ARG SHAIWEI_M6_HEAD30_AUDIT_RECOVERY_GIT_HEAD=""
+ENV SHAIWEI_M6_HEAD30_AUDIT_RECOVERY_GIT_HEAD=${SHAIWEI_M6_HEAD30_AUDIT_RECOVERY_GIT_HEAD}
+
+RUN mkdir -p /opt/shaiwei/m6-head30-audit-recovery
+COPY --chmod=0444 src/shaiwei/research/production_conversion/audit_identity_recovery_contract.py /opt/shaiwei/m6-head30-audit-recovery/audit_identity_recovery_contract.py
+COPY --chmod=0444 src/shaiwei/research/production_conversion/audit_identity_recovery_entrypoint.py /opt/shaiwei/m6-head30-audit-recovery/entrypoint.py
+
+CMD ["python", "/opt/shaiwei/m6-head30-audit-recovery/entrypoint.py", "--self-test"]
