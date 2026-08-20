@@ -1,0 +1,127 @@
+schema_version: m6-csi800-production-head30-price-recovery-protocol-v1
+protocol_id: m6-csi800-production-head30-price-recovery-v1
+frozen_at: "2026-08-20T15:30:50+08:00"
+stage: RESULT_BLIND_PRICE_RECOVERY_ONLY
+
+predecessors:
+  production_converter_protocol:
+    path: config/m6_csi800_production_head30_v1.yaml
+    sha256: 16d2b92116864da01f6a734d3a4f17a5ac2f02d522dd17ef1048890eda8815fa
+  production_converter_hash_addendum:
+    path: config/m6_csi800_production_head30_hash_addendum_v1.yaml
+    sha256: c80fa243f61732fbfbf4823e698967d522d571a53e908b55f3ef906268a28bc5
+  r1_recovery_protocol:
+    path: config/m6_csi800_production_head30_entrypoint_recovery_v1.yaml
+    sha256: bdcf586983707f9376765bdd9f91f9b76205e2def30d24ed43ecf021cd3ee36f
+  r1_failed_release_scope:
+    path: config/m6_csi800_production_head30_entrypoint_recovery_scope_v1.json
+    file_sha256: d1f6038731a35acde664f8e0f388dfe879d3b46585a3e675da76085db7ab9406
+    release_scope_sha256: ea648bda49b185cb698f11f78f01d8ce16df217e50c4d12542dfac4318783d2c
+  r1_failure_evidence:
+    path: config/m6_csi800_production_head30_entrypoint_recovery_failure_v1.json
+    sha256: 46b09f5bc7e338d129856cb1f33ea725732c9d04fe52ebfbd2b378f91bc48753
+    authorization_sha256: e6f445e76b53f122aa7bf50c790ff4fd4ecb3521af5a9f3fd5a48ff2f531c96f
+    treatment_effect_started_sha256: 1423f719df1159c499997927801fc86293251a8f485e8a4c18dc623dfcd0672b
+    failure_artifact_sha256: 20554456f2bb114c200a1df9ea2bd33a469bab69de3a72af1d714b20a71eea79
+  preserve_without_rewrite: true
+
+recovery_change:
+  only_changed_variable: missing_deal_price_normalization_before_existing_position_price_fallback
+  deal_price_normalization:
+    finite_positive_numeric: use_as_execution_or_valuation_price
+    none_non_numeric_nonfinite_or_nonpositive: return_missing
+  held_position_valuation:
+    primary: normalized_deal_price
+    fallback: existing_position_price
+    fallback_must_be_finite_positive_numeric: true
+    invalid_fallback_action: fail_closed_with_full_target_strategy_error
+  target_buy_price:
+    missing_behavior: preserve_existing_nan_to_zero_target_amount_and_no_buy
+  forbidden_new_sources: [prior_close, future_close, adjusted_close, manual_price]
+  forbidden_actions: [drop_instrument, drop_trade_day, impute_price, alter_signal, alter_target_rank]
+  strategy_formula_changed: false
+  model_or_prediction_changed: false
+  input_identity_changed: false
+  g0_gate_changed: false
+  cost_or_window_changed: false
+  result_semantic_read_before_new_approval: false
+
+authority_before_exact_user_approval:
+  result_blind_implementation_authorized: true
+  synthetic_fixture_authorized: true
+  daemon_container_creation_fixture_authorized: true
+  immutable_release_image_build_authorized: true
+  exact_release_scope_generation_authorized: true
+  sealed_effect_metadata_identity_read_authorized: true
+  sealed_effect_semantic_read_authorized: false
+  qlib_provider_mount_or_read_authorized: false
+  real_treatment_backtest_authorized: false
+  sealed_control_report_semantic_read_authorized: false
+  real_model_fit_authorized: false
+  real_prediction_generation_authorized: false
+  formal_effect_output_write_authorized: false
+  experiment_ledger_write_authorized: false
+  external_runtime_network_authorized: false
+  env_or_secret_read_authorized: false
+  scheduler_change_or_restart_authorized: false
+  production_authorization: none
+
+execution_counting:
+  runner_invocation_count: 1
+  complete_internal_passes: [first_pass, replay]
+  independent_auditor_invocation_count: 1
+  r1_portfolio_attempts_consumed: 1
+  new_portfolio_attempts_consumed_at_first_treatment_effect_read: 1
+  total_family_attempts_after_new_effect_read: 2
+  model_attempt_increment: 0
+  same_price_recovery_scope_retry_authorized: false
+
+release_and_approval:
+  release_scope_kind: PRODUCTION_HEAD30_G0_PRICE_RECOVERY_READY_NOT_EXECUTION_APPROVAL
+  approval_action: M6_PRODUCTION_HEAD30_G0_EFFECT_PRICE_RECOVERY_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT
+  approval_must_bind_exact_release_scope_sha256: true
+  scope_drift_invalidates_approval: true
+  tracked_release_scope: config/m6_csi800_production_head30_price_recovery_scope_v1.json
+  approval_record_path: data/control/m6_csi800_production_head30_v1/approval-r2.json
+  approval_record_git_ignored: true
+
+artifact_contract:
+  ignored_effect_root: data/research/m6_csi800_production_head30_v1/effect-r2
+  ignored_audit_root: data/research/m6_csi800_production_head30_v1/effect-r2-audit
+  r1_effect_root_preserved: data/research/m6_csi800_production_head30_v1/effect
+  r1_audit_root_preserved: data/research/m6_csi800_production_head30_v1/effect-audit
+  experiment_ledger_write_authorized: false
+
+docker:
+  compose_file: compose.m6-production-head30-price-recovery.yaml
+  image: shaiwei:m6-production-head30-price-recovery-v1
+  runtime_network_mode: none
+  read_only_root: true
+  run_as_non_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  env_file_mounted: false
+  docker_socket_mounted: false
+  full_project_root_mounted: false
+  production_ledger_mounted: false
+  runner_mounts:
+    - {source: data/qlib_bin, target: /qlib, mode: ro}
+    - {source: data/research/m6_csi800_model_attribution_v1/effect, target: /m6-effect, mode: ro}
+    - {source: data/research/m6_csi800_model_attribution_v1/effect-audit/audit.json, target: /inputs/m6-audit.json, mode: ro}
+    - {source: config/m6_csi800_production_head30_price_recovery_scope_v1.json, target: /inputs/release.json, mode: ro}
+    - {source: data/control/m6_csi800_production_head30_v1/approval-r2.json, target: /inputs/approval.json, mode: ro}
+    - {source: data/research/m6_csi800_production_head30_v1/effect-r2, target: /outputs, mode: rw}
+  auditor_mounts:
+    - {source: data/research/m6_csi800_production_head30_v1/effect-r2, target: /outputs, mode: ro}
+    - {source: config/m6_csi800_production_head30_price_recovery_scope_v1.json, target: /inputs/release.json, mode: ro}
+    - {source: data/control/m6_csi800_production_head30_v1/approval-r2.json, target: /inputs/approval.json, mode: ro}
+    - {source: data/research/m6_csi800_production_head30_v1/effect-r2-audit, target: /audit, mode: rw}
+  maximum_runner_resources: {cpus: 4, memory: 8g, pids: 192}
+  maximum_auditor_resources: {cpus: 2, memory: 4g, pids: 128}
+
+stop_condition:
+  stop_after_new_exact_release_scope_is_committed_and_pushed: true
+  explicit_user_authorization_of_new_exact_scope_required: true
+  r1_scope_retry_forbidden: true
+  no_real_effect_or_qlib_read_before_new_approval: true
+  production_authorization: none
