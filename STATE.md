@@ -4,6 +4,14 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-4B-R2 scope `9b78ef69...f9b4a`获精确批准并唯一完成runner与内部重放，空成交价路径安全
+  越过，首遍/replay物理哈希一致；本次消费1个新组合转换尝试，家族累计2次，模型/预测新增0。
+  主计算与独立重建均给出`VALIDATED_RESEARCH_SCALE`，但唯一独立audit因冻结合同要求独立浮点
+  重算与主结果canonical SHA逐字节相等而失败；50处差异最大`3.73e-9`且既有容差等价检查PASS。
+  本scope永久关闭，结果在auditor-only恢复前不具权威性，策略标记
+  `NOT_AUTHORIZED_PENDING_INDEPENDENT_AUDIT_RECOVERY`、生产none。下一步只能另立零Qlib/零回测/
+  零新增尝试的独立审计恢复协议与新scope，仍须用户精确批准。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_PRICE_RECOVERY_AUDIT_FAILURE_20260820.md`。
 - M6-4B-R2零效果读取恢复工程已GO：先行冻结提交`eb1d7c3`，仅把空/非法成交价规范化为缺失并进入
   既有持仓价格回退，二级无效明确失败关闭；没有新增价格源或改变策略。版本化运行profile独立拆分，
   主合同368行；专项39、架构13、全仓1537 PASS。不可变镜像`a6544af...64b29`经daemon纯合成
