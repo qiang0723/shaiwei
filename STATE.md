@@ -4,6 +4,13 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-4B-R5 scope `baa43d73...24789`获精确批准并唯一运行：完整谱系预检、R2只读加载和独立重算
+  均完成；主身份、首遍/重放、`1e-12`容差等价及decision一致全部PASS，唯一失败项是实现额外要求
+  本次独立canonical SHA等于历史R3独立SHA的`independent_result_lineage`。audit写出前失败，输出
+  0文件；R2树不变、新增尝试0、scheduler healthy、生产none。R5永久不得重跑，策略为
+  `NOT_AUTHORIZED_PENDING_INDEPENDENT_HASH_AUTHORITY_RECOVERY`。下一步只能另立R6，删除该协议外
+  字节级约束但保留当前SHA记录/容差/裁决门，再建新scope并精确授权。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_AUDIT_LINEAGE_ENTRY_RECOVERY_EXECUTION_FAILURE_20260820.md`。
 - M6-4B-R5谱系入口恢复工程已GO：协议提交`fef88da`先于终版实现`51ca37a`并均已推送，只新增
   R3协议只读挂载；R3 loader/审计语义和R2效果零修改。最终镜像`73f3b0a5...5fba0`由daemon
   断网、无effect fixture调用与真实入口相同的完整谱系预检，R5/R4/R3/R2 authority全闭合，
