@@ -28,6 +28,11 @@ def _origin_main() -> str:
 
 
 def _sealed_inputs(effect_root: Path, audit_path: Path) -> dict[str, Any]:
+    effect_root = effect_root.resolve()
+    audit_path = audit_path.resolve()
+    project_root = PROJECT_ROOT.resolve()
+    if project_root not in effect_root.parents or project_root not in audit_path.parents:
+        raise ProtocolError("production-converter sealed inputs must remain inside the project")
     identity = effect_tree_identity(effect_root)
     first = mapping(effect_root / "first_pass/manifest.json")
     replay = mapping(effect_root / "replay/manifest.json")
@@ -38,7 +43,7 @@ def _sealed_inputs(effect_root: Path, audit_path: Path) -> dict[str, Any]:
             "first_pass_bundle_sha256": first["bundle_sha256"],
             "replay_bundle_sha256": replay["bundle_sha256"],
         },
-        "sealed_m6_audit": {"path": str(audit_path.relative_to(PROJECT_ROOT)), "sha256": sha256_file(audit_path), "independent_audit": "PASS"},
+        "sealed_m6_audit": {"path": str(audit_path.relative_to(project_root)), "sha256": sha256_file(audit_path), "independent_audit": "PASS"},
     }
 
 

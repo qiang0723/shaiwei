@@ -14,6 +14,7 @@ from shaiwei.research.production_conversion.real_contract import (
     expected_authority,
 )
 from shaiwei.research.production_conversion.real_release import build_release_document
+from shaiwei.research.production_conversion import real_release
 
 
 def test_release_protocol_is_result_blind_and_single_attempt() -> None:
@@ -124,3 +125,28 @@ def test_release_document_binds_image_and_stays_non_authoritative(tmp_path: Path
     assert document["scope"]["image"]["reference"] == IMAGE
     assert document["scope"]["authority"] == expected_authority()
     assert document["scope"]["authority"]["execution_authorized"] is False
+
+
+def test_sealed_input_metadata_accepts_relative_project_paths(
+    tmp_path: Path, monkeypatch
+) -> None:
+    effect = tmp_path / "effect"
+    for name in ("first_pass", "replay"):
+        directory = effect / name
+        directory.mkdir(parents=True)
+        (directory / "manifest.json").write_text(
+            json.dumps({"bundle_sha256": name + "-bundle"}), encoding="utf-8"
+        )
+    (effect / "report.json").write_text("{}", encoding="utf-8")
+    audit = tmp_path / "audit.json"
+    audit.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(real_release, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(
+        real_release,
+        "effect_tree_identity",
+        lambda _: {"file_count": 3, "total_bytes": 3, "tree_sha256": "a" * 64},
+    )
+    monkeypatch.chdir(tmp_path)
+    result = real_release._sealed_inputs(Path("effect"), Path("audit.json"))
+    assert result["sealed_m6_audit"]["path"] == "audit.json"
+    assert result["sealed_m6_effect"]["first_pass_bundle_sha256"] == "first_pass-bundle"
