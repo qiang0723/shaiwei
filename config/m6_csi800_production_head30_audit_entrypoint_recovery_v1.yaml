@@ -1,0 +1,119 @@
+schema_version: m6-production-head30-audit-entrypoint-recovery-protocol-v1
+recovery_id: m6-csi800-production-head30-audit-entrypoint-recovery-v1
+frozen_at: "2026-08-20T18:10:03+08:00"
+status: FROZEN_AFTER_R3_ENTRYPOINT_FAILURE_BEFORE_R4_IMPLEMENTATION
+production_authorization: none
+
+objective:
+  recover_exactly_one_independent_audit_of_the_existing_r2_effect_tree: true
+  change_only_the_original_protocol_container_path: true
+  research_question_or_result_change: false
+  audit_semantics_change: false
+  runner_or_effect_recomputation: false
+  additional_portfolio_attempt_count: 0
+
+r3_authority:
+  protocol_path: config/m6_csi800_production_head30_audit_identity_recovery_v1.yaml
+  protocol_sha256: 60e36c6ebedcf9051561f6fc823866787a982dac79651e24c40bfb39c2f8d2e2
+  release_scope_path: config/m6_csi800_production_head30_audit_identity_recovery_scope_v1.json
+  release_scope_sha256: b38628defcfee83087f0c0d982d0c1145b3f6d642c28508055cba2bddb9614d3
+  release_document_sha256: b6f385911832e104b04ca3354e3ec385af92645f24a2fc81a0c5f7fb6d9a40bd
+  approval_action: M6_PRODUCTION_HEAD30_AUDIT_IDENTITY_RECOVERY_ONCE
+  approval_sha256: a2251c9a70afb5fc35da04b9c25824d3a0ae5daa1e22716e572d7bc6b4bd15d0
+  image_reference: shaiwei:m6-production-head30-audit-recovery-v1
+  image_id: sha256:91cca66537e0ba058116f79c20897728d9913aa850af6e9f4efb8f50f61c9d3c
+  implementation_git_commit: 4ccab1baf78f60ecbc0239ce4fab1e3cbe6325af
+  contract_sha256: 1586afcf64a8527dc7abe9c3a18ddb37dfe43773f632690847e86ab73dde6cba
+  entrypoint_sha256: 3c88b97301888501f1ca5211a02d9578b1b825ec3130784004258a376776e563
+
+r3_execution_failure:
+  evidence_path: config/m6_csi800_production_head30_audit_identity_recovery_execution_failure_v1.json
+  evidence_sha256: 618c9c695968917910add4d45ad7f7b2147cd106ea76d3a983ce9eacb4180fc5
+  auditor_invocation_count: 1
+  container_created: true
+  effect_semantics_read: false
+  audit_output_file_count: 0
+  runner_invocation_count: 0
+  additional_portfolio_attempt_count: 0
+  same_r3_scope_retry_authorized: false
+  error_type: ProtocolError
+  error_message: production-converter release protocol path is not allowed
+
+root_cause_and_only_change:
+  rejected_path: /inputs/original-protocol.yaml
+  rejected_path_must_not_be_mounted_or_used: true
+  frozen_loader_allowlist_is_unchanged: true
+  embedded_allowed_path: /workspace/config/m6_csi800_production_head30_price_recovery_v1.yaml
+  embedded_allowed_path_is_the_only_runtime_path_change: true
+  embedded_protocol_sha256: 6e4fc89c5c02db862681866e96d1e8063e6b6bc2a6bb58c3cfc08819ba327a6e
+  original_protocol_copy_or_rewrite_forbidden: true
+
+sealed_r2_effect:
+  effect_root: data/research/m6_csi800_production_head30_v1/effect-r2
+  recovery_audit_root: data/research/m6_csi800_production_head30_v1/effect-r2-audit-entrypoint-recovery
+  file_count: 5
+  total_bytes: 1191570
+  tree_sha256: d3d84d104968bf01f88312bd665060f2e57727145e4064697b4753bd6fc545c1
+  authorization_sha256: 6899740f95422b49166a35caa7ec7eeca780a4a067b06876e50c6bbaa9a63bb9
+  treatment_effect_started_sha256: a83d15a727fcb3d29ff1230bcba7150576af0cb83cc5de3cd24d28e368440916
+  first_pass_bundle_sha256: 389c1770811a77d043b0ab2914740ac1e9c7a8c7f2e6694641a8ed28b8492ec2
+  replay_bundle_sha256: 389c1770811a77d043b0ab2914740ac1e9c7a8c7f2e6694641a8ed28b8492ec2
+  report_sha256: 79c674444dce99c8dd4e51933feac8f55360ea2c87c16950c2ef4c422c224d3a
+  primary_result_sha256: 42a60f59c7302990f57ac85a0f03d5efafaa684f05540c813661b75f12ade7a1
+  primary_decision: VALIDATED_RESEARCH_SCALE
+  family_portfolio_attempts_consumed: 2
+
+inherited_audit_semantics:
+  source_protocol_sha256: 60e36c6ebedcf9051561f6fc823866787a982dac79651e24c40bfb39c2f8d2e2
+  main_artifact_identity_requires_exact_physical_and_canonical_hashes: true
+  independent_reconstruction_implementation: existing_audit_statistics_independently_evaluate
+  independent_reconstruction_imports_primary_calculation_code: false
+  independent_relative_tolerance: 1.0e-12
+  independent_absolute_tolerance: 1.0e-12
+  independent_exact_canonical_sha_equality_with_primary_required: false
+  report_primary_and_independent_decisions_must_match_exactly: true
+  production_authorization_must_equal_none: true
+
+release_requirements:
+  scope_kind: PRODUCTION_HEAD30_AUDIT_ENTRYPOINT_RECOVERY_READY_NOT_EXECUTION_APPROVAL
+  approval_action: M6_PRODUCTION_HEAD30_AUDIT_ENTRYPOINT_RECOVERY_ONCE
+  implementation_and_scope_committed_and_pushed_before_execution: true
+  daemon_fixture_must_load_exact_embedded_allowed_path: true
+  daemon_fixture_must_use_final_image_and_compose_service: true
+  network_mode: none
+  qlib_mount: false
+  effect_mount: ro
+  recovery_audit_mount: rw
+  full_project_root_mount: false
+  env_or_secret_mount: false
+  docker_socket_mount: false
+  production_ledger_mount: false
+  run_as_non_root: true
+  read_only_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  cpus: 2
+  memory: 4g
+  pids_limit: 128
+
+required_sequence:
+  - commit_and_push_this_protocol_before_implementation
+  - implement_thin_path_entrypoint_recovery_and_adversarial_tests
+  - commit_and_push_implementation_before_building_the_final_image
+  - run_daemon_fixture_against_the_exact_embedded_allowed_path
+  - build_and_bind_exact_image_scope_and_sealed_effect_tree_without_reading_effect_semantics
+  - stop_and_require_explicit_user_approval_of_the_full_r4_scope_sha256
+  - on_approval_invoke_exactly_one_auditor_only_process
+  - require_effect_tree_before_after_identity_and_recovery_audit_pass
+
+forbidden:
+  - rerun_r2_runner_r2_auditor_or_r3_scope
+  - modify_r3_audit_semantics_or_r2_effect
+  - mount_or_pass_inputs_original_protocol_yaml
+  - initialize_or_mount_qlib
+  - train_predict_or_backtest
+  - change_g0_or_any_strategy_semantic
+  - additional_portfolio_attempt
+  - experiment_ledger_write
+  - forward_signal_paper_portfolio_web_or_production_access
+  - network_secret_scheduler_restart_or_other_project_access
