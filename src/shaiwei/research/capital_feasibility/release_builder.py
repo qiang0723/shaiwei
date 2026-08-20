@@ -38,6 +38,9 @@ def build_document(
     snapshot: str, image_id: str, image_platform: str, image_manifest_path: Path,
     r2_root: Path, r7_audit: Path, raw_manifest_path: Path,
 ) -> dict[str, Any]:
+    r2_root = r2_root.resolve()
+    r7_audit = r7_audit.resolve()
+    raw_manifest_path = raw_manifest_path.resolve()
     if commit != origin:
         raise ProtocolError("M6-5B implementation is not pushed")
     image_manifest = mapping(image_manifest_path)
@@ -97,6 +100,11 @@ def build(
     *, image_id: str, image_platform: str, image_manifest: Path, r2_root: Path,
     r7_audit: Path, raw_manifest: Path, output: Path, created_at: str,
 ) -> dict[str, Any]:
+    image_manifest = image_manifest.resolve()
+    r2_root = r2_root.resolve()
+    r7_audit = r7_audit.resolve()
+    raw_manifest = raw_manifest.resolve()
+    output = output.resolve()
     protocol = ReleaseProtocol.load()
     head, origin = git_head(), _origin_main()
     if head != origin:

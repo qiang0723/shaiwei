@@ -127,3 +127,9 @@ def test_release_image_includes_frozen_paper_policy() -> None:
     from shaiwei.provenance import CONTROLLED_FILES
     assert "docs/PAPER_EXECUTION_POLICY_V1.md" in CONTROLLED_FILES
     assert "!docs/PAPER_EXECUTION_POLICY_V1.md" in (ROOT / ".dockerignore").read_text()
+
+
+def test_release_builder_resolves_cli_paths_before_relativizing() -> None:
+    source = (ROOT / "src/shaiwei/research/capital_feasibility/release_builder.py").read_text()
+    assert "r2_root = r2_root.resolve()" in source
+    assert "raw_manifest = raw_manifest.resolve()" in source
