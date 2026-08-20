@@ -4,6 +4,13 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-4B-R7 scope `c08605ca...7b717`获精确批准并唯一完成auditor-only执行：完整R6-R2谱系、主结果
+  精确身份、首遍/replay物理一致、独立`1e-12`容差和decision一致共17项实质检查全部PASS；当前
+  独立SHA `1e7d00db...45d13`与历史SHA不同但仅作诊断。权威策略状态为
+  `VALIDATED_RESEARCH_SCALE`；R2五文件树前后哈希不变，audit恰好2文件、新增尝试0、scheduler
+  healthy、生产none。R7永久不得重跑；M6-4B历史效果审计链已闭合，但不得直接切换生产。下一节点
+  应另立50万元账户尺度成交/容量/成本可行性与自然FORWARD协议。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_AUDIT_OUTPUT_ROOT_RECOVERY_EXECUTION_ACCEPTANCE_20260820.md`。
 - M6-4B-R7输出根恢复工程已GO：协议提交`a3e2e01`先于实现`7732fb2`并均已推送；显式创建新的
   audit根且保持`create_host_path=false`。最终镜像`8611728a...78528d`的daemon断网fixture把与未来
   真实服务相同的宿主根挂载为可写，完成哨兵写读哈希删除并确认前后为空，同时不挂载effect；完整
