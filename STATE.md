@@ -4,6 +4,13 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-5B-R1入口恢复工程已GO：协议提交`6812f25`先于实现`3f13e15`并均已推送；只修runner/auditor
+  CLI显式参数映射，领域`run/audit`、paper-v1、目标和门槛不变。最终镜像`afe3d033...32b6b7a`
+  由daemon断网合成fixture真实穿过两个CLI、内部重放和独立重算并PASS；专项18、架构13、全仓
+  1628 PASS。新effect/audit根0文件，精确scope为`c73b4afb...c74757`；真实语义未读、家族累计仍1、
+  scheduler原容器healthy、生产none。下一步仅可由用户绑定新scope与动作精确批准唯一真实50万元
+  first/replay+独立audit，新增1次、累计2次，同scope不得重跑。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_500K_ENTRYPOINT_RECOVERY_ENGINEERING_ACCEPTANCE_20260820.md`。
 - M6-5B scope `62f88802...7570d`获批后唯一启动，但在进入`run()`前因CLI把`release`直接展开给
   要求`release_path`的函数而失败；effect/audit均0文件、封存目标/价格/收益/效果未读、auditor未
   启动、新语义尝试0，家族累计仍1，scheduler原容器healthy、生产none。原scope永久关闭不得重跑。
