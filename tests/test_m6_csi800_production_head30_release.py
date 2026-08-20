@@ -69,6 +69,11 @@ def test_compose_is_controlled_and_contains_no_secret_or_production_mount() -> N
         "docs/M6_CSI800_MODEL_ATTRIBUTION_AUDIT_RECOVERY_ACCEPTANCE_20260807.md"
         in CONTROLLED_FILES
     )
+    dockerignore = (PROJECT_ROOT / ".dockerignore").read_text(encoding="utf-8")
+    assert (
+        "!docs/M6_CSI800_MODEL_ATTRIBUTION_AUDIT_RECOVERY_ACCEPTANCE_20260807.md"
+        in dockerignore
+    )
 
 
 def test_release_document_binds_image_and_stays_non_authoritative(tmp_path: Path) -> None:
