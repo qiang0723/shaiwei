@@ -4,6 +4,13 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-4B-R5谱系入口恢复工程已GO：协议提交`fef88da`先于终版实现`51ca37a`并均已推送，只新增
+  R3协议只读挂载；R3 loader/审计语义和R2效果零修改。最终镜像`73f3b0a5...5fba0`由daemon
+  断网、无effect fixture调用与真实入口相同的完整谱系预检，R5/R4/R3/R2 authority全闭合，
+  `effect_mounted=false`、审计未调用；专项13、架构13、全仓1575 PASS。精确scope为
+  `baa43d73...24789`；真实effect语义未读、新增尝试0、生产none。下一步仅可由用户绑定该scope
+  精确批准唯一auditor-only执行，R2/R3/R4/R5均不得重跑。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_AUDIT_LINEAGE_ENTRY_RECOVERY_ENGINEERING_ACCEPTANCE_20260820.md`。
 - M6-4B-R4 scope `d07daefb...3bd71`获精确批准并唯一创建auditor-only容器，但在读取R2 effect前
   因镜像内缺失R3协议YAML而失败关闭；R4 audit 0文件、effect语义未读、新增尝试0，R2五文件树
   哈希不变，scheduler healthy、生产none。R4永久不得重跑，策略为
