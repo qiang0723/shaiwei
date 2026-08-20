@@ -83,6 +83,8 @@ def test_compose_enforces_runner_and_auditor_isolation() -> None:
         assert service["cap_drop"] == ["ALL"]
         assert "no-new-privileges:true" in service["security_opt"]
         assert "env_file" not in service
+        assert len(service["tmpfs"]) == 1
+        assert service["tmpfs"][0].startswith("/tmp:")
     runner_mounts = {row["target"]: row for row in runner["volumes"]}
     assert runner_mounts["/workspace/data/raw"]["read_only"] is True
     assert runner_mounts["/inputs/r2"]["read_only"] is True

@@ -15,7 +15,7 @@ services:
     network_mode: none
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
-    tmpfs: [/tmp:rw,noexec,nosuid,size=512m,mode=1777]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=512m,mode=1777"]
     pids_limit: 64
     mem_limit: 1g
     cpus: 1.0
@@ -41,7 +41,7 @@ services:
     network_mode: none
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
-    tmpfs: [/tmp:rw,noexec,nosuid,size=2g,mode=1777]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=2g,mode=1777"]
     pids_limit: 128
     mem_limit: 4g
     cpus: 2.0
@@ -67,7 +67,7 @@ services:
     network_mode: none
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
-    tmpfs: [/tmp:rw,noexec,nosuid,size=256m,mode=1777]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=256m,mode=1777"]
     pids_limit: 64
     mem_limit: 1g
     cpus: 1.0
