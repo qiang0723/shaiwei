@@ -108,6 +108,8 @@ class BiweeklyRankHeadEqualWeightStrategy(BaseSignalStrategy):
         self.topk = topk
         self.rebalance_days = rebalance_days
         self.forbid_all_trade_at_limit = forbid_all_trade_at_limit
+        self.rebalance_evidence: list[dict[str, object]] = []
+        self._previous_targets: tuple[str, ...] = ()
 
     def _price(self, code: str, start, end, direction: OrderDir) -> float | None:
         value = self.trade_exchange.get_deal_price(
@@ -173,6 +175,26 @@ class BiweeklyRankHeadEqualWeightStrategy(BaseSignalStrategy):
             round_amount=round_amount,
         )
         sells, buys = position_deltas(current_amounts, desired)
+        previous = set(self._previous_targets)
+        retained = previous & set(targets)
+        retained_reweight_notional = sum(
+            abs(desired[code] - float(current_amounts.get(code, 0.0)))
+            * float(buy_prices[code])
+            for code in retained
+            if np.isfinite(buy_prices[code])
+        )
+        self.rebalance_evidence.append(
+            {
+                "trade_date": pd.Timestamp(trade_start).strftime("%Y-%m-%d"),
+                "signal_date": pd.Timestamp(signal_start).strftime("%Y-%m-%d"),
+                "targets": list(targets),
+                "previous_targets": list(self._previous_targets),
+                "replacement_count": len(set(targets) - previous),
+                "retained_reweight_notional": float(retained_reweight_notional),
+                "account_value": float(account_value),
+            }
+        )
+        self._previous_targets = targets
         sell_orders: list[Order] = []
         for code, amount in sorted(sells.items()):
             if not self._tradable(code, trade_start, trade_end, OrderDir.SELL):

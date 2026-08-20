@@ -1,0 +1,66 @@
+services:
+  m6-production-head30-runner:
+    image: shaiwei:m6-production-head30-release-v1
+    pull_policy: never
+    profiles: [m6-production-head30]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SHAIWEI_RELEASE_GIT_HEAD: ${SHAIWEI_M6_PRODUCTION_HEAD30_RELEASE_GIT_HEAD:-}
+    init: true
+    restart: "no"
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp:rw,noexec,nosuid,size=4g,mode=1777]
+    pids_limit: 192
+    mem_limit: 8g
+    cpus: 4.0
+    environment:
+      HOME: /tmp
+      MPLCONFIGDIR: /tmp/matplotlib
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+      OMP_NUM_THREADS: "4"
+      OPENBLAS_NUM_THREADS: "4"
+      MKL_NUM_THREADS: "4"
+      NUMEXPR_NUM_THREADS: "4"
+    volumes:
+      - {type: bind, source: ./data/qlib_bin, target: /qlib, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_model_attribution_v1/effect, target: /m6-effect, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_model_attribution_v1/effect-audit/audit.json, target: /inputs/m6-audit.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_release_scope_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_v1/approval.json, target: /inputs/approval.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_v1/effect, target: /outputs, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.production_conversion.real_run, --release, /inputs/release.json, --approval, /inputs/approval.json, --provider-root, /qlib, --m6-effect-root, /m6-effect, --m6-audit, /inputs/m6-audit.json, --output-root, /outputs]
+
+  m6-production-head30-auditor:
+    image: shaiwei:m6-production-head30-release-v1
+    pull_policy: never
+    profiles: [m6-production-head30]
+    init: true
+    restart: "no"
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp:rw,noexec,nosuid,size=1g,mode=1777]
+    pids_limit: 128
+    mem_limit: 4g
+    cpus: 2.0
+    environment:
+      HOME: /tmp
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+    volumes:
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_v1/effect, target: /outputs, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_release_scope_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_v1/approval.json, target: /inputs/approval.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_v1/effect-audit, target: /audit, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.production_conversion.real_audit, --release, /inputs/release.json, --approval, /inputs/approval.json, --effect-root, /outputs, --audit-root, /audit]

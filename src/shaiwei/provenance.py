@@ -35,6 +35,7 @@ CONTROLLED_FILES = {
     "compose.research.yaml",
     "compose.m6-attribution.yaml",
     "compose.m6-topk-conversion-release.yaml",
+    "compose.m6-production-head30-release.yaml",
     "compose.ts-recovery.yaml",
     "compose.ts-v5-r2.yaml",
     "compose.ts-v5-r3c.yaml",

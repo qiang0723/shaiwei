@@ -999,6 +999,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | M6-3C-R2 | M6-3C Top30兼容诊断编排恢复 | 6次Top30及独立audit完成；三路内部确定，失败镜像两适配器相同，但原M6/失败镜像/规范日报三者不等，权威`MIXED_UNRESOLVED`；Top20 0、生产none | 本scope关闭不得重跑；如继续另立零新回测R3数值谱系复原，不加容差、不读Top20，否则关闭M6-3路线 |
 | M6-3C-R3 | M6-3C Top30数值生产谱系复原 | 双镜像probe、collector、独立audit均唯一完成；环境身份完整但多项竞争差异使因果未证，audit PASS；新回测0 | scope关闭；Top20历史效果继续禁止。20260809复盘裁M6-R4停止，转自然FORWARD观察 |
 | M6-4A | 生产Head30转换器结果前协议与工程预检 | Opus复核后冻结唯一`portfolio_converter`变量；复用M6干净控制预测、原G0不变；`risk_degree=1.0`已必填绑定，完整组件/权重恒等式/生产selector交叉测试PASS；真实效果/尝试0 | 仅可进入M6-4B结果盲runner/replay/auditor/release scope工程；新Docker/compose先纳入受控清单，真实读取须用户绑定新scope SHA精确批准；50万元资金可行性另立协议 |
+| M6-4B | 生产Head30一次性发布工程 | runner内部双跑、独立auditor、受控Docker、不可变产物与scope生成器完成；专项13、架构13、全仓1511 PASS；真实效果/尝试0 | 提交推送实现后构建不可变镜像并跑纯合成门，生成精确scope即停止；未获scope绑定授权不得挂载Qlib/M6 effect |
 | A1 | 代码架构整理与受控瘦身 | A1-3A本地恢复PASS：M7终局tag已推远端，冻结镜像tar与3,480份执行证据在本机逐哈希闭合，断网只读fixture PASS；删除0 | 远端耐久性仍未就绪：镜像/忽略证据无异机副本且未做全新引擎恢复，A1-3B继续阻断。待用户指定远程服务器或私有registry后另立异机恢复门，再逐文件授权清理 |
 | R2-1 | Top30/Top20自然前瞻证据检查点 | 协议FORWARD 10日/1次；其中受控追赶5日/1次，live-dual自然证据5日/0次；生产日增量17/17 PASS、次日对账16/16 PASS | 不新增代码；预计20260814核验第一次live-dual调仓，最早20260828同时核验20日/2次门。只作描述诊断，不以短样本切换生产 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
