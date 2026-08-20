@@ -30,6 +30,7 @@ CONTROLLED_FILES = {
     "Dockerfile.ts-rf-1",
     "Dockerfile.ts-c-qualification",
     "Dockerfile.ts-c-qualification-v2",
+    "docs/M6_CSI800_MODEL_ATTRIBUTION_AUDIT_RECOVERY_ACCEPTANCE_20260807.md",
     "Makefile",
     "compose.yaml",
     "compose.research.yaml",

@@ -37,6 +37,8 @@ RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
     && python -c "import qlib; assert qlib.__version__ == '0.9.7', qlib.__version__" \
     && python -m pip install --no-deps -e .
 
+COPY docs/M6_CSI800_MODEL_ATTRIBUTION_AUDIT_RECOVERY_ACCEPTANCE_20260807.md ./docs/M6_CSI800_MODEL_ATTRIBUTION_AUDIT_RECOVERY_ACCEPTANCE_20260807.md
+
 RUN mkdir -p /opt/shaiwei /workspace/data /workspace/ledger /workspace/logs /workspace/docs \
     && python -m shaiwei.provenance \
        --write-release-manifest /opt/shaiwei/release-manifest.json

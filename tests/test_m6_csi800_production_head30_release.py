@@ -65,6 +65,10 @@ def test_compose_is_controlled_and_contains_no_secret_or_production_mount() -> N
     assert "ledger" not in text
     assert "/var/run/docker.sock" not in text
     assert "read_only: true" in text
+    assert (
+        "docs/M6_CSI800_MODEL_ATTRIBUTION_AUDIT_RECOVERY_ACCEPTANCE_20260807.md"
+        in CONTROLLED_FILES
+    )
 
 
 def test_release_document_binds_image_and_stays_non_authoritative(tmp_path: Path) -> None:
