@@ -1,0 +1,124 @@
+schema_version: m6-production-head30-audit-hash-authority-recovery-protocol-v1
+recovery_id: m6-csi800-production-head30-audit-hash-authority-recovery-v1
+frozen_at: "2026-08-20T19:06:38+08:00"
+status: FROZEN_AFTER_R5_HISTORICAL_INDEPENDENT_HASH_FAILURE_BEFORE_R6_IMPLEMENTATION
+production_authorization: none
+
+objective:
+  recover_exactly_one_independent_audit_of_the_existing_r2_effect_tree: true
+  remove_only_historical_independent_sha_equality_as_an_authority_gate: true
+  record_current_independent_sha: true
+  research_question_or_result_change: false
+  primary_identity_or_numeric_tolerance_change: false
+  runner_or_effect_recomputation: false
+  additional_portfolio_attempt_count: 0
+
+r5_authority:
+  protocol_path: config/m6_csi800_production_head30_audit_lineage_entry_recovery_v1.yaml
+  protocol_sha256: 1cdc2672deca349a8cae2902046ef39b2c017b0c8b109eec10e1fda025e144e2
+  release_scope_path: config/m6_csi800_production_head30_audit_lineage_entry_recovery_scope_v1.json
+  release_scope_sha256: baa43d73ab0310c039d1c4794e74ebd3eda4a51578204224778ddaca0d724789
+  release_document_sha256: ef2e1b603d9395c85de4ef931122f45d272f513bc95ef6e155bdddbc49423fd7
+  approval_action: M6_PRODUCTION_HEAD30_AUDIT_LINEAGE_ENTRY_RECOVERY_ONCE
+  approval_sha256: d605b5092cbdb2a14b10d5c3c363f57d31bf50a96af00b52227d365ef37fca08
+  image_reference: shaiwei:m6-production-head30-audit-lineage-recovery-v1
+  image_id: sha256:73f3b0a570b32fdb8c331b306f0f1ddc141224bce5ce422bb385ffbc4cd5fba0
+  implementation_git_commit: 51ca37a848686f6c371d26a676a636477bc9b66c
+  contract_sha256: 30e5e8a331af885cc4bc863b2333388bebd94b27ea49f2ff6c2e9a85913bfadf
+  entrypoint_sha256: 8115a702e5a75b97d6938470ec78cdc8ca0cecfb30626cec15ae782ef2504be4
+
+r5_execution_failure:
+  evidence_path: config/m6_csi800_production_head30_audit_lineage_entry_recovery_execution_failure_v1.json
+  evidence_sha256: 1bba9599d6e86684b86e14d3eb2bf2d3622c49be105be69249b06971e405b944
+  auditor_invocation_count: 1
+  effect_semantics_read: true
+  independent_reconstruction_completed: true
+  independent_tolerance_equivalence_passed: true
+  decision_identity_passed: true
+  all_other_audit_checks_passed: true
+  audit_output_file_count: 0
+  runner_invocation_count: 0
+  additional_portfolio_attempt_count: 0
+  same_r5_scope_retry_authorized: false
+  failed_check: independent_result_lineage
+
+only_authority_correction:
+  historical_independent_result_sha256: daac6d2a556fa67db95f021acdfbc4eeb330fd0f6dc577a1de104c2e0bf65abf
+  historical_independent_sha_equality_required: false
+  current_independent_sha_must_be_recorded: true
+  primary_result_sha_must_match_sealed_identity: true
+  first_pass_and_replay_physical_identity_required: true
+  independent_reconstruction_relative_tolerance: 1.0e-12
+  independent_reconstruction_absolute_tolerance: 1.0e-12
+  independent_reconstruction_imports_primary_calculation_code: false
+  primary_and_independent_decisions_must_match_exactly: true
+  production_authorization_must_equal_none: true
+
+sealed_r2_effect:
+  effect_root: data/research/m6_csi800_production_head30_v1/effect-r2
+  recovery_audit_root: data/research/m6_csi800_production_head30_v1/effect-r2-audit-hash-authority-recovery
+  file_count: 5
+  total_bytes: 1191570
+  tree_sha256: d3d84d104968bf01f88312bd665060f2e57727145e4064697b4753bd6fc545c1
+  authorization_sha256: 6899740f95422b49166a35caa7ec7eeca780a4a067b06876e50c6bbaa9a63bb9
+  treatment_effect_started_sha256: a83d15a727fcb3d29ff1230bcba7150576af0cb83cc5de3cd24d28e368440916
+  first_pass_bundle_sha256: 389c1770811a77d043b0ab2914740ac1e9c7a8c7f2e6694641a8ed28b8492ec2
+  replay_bundle_sha256: 389c1770811a77d043b0ab2914740ac1e9c7a8c7f2e6694641a8ed28b8492ec2
+  report_sha256: 79c674444dce99c8dd4e51933feac8f55360ea2c87c16950c2ef4c422c224d3a
+  primary_result_sha256: 42a60f59c7302990f57ac85a0f03d5efafaa684f05540c813661b75f12ade7a1
+  primary_decision: VALIDATED_RESEARCH_SCALE
+  family_portfolio_attempts_consumed: 2
+
+daemon_fixture_requirements:
+  final_image_and_compose_service_required: true
+  complete_r5_r4_r3_r2_lineage_preflight_required: true
+  historical_independent_sha_mismatch_within_tolerance_must_pass: true
+  numeric_difference_above_tolerance_must_fail: true
+  decision_difference_must_fail: true
+  effect_mount_forbidden: true
+  effect_semantics_read: false
+  audit_invoked: false
+  network_mode: none
+
+release_requirements:
+  scope_kind: PRODUCTION_HEAD30_AUDIT_HASH_AUTHORITY_RECOVERY_READY_NOT_EXECUTION_APPROVAL
+  approval_action: M6_PRODUCTION_HEAD30_AUDIT_HASH_AUTHORITY_RECOVERY_ONCE
+  implementation_and_scope_committed_and_pushed_before_execution: true
+  network_mode: none
+  qlib_mount: false
+  effect_mount: ro
+  recovery_audit_mount: rw
+  full_project_root_mount: false
+  env_or_secret_mount: false
+  docker_socket_mount: false
+  production_ledger_mount: false
+  run_as_non_root: true
+  read_only_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  cpus: 2
+  memory: 4g
+  pids_limit: 128
+
+required_sequence:
+  - commit_and_push_this_protocol_before_implementation
+  - implement_hash_authority_correction_and_adversarial_fixture
+  - commit_and_push_implementation_before_building_the_final_image
+  - run_final_image_daemon_fixture_without_effect_mount
+  - bind_exact_image_fixture_scope_and_sealed_effect_hashes_without_effect_semantic_read
+  - stop_and_require_explicit_user_approval_of_the_full_r6_scope_sha256
+  - on_approval_invoke_exactly_one_auditor_only_process
+  - require_effect_tree_before_after_identity_and_recovery_audit_pass
+
+forbidden:
+  - rerun_r2_r3_r4_or_r5_scope
+  - modify_r2_effect_primary_result_or_r3_numeric_tolerance
+  - stop_recording_current_independent_sha
+  - weaken_primary_identity_or_decision_identity
+  - initialize_or_mount_qlib
+  - train_predict_or_backtest
+  - change_g0_or_any_strategy_semantic
+  - additional_portfolio_attempt
+  - experiment_ledger_write
+  - forward_signal_paper_portfolio_web_or_production_access
+  - network_secret_scheduler_restart_or_other_project_access
