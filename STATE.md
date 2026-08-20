@@ -4,6 +4,13 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-4B-R7输出根恢复工程已GO：协议提交`a3e2e01`先于实现`7732fb2`并均已推送；显式创建新的
+  audit根且保持`create_host_path=false`。最终镜像`8611728a...78528d`的daemon断网fixture把与未来
+  真实服务相同的宿主根挂载为可写，完成哨兵写读哈希删除并确认前后为空，同时不挂载effect；完整
+  R6/R5/R4/R3/R2谱系及哈希权威三组对抗门PASS。专项14、架构13、全仓1603 PASS；精确scope为
+  `c08605ca...7b717`。真实effect语义未读、audit未运行、新增尝试0、scheduler healthy、生产none。
+  下一步仅可由用户绑定完整scope与动作精确批准唯一auditor-only执行，R2-R6均不得重跑。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_AUDIT_OUTPUT_ROOT_RECOVERY_ENGINEERING_ACCEPTANCE_20260820.md`。
 - M6-4B-R6 scope `349859a6...9a90fa`获精确批准并唯一调用，但在Docker创建容器前因新的宿主audit
   输出根不存在且`create_host_path=false`而失败关闭；容器创建false、auditor调用0、effect语义未读、
   audit 0文件、新增尝试0，R2五文件树不变、scheduler healthy、生产none。R6永久不得重跑，策略为
