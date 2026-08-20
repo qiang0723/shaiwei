@@ -1,0 +1,200 @@
+schema_version: m6-csi800-production-head30-500k-feasibility-protocol-v1
+protocol_id: m6-csi800-production-head30-500k-feasibility-v1
+frozen_at: "2026-08-20T20:18:00+08:00"
+protocol_stage: RESULT_BLIND_PROTOCOL_FREEZE_ONLY
+production_authorization: none
+
+research_question:
+  objective: >-
+    复用已通过独立审计的生产Head30六窗口封存目标与未复权行情，不重新拟合或生成分数，把每窗账户
+    从1亿元研究尺度固定映射到500,000元，并加入paper-v1的整数股、最低佣金、现金和可成交约束，
+    判断该转换规则在个人账户尺度是否仍具可执行性与历史效果保持性。
+  strategy_or_factor_search: false
+  parameter_grid: false
+  best_capital_search: false
+  production_strategy_replacement: false
+  prior_head30_research_result_known: VALIDATED_RESEARCH_SCALE
+  new_500k_result_inspected_before_freeze: false
+
+authoritative_predecessor:
+  r7_execution_evidence:
+    path: config/m6_csi800_production_head30_audit_output_root_recovery_execution_v1.json
+    sha256: 29942f16a8a2c35b8275cd164060a338d574dd7a2d38f627a6a6eb09ba686630
+    r7_scope_sha256: c08605ca15ab480efaac4077db514b65a86ea40cf3872fd059029e932747b717
+    independent_audit: PASS
+    strategy_effective: VALIDATED_RESEARCH_SCALE
+    production_authorization: none
+  sealed_r2_effect:
+    root: data/research/m6_csi800_production_head30_v1/effect-r2
+    file_count: 5
+    total_bytes: 1191570
+    tree_sha256: d3d84d104968bf01f88312bd665060f2e57727145e4064697b4753bd6fc545c1
+    first_replay_bundle_sha256: 389c1770811a77d043b0ab2914740ac1e9c7a8c7f2e6694641a8ed28b8492ec2
+    report_sha256: 79c674444dce99c8dd4e51933feac8f55360ea2c87c16950c2ef4c422c224d3a
+    independent_audit_sha256: b5747321b478d63bf7d9c264e3af0e18337174af4b94f586acd94219262ec81a
+    audit_receipt_sha256: ccc741a63621238d6c730132ed9a6ddd135fa467d19968f1c3c2686003d81337
+  original_head30_protocol:
+    path: config/m6_csi800_production_head30_v1.yaml
+    sha256: 16d2b92116864da01f6a734d3a4f17a5ac2f02d522dd17ef1048890eda8815fa
+    target_account_rmb: 100000000
+    target_membership: deterministic_score_desc_instrument_asc_head_30
+    target_weight: 0.03333333333333333
+    target_refresh: replace_to_current_target_set_and_reweight_all_targets
+    target_investment_ratio: 1.0
+
+frozen_input_lineage:
+  m6_model_release_scope:
+    path: config/m6_csi800_model_attribution_release_scope_v1.json
+    file_sha256: 3550046f8cb34a6b4ee33ae0655fbec377928d93a043b4c5e424caa98447779d
+    release_scope_sha256: 9b609f0764240ff3930a4aeaaf16cef9deb82579d2a5875f1be9e8c4ffb0b139
+    qlib_tree_sha256: 0532f6cd7c2c78f0936f92a986aef83a848175fe6f332274e06c7ed6e8c11778
+    qlib_manifest_sha256: 62cae2f46b57020db202bee1748f072e7859e209663046747f76aaa008f605a9
+  score_arm: clean_lgbm_control_v1
+  windows: [W1, W2, W3, W4, W5, W6]
+  target_membership_and_rank_must_equal_r2: true
+  model_fit_count: 0
+  prediction_generation_count: 0
+  score_transformation_added: false
+  benchmark: SH000906
+  universe_id: csi800-pit-v1
+  exclude_bj: true
+
+single_variable_contract:
+  variable_name: capital_execution_envelope
+  control: validated_100m_research_scale_head30
+  treatment: fixed_500k_paper_v1_executable_head30
+  treatment_components_are_indivisible_deployment_semantics: true
+  changed_capital_rmb: 500000
+  inherited_target_and_rebalance_logic: true
+  prohibited_variants:
+    - other_initial_capital
+    - other_topk
+    - other_rebalance_period
+    - weight_optimization
+    - turnover_buffer
+    - score_threshold
+    - sector_constraint
+    - alternate_fee_schedule
+    - alternate_lot_rule
+
+execution_contract:
+  reset_cash_each_window_rmb: 500000
+  signal_clock: signal_date_close
+  execution_clock: next_trade_day_open
+  rebalance_trade_days: 10
+  sell_before_buy: true
+  sell_order: instrument_ascending
+  buy_order: score_descending_then_instrument_ascending
+  cash_overdraft_forbidden: true
+  missing_or_invalid_open: reject_leg
+  suspended_or_zero_volume: reject_leg
+  buy_at_limit_up: reject_leg
+  sell_at_limit_down: reject_leg
+  unfilled_order_carry_forward: false
+  accounting_tolerance_rmb: 0.01
+  paper_policy:
+    version: paper-v1
+    policy_sha256: eaa341b5a3eee94347c7a8453a3e52f1986e3707abfbb6bb69a6d9298c320cc8
+    policy_document_path: docs/PAPER_EXECUTION_POLICY_V1.md
+    policy_document_sha256: e1b9b83c6f406c91941ce4c5f723287f23f5f6697a4d232ef78cdf8b439146a4
+    engine_path: src/shaiwei/paper/engine.py
+    engine_sha256: 44e64d1a776973b0eb5b9ba5ce6d8a7d103a7e8a20aaeb172929c7ca4b1d6b94
+    commission_rate: 0.0003
+    minimum_commission_rmb: 5.0
+    sell_stamp_tax_rate: 0.0005
+    transfer_fee_rate: 0.00001
+    main_and_chinext_buy_lot: 100
+    star_initial_buy_minimum: 200
+    star_increment_after_minimum: 1
+    full_odd_lot_liquidation_allowed: true
+
+capacity_contract:
+  role: hard_feasibility_gate_not_parameter
+  reference: signal_date_trailing_amount_only
+  trailing_trade_observations: 20
+  minimum_valid_observations: 15
+  statistic: median
+  maximum_order_notional_fraction: 0.05
+  current_execution_day_amount_forbidden: true
+  missing_capacity_reference: BLOCKED
+  above_capacity: CAPITAL_INFEASIBLE
+  partial_fill_or_carry_added: false
+
+hard_feasibility_gates:
+  all_six_windows_complete: true
+  target_identity_and_dates_exact: true
+  duplicate_or_bj_count: 0
+  accounting_violation_count: 0
+  negative_cash_count: 0
+  invalid_lot_fill_count: 0
+  capacity_violation_count: 0
+  median_realized_position_count_minimum: 24
+  minimum_post_rebalance_position_count: 20
+  median_post_rebalance_cash_ratio_maximum: 0.20
+  maximum_post_rebalance_cash_ratio: 0.35
+  median_post_rebalance_target_l1_error_maximum: 0.30
+  maximum_post_rebalance_target_l1_error: 0.50
+  below_minimum_lot_rejection_fraction_maximum: 0.20
+  definition_target_l1_error: sum_abs_actual_weight_minus_target_weight_plus_cash_ratio
+
+historical_effect_retention_gates:
+  base_cost_positive_net_excess_window_minimum: 4
+  combined_1_5x_cost_cumulative_net_excess_minimum: 0.0
+  executable_to_ideal_pooled_nav_ratio_minimum: 0.95
+  two_x_cost_is_diagnostic_only: true
+  no_post_result_threshold_change: true
+
+required_outputs:
+  - per_window_target_and_realized_position_counts
+  - per_rebalance_cash_ratio_and_target_l1_error
+  - below_minimum_lot_cash_capacity_and_market_state_rejection_counts
+  - per_window_base_net_excess_and_combined_1_5x_cost_net_excess
+  - executable_to_ideal_nav_ratio
+  - fees_turnover_and_minimum_commission_drag
+  - maximum_drawdown
+  - deterministic_first_pass_replay_identity
+  - independent_audit
+
+decision_contract:
+  precedence: [BLOCKED, CAPITAL_FEASIBLE_RESEARCH_ONLY, CAPITAL_INFEASIBLE]
+  CAPITAL_FEASIBLE_RESEARCH_ONLY: all_data_execution_feasibility_and_effect_retention_gates_pass
+  CAPITAL_INFEASIBLE: evidence_complete_but_any_frozen_feasibility_or_effect_retention_gate_fails
+  BLOCKED: input_identity_data_execution_determinism_or_independent_audit_incomplete
+  production_authorization_for_every_outcome: none
+  strategy_search_authorization_for_every_outcome: none
+
+natural_forward_boundary:
+  protocol_path: config/r2_1_forward_checkpoint_v1.yaml
+  protocol_sha256: 4b78cad26baed27fefdec2b290c7df5d2cb5e5042adb9334e678f3a15ac0a29f
+  role: separate_descriptive_crosscheck_only
+  may_override_historical_verdict: false
+  may_be_used_to_tune_thresholds: false
+  production_switch_authorized: false
+
+attempt_policy:
+  attempt_family: m6_head30_capital_feasibility
+  prior_attempt_count: 0
+  new_attempt_count: 1
+  consumed_on_first_authorized_500k_effect_read: true
+  failure_after_effect_read_still_consumes_attempt: true
+  no_replacement_or_retry_under_same_scope: true
+  experiment_ledger_write_authorized: false
+
+engineering_authority:
+  result_blind_contract_and_synthetic_fixture_authorized: true
+  sealed_target_prediction_price_or_return_read_authorized: false
+  real_qlib_read_authorized: false
+  real_500k_simulation_authorized: false
+  formal_output_write_authorized: false
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  forward_signal_change_authorized: false
+  paper_portfolio_change_authorized: false
+  scheduler_change_or_restart_authorized: false
+  production_authorization: none
+
+stop_condition:
+  stop_after_result_blind_engineering_and_exact_release_scope: true
+  user_exact_scope_approval_required_before_real_500k_effect: true
+  approval_action: M6_HEAD30_500K_FEASIBILITY_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT
+  same_scope_retry_authorized: false
