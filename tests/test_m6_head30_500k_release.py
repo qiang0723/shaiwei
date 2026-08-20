@@ -126,3 +126,4 @@ def test_release_image_includes_frozen_paper_policy() -> None:
     assert "COPY docs/PAPER_EXECUTION_POLICY_V1.md ./docs/PAPER_EXECUTION_POLICY_V1.md" in dockerfile
     from shaiwei.provenance import CONTROLLED_FILES
     assert "docs/PAPER_EXECUTION_POLICY_V1.md" in CONTROLLED_FILES
+    assert "!docs/PAPER_EXECUTION_POLICY_V1.md" in (ROOT / ".dockerignore").read_text()
