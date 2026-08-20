@@ -1,0 +1,101 @@
+schema_version: m6-csi800-production-head30-entrypoint-recovery-protocol-v1
+protocol_id: m6-csi800-production-head30-entrypoint-recovery-v1
+frozen_at: "2026-08-20T14:18:00+08:00"
+stage: RESULT_BLIND_ENTRYPOINT_RECOVERY_ONLY
+
+predecessors:
+  original_release_protocol:
+    path: config/m6_csi800_production_head30_release_v1.yaml
+    sha256: 945fd02a54229479adf4c6113e409583fdfc603590670ec062f14585b8fb8afd
+  failed_release_scope:
+    path: config/m6_csi800_production_head30_release_scope_v1.json
+    file_sha256: 561346e3655b6ce664ae54990b3534af08cdaa63e0315b76dad40deb6b9cb14a
+    release_scope_sha256: 15b3c7854409adb6d9f32f74f583a156088513d17520f43e8df61d04321143b3
+  entrypoint_failure_evidence:
+    path: config/m6_csi800_production_head30_entrypoint_failure_v1.json
+    sha256: cedfa60e171ad75837604492a1efe3eccfa0c8cdbc4d545d64a295918a59d652
+  failed_approval_sha256: 0eaa9b967974160bfb9a1a76cd85a8e8448c9ac7dc59f960fa147900a4a6b075
+  preserve_without_rewrite: true
+
+recovery_change:
+  only_changed_variable: docker_tmpfs_yaml_serialization
+  original_parse: [/tmp:rw, noexec, nosuid, size=4g, mode=1777]
+  required_runner_parse: ["/tmp:rw,noexec,nosuid,size=4g,mode=1777"]
+  required_auditor_parse: ["/tmp:rw,noexec,nosuid,size=1g,mode=1777"]
+  strategy_formula_changed: false
+  model_or_prediction_changed: false
+  input_identity_changed: false
+  decision_contract_changed: false
+  result_semantic_read_before_new_approval: false
+
+authority_before_exact_user_approval:
+  result_blind_implementation_authorized: true
+  synthetic_fixture_authorized: true
+  daemon_container_creation_fixture_authorized: true
+  immutable_release_image_build_authorized: true
+  exact_release_scope_generation_authorized: true
+  sealed_effect_metadata_identity_read_authorized: true
+  sealed_effect_semantic_read_authorized: false
+  qlib_provider_mount_or_read_authorized: false
+  real_treatment_backtest_authorized: false
+  sealed_control_report_semantic_read_authorized: false
+  real_model_fit_authorized: false
+  real_prediction_generation_authorized: false
+  formal_effect_output_write_authorized: false
+  experiment_ledger_write_authorized: false
+  external_runtime_network_authorized: false
+  env_or_secret_read_authorized: false
+  scheduler_change_or_restart_authorized: false
+  production_authorization: none
+
+execution_counting:
+  runner_invocation_count: 1
+  complete_internal_passes: [first_pass, replay]
+  independent_auditor_invocation_count: 1
+  new_portfolio_attempts_consumed_at_first_treatment_effect_read: 1
+  original_failed_scope_attempts_consumed: 0
+  model_attempt_increment: 0
+  same_recovery_scope_retry_authorized: false
+
+release_and_approval:
+  release_scope_kind: PRODUCTION_HEAD30_G0_ENTRYPOINT_RECOVERY_READY_NOT_EXECUTION_APPROVAL
+  approval_action: M6_PRODUCTION_HEAD30_G0_EFFECT_ENTRYPOINT_RECOVERY_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT
+  approval_must_bind_exact_release_scope_sha256: true
+  scope_drift_invalidates_approval: true
+  tracked_release_scope: config/m6_csi800_production_head30_entrypoint_recovery_scope_v1.json
+  approval_record_path: data/control/m6_csi800_production_head30_v1/approval-r1.json
+  approval_record_git_ignored: true
+
+docker:
+  compose_file: compose.m6-production-head30-recovery.yaml
+  image: shaiwei:m6-production-head30-recovery-v1
+  runtime_network_mode: none
+  read_only_root: true
+  run_as_non_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  env_file_mounted: false
+  docker_socket_mounted: false
+  full_project_root_mounted: false
+  production_ledger_mounted: false
+  runner_mounts:
+    - {source: data/qlib_bin, target: /qlib, mode: ro}
+    - {source: data/research/m6_csi800_model_attribution_v1/effect, target: /m6-effect, mode: ro}
+    - {source: data/research/m6_csi800_model_attribution_v1/effect-audit/audit.json, target: /inputs/m6-audit.json, mode: ro}
+    - {source: config/m6_csi800_production_head30_entrypoint_recovery_scope_v1.json, target: /inputs/release.json, mode: ro}
+    - {source: data/control/m6_csi800_production_head30_v1/approval-r1.json, target: /inputs/approval.json, mode: ro}
+    - {source: data/research/m6_csi800_production_head30_v1/effect, target: /outputs, mode: rw}
+  auditor_mounts:
+    - {source: data/research/m6_csi800_production_head30_v1/effect, target: /outputs, mode: ro}
+    - {source: config/m6_csi800_production_head30_entrypoint_recovery_scope_v1.json, target: /inputs/release.json, mode: ro}
+    - {source: data/control/m6_csi800_production_head30_v1/approval-r1.json, target: /inputs/approval.json, mode: ro}
+    - {source: data/research/m6_csi800_production_head30_v1/effect-audit, target: /audit, mode: rw}
+  maximum_runner_resources: {cpus: 4, memory: 8g, pids: 192}
+  maximum_auditor_resources: {cpus: 2, memory: 4g, pids: 128}
+
+stop_condition:
+  stop_after_new_exact_release_scope_is_committed_and_pushed: true
+  explicit_user_authorization_of_new_exact_scope_required: true
+  original_scope_retry_forbidden: true
+  no_real_effect_or_qlib_read_before_new_approval: true
+  production_authorization: none
