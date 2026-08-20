@@ -6,6 +6,7 @@
 .PHONY: docker-m6-production-head30-audit-lineage-recovery-build docker-m6-production-head30-audit-lineage-recovery-fixture docker-m6-production-head30-audit-lineage-recovery-run
 .PHONY: docker-m6-production-head30-audit-hash-authority-recovery-build docker-m6-production-head30-audit-hash-authority-recovery-fixture docker-m6-production-head30-audit-hash-authority-recovery-run
 .PHONY: docker-m6-production-head30-audit-output-root-recovery-build docker-m6-production-head30-audit-output-root-recovery-fixture docker-m6-production-head30-audit-output-root-recovery-run
+.PHONY: docker-m6-head30-500k-feasibility-build docker-m6-head30-500k-feasibility-fixture
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -673,6 +674,11 @@ docker-m6-production-head30-audit-output-root-recovery-fixture: ## daemon断网�
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-audit-output-root-recovery.yaml --profile m6-production-head30-audit-output-root-recovery run --rm --no-deps m6-production-head30-audit-output-root-recovery-fixture
 docker-m6-production-head30-audit-output-root-recovery-run: ## 仅在R7精确scope获批后运行一次auditor-only恢复
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-audit-output-root-recovery.yaml --profile m6-production-head30-audit-output-root-recovery run --rm --no-deps m6-production-head30-audit-output-root-recovery
+docker-m6-head30-500k-feasibility-build: ## 构建M6-5A结果盲500k纯合成工程镜像
+	M6_HEAD30_500K_GIT_HEAD="$$(git rev-parse HEAD)"; SHAIWEI_M6_HEAD30_500K_GIT_HEAD="$$M6_HEAD30_500K_GIT_HEAD" docker compose -f compose.m6-head30-500k-feasibility.yaml --profile m6-head30-500k-feasibility build m6-head30-500k-feasibility-fixture
+docker-m6-head30-500k-feasibility-fixture: ## daemon断网运行500k费用、整手、现金、容量与裁决合成门
+	mkdir -p data/research/m6_csi800_production_head30_500k_feasibility_v1/fixture
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-head30-500k-feasibility.yaml --profile m6-head30-500k-feasibility run --rm --no-deps m6-head30-500k-feasibility-fixture
 docker-m6-top30-diagnostic-build: ## 构建原M6/失败M6-3C两套薄诊断镜像；不读取真实数据
 	@test -n "$(M6_TOP30_DIAGNOSTIC_GIT_HEAD)" || (echo "M6_TOP30_DIAGNOSTIC_GIT_HEAD is required"; exit 2)
 	SHAIWEI_M6_TOP30_DIAGNOSTIC_GIT_HEAD="$(M6_TOP30_DIAGNOSTIC_GIT_HEAD)" docker compose -f compose.m6-top30-diagnostic.yaml --profile m6-top30-diagnostic build m6-top30-diagnostic-original m6-top30-diagnostic-current
