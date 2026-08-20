@@ -4,6 +4,12 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-5A 50万元账户可行性结果盲工程门已GO：协议提交`5c7c58c`先于实现`53a198e`并均已推送；
+  独立模块机械实现paper-v1费用/整手、卖后买、现金、信号日前20日成交额中位数5%容量和冻结裁决门。
+  最终镜像`9b116f46...f427b5`由daemon断网、只读根fixture双跑同哈希，第二遍`reused=true`；专项7、
+  架构13、全仓1610 PASS。真实目标/价格/收益/Qlib读取0、拟合/预测0、新尝试0，scheduler未重启且
+  healthy、生产none。下一节点仅为M6-5B结果盲release工程；真实50万元回放仍须精确scope与用户授权。
+  见`docs/M6_CSI800_PRODUCTION_HEAD30_500K_FEASIBILITY_ENGINEERING_ACCEPTANCE_20260820.md`。
 - M6-4B-R7 scope `c08605ca...7b717`获精确批准并唯一完成auditor-only执行：完整R6-R2谱系、主结果
   精确身份、首遍/replay物理一致、独立`1e-12`容差和decision一致共17项实质检查全部PASS；当前
   独立SHA `1e7d00db...45d13`与历史SHA不同但仅作诊断。权威策略状态为
