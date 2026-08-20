@@ -11,6 +11,11 @@
   对照日报，不训练、不生成分数；唯一变量是完整生产转换器，原G0公式不变，一个新组合转换尝试。
 - 本节点仅授权纯转换器、合成/失败关闭测试和release scope准备；真实Qlib/封存预测值/收益读取、
   模拟仓或生产修改均未授权。未来必须由用户绑定新scope SHA精确批准一次runner+replay+独立audit。
+  首轮机器合同测试捕获M6主协议SHA转录错误；原协议不改写，结果盲hash addendum仅纠正该
+  身份且锁定问题/G0/权限/尝试数不变。
+- 结果盲工程预检已GO：独立`full_target`适配器覆盖确定性Head30、保留证券再平衡、10日节奏、
+  方向性成交与失败关闭；协议合同机械锁定权限/G0/一次尝试。真实runner/auditor/镜像/scope尚未
+  施工，真实预测/效果读取0、实验账本新增0。下一节点仅为M6-4B release工程。
   见`docs/PLATFORM_RESEARCH_REFOCUS_DECISION_20260820.md`与
   `docs/M6_CSI800_PRODUCTION_HEAD30_PROTOCOL_20260820.md`。
 

@@ -1,0 +1,19 @@
+schema_version: m6-csi800-production-head30-hash-addendum-v1
+addendum_id: m6-csi800-production-head30-hash-addendum-v1
+frozen_at: "2026-08-20T12:42:00+08:00"
+base_protocol:
+  path: config/m6_csi800_production_head30_v1.yaml
+  sha256: 16d2b92116864da01f6a734d3a4f17a5ac2f02d522dd17ef1048890eda8815fa
+correction:
+  field: predecessors.m6_result_protocol.sha256
+  recorded_value: 6c170d991df1ef75f18208837301b545fe50518c028a65c814d42567c02fe9
+  corrected_value: 6c170d991df1ef75f18208837301b545fe50518c028a65c814d425fc36d7a22a
+  reason: mechanical_sha256_transcription_error_found_by_pre_effect_contract_test
+  predecessor_content_changed: false
+  research_question_changed: false
+  converter_changed: false
+  g0_gate_changed: false
+  authority_changed: false
+  attempt_policy_changed: false
+effect_values_read_before_correction: false
+production_authorization: none

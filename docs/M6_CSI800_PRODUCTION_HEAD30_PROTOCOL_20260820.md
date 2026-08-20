@@ -8,6 +8,10 @@
 协议真身为 `config/m6_csi800_production_head30_v1.yaml`。冻结时未读取新的 Head30 收益、净值、
 换手或成本结果。
 
+协议推送后的首轮机器合同测试发现 `predecessors.m6_result_protocol.sha256` 有一处纯字符转录错误。
+原协议不改写；`config/m6_csi800_production_head30_hash_addendum_v1.yaml` 同时绑定原协议SHA、原错值
+和真实文件SHA，并声明问题、转换器、G0、权限和尝试数均不变。纠正发生在任何效果值读取前。
+
 ## 为什么把它视为一个变量
 
 生产转换器的业务含义是“把分数投影为完整目标持仓”。当目标名单变化时，它同时决定成员替换、
