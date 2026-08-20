@@ -1,0 +1,151 @@
+schema_version: m6-csi800-production-head30-release-protocol-v1
+protocol_id: m6-csi800-production-head30-release-v1
+frozen_at: "2026-08-20T14:20:00+08:00"
+stage: RESULT_BLIND_RELEASE_ENGINEERING_ONLY
+
+predecessors:
+  production_converter_protocol:
+    path: config/m6_csi800_production_head30_v1.yaml
+    sha256: 16d2b92116864da01f6a734d3a4f17a5ac2f02d522dd17ef1048890eda8815fa
+  production_converter_hash_addendum:
+    path: config/m6_csi800_production_head30_hash_addendum_v1.yaml
+    sha256: c80fa243f61732fbfbf4823e698967d522d571a53e908b55f3ef906268a28bc5
+  m6_real_release_scope:
+    path: config/m6_csi800_model_attribution_release_scope_v1.json
+    file_sha256: 3550046f8cb34a6b4ee33ae0655fbec377928d93a043b4c5e424caa98447779d
+    release_scope_sha256: 9b609f0764240ff3930a4aeaaf16cef9deb82579d2a5875f1be9e8c4ffb0b139
+  preserve_without_rewrite: true
+
+authority_before_exact_user_approval:
+  result_blind_implementation_authorized: true
+  synthetic_fixture_authorized: true
+  immutable_release_image_build_authorized: true
+  exact_release_scope_generation_authorized: true
+  dependency_build_network_only: true
+  sealed_effect_metadata_identity_read_authorized: true
+  sealed_effect_semantic_read_authorized: false
+  qlib_provider_mount_or_read_authorized: false
+  real_treatment_backtest_authorized: false
+  sealed_control_report_semantic_read_authorized: false
+  real_model_fit_authorized: false
+  real_prediction_generation_authorized: false
+  formal_effect_output_write_authorized: false
+  experiment_ledger_write_authorized: false
+  forward_signal_authorized: false
+  paper_portfolio_authorized: false
+  external_runtime_network_authorized: false
+  env_or_secret_read_authorized: false
+  scheduler_change_or_restart_authorized: false
+  production_authorization: none
+
+real_pipeline:
+  score_arm: clean_lgbm_control_v1
+  windows: [W1, W2, W3, W4, W5, W6]
+  input_prediction_source: sealed_m6_first_pass_and_replay_test_predictions
+  treatment_strategy: BiweeklyRankHeadEqualWeightStrategy
+  treatment_only_backtest_count_per_pass: 6
+  control_strategy_rerun_count: 0
+  control_source: sealed_m6_per_window_backtest_reports
+  model_fit_count: 0
+  prediction_generation_count: 0
+  changed_variable: portfolio_converter
+
+execution_semantics:
+  deterministic_rank: score_desc_instrument_asc
+  topk: 30
+  target_weight: 0.03333333333333333
+  target_investment_ratio: 1.0
+  target_refresh: replace_to_current_target_set_and_reweight_all_targets
+  rebalance_trade_days: 10
+  account_rmb: 100000000
+  benchmark: SH000906
+  deal_price: open
+  open_cost: 0.0006
+  close_cost: 0.0016
+  minimum_cost_rmb: 5
+  cost_multipliers: [1.0, 1.5, 2.0]
+
+decision_contract:
+  gate: unchanged_M6_G0
+  required_window_count: 6
+  minimum_positive_base_cost_excess_windows: 4
+  combined_1_5x_cost_cumulative_excess_minimum: 0.0
+  two_x_cost_is_diagnostic_only: true
+  control_delta_is_diagnostic_only: true
+  terminal_states: [VALIDATED_RESEARCH_SCALE, REJECTED_RESEARCH_SCALE, BLOCKED]
+  production_authorization_for_every_terminal_state: none
+
+execution_counting:
+  runner_invocation_count: 1
+  complete_internal_passes: [first_pass, replay]
+  independent_auditor_invocation_count: 1
+  new_portfolio_attempts_consumed_at_first_treatment_effect_read: 1
+  model_attempt_increment: 0
+  same_release_retry_authorized: false
+
+artifact_contract:
+  input_identity_checked_before_semantic_read: true
+  treatment_reports_per_pass: 6
+  control_reports_copied_into_outputs: false
+  pass_bundle_canonical_and_write_once: true
+  first_pass_replay_physical_identity_required: true
+  required_treatment_daily_columns:
+    [datetime, gross_return, benchmark_return, recorded_cost, turnover]
+  required_summary_diagnostics:
+    - per_window_cost_scenarios
+    - combined_cost_scenarios
+    - maximum_drawdown
+    - turnover_and_recorded_cost
+    - target_name_replacement_count
+    - retained_name_reweight_notional
+    - realized_position_count_and_cash_ratio
+    - control_vs_treatment_daily_active_return_delta
+  independent_auditor_must_not_import:
+    - shaiwei.research.production_conversion.execution
+    - shaiwei.research.production_conversion.metrics
+    - shaiwei.research.production_conversion.real_run
+  ignored_effect_root: data/research/m6_csi800_production_head30_v1/effect
+  ignored_audit_root: data/research/m6_csi800_production_head30_v1/effect-audit
+  tracked_release_scope: config/m6_csi800_production_head30_release_scope_v1.json
+  failed_evidence_preserved: true
+
+release_and_approval:
+  release_scope_kind: PRODUCTION_HEAD30_G0_RELEASE_READY_NOT_EXECUTION_APPROVAL
+  approval_action: M6_PRODUCTION_HEAD30_G0_EFFECT_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT
+  approval_must_bind_exact_release_scope_sha256: true
+  scope_drift_invalidates_approval: true
+  approval_record_path: data/control/m6_csi800_production_head30_v1/approval.json
+  approval_record_git_ignored: true
+
+docker:
+  compose_file: compose.m6-production-head30-release.yaml
+  image: shaiwei:m6-production-head30-release-v1
+  runtime_network_mode: none
+  read_only_root: true
+  run_as_non_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  env_file_mounted: false
+  docker_socket_mounted: false
+  full_project_root_mounted: false
+  production_ledger_mounted: false
+  runner_mounts:
+    - {source: data/qlib_bin, target: /qlib, mode: ro}
+    - {source: data/research/m6_csi800_model_attribution_v1/effect, target: /m6-effect, mode: ro}
+    - {source: data/research/m6_csi800_model_attribution_v1/effect-audit/audit.json, target: /inputs/m6-audit.json, mode: ro}
+    - {source: config/m6_csi800_production_head30_release_scope_v1.json, target: /inputs/release.json, mode: ro}
+    - {source: data/control/m6_csi800_production_head30_v1/approval.json, target: /inputs/approval.json, mode: ro}
+    - {source: data/research/m6_csi800_production_head30_v1/effect, target: /outputs, mode: rw}
+  auditor_mounts:
+    - {source: data/research/m6_csi800_production_head30_v1/effect, target: /outputs, mode: ro}
+    - {source: config/m6_csi800_production_head30_release_scope_v1.json, target: /inputs/release.json, mode: ro}
+    - {source: data/control/m6_csi800_production_head30_v1/approval.json, target: /inputs/approval.json, mode: ro}
+    - {source: data/research/m6_csi800_production_head30_v1/effect-audit, target: /audit, mode: rw}
+  maximum_runner_resources: {cpus: 4, memory: 8g, pids: 192}
+  maximum_auditor_resources: {cpus: 2, memory: 4g, pids: 128}
+
+stop_condition:
+  stop_after_exact_release_scope_is_committed_and_pushed: true
+  explicit_user_authorization_of_exact_scope_required: true
+  no_real_effect_or_qlib_read_before_approval: true
+  production_authorization: none
