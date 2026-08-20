@@ -119,3 +119,10 @@ def test_new_production_modules_remain_bounded() -> None:
     ]
     for name in names:
         assert len((root / name).read_text().splitlines()) <= 400, name
+
+
+def test_release_image_includes_frozen_paper_policy() -> None:
+    dockerfile = (ROOT / "Dockerfile").read_text()
+    assert "COPY docs/PAPER_EXECUTION_POLICY_V1.md ./docs/PAPER_EXECUTION_POLICY_V1.md" in dockerfile
+    from shaiwei.provenance import CONTROLLED_FILES
+    assert "docs/PAPER_EXECUTION_POLICY_V1.md" in CONTROLLED_FILES
