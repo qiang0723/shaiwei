@@ -1,0 +1,129 @@
+schema_version: m6-production-head30-audit-lineage-entry-recovery-protocol-v1
+recovery_id: m6-csi800-production-head30-audit-lineage-entry-recovery-v1
+frozen_at: "2026-08-20T18:41:42+08:00"
+status: FROZEN_AFTER_R4_LINEAGE_FILE_FAILURE_BEFORE_R5_IMPLEMENTATION
+production_authorization: none
+
+objective:
+  recover_exactly_one_independent_audit_of_the_existing_r2_effect_tree: true
+  change_only_r3_protocol_delivery_into_the_container: true
+  research_question_or_result_change: false
+  audit_semantics_change: false
+  runner_or_effect_recomputation: false
+  additional_portfolio_attempt_count: 0
+
+r4_authority:
+  protocol_path: config/m6_csi800_production_head30_audit_entrypoint_recovery_v1.yaml
+  protocol_sha256: 5f82479c1a799cea1c451a23e0a2ea948c8abdd916a2501e28b604af9892cd0e
+  release_scope_path: config/m6_csi800_production_head30_audit_entrypoint_recovery_scope_v1.json
+  release_scope_sha256: d07daefb27918286f8efa712e60dd6d21482c75b71f7677bd634b85b61c3bd71
+  release_document_sha256: b51abde30b00222600c621e5b4a83dd77695e53008be29de3748083fe739bef1
+  approval_action: M6_PRODUCTION_HEAD30_AUDIT_ENTRYPOINT_RECOVERY_ONCE
+  approval_sha256: 9d94a709dce4d250319399b968d0a54cbe46dda3accf283f6d5f29203e80a31e
+  image_reference: shaiwei:m6-production-head30-audit-entrypoint-recovery-v1
+  image_id: sha256:27dadcefa5f445ced646ef9bca013c1487715ed6947213aab991bc05e3d49fb4
+  implementation_git_commit: ace34dbb93b9759df4e5c3e7d1373b24d42a6c51
+  contract_sha256: 9dde7221c43b750bc7f98f6ca347edeabd0ec39df15d7e414564c3f47bcfc745
+  entrypoint_sha256: 6128ad9cc7923997b514e730a5f1191818623e7befaec135566e1e34149aae52
+
+r4_execution_failure:
+  evidence_path: config/m6_csi800_production_head30_audit_entrypoint_recovery_execution_failure_v1.json
+  evidence_sha256: 923738bed05629af82aeb82fbd73bc47bcd65390a5050eb44dff2dee5f1e57de
+  auditor_invocation_count: 1
+  container_created: true
+  effect_semantics_read: false
+  audit_output_file_count: 0
+  runner_invocation_count: 0
+  additional_portfolio_attempt_count: 0
+  same_r4_scope_retry_authorized: false
+  error_type: FileNotFoundError
+
+root_cause_and_only_change:
+  missing_path: /workspace/config/m6_csi800_production_head30_audit_identity_recovery_v1.yaml
+  r4_base_workspace_does_not_contain_r3_protocol: true
+  r3_protocol_source_path: config/m6_csi800_production_head30_audit_identity_recovery_v1.yaml
+  r3_protocol_sha256: 60e36c6ebedcf9051561f6fc823866787a982dac79651e24c40bfb39c2f8d2e2
+  r3_protocol_container_path: /inputs/r3-protocol.yaml
+  r3_protocol_read_only_mount_is_the_only_runtime_input_change: true
+  r3_protocol_loader_accepts_explicit_path_without_allowlist_change: true
+  original_r2_protocol_path_remains: /workspace/config/m6_csi800_production_head30_price_recovery_v1.yaml
+  original_r2_protocol_sha256: 6e4fc89c5c02db862681866e96d1e8063e6b6bc2a6bb58c3cfc08819ba327a6e
+
+sealed_r2_effect:
+  effect_root: data/research/m6_csi800_production_head30_v1/effect-r2
+  recovery_audit_root: data/research/m6_csi800_production_head30_v1/effect-r2-audit-lineage-entry-recovery
+  file_count: 5
+  total_bytes: 1191570
+  tree_sha256: d3d84d104968bf01f88312bd665060f2e57727145e4064697b4753bd6fc545c1
+  authorization_sha256: 6899740f95422b49166a35caa7ec7eeca780a4a067b06876e50c6bbaa9a63bb9
+  treatment_effect_started_sha256: a83d15a727fcb3d29ff1230bcba7150576af0cb83cc5de3cd24d28e368440916
+  first_pass_bundle_sha256: 389c1770811a77d043b0ab2914740ac1e9c7a8c7f2e6694641a8ed28b8492ec2
+  replay_bundle_sha256: 389c1770811a77d043b0ab2914740ac1e9c7a8c7f2e6694641a8ed28b8492ec2
+  report_sha256: 79c674444dce99c8dd4e51933feac8f55360ea2c87c16950c2ef4c422c224d3a
+  primary_result_sha256: 42a60f59c7302990f57ac85a0f03d5efafaa684f05540c813661b75f12ade7a1
+  primary_decision: VALIDATED_RESEARCH_SCALE
+  family_portfolio_attempts_consumed: 2
+
+inherited_audit_semantics:
+  source_r3_protocol_sha256: 60e36c6ebedcf9051561f6fc823866787a982dac79651e24c40bfb39c2f8d2e2
+  source_r3_contract_sha256: 1586afcf64a8527dc7abe9c3a18ddb37dfe43773f632690847e86ab73dde6cba
+  source_r3_entrypoint_sha256: 3c88b97301888501f1ca5211a02d9578b1b825ec3130784004258a376776e563
+  main_artifact_identity_requires_exact_physical_and_canonical_hashes: true
+  independent_reconstruction_implementation: existing_audit_statistics_independently_evaluate
+  independent_relative_tolerance: 1.0e-12
+  independent_absolute_tolerance: 1.0e-12
+  independent_exact_canonical_sha_equality_with_primary_required: false
+  report_primary_and_independent_decisions_must_match_exactly: true
+  production_authorization_must_equal_none: true
+
+daemon_preflight_requirements:
+  final_image_and_compose_service_required: true
+  same_preflight_function_as_real_entrypoint_required: true
+  r5_protocol_r3_protocol_r3_release_r4_failure_r2_release_and_r2_approval_required: true
+  exact_container_paths_and_hashes_required: true
+  effect_mount_forbidden: true
+  effect_semantics_read: false
+  audit_invoked: false
+  network_mode: none
+
+release_requirements:
+  scope_kind: PRODUCTION_HEAD30_AUDIT_LINEAGE_ENTRY_RECOVERY_READY_NOT_EXECUTION_APPROVAL
+  approval_action: M6_PRODUCTION_HEAD30_AUDIT_LINEAGE_ENTRY_RECOVERY_ONCE
+  implementation_and_scope_committed_and_pushed_before_execution: true
+  network_mode: none
+  qlib_mount: false
+  effect_mount: ro
+  recovery_audit_mount: rw
+  full_project_root_mount: false
+  env_or_secret_mount: false
+  docker_socket_mount: false
+  production_ledger_mount: false
+  run_as_non_root: true
+  read_only_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  cpus: 2
+  memory: 4g
+  pids_limit: 128
+
+required_sequence:
+  - commit_and_push_this_protocol_before_implementation
+  - implement_thin_r3_protocol_delivery_and_full_pre_effect_preflight
+  - commit_and_push_implementation_before_building_the_final_image
+  - run_final_image_daemon_fixture_with_the_same_lineage_preflight_as_real_entrypoint
+  - bind_exact_image_fixture_scope_and_sealed_effect_hashes_without_effect_semantic_read
+  - stop_and_require_explicit_user_approval_of_the_full_r5_scope_sha256
+  - on_approval_invoke_exactly_one_auditor_only_process
+  - require_effect_tree_before_after_identity_and_recovery_audit_pass
+
+forbidden:
+  - rerun_r2_r3_or_r4_scope
+  - modify_r3_audit_semantics_or_r2_effect
+  - change_release_protocol_allowlists
+  - initialize_or_mount_qlib
+  - train_predict_or_backtest
+  - change_g0_or_any_strategy_semantic
+  - additional_portfolio_attempt
+  - experiment_ledger_write
+  - forward_signal_paper_portfolio_web_or_production_access
+  - network_secret_scheduler_restart_or_other_project_access
