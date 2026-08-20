@@ -1,0 +1,196 @@
+schema_version: m6-csi800-production-head30-500k-release-protocol-v1
+protocol_id: m6-csi800-production-head30-500k-release-v1
+frozen_at: "2026-08-20T20:38:00+08:00"
+stage: RESULT_BLIND_RELEASE_ENGINEERING_ONLY
+production_authorization: none
+
+objective:
+  question: >-
+    在不改变生产Head30目标、排名、调仓日或信号时钟的前提下，使用同一套paper-v1账户引擎、
+    500,000元现金、整数股、最低佣金、公司行为、开盘可成交性和信号日前容量约束，判断封存的
+    六窗口Head30在个人账户尺度是否同时满足资金可执行性与历史效果保持门。
+  single_variable: capital_execution_envelope_100m_to_500k_paper_v1
+  parameter_search: false
+  model_fit: false
+  prediction_generation: false
+  target_regeneration: false
+  strategy_or_factor_search: false
+
+predecessors:
+  feasibility_protocol:
+    path: config/m6_csi800_production_head30_500k_feasibility_v1.yaml
+    sha256: 14ece6a7e50ca40e6e397db706ad589b2d339c6a58c15d3e864d1b978b89d98c
+    engineering_verdict: GO_ENGINEERING_ONLY
+  r7_execution_acceptance:
+    path: config/m6_csi800_production_head30_audit_output_root_recovery_execution_v1.json
+    sha256: 29942f16a8a2c35b8275cd164060a338d574dd7a2d38f627a6a6eb09ba686630
+    strategy_effective: VALIDATED_RESEARCH_SCALE
+  r2_release_scope:
+    path: config/m6_csi800_production_head30_price_recovery_scope_v1.json
+    sha256: 166bd54bfc768929905795a86429ad4233c4bf96c7ceef0dcc232e542d08a663
+  sealed_r2_effect:
+    root: data/research/m6_csi800_production_head30_v1/effect-r2
+    file_count: 5
+    total_bytes: 1191570
+    tree_sha256: d3d84d104968bf01f88312bd665060f2e57727145e4064697b4753bd6fc545c1
+    first_replay_bundle_sha256: 389c1770811a77d043b0ab2914740ac1e9c7a8c7f2e6694641a8ed28b8492ec2
+    report_sha256: 79c674444dce99c8dd4e51933feac8f55360ea2c87c16950c2ef4c422c224d3a
+    independent_audit_sha256: b5747321b478d63bf7d9c264e3af0e18337174af4b94f586acd94219262ec81a
+
+authoritative_reuse:
+  target_source: sealed_r2_first_pass_and_replay_rebalance_targets
+  exact_target_order_required: true
+  first_pass_replay_target_identity_required: true
+  windows: [W1, W2, W3, W4, W5, W6]
+  rebalance_dates_must_equal_r2: true
+  target_count_each_rebalance: 30
+  target_weight_each: 0.03333333333333333
+  benchmark: 000906.SH
+  paper_policy:
+    document_path: docs/PAPER_EXECUTION_POLICY_V1.md
+    document_sha256: e1b9b83c6f406c91941ce4c5f723287f23f5f6697a4d232ef78cdf8b439146a4
+    engine_path: src/shaiwei/paper/engine.py
+    engine_sha256_at_freeze: 44e64d1a776973b0eb5b9ba5ce6d8a7d103a7e8a20aaeb172929c7ca4b1d6b94
+    required_entrypoint: shaiwei.paper.engine.execute_day
+    duplicate_accounting_implementation_forbidden: true
+
+raw_evidence_contract:
+  ledger_role: metadata_index_for_exact_immutable_batches
+  batch_payloads_are_read_only: true
+  required_source_apis:
+    - tushare.daily
+    - tushare.index_daily
+    - tushare.stock_basic
+    - tushare.namechange
+    - tushare.suspend_d
+    - tushare.dividend
+    - tushare.trade_cal
+  exact_batch_manifest_frozen_in_release_scope: true
+  each_selected_batch_hash_and_row_count_reverified_before_semantic_read: true
+  current_or_future_ledger_rows_outside_manifest_ignored: true
+  beijing_rows_forbidden: true
+  network_fetch_authorized: false
+  env_or_secret_read_authorized: false
+
+execution_contract:
+  initial_cash_each_window_rmb: 500000
+  execution_entrypoint: shaiwei.paper.engine.execute_day
+  signal_clock: prior_trade_day_close
+  execution_clock: next_trade_day_open
+  every_window_resets_state: true
+  every_trade_day_valued: true
+  rebalance_only_on_exact_r2_rebalance_dates: true
+  sell_before_buy: true
+  target_rank_order: sealed_r2_target_list_order
+  paper_engine_corporate_actions_enabled: true
+  cash_overdraft_forbidden: true
+  missing_or_invalid_required_evidence: BLOCKED
+  no_order_carry_forward: true
+  no_partial_capacity_fill: true
+  accounting_tolerance_rmb: 0.01
+  capacity:
+    statistic: median
+    reference: signal_date_trailing_20_valid_daily_amounts_excluding_signal_date
+    minimum_valid_observations: 15
+    maximum_order_notional_fraction: 0.05
+    execution_day_amount_forbidden: true
+    above_capacity_decision: CAPITAL_INFEASIBLE
+
+effect_contract:
+  executable_daily_return: current_net_asset_divided_by_prior_net_asset_minus_one
+  benchmark_daily_return: csi800_close_to_close_return
+  window_net_excess: executable_final_nav_divided_by_benchmark_final_nav_minus_one
+  combined_1_5x_cost: >-
+    replay each executed fee component at 1.5x from the same fills and cash path; no fee-free or linear shortcut
+  ideal_reference: sealed_r2_first_pass_base_cost_treatment_daily
+  executable_to_ideal_pooled_nav_ratio: >-
+    product_of_six_executable_final_navs_divided_by_product_of_six_r2_ideal_final_navs
+  two_x_cost: diagnostic_only
+  no_post_result_threshold_change: true
+
+hard_gates:
+  all_six_windows_complete: true
+  target_and_rebalance_identity_exact: true
+  duplicate_or_bj_count: 0
+  accounting_violation_count: 0
+  negative_cash_count: 0
+  invalid_lot_fill_count: 0
+  capacity_violation_count: 0
+  median_realized_position_count_minimum: 24
+  minimum_post_rebalance_position_count: 20
+  median_post_rebalance_cash_ratio_maximum: 0.20
+  maximum_post_rebalance_cash_ratio: 0.35
+  median_post_rebalance_target_l1_error_maximum: 0.30
+  maximum_post_rebalance_target_l1_error: 0.50
+  below_minimum_lot_rejection_fraction_maximum: 0.20
+  positive_base_cost_net_excess_windows_minimum: 4
+  combined_1_5x_cost_cumulative_net_excess_minimum_exclusive: 0.0
+  executable_to_ideal_pooled_nav_ratio_minimum: 0.95
+
+artifact_contract:
+  effect_root: data/research/m6_csi800_production_head30_500k_feasibility_v1/effect
+  audit_root: data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-audit
+  approval_path: data/control/m6_csi800_production_head30_500k_feasibility_v1/approval.json
+  raw_manifest_path: data/control/m6_csi800_production_head30_500k_feasibility_v1/raw-batch-manifest.json
+  create_host_path: false
+  write_once: true
+  experiment_ledger_write_authorized: false
+
+execution_counting:
+  runner_invocation_count: 1
+  complete_internal_passes: [first_pass, replay]
+  independent_auditor_invocation_count: 1
+  family_attempts_before_run: 0
+  new_attempts_consumed_at_first_real_target_price_or_effect_read: 1
+  total_family_attempts_after_read: 1
+  same_scope_retry_authorized: false
+
+release_and_approval:
+  image: shaiwei:m6-head30-500k-release-v1
+  approval_action: M6_HEAD30_500K_FEASIBILITY_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT
+  exact_scope_sha256_required: true
+  approval_must_be_write_once: true
+  approval_created_after_scope: true
+
+authority_before_exact_user_approval:
+  release_engineering_authorized: true
+  metadata_only_raw_manifest_authorized: true
+  synthetic_fixture_authorized: true
+  sealed_r2_semantic_read_authorized: false
+  raw_market_value_read_authorized: false
+  runner_authorized: false
+  independent_auditor_authorized: false
+  formal_effect_output_write_authorized: false
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  model_fit_authorized: false
+  prediction_generation_authorized: false
+  experiment_ledger_write_authorized: false
+  forward_signal_authorized: false
+  paper_portfolio_write_authorized: false
+  web_change_authorized: false
+  scheduler_change_or_restart_authorized: false
+  production_authorization: none
+
+independent_audit_contract:
+  no_raw_or_r2_input_mount: true
+  no_primary_runner_or_primary_metric_import: true
+  artifact_file_set_exact: true
+  first_pass_replay_physical_identity: true
+  input_release_approval_identity_exact: true
+  target_and_rebalance_identity_recomputed_from_artifacts: true
+  accounting_and_gate_metrics_independently_recomputed: true
+  numeric_tolerance: 1.0e-12
+  decision_exact: true
+  production_authorization: none
+
+decisions:
+  BLOCKED: incomplete_identity_input_execution_replay_or_audit
+  CAPITAL_FEASIBLE_RESEARCH_ONLY: every_frozen_gate_passes
+  CAPITAL_INFEASIBLE: evidence_complete_and_any_frozen_gate_fails
+  production_authorization_for_every_decision: none
+
+stop_condition:
+  stop_after_release_scope_is_frozen_and_pushed: true
+  exact_user_approval_required_before_real_run: true
+  same_scope_retry_authorized: false
