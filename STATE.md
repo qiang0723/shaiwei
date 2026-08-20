@@ -4,6 +4,13 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-5B恢复版发布工程已GO：schema检查意外打印一个W1调仓目标数组，按冻结合同显式计为家族第1次
+  尝试；价格/收益/效果仍未读取，原v1保留但禁执行，恢复协议提交`d65ec19`先行推送。真实路径直接
+  复用`paper.engine.execute_day`，固定21,815个不可变原始批次并逐文件核哈希/行数；runner断网
+  first/replay，auditor无R2/raw挂载且独立重算。最终镜像`1f2a6daf...59b86`经daemon纯合成fixture
+  PASS，精确scope为`62f88802...7570d`；scheduler原容器healthy、生产none。下一步只能由用户绑定
+  scope与恢复动作批准一次真实50万元回放，新增1次、家族累计2次，同scope不得重跑。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_500K_RELEASE_ENGINEERING_ACCEPTANCE_20260820.md`。
 - M6-5A 50万元账户可行性结果盲工程门已GO：协议提交`5c7c58c`先于实现`53a198e`并均已推送；
   独立模块机械实现paper-v1费用/整手、卖后买、现金、信号日前20日成交额中位数5%容量和冻结裁决门。
   最终镜像`9b116f46...f427b5`由daemon断网、只读根fixture双跑同哈希，第二遍`reused=true`；专项7、
