@@ -1,0 +1,109 @@
+schema_version: m6-head30-500k-entrypoint-recovery-protocol-v1
+protocol_id: m6-csi800-production-head30-500k-entrypoint-recovery-v1
+frozen_at: "2026-08-20T22:15:00+08:00"
+stage: RESULT_BLIND_ENTRYPOINT_RECOVERY_ONLY
+
+predecessors:
+  base_release_protocol:
+    path: config/m6_csi800_production_head30_500k_release_v1.yaml
+    sha256: 9bc970913b997ac50beed3ae86afece3ea20b60948607006d3b4ffb8a4bfaa5e
+  target_read_recovery_protocol:
+    path: config/m6_csi800_production_head30_500k_target_read_recovery_v1.yaml
+    sha256: f57987f60c757698db69dce2c605bb88d1619c151a9daa3cc26474f325c8bf0f
+  failed_release_scope:
+    path: config/m6_csi800_production_head30_500k_release_scope_v1.json
+    file_sha256: 697169f05c4df78a08fcd07722ff40bc176874d9738e734271cfd44038c933c9
+    release_scope_sha256: 62f88802a8812a8ce87facd4a149c99b26fc0329497983d62cfc27d215c7570d
+  failed_approval_sha256: f79bea0b0a85d4b527e4315b88ec2ffbd6ca25594f3301d90ad6ae197120d042
+  entrypoint_failure_evidence:
+    path: config/m6_csi800_production_head30_500k_entrypoint_failure_v1.json
+    sha256: 289f21b04e6501d26126d2aee84d2a4fce086479c61899927a278e43fdbb6f6a
+  preserve_without_rewrite: true
+
+failure_ruling:
+  failed_scope_permanently_closed: true
+  runner_function_entered: false
+  auditor_invoked: false
+  real_target_read: false
+  real_price_or_effect_read: false
+  effect_artifact_file_count: 0
+  audit_artifact_file_count: 0
+  new_semantic_attempts_consumed: 0
+  family_attempts_before_future_authorized_run: 1
+  total_family_attempts_after_future_authorized_run: 2
+
+recovery_change:
+  only_changed_variable: runner_and_auditor_cli_argument_mapping
+  runner_mapping:
+    release: release_path
+    approval: approval_path
+    r2_root: r2_root
+    r7_audit: r7_audit
+    raw_manifest: raw_manifest
+    project_root: project_root
+    output_root: output_root
+  auditor_mapping:
+    release: release_path
+    approval: approval_path
+    effect_root: effect_root
+    audit_root: audit_root
+  direct_domain_functions_changed: false
+  strategy_formula_changed: false
+  paper_execution_policy_changed: false
+  input_identity_changed: false
+  decision_contract_changed: false
+  result_semantic_read_before_new_approval: false
+  required_final_image_fixture:
+    runner_cli_parsing_and_mapping_with_synthetic_inputs: true
+    auditor_cli_parsing_and_mapping_with_synthetic_effect: true
+    internal_replay_and_independent_audit: true
+    network_mode: none
+
+authority_before_exact_user_approval:
+  result_blind_implementation_authorized: true
+  synthetic_cli_fixture_authorized: true
+  daemon_container_creation_fixture_authorized: true
+  immutable_release_image_build_authorized: true
+  exact_release_scope_generation_authorized: true
+  sealed_input_metadata_identity_read_authorized: true
+  sealed_r2_semantic_read_authorized: false
+  raw_market_value_read_authorized: false
+  formal_effect_output_write_authorized: false
+  independent_real_audit_authorized: false
+  model_fit_authorized: false
+  prediction_generation_authorized: false
+  experiment_ledger_write_authorized: false
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  forward_signal_authorized: false
+  paper_portfolio_write_authorized: false
+  web_change_authorized: false
+  scheduler_change_or_restart_authorized: false
+  production_authorization: none
+
+execution_counting:
+  runner_invocation_count: 1
+  complete_internal_passes: [first_pass, replay]
+  independent_auditor_invocation_count: 1
+  family_attempts_before_run: 1
+  new_attempts_consumed_at_first_real_target_price_or_effect_read: 1
+  total_family_attempts_after_run: 2
+  same_recovery_scope_retry_authorized: false
+
+release_and_approval:
+  release_scope_kind: HEAD30_500K_ENTRYPOINT_RECOVERY_RELEASE_READY_NOT_EXECUTION_APPROVAL
+  approval_action: M6_HEAD30_500K_FEASIBILITY_ENTRYPOINT_RECOVERY_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT
+  image: shaiwei:m6-head30-500k-entrypoint-recovery-v1
+  tracked_release_scope: config/m6_csi800_production_head30_500k_entrypoint_recovery_scope_v1.json
+  approval_record_path: data/control/m6_csi800_production_head30_500k_feasibility_v1/approval-r1.json
+  effect_root: data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-r1
+  audit_root: data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-r1-audit
+  approval_must_bind_exact_release_scope_sha256: true
+  scope_drift_invalidates_approval: true
+
+stop_condition:
+  stop_after_new_exact_release_scope_is_committed_and_pushed: true
+  explicit_user_authorization_of_new_exact_scope_required: true
+  failed_scope_retry_forbidden: true
+  no_real_semantic_read_before_new_approval: true
+  production_authorization: none

@@ -4,6 +4,13 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-5B scope `62f88802...7570d`获批后唯一启动，但在进入`run()`前因CLI把`release`直接展开给
+  要求`release_path`的函数而失败；effect/audit均0文件、封存目标/价格/收益/效果未读、auditor未
+  启动、新语义尝试0，家族累计仍1，scheduler原容器healthy、生产none。原scope永久关闭不得重跑。
+  已结果盲冻结M6-5B-R1入口恢复协议，只允许显式修正runner/auditor参数映射并要求最终镜像用合成
+  输入穿过两个真实CLI；新镜像/输出根/scope完成后须再次精确授权。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_500K_ENTRYPOINT_FAILURE_20260820.md`与
+  `docs/M6_CSI800_PRODUCTION_HEAD30_500K_ENTRYPOINT_RECOVERY_PROTOCOL_20260820.md`。
 - M6-5B恢复版发布工程已GO：schema检查意外打印一个W1调仓目标数组，按冻结合同显式计为家族第1次
   尝试；价格/收益/效果仍未读取，原v1保留但禁执行，恢复协议提交`d65ec19`先行推送。真实路径直接
   复用`paper.engine.execute_day`，固定21,815个不可变原始批次并逐文件核哈希/行数；runner断网
