@@ -4,6 +4,13 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-4B-R2零效果读取恢复工程已GO：先行冻结提交`eb1d7c3`，仅把空/非法成交价规范化为缺失并进入
+  既有持仓价格回退，二级无效明确失败关闭；没有新增价格源或改变策略。版本化运行profile独立拆分，
+  主合同368行；专项39、架构13、全仓1537 PASS。不可变镜像`a6544af...64b29`经daemon纯合成
+  fixture双跑与独立重建PASS；新输出根为空，R1三产物哈希不变。精确scope为
+  `9b78ef69...f9b4a`，真实效果/R2尝试0、生产none；下一步只能由用户绑定该scope批准唯一runner+
+  replay+独立audit，同scope不得重跑。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_PRICE_RECOVERY_ENGINEERING_ACCEPTANCE_20260820.md`。
 - M6-4B-R1 scope `ea648bda...83d2c`获精确批准并唯一运行：容器成功创建，真实处理臂开始读取，
   1个组合转换尝试已消费；首遍在2024-07-04处理`SZ002505`时成交价接口返回空值，`full_target`
   在进入既有持仓价格回退前对`None`转浮点而失败关闭。无完整首遍/replay/report，独立audit未启动，策略仍
