@@ -74,7 +74,7 @@ def build_release_document(
             "runner": {"service": protocol.runner_service, "command": protocol.runner_command, "cpus": 4, "memory": "8g", "pids_limit": 192, "mounts": [dict(row) for row in docker["runner_mounts"]]},
             "auditor": {"service": protocol.auditor_service, "command": protocol.auditor_command, "cpus": 2, "memory": "4g", "pids_limit": 128, "mounts": [dict(row) for row in docker["auditor_mounts"]]},
         },
-        "outputs": {"effect_root": "data/research/m6_csi800_production_head30_v1/effect", "audit_root": "data/research/m6_csi800_production_head30_v1/effect-audit", "experiment_ledger_write_authorized": False},
+        "outputs": protocol.output_roots,
         "authority": expected_authority(),
     }
     validate_scope(scope, protocol)

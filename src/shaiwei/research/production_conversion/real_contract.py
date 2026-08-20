@@ -22,40 +22,29 @@ from shaiwei.research.production_conversion.contract import (
 from shaiwei.research.production_conversion.recovery_validation import (
     validate_entrypoint_recovery_protocol,
 )
+from shaiwei.research.production_conversion.price_recovery_validation import (
+    validate_price_recovery_protocol,
+)
+from shaiwei.research.production_conversion.runtime_profiles import (
+    BASE_PROFILE,
+    RuntimeProfile,
+    runtime_profile,
+)
 
 
 RELEASE_PROTOCOL = PROJECT_ROOT / "config/m6_csi800_production_head30_release_v1.yaml"
 ENTRYPOINT_RECOVERY_PROTOCOL = (
     PROJECT_ROOT / "config/m6_csi800_production_head30_entrypoint_recovery_v1.yaml"
 )
+PRICE_RECOVERY_PROTOCOL = (
+    PROJECT_ROOT / "config/m6_csi800_production_head30_price_recovery_v1.yaml"
+)
 ORIGINAL_M6_SCOPE = PROJECT_ROOT / "config/m6_csi800_model_attribution_release_scope_v1.json"
 SCOPE_SCHEMA = "m6-production-head30-release-scope-v1"
 SCOPE_KIND = "PRODUCTION_HEAD30_G0_RELEASE_READY_NOT_EXECUTION_APPROVAL"
 IMAGE = "shaiwei:m6-production-head30-release-v1"
-RUNNER_COMMAND = [
-    "python", "-m", "shaiwei.research.production_conversion.real_run",
-    "--release", "/inputs/release.json", "--approval", "/inputs/approval.json",
-    "--provider-root", "/qlib", "--m6-effect-root", "/m6-effect",
-    "--m6-audit", "/inputs/m6-audit.json", "--output-root", "/outputs",
-]
-AUDITOR_COMMAND = [
-    "python", "-m", "shaiwei.research.production_conversion.real_audit",
-    "--release", "/inputs/release.json", "--approval", "/inputs/approval.json",
-    "--effect-root", "/outputs", "--audit-root", "/audit",
-]
-RECOVERY_RUNNER_COMMAND = [
-    "python", "-m", "shaiwei.research.production_conversion.real_run",
-    "--protocol", "/workspace/config/m6_csi800_production_head30_entrypoint_recovery_v1.yaml",
-    "--release", "/inputs/release.json", "--approval", "/inputs/approval.json",
-    "--provider-root", "/qlib", "--m6-effect-root", "/m6-effect",
-    "--m6-audit", "/inputs/m6-audit.json", "--output-root", "/outputs",
-]
-RECOVERY_AUDITOR_COMMAND = [
-    "python", "-m", "shaiwei.research.production_conversion.real_audit",
-    "--protocol", "/workspace/config/m6_csi800_production_head30_entrypoint_recovery_v1.yaml",
-    "--release", "/inputs/release.json", "--approval", "/inputs/approval.json",
-    "--effect-root", "/outputs", "--audit-root", "/audit",
-]
+RUNNER_COMMAND = list(BASE_PROFILE.runner_command)
+AUDITOR_COMMAND = list(BASE_PROFILE.auditor_command)
 
 
 def mapping(path: Path, *, yaml_document: bool = False) -> dict[str, Any]:
@@ -100,7 +89,11 @@ class ReleaseProtocol:
     @classmethod
     def load(cls, path: Path | None = None) -> "ReleaseProtocol":
         path = (path or RELEASE_PROTOCOL).resolve()
-        if path not in {RELEASE_PROTOCOL.resolve(), ENTRYPOINT_RECOVERY_PROTOCOL.resolve()}:
+        if path not in {
+            RELEASE_PROTOCOL.resolve(),
+            ENTRYPOINT_RECOVERY_PROTOCOL.resolve(),
+            PRICE_RECOVERY_PROTOCOL.resolve(),
+        }:
             raise ProtocolError("production-converter release protocol path is not allowed")
         base = Protocol.load()
         document = mapping(path, yaml_document=True)
@@ -110,6 +103,9 @@ class ReleaseProtocol:
             "m6-csi800-production-head30-entrypoint-recovery-v1": (
                 "RESULT_BLIND_ENTRYPOINT_RECOVERY_ONLY"
             ),
+            "m6-csi800-production-head30-price-recovery-v1": (
+                "RESULT_BLIND_PRICE_RECOVERY_ONLY"
+            ),
         }
         if protocol_id not in allowed:
             raise ProtocolError("production-converter release identity differs")
@@ -117,6 +113,10 @@ class ReleaseProtocol:
             raise ProtocolError("production-converter release stage differs")
         if protocol_id.endswith("entrypoint-recovery-v1"):
             validate_entrypoint_recovery_protocol(document, PROJECT_ROOT)
+            cls._validate_preapproval_authority(document)
+            return cls(path, document, sha256_file(path), base)
+        if protocol_id.endswith("price-recovery-v1"):
+            validate_price_recovery_protocol(document, PROJECT_ROOT)
             cls._validate_preapproval_authority(document)
             return cls(path, document, sha256_file(path), base)
         predecessors = document.get("predecessors", {})
@@ -157,7 +157,13 @@ class ReleaseProtocol:
 
     @property
     def is_recovery(self) -> bool:
-        return self.document["protocol_id"].endswith("entrypoint-recovery-v1")
+        return self.document["protocol_id"].endswith(
+            ("entrypoint-recovery-v1", "price-recovery-v1")
+        )
+
+    @property
+    def is_price_recovery(self) -> bool:
+        return self.document["protocol_id"].endswith("price-recovery-v1")
 
     @property
     def scope_kind(self) -> str:
@@ -172,28 +178,24 @@ class ReleaseProtocol:
         return str(self.document["docker"]["image"])
 
     @property
+    def runtime_profile(self) -> RuntimeProfile:
+        return runtime_profile(str(self.document["protocol_id"]))
+
+    @property
     def runner_command(self) -> list[str]:
-        return list(RECOVERY_RUNNER_COMMAND if self.is_recovery else RUNNER_COMMAND)
+        return list(self.runtime_profile.runner_command)
 
     @property
     def auditor_command(self) -> list[str]:
-        return list(RECOVERY_AUDITOR_COMMAND if self.is_recovery else AUDITOR_COMMAND)
+        return list(self.runtime_profile.auditor_command)
 
     @property
     def runner_service(self) -> str:
-        return (
-            "m6-production-head30-recovery-runner"
-            if self.is_recovery
-            else "m6-production-head30-runner"
-        )
+        return self.runtime_profile.runner_service
 
     @property
     def auditor_service(self) -> str:
-        return (
-            "m6-production-head30-recovery-auditor"
-            if self.is_recovery
-            else "m6-production-head30-auditor"
-        )
+        return self.runtime_profile.auditor_service
 
     @property
     def tracked_release_scope(self) -> str:
@@ -201,6 +203,21 @@ class ReleaseProtocol:
         if "tracked_release_scope" in release:
             return str(release["tracked_release_scope"])
         return str(self.document["artifact_contract"]["tracked_release_scope"])
+
+    @property
+    def output_roots(self) -> dict[str, str | bool]:
+        artifact = self.document.get("artifact_contract", {})
+        return {
+            "effect_root": artifact.get(
+                "ignored_effect_root",
+                "data/research/m6_csi800_production_head30_v1/effect",
+            ),
+            "audit_root": artifact.get(
+                "ignored_audit_root",
+                "data/research/m6_csi800_production_head30_v1/effect-audit",
+            ),
+            "experiment_ledger_write_authorized": False,
+        }
 
 
 def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
@@ -273,11 +290,7 @@ def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
         actual = tuple(row.get(key) for key in ("service", "command", "cpus", "memory", "pids_limit", "mounts"))
         if actual != expected:
             raise ProtocolError(f"production-converter {role} boundary differs")
-    if scope.get("outputs") != {
-        "effect_root": "data/research/m6_csi800_production_head30_v1/effect",
-        "audit_root": "data/research/m6_csi800_production_head30_v1/effect-audit",
-        "experiment_ledger_write_authorized": False,
-    }:
+    if scope.get("outputs") != protocol.output_roots:
         raise ProtocolError("production-converter output boundary differs")
 
 
@@ -348,7 +361,8 @@ class Approval:
 
 
 __all__ = [
-    "APPROVAL_ACTION", "AUDITOR_COMMAND", "Approval", "IMAGE", "RUNNER_COMMAND",
+    "APPROVAL_ACTION", "AUDITOR_COMMAND", "Approval", "IMAGE", "PRICE_RECOVERY_PROTOCOL",
+    "RUNNER_COMMAND",
     "ReleaseProtocol", "ReleaseScope", "SCOPE_KIND", "SCOPE_SCHEMA", "expected_authority",
     "mapping", "validate_scope", "write_once_document",
 ]

@@ -16,6 +16,17 @@ class FullTargetStrategyError(RuntimeError):
     """Raised when a target portfolio cannot be constructed without guessing."""
 
 
+def _finite_positive_price(value: object) -> float | None:
+    """Normalize an exchange or position price without inventing a fallback."""
+    if isinstance(value, (bool, np.bool_)):
+        return None
+    try:
+        price = float(value)
+    except (TypeError, ValueError):
+        return None
+    return price if np.isfinite(price) and price > 0 else None
+
+
 def ranked_topk(scores: pd.Series, *, topk: int) -> tuple[str, ...]:
     """Return deterministic score-descending, instrument-ascending targets."""
     if not isinstance(scores, pd.Series) or topk < 1:
@@ -115,8 +126,18 @@ class BiweeklyRankHeadEqualWeightStrategy(BaseSignalStrategy):
         value = self.trade_exchange.get_deal_price(
             stock_id=code, start_time=start, end_time=end, direction=direction
         )
-        price = float(value)
-        return price if np.isfinite(price) and price > 0 else None
+        return _finite_positive_price(value)
+
+    def _valuation_price(self, code: str, start, end) -> float:
+        price = self._price(code, start, end, OrderDir.SELL)
+        if price is not None:
+            return price
+        fallback = _finite_positive_price(self.trade_position.get_stock_price(code))
+        if fallback is None:
+            raise FullTargetStrategyError(
+                f"held instrument has no finite positive valuation price: {code}"
+            )
+        return fallback
 
     def _tradable(self, code: str, start, end, direction: OrderDir) -> bool:
         effective_direction = None if self.forbid_all_trade_at_limit else direction
@@ -144,18 +165,17 @@ class BiweeklyRankHeadEqualWeightStrategy(BaseSignalStrategy):
 
         current = self.trade_position
         current_amounts = current.get_stock_amount_dict()
-        valuation_prices: dict[str, float] = {}
-        for code in current_amounts:
-            valuation_prices[code] = self._price(code, trade_start, trade_end, OrderDir.SELL) or float(
-                current.get_stock_price(code)
-            )
+        valuation_prices = {
+            code: self._valuation_price(code, trade_start, trade_end)
+            for code in current_amounts
+        }
         account_value = current.get_cash() + sum(
             current_amounts[code] * valuation_prices[code] for code in current_amounts
         )
-        buy_prices = {
-            code: self._price(code, trade_start, trade_end, OrderDir.BUY) or float("nan")
-            for code in targets
-        }
+        buy_prices = {}
+        for code in targets:
+            price = self._price(code, trade_start, trade_end, OrderDir.BUY)
+            buy_prices[code] = price if price is not None else float("nan")
 
         def round_amount(code: str, amount: float) -> float:
             return float(
