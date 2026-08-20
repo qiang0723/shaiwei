@@ -4,6 +4,7 @@
 .PHONY: docker-m6-production-head30-audit-recovery-build docker-m6-production-head30-audit-recovery-fixture docker-m6-production-head30-audit-recovery-run
 .PHONY: docker-m6-production-head30-audit-entrypoint-recovery-build docker-m6-production-head30-audit-entrypoint-recovery-fixture docker-m6-production-head30-audit-entrypoint-recovery-run
 .PHONY: docker-m6-production-head30-audit-lineage-recovery-build docker-m6-production-head30-audit-lineage-recovery-fixture docker-m6-production-head30-audit-lineage-recovery-run
+.PHONY: docker-m6-production-head30-audit-hash-authority-recovery-build docker-m6-production-head30-audit-hash-authority-recovery-fixture docker-m6-production-head30-audit-hash-authority-recovery-run
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -659,6 +660,12 @@ docker-m6-production-head30-audit-lineage-recovery-fixture: ## 最终镜像daemo
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-audit-lineage-recovery.yaml --profile m6-production-head30-audit-lineage-recovery run --rm --no-deps m6-production-head30-audit-lineage-recovery-fixture
 docker-m6-production-head30-audit-lineage-recovery-run: ## 仅在R5精确scope获批后运行一次auditor-only恢复
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-audit-lineage-recovery.yaml --profile m6-production-head30-audit-lineage-recovery run --rm --no-deps m6-production-head30-audit-lineage-recovery
+docker-m6-production-head30-audit-hash-authority-recovery-build: ## 构建R6哈希权威薄恢复镜像；不读真实effect
+	M6_PRODUCTION_HEAD30_AUDIT_HASH_AUTHORITY_RECOVERY_GIT_HEAD="$$(git rev-parse HEAD)"; SHAIWEI_M6_HEAD30_AUDIT_HASH_AUTHORITY_GIT_HEAD="$$M6_PRODUCTION_HEAD30_AUDIT_HASH_AUTHORITY_RECOVERY_GIT_HEAD" docker compose -f compose.m6-production-head30-audit-hash-authority-recovery.yaml --profile m6-production-head30-audit-hash-authority-recovery build m6-production-head30-audit-hash-authority-recovery-fixture
+docker-m6-production-head30-audit-hash-authority-recovery-fixture: ## 最终镜像daemon断网验证哈希权威与完整谱系；不挂载effect
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-audit-hash-authority-recovery.yaml --profile m6-production-head30-audit-hash-authority-recovery run --rm --no-deps m6-production-head30-audit-hash-authority-recovery-fixture
+docker-m6-production-head30-audit-hash-authority-recovery-run: ## 仅在R6精确scope获批后运行一次auditor-only恢复
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-audit-hash-authority-recovery.yaml --profile m6-production-head30-audit-hash-authority-recovery run --rm --no-deps m6-production-head30-audit-hash-authority-recovery
 docker-m6-top30-diagnostic-build: ## 构建原M6/失败M6-3C两套薄诊断镜像；不读取真实数据
 	@test -n "$(M6_TOP30_DIAGNOSTIC_GIT_HEAD)" || (echo "M6_TOP30_DIAGNOSTIC_GIT_HEAD is required"; exit 2)
 	SHAIWEI_M6_TOP30_DIAGNOSTIC_GIT_HEAD="$(M6_TOP30_DIAGNOSTIC_GIT_HEAD)" docker compose -f compose.m6-top30-diagnostic.yaml --profile m6-top30-diagnostic build m6-top30-diagnostic-original m6-top30-diagnostic-current
