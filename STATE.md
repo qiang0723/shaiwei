@@ -4,6 +4,12 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-4B-R1 scope `ea648bda...83d2c`获精确批准并唯一运行：容器成功创建，真实处理臂开始读取，
+  1个组合转换尝试已消费；首遍在2024-07-04处理`SZ002505`时成交价接口返回空值，`full_target`
+  在进入既有持仓价格回退前对`None`转浮点而失败关闭。无完整首遍/replay/report，独立audit未启动，策略仍
+  `NOT_EVALUATED`、生产授权none；R1永久不得重跑。下一合法节点仅为零效果读取的R2空值处理
+  语义冻结与工程恢复，新真实运行必须另建输出根/scope/镜像并再次精确授权。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_ENTRYPOINT_RECOVERY_FAILURE_20260820.md`。
 - M6-4B精确scope获批后，唯一入口在Docker创建容器前失败关闭：YAML内联`tmpfs`被逗号拆成五个
   挂载项，daemon以`noexec`非绝对路径拒绝。effect/audit均0文件、真实效果未读、尝试0，scheduler
   healthy；原scope `15b3c785...143b3`永久不得重跑。已结果前冻结M6-4B-R1编排恢复协议，只修
