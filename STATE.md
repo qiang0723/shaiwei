@@ -4,6 +4,13 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-4B-R4入口路径恢复工程已GO：协议提交`da89e70`先于终版实现`ace34db`并均已推送，只把R3被拒的
+  `/inputs/original-protocol.yaml`替换为镜像内allowlist合法路径，冻结loader和R3审计语义零修改。
+  最终镜像`27dadcef...9fb4`经Docker daemon断网真实创建fixture，合法路径/协议哈希和继承审计
+  合成门PASS；专项12、架构13、全仓1562 PASS。精确scope为`d07daefb...3bd71`；R4真实
+  effect语义未读、audit未运行、新增尝试0、家族累计2、生产none。下一步仅可由用户绑定该scope
+  精确批准唯一auditor-only执行，R2/R3/R4均不得重跑。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_AUDIT_ENTRYPOINT_RECOVERY_ENGINEERING_ACCEPTANCE_20260820.md`。
 - M6-4B-R3 scope `b38628de...14d3`获精确批准并唯一调用auditor-only容器，但在读取R2 effect前因
   旧`ReleaseProtocol.load`拒绝挂载路径`/inputs/original-protocol.yaml`而失败关闭；恢复audit 0文件、
   effect语义未读、新增尝试0，R2五文件树哈希不变，生产none。R3永久不得重跑，策略仍
