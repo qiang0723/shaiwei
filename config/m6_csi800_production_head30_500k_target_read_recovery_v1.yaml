@@ -1,0 +1,65 @@
+schema_version: m6-head30-500k-target-read-recovery-protocol-v1
+protocol_id: m6-head30-500k-target-read-recovery-v1
+frozen_at: "2026-08-20T21:08:00+08:00"
+base_protocol:
+  path: config/m6_csi800_production_head30_500k_release_v1.yaml
+  sha256: 9bc970913b997ac50beed3ae86afece3ea20b60948607006d3b4ffb8a4bfaa5e
+
+incident:
+  observed_at: "2026-08-20T21:06:00+08:00"
+  cause: result_blind_schema_probe_printed_one_real_w1_rebalance_target_array
+  semantic_values_exposed:
+    - one_w1_rebalance_trade_date
+    - one_w1_rebalance_signal_date
+    - one_ordered_30_security_target_array
+  semantic_values_not_read:
+    - market_prices
+    - daily_returns
+    - benchmark_returns
+    - costs
+    - nav
+    - drawdown
+    - window_or_pooled_effect_metrics
+    - predecessor_or_current_effect_verdict
+  formal_artifact_written: false
+  runner_invoked: false
+  auditor_invoked: false
+  external_network_used: false
+  production_touched: false
+
+recovery_ruling:
+  original_release_v1_preserved: true
+  original_release_v1_execution_eligible: false
+  target_read_counts_as_consumed_attempt: true
+  family_attempts_before_future_authorized_real_run: 1
+  new_attempts_consumed_by_future_authorized_real_run: 1
+  total_family_attempts_after_future_authorized_real_run: 2
+  result_metrics_remain_blind: true
+  engineering_may_continue_with_synthetic_fixture_only: true
+  further_real_target_price_or_effect_read_before_approval: false
+  same_scope_retry_authorized: false
+
+replacement_release:
+  scope_kind: HEAD30_500K_TARGET_READ_RECOVERY_RELEASE_READY_NOT_EXECUTION_APPROVAL
+  approval_action: M6_HEAD30_500K_FEASIBILITY_TARGET_READ_RECOVERY_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT
+  exact_scope_sha256_required: true
+  one_future_real_runner_invocation: true
+  complete_internal_passes: [first_pass, replay]
+  one_independent_auditor_invocation: true
+  production_authorization: none
+
+unchanged_contracts:
+  target_source: sealed_r2_first_pass_and_replay_rebalance_targets
+  target_order_and_rebalance_identity_required: true
+  initial_cash_each_window_rmb: 500000
+  paper_entrypoint: shaiwei.paper.engine.execute_day
+  raw_batch_identity_and_capacity_contract_unchanged: true
+  effect_and_hard_gates_unchanged: true
+  no_model_fit_or_prediction_generation: true
+  no_external_network_or_secret_read: true
+  no_forward_paper_web_scheduler_or_production_change: true
+
+stop_condition:
+  stop_after_replacement_release_scope_is_frozen_and_pushed: true
+  exact_user_approval_required_before_real_run: true
+  production_authorization: none
