@@ -3,6 +3,7 @@
 .PHONY: docker-m6-production-head30-price-recovery-build docker-m6-production-head30-price-recovery-fixture docker-m6-production-head30-price-recovery-run docker-m6-production-head30-price-recovery-audit
 .PHONY: docker-m6-production-head30-audit-recovery-build docker-m6-production-head30-audit-recovery-fixture docker-m6-production-head30-audit-recovery-run
 .PHONY: docker-m6-production-head30-audit-entrypoint-recovery-build docker-m6-production-head30-audit-entrypoint-recovery-fixture docker-m6-production-head30-audit-entrypoint-recovery-run
+.PHONY: docker-m6-production-head30-audit-lineage-recovery-build docker-m6-production-head30-audit-lineage-recovery-fixture docker-m6-production-head30-audit-lineage-recovery-run
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -651,6 +652,13 @@ docker-m6-production-head30-audit-entrypoint-recovery-fixture: ## daemon以最�
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-audit-entrypoint-recovery.yaml --profile m6-production-head30-audit-entrypoint-recovery run --rm --no-deps m6-production-head30-audit-entrypoint-recovery-fixture
 docker-m6-production-head30-audit-entrypoint-recovery-run: ## 仅在R4精确scope获批后运行一次auditor-only恢复
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-audit-entrypoint-recovery.yaml --profile m6-production-head30-audit-entrypoint-recovery run --rm --no-deps m6-production-head30-audit-entrypoint-recovery
+docker-m6-production-head30-audit-lineage-recovery-build: ## 构建R5完整谱系入口薄恢复镜像；不读真实effect
+	$(eval M6_PRODUCTION_HEAD30_AUDIT_LINEAGE_RECOVERY_GIT_HEAD := $(shell git rev-parse HEAD))
+	SHAIWEI_M6_HEAD30_AUDIT_LINEAGE_RECOVERY_GIT_HEAD="$(M6_PRODUCTION_HEAD30_AUDIT_LINEAGE_RECOVERY_GIT_HEAD)" docker compose -f compose.m6-production-head30-audit-lineage-recovery.yaml --profile m6-production-head30-audit-lineage-recovery build m6-production-head30-audit-lineage-recovery-fixture
+docker-m6-production-head30-audit-lineage-recovery-fixture: ## 最终镜像daemon断网执行与真实入口相同的完整谱系预检
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-audit-lineage-recovery.yaml --profile m6-production-head30-audit-lineage-recovery run --rm --no-deps m6-production-head30-audit-lineage-recovery-fixture
+docker-m6-production-head30-audit-lineage-recovery-run: ## 仅在R5精确scope获批后运行一次auditor-only恢复
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-audit-lineage-recovery.yaml --profile m6-production-head30-audit-lineage-recovery run --rm --no-deps m6-production-head30-audit-lineage-recovery
 docker-m6-top30-diagnostic-build: ## 构建原M6/失败M6-3C两套薄诊断镜像；不读取真实数据
 	@test -n "$(M6_TOP30_DIAGNOSTIC_GIT_HEAD)" || (echo "M6_TOP30_DIAGNOSTIC_GIT_HEAD is required"; exit 2)
 	SHAIWEI_M6_TOP30_DIAGNOSTIC_GIT_HEAD="$(M6_TOP30_DIAGNOSTIC_GIT_HEAD)" docker compose -f compose.m6-top30-diagnostic.yaml --profile m6-top30-diagnostic build m6-top30-diagnostic-original m6-top30-diagnostic-current

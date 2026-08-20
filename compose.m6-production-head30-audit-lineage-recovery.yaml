@@ -1,0 +1,122 @@
+services:
+  m6-production-head30-audit-lineage-recovery-fixture:
+    image: shaiwei:m6-production-head30-audit-lineage-recovery-v1
+    pull_policy: never
+    profiles: [m6-production-head30-audit-lineage-recovery]
+    build:
+      context: .
+      dockerfile: Dockerfile.m6-production-head30-audit-lineage-recovery
+      args:
+        SHAIWEI_M6_HEAD30_AUDIT_LINEAGE_RECOVERY_GIT_HEAD: ${SHAIWEI_M6_HEAD30_AUDIT_LINEAGE_RECOVERY_GIT_HEAD:-}
+    init: true
+    restart: "no"
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - "/tmp:rw,noexec,nosuid,size=1g,mode=1777"
+    pids_limit: 128
+    mem_limit: 4g
+    cpus: 2.0
+    environment:
+      HOME: /tmp
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+    volumes:
+      - {type: bind, source: ./config/m6_csi800_production_head30_audit_lineage_entry_recovery_v1.yaml, target: /inputs/recovery-protocol.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_audit_entrypoint_recovery_scope_v1.json, target: /inputs/r4-release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_audit_identity_recovery_v1.yaml, target: /inputs/r3-protocol.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_audit_identity_recovery_scope_v1.json, target: /inputs/r3-release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_audit_entrypoint_recovery_execution_failure_v1.json, target: /inputs/r4-execution-failure.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_price_recovery_scope_v1.json, target: /inputs/original-release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_v1/approval-r2.json, target: /inputs/original-approval.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_v1/r5-daemon-preflight, target: /fixture, read_only: false, bind: {create_host_path: false}}
+    command:
+      - python
+      - /opt/shaiwei/m6-head30-audit-lineage-recovery/entrypoint.py
+      - --preflight
+      - --recovery-protocol
+      - /inputs/recovery-protocol.yaml
+      - --r4-release
+      - /inputs/r4-release.json
+      - --r3-protocol
+      - /inputs/r3-protocol.yaml
+      - --r3-release
+      - /inputs/r3-release.json
+      - --r4-failure-evidence
+      - /inputs/r4-execution-failure.json
+      - --original-release
+      - /inputs/original-release.json
+      - --original-approval
+      - /inputs/original-approval.json
+      - --preflight-output
+      - /fixture/preflight.json
+
+  m6-production-head30-audit-lineage-recovery:
+    image: shaiwei:m6-production-head30-audit-lineage-recovery-v1
+    pull_policy: never
+    profiles: [m6-production-head30-audit-lineage-recovery]
+    init: true
+    restart: "no"
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    read_only: true
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - "/tmp:rw,noexec,nosuid,size=1g,mode=1777"
+    pids_limit: 128
+    mem_limit: 4g
+    cpus: 2.0
+    environment:
+      HOME: /tmp
+      PYTHONPYCACHEPREFIX: /tmp/pycache
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+    volumes:
+      - {type: bind, source: ./config/m6_csi800_production_head30_audit_lineage_entry_recovery_v1.yaml, target: /inputs/recovery-protocol.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_audit_lineage_entry_recovery_scope_v1.json, target: /inputs/recovery-release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_v1/audit-lineage-entry-recovery-approval.json, target: /inputs/recovery-approval.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./compose.m6-production-head30-audit-lineage-recovery.yaml, target: /inputs/recovery-compose.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_audit_entrypoint_recovery_scope_v1.json, target: /inputs/r4-release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_audit_identity_recovery_v1.yaml, target: /inputs/r3-protocol.yaml, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_audit_identity_recovery_scope_v1.json, target: /inputs/r3-release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_audit_entrypoint_recovery_execution_failure_v1.json, target: /inputs/r4-execution-failure.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_price_recovery_scope_v1.json, target: /inputs/original-release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_v1/approval-r2.json, target: /inputs/original-approval.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_v1/effect-r2, target: /outputs, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_v1/effect-r2-audit-lineage-entry-recovery, target: /audit, read_only: false, bind: {create_host_path: false}}
+    command:
+      - python
+      - /opt/shaiwei/m6-head30-audit-lineage-recovery/entrypoint.py
+      - --recovery-protocol
+      - /inputs/recovery-protocol.yaml
+      - --recovery-release
+      - /inputs/recovery-release.json
+      - --recovery-approval
+      - /inputs/recovery-approval.json
+      - --recovery-compose
+      - /inputs/recovery-compose.yaml
+      - --r4-release
+      - /inputs/r4-release.json
+      - --r3-protocol
+      - /inputs/r3-protocol.yaml
+      - --r3-release
+      - /inputs/r3-release.json
+      - --r4-failure-evidence
+      - /inputs/r4-execution-failure.json
+      - --original-release
+      - /inputs/original-release.json
+      - --original-approval
+      - /inputs/original-approval.json
+      - --effect-root
+      - /outputs
+      - --audit-root
+      - /audit
