@@ -4,6 +4,12 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-4B-R6 scope `349859a6...9a90fa`获精确批准并唯一调用，但在Docker创建容器前因新的宿主audit
+  输出根不存在且`create_host_path=false`而失败关闭；容器创建false、auditor调用0、effect语义未读、
+  audit 0文件、新增尝试0，R2五文件树不变、scheduler healthy、生产none。R6永久不得重跑，策略为
+  `NOT_AUTHORIZED_PENDING_AUDIT_OUTPUT_ROOT_RECOVERY`。下一步只能另立R7输出根恢复协议，在新scope前
+  以daemon fixture验证真实可写bind source存在且不挂载effect，再重新精确授权。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_AUDIT_HASH_AUTHORITY_RECOVERY_EXECUTION_FAILURE_20260820.md`。
 - M6-4B-R6哈希权威恢复工程已GO：协议提交`0f8522b`先于实现`7540364`并均已推送；只删除协议外
   “当前独立SHA必须等于历史独立SHA”裁决门，仍记录当前/历史SHA并保留主结果精确身份、首遍/重放
   物理一致、独立`1e-12`容差和decision精确一致。最终镜像`cdd7a960...dac9af`经daemon断网、无
