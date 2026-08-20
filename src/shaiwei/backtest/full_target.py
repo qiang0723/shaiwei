@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 from collections.abc import Callable, Mapping, Sequence
 
 import numpy as np
@@ -97,12 +96,15 @@ class BiweeklyRankHeadEqualWeightStrategy(BaseSignalStrategy):
         *,
         topk: int = 30,
         rebalance_days: int = 10,
+        risk_degree: float,
         forbid_all_trade_at_limit: bool = False,
         **kwargs,
     ):
-        super().__init__(**kwargs)
         if topk < 1 or rebalance_days < 1:
             raise ValueError("topk and rebalance_days must be positive")
+        if isinstance(risk_degree, bool) or not np.isfinite(risk_degree) or risk_degree != 1.0:
+            raise ValueError("production full-target risk_degree must equal the frozen value 1.0")
+        super().__init__(risk_degree=risk_degree, **kwargs)
         self.topk = topk
         self.rebalance_days = rebalance_days
         self.forbid_all_trade_at_limit = forbid_all_trade_at_limit
@@ -138,7 +140,7 @@ class BiweeklyRankHeadEqualWeightStrategy(BaseSignalStrategy):
             return TradeDecisionWO([], self)
         targets = ranked_topk(scores, topk=self.topk)
 
-        current = copy.deepcopy(self.trade_position)
+        current = self.trade_position
         current_amounts = current.get_stock_amount_dict()
         valuation_prices: dict[str, float] = {}
         for code in current_amounts:
@@ -178,7 +180,6 @@ class BiweeklyRankHeadEqualWeightStrategy(BaseSignalStrategy):
             order = Order(code, amount, OrderDir.SELL, trade_start, trade_end)
             if self.trade_exchange.check_order(order):
                 sell_orders.append(order)
-                self.trade_exchange.deal_order(order, position=current)
         buy_orders = [
             Order(code, buys[code], OrderDir.BUY, trade_start, trade_end)
             for code in targets

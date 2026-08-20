@@ -119,6 +119,15 @@ def _validate_single_variable(document: dict[str, Any]) -> None:
     }
     if any(variable.get(name) != value for name, value in expected.items()):
         raise ProtocolError("production-converter single variable differs")
+    components = _mapping(variable.get("treatment_components"), "treatment components")
+    expected_components = {
+        "target_membership": "deterministic_score_desc_instrument_asc_head_30",
+        "target_weight": 1.0 / 30.0,
+        "target_refresh": "replace_to_current_target_set_and_reweight_all_targets",
+        "target_investment_ratio": 1.0,
+    }
+    if components != expected_components:
+        raise ProtocolError("production-converter treatment components differ")
     constants = _mapping(document.get("constants"), "constants")
     fixed = {
         "benchmark": "SH000906",
@@ -130,6 +139,8 @@ def _validate_single_variable(document: dict[str, Any]) -> None:
     }
     if any(constants.get(name) != value for name, value in fixed.items()):
         raise ProtocolError("production-converter frozen constants differ")
+    if components["target_weight"] * constants["topk"] != components["target_investment_ratio"]:
+        raise ProtocolError("production-converter target weights do not match investment ratio")
 
 
 def _validate_gate_and_attempt(document: dict[str, Any]) -> None:
@@ -172,6 +183,14 @@ class Protocol:
     sha256: str
     addendum: dict[str, Any]
     addendum_sha256: str
+
+    @property
+    def target_investment_ratio(self) -> float:
+        return float(
+            self.document["single_variable_contract"]["treatment_components"][
+                "target_investment_ratio"
+            ]
+        )
 
     @classmethod
     def load(cls, path: Path = PROTOCOL_PATH) -> "Protocol":

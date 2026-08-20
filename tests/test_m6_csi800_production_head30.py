@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import date, datetime, timezone
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -17,7 +19,11 @@ from shaiwei.backtest.full_target import (
     position_deltas,
     ranked_topk,
 )
+from shaiwei.ledger import sha256_file
+from shaiwei.research import production_conversion
+from shaiwei.research.production_conversion import contract as production_contract
 from shaiwei.research.production_conversion.contract import Protocol, ProtocolError
+from shaiwei.shadow.manifest import write_signal_manifest
 
 
 def test_protocol_freezes_one_converter_and_original_g0() -> None:
@@ -31,6 +37,7 @@ def test_protocol_freezes_one_converter_and_original_g0() -> None:
     assert protocol["unchanged_g0_gate"]["minimum_positive_base_cost_excess_windows"] == 4
     assert protocol["unchanged_g0_gate"]["combined_1_5x_cost_cumulative_excess_minimum"] == 0
     assert protocol["attempt_policy"]["new_portfolio_attempt_count"] == 1
+    assert bundle.target_investment_ratio == 1.0
     assert bundle.addendum["correction"]["g0_gate_changed"] is False
 
 
@@ -46,12 +53,37 @@ def test_protocol_rejects_authority_gate_or_predecessor_drift(tmp_path: Path) ->
     changed_hash = deepcopy(source)
     changed_hash["predecessors"]["historical_control_strategy"]["sha256"] = "0" * 64
     cases.append(changed_hash)
+    changed_component = deepcopy(source)
+    changed_component["single_variable_contract"]["treatment_components"][
+        "target_investment_ratio"
+    ] = 0.95
+    cases.append(changed_component)
 
     for index, document in enumerate(cases):
         path = tmp_path / f"changed-{index}.yaml"
         path.write_text(yaml.safe_dump(document, sort_keys=False), encoding="utf-8")
         with pytest.raises(ProtocolError):
             Protocol.load(path)
+
+
+def test_protocol_rejects_component_drift_after_addendum_rebind(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = Protocol.load()
+    changed = deepcopy(bundle.document)
+    changed["single_variable_contract"]["treatment_components"][
+        "target_investment_ratio"
+    ] = 0.95
+    protocol_path = tmp_path / "changed-protocol.yaml"
+    protocol_path.write_text(yaml.safe_dump(changed, sort_keys=False), encoding="utf-8")
+    addendum = deepcopy(bundle.addendum)
+    addendum["base_protocol"]["sha256"] = sha256_file(protocol_path)
+    addendum_path = tmp_path / "changed-addendum.yaml"
+    addendum_path.write_text(yaml.safe_dump(addendum, sort_keys=False), encoding="utf-8")
+    monkeypatch.setattr(production_contract, "ADDENDUM_PATH", addendum_path)
+
+    with pytest.raises(ProtocolError, match="treatment components differ"):
+        production_conversion.Protocol.load(protocol_path)
 
 
 def test_ranked_topk_matches_production_tie_break_and_fails_closed() -> None:
@@ -66,6 +98,36 @@ def test_ranked_topk_matches_production_tie_break_and_fails_closed() -> None:
         ranked_topk(pd.Series([np.inf], index=["SH1"]), topk=1)
     with pytest.raises(FullTargetStrategyError, match="insufficient"):
         ranked_topk(pd.Series([1.0, np.nan], index=["SH1", "SH2"]), topk=2)
+
+
+def test_ranked_topk_matches_production_manifest_selector(tmp_path: Path) -> None:
+    scores = pd.DataFrame(
+        {
+            "instrument": ["SH3", "SH2", "SH1", "SH4"],
+            "score": [0.5, 0.7, 0.7, np.nan],
+        }
+    )
+    sentinels = [
+        {"sentinel": f"S{number}", "status": "PASS" if number < 10 else "NOT_APPLICABLE"}
+        for number in range(1, 11)
+    ]
+    path, _ = write_signal_manifest(
+        scores,
+        signal_date=date(2091, 1, 2),
+        topk=3,
+        sentinel_results=sentinels,
+        data_complete_at=datetime(2091, 1, 2, 8, tzinfo=timezone.utc),
+        generated_at=datetime(2091, 1, 2, 9, tzinfo=timezone.utc),
+        data_snapshot_sha256="d" * 64,
+        code_commit="c" * 40,
+        code_snapshot_sha256="e" * 64,
+        output_dir=tmp_path,
+        rebalance_days=10,
+    )
+    document = json.loads(path.read_text(encoding="utf-8"))
+
+    expected = ranked_topk(scores.set_index("instrument")["score"], topk=3)
+    assert tuple(order["instrument"] for order in document["orders"]) == expected
 
 
 def test_equal_weight_full_target_reweights_retained_names() -> None:
@@ -152,11 +214,12 @@ class _Exchange:
 
 
 def _strategy(step: int = 0) -> BiweeklyRankHeadEqualWeightStrategy:
-    strategy = object.__new__(BiweeklyRankHeadEqualWeightStrategy)
-    strategy.topk = 2
-    strategy.rebalance_days = 10
-    strategy.forbid_all_trade_at_limit = False
-    strategy.risk_degree = 1.0
+    strategy = BiweeklyRankHeadEqualWeightStrategy(
+        topk=2,
+        rebalance_days=10,
+        risk_degree=Protocol.load().target_investment_ratio,
+        signal=pd.Series([1.0], index=["SH1"]),
+    )
     strategy.level_infra = {"trade_calendar": _Calendar(step)}
     strategy.signal = _Signal()
     strategy.common_infra = {"trade_account": SimpleNamespace(current_position=_Position())}
@@ -172,3 +235,10 @@ def test_strategy_builds_full_target_orders_and_respects_cadence() -> None:
         ("SH3", OrderDir.BUY, 50.0),
     ]
     assert _strategy(step=1).generate_trade_decision().get_decision() == []
+
+
+def test_strategy_requires_the_frozen_full_investment_ratio() -> None:
+    with pytest.raises(TypeError, match="risk_degree"):
+        BiweeklyRankHeadEqualWeightStrategy()
+    with pytest.raises(ValueError, match="frozen value 1.0"):
+        BiweeklyRankHeadEqualWeightStrategy(risk_degree=0.95)

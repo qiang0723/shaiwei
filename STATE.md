@@ -16,6 +16,9 @@
 - 结果盲工程预检已GO：独立`full_target`适配器覆盖确定性Head30、保留证券再平衡、10日节奏、
   方向性成交与失败关闭；协议合同机械锁定权限/G0/一次尝试。真实runner/auditor/镜像/scope尚未
   施工，真实预测/效果读取0、实验账本新增0。下一节点仅为M6-4B release工程。
+- 外部复核指出的`risk_degree`未绑定缺口已在结果前关闭：策略现在必须显式接收协议1.0，缺失或
+  0.95均失败；合同锁定完整treatment components及权重恒等式，新增生产selector交叉测试，并删除
+  无效副本成交。专项8、架构13、全仓1506 PASS；真实效果/尝试仍为0。
   见`docs/PLATFORM_RESEARCH_REFOCUS_DECISION_20260820.md`与
   `docs/M6_CSI800_PRODUCTION_HEAD30_PROTOCOL_20260820.md`。
 
