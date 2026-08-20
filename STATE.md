@@ -4,6 +4,13 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-4B-R6哈希权威恢复工程已GO：协议提交`0f8522b`先于实现`7540364`并均已推送；只删除协议外
+  “当前独立SHA必须等于历史独立SHA”裁决门，仍记录当前/历史SHA并保留主结果精确身份、首遍/重放
+  物理一致、独立`1e-12`容差和decision精确一致。最终镜像`cdd7a960...dac9af`经daemon断网、无
+  effect fixture完成R5/R4/R3/R2谱系和三组对抗门；专项14、架构13、全仓1589 PASS。精确scope为
+  `349859a6...9a90fa`；真实effect语义未读、audit未运行、新增尝试0、scheduler healthy、生产none。
+  下一步仅可由用户绑定该scope和动作精确批准唯一auditor-only执行，R2/R3/R4/R5均不得重跑。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_AUDIT_HASH_AUTHORITY_RECOVERY_ENGINEERING_ACCEPTANCE_20260820.md`。
 - M6-4B-R5 scope `baa43d73...24789`获精确批准并唯一运行：完整谱系预检、R2只读加载和独立重算
   均完成；主身份、首遍/重放、`1e-12`容差等价及decision一致全部PASS，唯一失败项是实现额外要求
   本次独立canonical SHA等于历史R3独立SHA的`independent_result_lineage`。audit写出前失败，输出
