@@ -4,6 +4,12 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-4B-R3 auditor-only身份恢复工程已GO：原`real_audit.py`零修改，版本化合同将主结果精确哈希、
+  独立`1e-12`数值等价和三方decision精确一致分离；专项13、架构13、全仓1550 PASS。薄镜像
+  `91cca665...c9d3c`从R2镜像精确派生，断网合成fixture覆盖浮点尾差、主身份/裁决漂移和树篡改。
+  精确scope为`b38628de...14d3`；真实恢复audit未运行、R2 effect未由恢复入口读取、新增尝试0、
+  生产none。下一步只能由用户绑定该scope批准唯一一次auditor-only恢复，同scope不得重跑。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_AUDIT_IDENTITY_RECOVERY_ENGINEERING_ACCEPTANCE_20260820.md`。
 - M6-4B-R2 scope `9b78ef69...f9b4a`获精确批准并唯一完成runner与内部重放，空成交价路径安全
   越过，首遍/replay物理哈希一致；本次消费1个新组合转换尝试，家族累计2次，模型/预测新增0。
   主计算与独立重建均给出`VALIDATED_RESEARCH_SCALE`，但唯一独立audit因冻结合同要求独立浮点
