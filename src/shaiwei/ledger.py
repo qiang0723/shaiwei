@@ -210,6 +210,20 @@ def append_experiment(**kw) -> str:
     return kw["experiment_id"]
 
 
+def append_reconciled_experiment(*, path: Path | None = None, **kw: object) -> bool:
+    """Idempotently append one audited historical experiment-attempt record."""
+    if not kw.get("experiment_id") or not kw.get("ts"):
+        raise ValueError("reconciled experiment requires deterministic experiment_id and ts")
+    for field in ("params_json", "result_json"):
+        value = kw.get(field)
+        _reject_sensitive_params(value, field)
+        if isinstance(value, (dict, list)):
+            kw[field] = json.dumps(value, ensure_ascii=False, sort_keys=True)
+    if isinstance(kw.get("admitted"), bool):
+        kw["admitted"] = str(kw["admitted"]).lower()
+    return _append_idempotent(path or EXPERIMENTS, kw, key="experiment_id")
+
+
 def append_daily_run(**kw: object) -> str:
     """Append one terminal daily-run outcome; never store credentials or URLs."""
     kw.setdefault("run_id", uuid.uuid4().hex[:12])

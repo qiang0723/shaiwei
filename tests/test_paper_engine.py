@@ -385,3 +385,40 @@ def test_sell_limit_down_keeps_actual_position_instead_of_target_weight():
     assert sell["status"] == "REJECTED"
     assert sell["reject_reason"] == "SELL_LIMIT_DOWN"
     assert result.state.positions[code].quantity == 1000
+
+
+def test_position_on_delisting_effective_date_fails_without_disposal_evidence():
+    code = "002505.SZ"
+    day = "20240830"
+    policy = _policy(initial_cash=10_000)
+    state = PortfolioState(
+        account_id=policy.account_id,
+        cash="0.00",
+        positions={code: Position(1000, "9000.00", last_close="10", last_price_date="20240829")},
+        benchmark_base_open="100",
+        last_trade_date="20240829",
+    )
+    stock = _stock(code)
+    stock.loc[0, "delist_date"] = day
+    daily = _daily(day, {code: (10, 10, 10)})
+    with pytest.raises(
+        PaperEngineError,
+        match="delisted position requires an explicit disposal rule: 002505.SZ",
+    ):
+        execute_day(
+            policy=policy,
+            state=state,
+            signal=_signal([code], rebalance=False),
+            signal_sha256="d" * 64,
+            execution_date=day,
+            daily=daily,
+            signal_daily=daily,
+            index_row=_index(day),
+            stock_basic=stock,
+            namechange=_names(code),
+            suspend=_suspend(),
+            trade_cal=_calendar("20240829", day),
+            dividends=pd.DataFrame(),
+            run_id="run-delist-fail-closed",
+            market_batch_id="batch-delist-fail-closed",
+        )

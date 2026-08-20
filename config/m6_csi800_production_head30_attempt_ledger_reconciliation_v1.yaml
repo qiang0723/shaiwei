@@ -1,0 +1,87 @@
+schema_version: m6-production-head30-attempt-ledger-reconciliation-v1
+reconciliation_id: m6-csi800-production-head30-attempt-ledger-reconciliation-v1
+reconciled_at: "2026-08-21T10:30:00+08:00"
+stage: POST_RESULT_AUDIT_RECONCILIATION
+
+purpose:
+  result: >-
+    将已经消费、但因原release明确禁止挂载和写入生产实验账本而遗漏的两次Head30组合转换尝试，
+    以确定性、幂等、可复核的方式补入原协议指定的ledger/experiments.csv。
+  reason: >-
+    原协议要求效果读取与m6_portfolio_converter尝试一一对应；R1和R2均在首次真实效果读取时各消费
+    一次尝试，但运行容器没有账本写权限。该缺口只能通过事后审计对账补齐，不能伪装成原运行时写入。
+
+authority:
+  new_effect_read_authorized: false
+  model_fit_or_prediction_authorized: false
+  backtest_or_runner_authorized: false
+  external_network_authorized: false
+  paper_or_production_change_authorized: false
+  historical_result_mutation_authorized: false
+  new_attempt_increment: 0
+  canonical_ledger_append_authorized: true
+  canonical_ledger: ledger/experiments.csv
+
+frozen_contract:
+  attempt_family: m6_portfolio_converter
+  candidate_source: M6-production-head30-converter
+  model_or_engine: portfolio_converter
+  engine_version: m6-csi800-production-head30-converter-v1
+  expected_attempt_count: 2
+  deterministic_experiment_ids:
+    r1: e97f4e185e33
+    r2: 3ce8e73c0733
+  admitted: false
+  reject_reason: portfolio-conversion attempt; not a factor-admission experiment
+
+source_evidence:
+  base_protocol:
+    path: config/m6_csi800_production_head30_v1.yaml
+    sha256: 16d2b92116864da01f6a734d3a4f17a5ac2f02d522dd17ef1048890eda8815fa
+  r1_release:
+    path: config/m6_csi800_production_head30_entrypoint_recovery_scope_v1.json
+    sha256: d1f6038731a35acde664f8e0f388dfe879d3b46585a3e675da76085db7ab9406
+    release_scope_sha256: ea648bda49b185cb698f11f78f01d8ce16df217e50c4d12542dfac4318783d2c
+  r1_failure:
+    path: config/m6_csi800_production_head30_entrypoint_recovery_failure_v1.json
+    sha256: 46b09f5bc7e338d129856cb1f33ea725732c9d04fe52ebfbd2b378f91bc48753
+  r2_release:
+    path: config/m6_csi800_production_head30_price_recovery_scope_v1.json
+    sha256: 166bd54bfc768929905795a86429ad4233c4bf96c7ceef0dcc232e542d08a663
+    release_scope_sha256: 9b78ef69ec11c180bbc1adc46b95c3f8023bf729480d4fd647e2eab1085f9b4a
+  r2_report:
+    path: data/research/m6_csi800_production_head30_v1/effect-r2/report.json
+    sha256: 79c674444dce99c8dd4e51933feac8f55360ea2c87c16950c2ef4c422c224d3a
+  r2_audit_failure:
+    path: config/m6_csi800_production_head30_price_recovery_audit_failure_v1.json
+    sha256: 190be6d01538b68bd76e2d2339429421b898ce5707ed661804db6a6b941d3264
+  r7_authority:
+    path: config/m6_csi800_production_head30_audit_output_root_recovery_execution_v1.json
+    sha256: 29942f16a8a2c35b8275cd164060a338d574dd7a2d38f627a6a6eb09ba686630
+
+attempts:
+  - ordinal: 1
+    experiment_id: e97f4e185e33
+    terminal_at: "2026-08-20T15:13:40+08:00"
+    release_scope_sha256: ea648bda49b185cb698f11f78f01d8ce16df217e50c4d12542dfac4318783d2c
+    code_snapshot_sha256: 1d85deadb0d702a231019d9f8c038cae302cbb25f907023df084ca831d01658e
+    git_commit: 313e711aac232e428a7c685bda29b6996bbd01eb
+    terminal_status: FAILED_AFTER_EFFECT_READ
+  - ordinal: 2
+    experiment_id: 3ce8e73c0733
+    parent_experiment_id: e97f4e185e33
+    terminal_at: "2026-08-20T16:45:34+08:00"
+    release_scope_sha256: 9b78ef69ec11c180bbc1adc46b95c3f8023bf729480d4fd647e2eab1085f9b4a
+    code_snapshot_sha256: 84e45501e4bdde458949806d1be69fc56452479b9de911f2b5cc866fc9cdb76e
+    git_commit: 30c758c0560670b1890866b076ee4cffea8311d2
+    terminal_status: COMPLETED_AND_LATER_INDEPENDENTLY_AUDITED
+
+success_gates:
+  - all_source_hashes_exact
+  - original_release_ledger_write_authorized_false
+  - r1_and_r2_each_consumed_exactly_one_attempt
+  - r7_family_attempt_count_exactly_two
+  - exactly_two_target_rows_and_no_duplicate_experiment_id
+  - repeated_reconciliation_appends_zero_rows
+  - source_effect_evidence_unchanged
+  - authoritative_result_unchanged
