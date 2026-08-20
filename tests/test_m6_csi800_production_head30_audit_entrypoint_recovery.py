@@ -78,7 +78,9 @@ def test_release_is_nonexecuting_and_binds_daemon_fixture(tmp_path: Path) -> Non
     assert release.scope["execution"]["family_portfolio_attempts_consumed"] == 2
 
 
-@pytest.mark.parametrize("mutation", ["path", "mount", "command", "network", "count", "fixture"])
+@pytest.mark.parametrize(
+    "mutation", ["path", "mount", "command", "network", "count", "fixture", "fixture_image"]
+)
 def test_release_rejects_rehashed_boundary_drift(tmp_path: Path, mutation: str) -> None:
     protocol, document = _release()
     changed = copy.deepcopy(document)
@@ -93,8 +95,10 @@ def test_release_rejects_rehashed_boundary_drift(tmp_path: Path, mutation: str) 
         scope["container"]["network_mode"] = "bridge"
     elif mutation == "count":
         scope["execution"]["additional_portfolio_attempt_count"] = 1
-    else:
+    elif mutation == "fixture":
         scope["daemon_fixture"]["loaded_path"] = "/inputs/original-protocol.yaml"
+    else:
+        scope["daemon_fixture"]["final_image_id"] = "sha256:" + "0" * 64
     changed["recovery_scope_sha256"] = canonical_sha256(scope)
     with pytest.raises(ProtocolError):
         EntryRecoveryScope.load(

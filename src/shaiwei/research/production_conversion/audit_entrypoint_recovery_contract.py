@@ -243,6 +243,8 @@ def validate_scope(scope: dict[str, Any], protocol: EntryRecoveryProtocol, compo
         raise ProtocolError("Head30 audit-entry recovery daemon fixture differs")
     if fixture.get("protocol_sha256") != protocol.document["root_cause_and_only_change"]["embedded_protocol_sha256"]:
         raise ProtocolError("Head30 audit-entry recovery daemon path identity differs")
+    if fixture.get("final_image_id") != image.get("image_id") or fixture.get("image_git_commit") != commit:
+        raise ProtocolError("Head30 audit-entry recovery daemon image identity differs")
 
 
 @dataclass(frozen=True)
