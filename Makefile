@@ -2,6 +2,7 @@
 .PHONY: docker-ts-v5-r3g3-build docker-ts-v5-r3g3-fixture docker-ts-v5-r3g3-run docker-ts-v5-r3g3-audit docker-ts-v6-build docker-ts-v6-fixture docker-ts-v6-profile docker-ts-v6-audit docker-ts-v6-1-build docker-ts-v6-1-fixture docker-ts-v6-1-profile docker-ts-v6-1-audit docker-ts-v6-3-build docker-ts-v6-3-fixture docker-ts-v6-3-preflight docker-ts-v6-3-run docker-ts-v6-3-audit docker-ts-v6-4-build docker-ts-v6-4-fixture docker-ts-v6-4-preflight docker-ts-v6-4-run docker-ts-v6-4-audit docker-ts-b-build docker-ts-b-fixture docker-ts-b-preflight docker-ts-b-run docker-ts-b-audit docker-rf-0b-build docker-rf-0b-fixture docker-rf-0b-profile docker-rf-0b-audit docker-rf-diag-build docker-rf-diag-fixture docker-rf-diag-run docker-rf-diag-audit docker-rf-0c-build docker-rf-0c-fixture docker-rf-0c-profile docker-rf-0c-audit docker-rf-1-build docker-rf-1-fixture docker-ts-c-build docker-ts-c-fixture docker-ts-c-profile docker-ts-c-audit docker-ts-c-v2-build docker-ts-c-v2-fixture docker-ts-c-v2-profile docker-ts-c-v2-audit
 .PHONY: docker-m6-production-head30-price-recovery-build docker-m6-production-head30-price-recovery-fixture docker-m6-production-head30-price-recovery-run docker-m6-production-head30-price-recovery-audit
 .PHONY: docker-m6-production-head30-audit-recovery-build docker-m6-production-head30-audit-recovery-fixture docker-m6-production-head30-audit-recovery-run
+.PHONY: docker-m6-production-head30-audit-entrypoint-recovery-build docker-m6-production-head30-audit-entrypoint-recovery-fixture docker-m6-production-head30-audit-entrypoint-recovery-run
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -643,6 +644,13 @@ docker-m6-production-head30-audit-recovery-fixture: ## 最终薄镜像内断网�
 	docker run --rm --network none --read-only --user "$$(id -u):$$(id -g)" --tmpfs /tmp:rw,noexec,nosuid,size=1g shaiwei:m6-production-head30-audit-recovery-v1 python /opt/shaiwei/m6-head30-audit-recovery/entrypoint.py --self-test
 docker-m6-production-head30-audit-recovery-run: ## 仅在R3精确scope获批后运行一次auditor-only恢复
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-audit-recovery.yaml --profile m6-production-head30-audit-recovery run --rm --no-deps m6-production-head30-audit-recovery
+docker-m6-production-head30-audit-entrypoint-recovery-build: ## 构建R4路径入口薄恢复镜像；不读真实effect
+	$(eval M6_PRODUCTION_HEAD30_AUDIT_ENTRY_RECOVERY_GIT_HEAD := $(shell git rev-parse HEAD))
+	SHAIWEI_M6_HEAD30_AUDIT_ENTRY_RECOVERY_GIT_HEAD="$(M6_PRODUCTION_HEAD30_AUDIT_ENTRY_RECOVERY_GIT_HEAD)" docker compose -f compose.m6-production-head30-audit-entrypoint-recovery.yaml --profile m6-production-head30-audit-entrypoint-recovery build m6-production-head30-audit-entrypoint-recovery-fixture
+docker-m6-production-head30-audit-entrypoint-recovery-fixture: ## daemon以最终镜像断网验证镜像内合法旧协议路径
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-audit-entrypoint-recovery.yaml --profile m6-production-head30-audit-entrypoint-recovery run --rm --no-deps m6-production-head30-audit-entrypoint-recovery-fixture
+docker-m6-production-head30-audit-entrypoint-recovery-run: ## 仅在R4精确scope获批后运行一次auditor-only恢复
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-audit-entrypoint-recovery.yaml --profile m6-production-head30-audit-entrypoint-recovery run --rm --no-deps m6-production-head30-audit-entrypoint-recovery
 docker-m6-top30-diagnostic-build: ## 构建原M6/失败M6-3C两套薄诊断镜像；不读取真实数据
 	@test -n "$(M6_TOP30_DIAGNOSTIC_GIT_HEAD)" || (echo "M6_TOP30_DIAGNOSTIC_GIT_HEAD is required"; exit 2)
 	SHAIWEI_M6_TOP30_DIAGNOSTIC_GIT_HEAD="$(M6_TOP30_DIAGNOSTIC_GIT_HEAD)" docker compose -f compose.m6-top30-diagnostic.yaml --profile m6-top30-diagnostic build m6-top30-diagnostic-original m6-top30-diagnostic-current
