@@ -4,6 +4,13 @@
 
 ## 2026-08-20 · 平台研究重心校准，M6生产Head30协议结果前冻结
 
+- M6-5B-R1 scope `c73b4afb...c74757`获精确批准并唯一启动；真实语义读取后消费1次新账户可行性
+  尝试，家族累计2次。首遍因持仓`002505.SZ`进入2024-08-30退市生效日但没有显式处置规则而按
+  paper-v1正确失败关闭；首遍未完成、replay/audit未运行，effect仅3个失败留痕、audit 0文件，
+  R2五文件树不变。权威状态`BLOCKED_BY_UNMODELED_DELISTING`，策略仍`NOT_EVALUATED`、生产none；
+  原scope永久不得重跑。下一步不做R2技术补丁，只可另立M6-5C方法裁决，先闭合当时可知的退市风险
+  退出或实际处置证据，再以新尝试家族和新scope申请授权。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_500K_ENTRYPOINT_RECOVERY_EXECUTION_FAILURE_20260820.md`。
 - M6-5B-R1入口恢复工程已GO：协议提交`6812f25`先于实现`3f13e15`并均已推送；只修runner/auditor
   CLI显式参数映射，领域`run/audit`、paper-v1、目标和门槛不变。最终镜像`afe3d033...32b6b7a`
   由daemon断网合成fixture真实穿过两个CLI、内部重放和独立重算并PASS；专项18、架构13、全仓
