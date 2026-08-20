@@ -19,6 +19,10 @@ from shaiwei.research.production_conversion.real_release import build_release_do
 
 
 FAILED_SCOPE = PROJECT_ROOT / "config/m6_csi800_production_head30_release_scope_v1.json"
+RECOVERY_SCOPE = (
+    PROJECT_ROOT
+    / "config/m6_csi800_production_head30_entrypoint_recovery_scope_v1.json"
+)
 
 
 def _inputs() -> dict[str, object]:
@@ -129,6 +133,22 @@ def test_recovery_release_binds_new_image_action_and_services(tmp_path: Path) ->
     assert scope["container"]["runner"]["service"].endswith("recovery-runner")
     assert scope["container"]["auditor"]["service"].endswith("recovery-auditor")
     assert scope["authority"]["execution_authorized"] is False
+
+
+def test_tracked_recovery_scope_binds_final_image_and_stays_unapproved() -> None:
+    protocol = ReleaseProtocol.load(ENTRYPOINT_RECOVERY_PROTOCOL)
+    release = ReleaseScope.load(RECOVERY_SCOPE, protocol)
+    assert release.sha256 == (
+        "ea648bda49b185cb698f11f78f01d8ce16df217e50c4d12542dfac4318783d2c"
+    )
+    assert release.scope["image"]["image_id"] == (
+        "sha256:19587417b6db6eb338f51ffe9bdaae51dc5fe10dd218019af519b69b4bec63c3"
+    )
+    assert release.scope["implementation"]["git_commit"] == (
+        "313e711aac232e428a7c685bda29b6996bbd01eb"
+    )
+    assert release.scope["authority"]["execution_authorized"] is False
+    assert release.scope["authority"]["production_authorization"] == "none"
 
 
 def test_recovery_approval_rejects_original_action(tmp_path: Path) -> None:
