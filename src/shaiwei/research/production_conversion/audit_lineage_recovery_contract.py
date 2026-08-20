@@ -8,10 +8,13 @@ from typing import Any
 
 from shaiwei.config import PROJECT_ROOT
 from shaiwei.research.model_attribution.contract import canonical_sha256, sha256_file
-from shaiwei.research.production_conversion.audit_entrypoint_recovery_contract import (
-    expected_authority,
-    mapping,
-)
+if __package__:
+    from .audit_entrypoint_recovery_contract import expected_authority, mapping
+else:
+    from audit_entrypoint_recovery_contract import (  # type: ignore[no-redef]
+        expected_authority,
+        mapping,
+    )
 from shaiwei.research.production_conversion.contract import ProtocolError
 
 

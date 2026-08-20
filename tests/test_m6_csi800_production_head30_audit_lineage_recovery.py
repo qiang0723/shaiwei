@@ -3,6 +3,8 @@ from __future__ import annotations
 import copy
 import json
 from pathlib import Path
+import subprocess
+import sys
 
 import pytest
 import yaml
@@ -65,6 +67,20 @@ def test_protocol_freezes_only_explicit_r3_protocol_delivery() -> None:
     assert change["r3_protocol_read_only_mount_is_the_only_runtime_input_change"] is True
     assert protocol.document["objective"]["audit_semantics_change"] is False
     assert protocol.document["daemon_preflight_requirements"]["effect_mount_forbidden"] is True
+
+
+def test_thin_image_top_level_import_path_is_supported() -> None:
+    module_root = ROOT / "src/shaiwei/research/production_conversion"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import sys; sys.path.insert(0, sys.argv[1]); import audit_lineage_recovery_contract; import audit_lineage_recovery_entrypoint",
+            str(module_root),
+        ],
+        cwd=ROOT, check=False, capture_output=True, text=True,
+    )
+    assert completed.returncode == 0, completed.stderr
 
 
 def test_release_is_nonexecuting_and_binds_final_preflight(tmp_path: Path) -> None:
