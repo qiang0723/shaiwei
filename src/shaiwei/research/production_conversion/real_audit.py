@@ -26,8 +26,8 @@ def _equivalent(left: Any, right: Any) -> bool:
     return left == right
 
 
-def audit(*, release_path: Path, approval_path: Path, effect_root: Path, audit_root: Path) -> dict[str, Any]:
-    protocol = ReleaseProtocol.load()
+def audit(*, release_path: Path, approval_path: Path, effect_root: Path, audit_root: Path, protocol_path: Path | None = None) -> dict[str, Any]:
+    protocol = ReleaseProtocol.load(protocol_path)
     release = ReleaseScope.load(release_path, protocol)
     approval = Approval.load(approval_path, release)
     runtime = release.verify_runtime_identity()
@@ -73,12 +73,13 @@ def audit(*, release_path: Path, approval_path: Path, effect_root: Path, audit_r
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--protocol", type=Path)
     parser.add_argument("--release", type=Path, required=True)
     parser.add_argument("--approval", type=Path, required=True)
     parser.add_argument("--effect-root", type=Path, required=True)
     parser.add_argument("--audit-root", type=Path, required=True)
     args = parser.parse_args()
-    print(json.dumps(audit(release_path=args.release, approval_path=args.approval, effect_root=args.effect_root, audit_root=args.audit_root), sort_keys=True))
+    print(json.dumps(audit(protocol_path=args.protocol, release_path=args.release, approval_path=args.approval, effect_root=args.effect_root, audit_root=args.audit_root), sort_keys=True))
     return 0
 
 

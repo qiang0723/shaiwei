@@ -616,6 +616,15 @@ docker-m6-production-head30-run: ## 仅在精确scope获明确批准后运行唯
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-release.yaml --profile m6-production-head30 run --rm --no-deps m6-production-head30-runner
 docker-m6-production-head30-audit: ## runner成功后由无Qlib/旧effect挂载的第二进程独立复核
 	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-release.yaml --profile m6-production-head30 run --rm --no-deps m6-production-head30-auditor
+docker-m6-production-head30-recovery-build: ## 构建M6-4B-R1编排恢复镜像；不运行真实效果
+	@test -n "$(M6_PRODUCTION_HEAD30_RECOVERY_GIT_HEAD)" || (echo "M6_PRODUCTION_HEAD30_RECOVERY_GIT_HEAD is required"; exit 2)
+	SHAIWEI_M6_PRODUCTION_HEAD30_RECOVERY_GIT_HEAD="$(M6_PRODUCTION_HEAD30_RECOVERY_GIT_HEAD)" docker compose -f compose.m6-production-head30-recovery.yaml --profile m6-production-head30-recovery build m6-production-head30-recovery-fixture
+docker-m6-production-head30-recovery-fixture: ## 经daemon实际创建容器并运行断网合成门
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-recovery.yaml --profile m6-production-head30-recovery run --rm --no-deps m6-production-head30-recovery-fixture
+docker-m6-production-head30-recovery-run: ## 仅在新scope精确获批后运行唯一恢复runner
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-recovery.yaml --profile m6-production-head30-recovery run --rm --no-deps m6-production-head30-recovery-runner
+docker-m6-production-head30-recovery-audit: ## 恢复runner成功后运行无Qlib挂载的独立auditor
+	SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" docker compose -f compose.m6-production-head30-recovery.yaml --profile m6-production-head30-recovery run --rm --no-deps m6-production-head30-recovery-auditor
 docker-m6-top30-diagnostic-build: ## 构建原M6/失败M6-3C两套薄诊断镜像；不读取真实数据
 	@test -n "$(M6_TOP30_DIAGNOSTIC_GIT_HEAD)" || (echo "M6_TOP30_DIAGNOSTIC_GIT_HEAD is required"; exit 2)
 	SHAIWEI_M6_TOP30_DIAGNOSTIC_GIT_HEAD="$(M6_TOP30_DIAGNOSTIC_GIT_HEAD)" docker compose -f compose.m6-top30-diagnostic.yaml --profile m6-top30-diagnostic build m6-top30-diagnostic-original m6-top30-diagnostic-current

@@ -7,7 +7,8 @@
 - M6-4B精确scope获批后，唯一入口在Docker创建容器前失败关闭：YAML内联`tmpfs`被逗号拆成五个
   挂载项，daemon以`noexec`非绝对路径拒绝。effect/audit均0文件、真实效果未读、尝试0，scheduler
   healthy；原scope `15b3c785...143b3`永久不得重跑。已结果前冻结M6-4B-R1编排恢复协议，只修
-  tmpfs序列化并增加daemon创建fixture；新scope仍须用户另行精确批准。
+  tmpfs序列化并增加daemon创建fixture；结果盲实现专项19、架构13、全仓1517 PASS。下一步仅可
+  推送实现、构建新不可变镜像、跑daemon合成门并生成新scope；真实读取/尝试仍为0。
 - Opus 5核心发现经代码与证据复核成立：历史回测是`Top30/n_drop=3`，生产信号是当期
   `rank-head Top30`等权全目标替换；50万元模拟账户又与1亿元研究尺度不同。Kimi提交不整体回滚，
   既有TS/RF/TP-F证据永久保留，但新增真实效果读取暂停到组合转换、G1阳性对照和资金定位三项校准。

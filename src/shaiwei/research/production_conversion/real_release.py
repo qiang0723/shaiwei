@@ -15,8 +15,8 @@ from shaiwei.research.model_attribution.audit_recovery_contract import effect_tr
 from shaiwei.research.model_attribution.contract import canonical_sha256, sha256_file
 from shaiwei.research.production_conversion.contract import ProtocolError
 from shaiwei.research.production_conversion.real_contract import (
-    APPROVAL_ACTION, AUDITOR_COMMAND, IMAGE, RUNNER_COMMAND, SCOPE_KIND, SCOPE_SCHEMA,
-    ReleaseProtocol, expected_authority, mapping, validate_scope, write_once_document,
+    SCOPE_SCHEMA, ReleaseProtocol, expected_authority, mapping, validate_scope,
+    write_once_document,
 )
 
 
@@ -59,19 +59,20 @@ def build_release_document(
         raise ProtocolError("production-converter image manifest differs")
     docker = protocol.document["docker"]
     scope = {
-        "scope_kind": SCOPE_KIND, "created_at": created_at, "protocol_id": protocol.document["protocol_id"],
+        "scope_kind": protocol.scope_kind, "created_at": created_at,
+        "protocol_id": protocol.document["protocol_id"],
         "protocols": {"converter_sha256": protocol.base.sha256, "hash_addendum_sha256": protocol.base.addendum_sha256, "release_engineering_sha256": protocol.sha256},
         "implementation": {"git_commit": implementation_git_commit, "origin_main_commit": origin_main_commit, "code_snapshot_sha256": code_snapshot},
-        "image": {"reference": IMAGE, "image_id": image_id, "platform": image_platform, "git_commit": image_git_commit, "code_snapshot_sha256": code_snapshot, "release_manifest_sha256": sha256_file(image_release_manifest_path), "release_manifest_file_count": image_manifest["file_count"]},
+        "image": {"reference": protocol.image, "image_id": image_id, "platform": image_platform, "git_commit": image_git_commit, "code_snapshot_sha256": code_snapshot, "release_manifest_sha256": sha256_file(image_release_manifest_path), "release_manifest_file_count": image_manifest["file_count"]},
         "inputs": inputs,
-        "execution": {"approval_action": APPROVAL_ACTION, "runner_invocation_count": 1, "complete_internal_passes": ["first_pass", "replay"], "independent_auditor_invocation_count": 1, "new_portfolio_attempts_consumed_at_first_treatment_effect_read": 1, "model_attempt_increment": 0, "same_release_retry_authorized": False},
+        "execution": {"approval_action": protocol.approval_action, "runner_invocation_count": 1, "complete_internal_passes": ["first_pass", "replay"], "independent_auditor_invocation_count": 1, "new_portfolio_attempts_consumed_at_first_treatment_effect_read": 1, "model_attempt_increment": 0, "same_release_retry_authorized": False},
         "container": {
             "compose_path": docker["compose_file"], "compose_sha256": sha256_file(PROJECT_ROOT / docker["compose_file"]),
             "network_mode": "none", "read_only_root": True, "run_as_non_root": True, "cap_drop_all": True,
             "no_new_privileges": True, "env_file_mounted": False, "docker_socket_mounted": False,
             "full_project_root_mounted": False, "production_ledger_mounted": False,
-            "runner": {"service": "m6-production-head30-runner", "command": RUNNER_COMMAND, "cpus": 4, "memory": "8g", "pids_limit": 192, "mounts": [dict(row) for row in docker["runner_mounts"]]},
-            "auditor": {"service": "m6-production-head30-auditor", "command": AUDITOR_COMMAND, "cpus": 2, "memory": "4g", "pids_limit": 128, "mounts": [dict(row) for row in docker["auditor_mounts"]]},
+            "runner": {"service": protocol.runner_service, "command": protocol.runner_command, "cpus": 4, "memory": "8g", "pids_limit": 192, "mounts": [dict(row) for row in docker["runner_mounts"]]},
+            "auditor": {"service": protocol.auditor_service, "command": protocol.auditor_command, "cpus": 2, "memory": "4g", "pids_limit": 128, "mounts": [dict(row) for row in docker["auditor_mounts"]]},
         },
         "outputs": {"effect_root": "data/research/m6_csi800_production_head30_v1/effect", "audit_root": "data/research/m6_csi800_production_head30_v1/effect-audit", "experiment_ledger_write_authorized": False},
         "authority": expected_authority(),
@@ -80,11 +81,11 @@ def build_release_document(
     return {"schema_version": SCOPE_SCHEMA, "release_scope_sha256": canonical_sha256(scope), "scope": scope}
 
 
-def build(*, image_id: str, image_platform: str, image_git_commit: str, image_release_manifest: Path, effect_root: Path, audit_path: Path, output: Path, created_at: str) -> dict[str, Any]:
-    expected = PROJECT_ROOT / "config/m6_csi800_production_head30_release_scope_v1.json"
+def build(*, image_id: str, image_platform: str, image_git_commit: str, image_release_manifest: Path, effect_root: Path, audit_path: Path, output: Path, created_at: str, protocol_path: Path | None = None) -> dict[str, Any]:
+    protocol = ReleaseProtocol.load(protocol_path)
+    expected = PROJECT_ROOT / protocol.tracked_release_scope
     if output.resolve() != expected.resolve():
         raise ProtocolError("production-converter release output path differs")
-    protocol = ReleaseProtocol.load()
     head, origin = git_head(), _origin_main()
     if head != origin:
         raise ProtocolError("production-converter implementation is not synchronized")
@@ -106,6 +107,7 @@ def main() -> int:
     parser.add_argument("--effect-root", type=Path, required=True)
     parser.add_argument("--audit-path", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--protocol-path", type=Path)
     parser.add_argument("--created-at", default=datetime.now(timezone.utc).isoformat())
     args = parser.parse_args()
     print(json.dumps(build(**vars(args)), sort_keys=True))

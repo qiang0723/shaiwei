@@ -85,6 +85,7 @@ def _build_pass(
 
 def run(
     *,
+    protocol_path: Path | None = None,
     release_path: Path,
     approval_path: Path,
     provider_root: Path,
@@ -96,7 +97,7 @@ def run(
     initializer: Initializer = initialize_qlib,
     treatment_runner: TreatmentRunner = backtest_treatment,
 ) -> dict[str, Any]:
-    protocol = ReleaseProtocol.load()
+    protocol = ReleaseProtocol.load(protocol_path)
     release = ReleaseScope.load(release_path, protocol)
     approval = Approval.load(approval_path, release)
     runtime = release.verify_runtime_identity()
@@ -174,6 +175,7 @@ def run(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--protocol", type=Path)
     parser.add_argument("--release", type=Path, required=True)
     parser.add_argument("--approval", type=Path, required=True)
     parser.add_argument("--provider-root", type=Path, required=True)
@@ -181,7 +183,7 @@ def main() -> int:
     parser.add_argument("--m6-audit", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     args = parser.parse_args()
-    print(json.dumps(run(release_path=args.release, approval_path=args.approval, provider_root=args.provider_root, m6_effect_root=args.m6_effect_root, m6_audit_path=args.m6_audit, output_root=args.output_root), sort_keys=True))
+    print(json.dumps(run(protocol_path=args.protocol, release_path=args.release, approval_path=args.approval, provider_root=args.provider_root, m6_effect_root=args.m6_effect_root, m6_audit_path=args.m6_audit, output_root=args.output_root), sort_keys=True))
     return 0
 
 
