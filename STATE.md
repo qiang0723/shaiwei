@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-21 · A1-4A构建身份覆盖只读审计
+
+- 审计裁决`PASS_PRODUCTION_GLOBAL_WITH_COMPONENT_FINDINGS`：36个Dockerfile、54个compose和1个专属
+  ignore共91个构建资产；全局快照内49个，组件级42个。生产侧57个现存根级`CONTROLLED_FILES`与
+  基础Dockerfile COPY精确相等，受控树1,209文件，运行scheduler镜像带快照/Git标签且healthy，故
+  不改全局清单、不重建或提升生产镜像。
+- 42个组件资产中27个的当前SHA可在跟踪证据中精确定位，15个无当前SHA跟踪引用；其中活跃本地Web
+  的`Dockerfile.web`、`Dockerfile.control`、`compose.web.yaml`虽有镜像ID留痕且容器healthy，但镜像
+  缺代码快照和revision标签，须在下一次Web重建前补组件release manifest。10个关闭研究资产保持
+  冻结，2个无消费者Dockerfile只列A1复核候选，删除0。Docker context结合专属ignore后20篇COPY文档
+  缺失0。机器清单复算一致，全仓1,694、架构13、Ruff与diff-check PASS；未改运行身份。下一步仅可
+  另立A1-4B组件身份注册/门禁，不得把42个资产机械并入生产快照。见
+  `docs/BUILD_IDENTITY_COVERAGE_AUDIT_20260821.md`。
+
 ## 2026-08-21 · 实验账本提交基线纠偏
 
 - 提交`f548cbd`中的两条Head30补录内容正确，但提交候选误以旧HEAD为基线，漏掉工作树中此前由

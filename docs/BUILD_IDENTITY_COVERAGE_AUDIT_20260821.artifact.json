@@ -1,0 +1,134 @@
+{
+  "audit_id": "a1-4a-build-identity-coverage-audit-20260821",
+  "authority": {
+    "build_or_rebuild_authorized": false,
+    "controlled_files_mutation_authorized": false,
+    "docker_or_compose_mutation_authorized": false,
+    "production_authorization": "none",
+    "scheduler_release_authorized": false
+  },
+  "component_assets": {
+    "current_sha256_referenced_in_tracked_evidence": [
+      "Dockerfile.m5-data-gate",
+      "Dockerfile.m5-lineage-recovery",
+      "Dockerfile.m6-audit-recovery",
+      "Dockerfile.m6-production-head30-audit-entrypoint-recovery",
+      "Dockerfile.m6-production-head30-audit-hash-authority-recovery",
+      "Dockerfile.m6-production-head30-audit-lineage-recovery",
+      "Dockerfile.m6-production-head30-audit-output-root-recovery",
+      "Dockerfile.m6-production-head30-audit-recovery",
+      "Dockerfile.m6-top30-diagnostic",
+      "Dockerfile.m6-top30-diagnostic-recovery",
+      "Dockerfile.m6-top30-provenance",
+      "Dockerfile.m7-moneyflow-data-gate",
+      "Dockerfile.m7-moneyflow-gap-lineage",
+      "compose.m5-gates.yaml",
+      "compose.m5-lineage.yaml",
+      "compose.m6-audit-recovery.yaml",
+      "compose.m6-production-head30-audit-entrypoint-recovery.yaml",
+      "compose.m6-production-head30-audit-hash-authority-recovery.yaml",
+      "compose.m6-production-head30-audit-lineage-recovery.yaml",
+      "compose.m6-production-head30-audit-output-root-recovery.yaml",
+      "compose.m6-production-head30-audit-recovery.yaml",
+      "compose.m6-top30-diagnostic-recovery.yaml",
+      "compose.m6-top30-diagnostic.yaml",
+      "compose.m6-top30-provenance.yaml",
+      "compose.m6-topk-conversion.yaml",
+      "compose.m7-moneyflow-gap-lineage.yaml",
+      "compose.m7-moneyflow-gate.yaml"
+    ],
+    "current_sha256_referenced_set_sha256": "bcb5e559ec40d037f6aab34b44eb45e93126c5cdf6a56c3bd37f1c546448e4fb",
+    "no_exact_current_sha256_reference_in_tracked_evidence": [
+      "Dockerfile.control",
+      "Dockerfile.m7-moneyflow-evidence-recovery",
+      "Dockerfile.m7-moneyflow-recovery-network",
+      "Dockerfile.m7-moneyflow-recovery-network.dockerignore",
+      "Dockerfile.m7-moneyflow-target-projection",
+      "Dockerfile.star200-recovery",
+      "Dockerfile.web",
+      "Dockerfile.web-test",
+      "compose.m6-head30-500k-feasibility.yaml",
+      "compose.m7-moneyflow-evidence-recovery.yaml",
+      "compose.m7-moneyflow-recovery-network.yaml",
+      "compose.m7-moneyflow-target-projection.yaml",
+      "compose.ts-v5-r3d.yaml",
+      "compose.ts-v5-r3e.yaml",
+      "compose.web.yaml"
+    ],
+    "no_exact_current_sha256_reference_set_sha256": "a72e549d52bae04e33f738d28b0daf5dd5da3bbd2c5ede41ad2a5f155d6f73f2",
+    "non_global_build_asset_count": 42
+  },
+  "docker_context": {
+    "dockerfile_specific_ignore_count": 1,
+    "effective_missing_copied_document_count": 0,
+    "root_docs_allow_count": 19,
+    "specialized_docs_allow_count": 2,
+    "unique_copied_document_count": 20
+  },
+  "findings": {
+    "active_local_web_lineage": {
+      "assets_without_exact_current_source_sha_reference": [
+        "Dockerfile.control",
+        "Dockerfile.web",
+        "compose.web.yaml"
+      ],
+      "container_image_ids": {
+        "research_control": "sha256:95c00fb5ff770cfeb1ee35957a4ec88024b061baf46fe9120c64c18943bc22e2",
+        "web_query_and_ui": "sha256:30ee550b4cf8723d55a53a86a2c24c0f177b6a996fd98826d2b7e501d170b421"
+      },
+      "container_revision_label_present": false,
+      "container_snapshot_label_present": false,
+      "priority": "P1_BEFORE_NEXT_WEB_REBUILD"
+    },
+    "closed_research_assets_without_exact_current_source_sha_reference": [
+      "Dockerfile.m7-moneyflow-evidence-recovery",
+      "Dockerfile.m7-moneyflow-recovery-network",
+      "Dockerfile.m7-moneyflow-recovery-network.dockerignore",
+      "Dockerfile.m7-moneyflow-target-projection",
+      "compose.m6-head30-500k-feasibility.yaml",
+      "compose.m7-moneyflow-evidence-recovery.yaml",
+      "compose.m7-moneyflow-recovery-network.yaml",
+      "compose.m7-moneyflow-target-projection.yaml",
+      "compose.ts-v5-r3d.yaml",
+      "compose.ts-v5-r3e.yaml"
+    ],
+    "registry_gap": "NO_CENTRAL_EXACTLY_ONCE_BUILD_ASSET_AUTHORITY_REGISTRY",
+    "review_before_delete_candidates": [
+      "Dockerfile.star200-recovery",
+      "Dockerfile.web-test"
+    ]
+  },
+  "global_snapshot": {
+    "base_dockerfile_copy_matches_existing_controlled_root_files": true,
+    "controlled_build_asset_count": 49,
+    "controlled_build_asset_set_sha256": "a5a5eaf5f2886170c44724f14e31a333638512e7ba3c739eb3f5c2839ae90a52",
+    "controlled_root_file_count": 57,
+    "controlled_tree_file_count": 1209,
+    "current_code_snapshot_sha256": "acbc94c1853328fc59430c53ef693b0c50aa55bc14231193d53b6e10719d6f59",
+    "production_global_identity_gate": "PASS"
+  },
+  "hypothetical_blanket_expansion": {
+    "added_build_asset_count": 42,
+    "code_snapshot_sha256": "30a6d497679be59cee55080267e2833e03664debdad4ac07e0ebba599b62657e",
+    "controlled_tree_file_count": 1251,
+    "requires_base_dockerfile_copy_change": true,
+    "requires_scheduler_release": true
+  },
+  "inventory": {
+    "all_build_asset_count": 91,
+    "all_build_asset_set_sha256": "c384b8f11ffad96f9916676c724eea10193b4f2884d7b1cbc4a14cdb53663dea",
+    "tracked_compose_count": 54,
+    "tracked_dockerfile_count": 36,
+    "tracked_dockerfile_specific_ignore_count": 1
+  },
+  "observed_git_head": "cd9314e33cb59a47bae19f491e97716afed703cd",
+  "running_scheduler": {
+    "container_id": "183b8c6c5eddac951d9d9b3cfa58c0d38e351d5b94ee1b1d52b9b8059c23dd3b",
+    "git_revision_label": "210af4dab33c85b38c05b28f56c176b7970c41db",
+    "health": "healthy",
+    "image_id": "sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76",
+    "snapshot_label": "4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708"
+  },
+  "schema_version": "build-identity-coverage-audit-v1",
+  "verdict": "PASS_PRODUCTION_GLOBAL_WITH_COMPONENT_FINDINGS"
+}
