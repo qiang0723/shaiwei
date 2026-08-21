@@ -9,9 +9,11 @@
   快照明确标记为基线无效。精确对账确认旧快照867行、完整活账本875行，旧快照ID缺失0、同ID内容
   差异0，Head30两行逐内容一致；这是提交/暂存区管线问题，不是研究结果或账本追加器错误。
 - 本节点以完整活账本建立一次性非前缀纠偏基线，不新增尝试、不改效果或裁决，生产授权仍为`none`。
-  下一提交加入`HEAD -> index -> working tree`和`HEAD^ -> HEAD`双重机器门，本次例外必须精确绑定
-  父子提交、前后文件SHA和机器收据，禁止通配豁免。M6-5B/M6-5C继续暂停。见
-  `docs/M6_CSI800_PRODUCTION_HEAD30_LEDGER_BASELINE_REPAIR_20260821.md`。
+  纠偏提交为`601a782`；永久门已加入`HEAD -> index -> working tree`和`HEAD^ -> HEAD`双重检查，
+  本次唯一例外精确绑定父子提交、路径、前后Git blob SHA、机器收据和说明文档，例外清单身份亦由测试
+  固定，禁止通配豁免。账本专项51、架构13、全仓1,659 PASS；Ruff与diff-check PASS。M6-5B/M6-5C
+  继续暂停。见`docs/M6_CSI800_PRODUCTION_HEAD30_LEDGER_BASELINE_REPAIR_20260821.md`与
+  `docs/LEDGER_APPEND_ONLY_GUARD_ACCEPTANCE_20260821.md`。
 
 ## 2026-08-21 · M6生产Head30审查校准与尝试账本闭环
 

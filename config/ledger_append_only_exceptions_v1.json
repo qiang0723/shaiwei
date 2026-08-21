@@ -1,0 +1,17 @@
+{
+  "exceptions": [
+    {
+      "commit": "601a782479f73aedef7860403e69708291ec3782",
+      "commit_blob_sha256": "8567b8e3abdeafa2e24a28ec2fffcc91cd26bd6fe0e84f73bb02186f464da664",
+      "parent_commit": "f548cbdd12e27648e202081e463fad70207a3c69",
+      "parent_blob_sha256": "dd5970858e21ad8b3f23a3b08589821336f3f1e7d28ca97a92a24f0752a9420e",
+      "path": "ledger/experiments.csv",
+      "reason_document": "docs/M6_CSI800_PRODUCTION_HEAD30_LEDGER_BASELINE_REPAIR_20260821.md",
+      "reason_document_sha256": "c11c4b28790921bbfe7255b12f2935bfbfedf7790d934accd3063b52454310f9",
+      "receipt_path": "config/m6_csi800_production_head30_ledger_baseline_repair_v1.json",
+      "receipt_sha256": "dec5c2c4790f1974ba30e7204609c47e9037d79dd3286c4577eae3ddc2fd35ea"
+    }
+  ],
+  "policy": "EXACT_ONE_TIME_NON_PREFIX_REPAIR_ONLY",
+  "schema_version": "ledger-append-only-exceptions-v1"
+}
