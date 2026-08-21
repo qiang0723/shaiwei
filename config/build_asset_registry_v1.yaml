@@ -1,0 +1,173 @@
+schema_version: shaiwei-build-asset-registry-v1
+registry_id: build-assets-20260821-v1
+components:
+  - id: archive-candidates
+    class: ARCHIVE_CANDIDATE
+    status: REVIEW_BEFORE_DELETE
+    reuse_policy: REVIEW_BEFORE_DELETE
+    assets:
+      - Dockerfile.star200-recovery
+      - Dockerfile.web-test
+    consumers:
+      - docs/BUILD_IDENTITY_COVERAGE_AUDIT_20260821.md
+  - id: global-production
+    class: GLOBAL
+    status: ACTIVE_GLOBAL
+    reuse_policy: GLOBAL_SNAPSHOT
+    assets:
+      - Dockerfile
+      - Dockerfile.ts-b-holdout
+      - Dockerfile.ts-c-qualification
+      - Dockerfile.ts-c-qualification-v2
+      - Dockerfile.ts-rf-0b
+      - Dockerfile.ts-rf-0c
+      - Dockerfile.ts-rf-1
+      - Dockerfile.ts-rf-diag
+      - Dockerfile.ts-v5-llm
+      - Dockerfile.ts-v5-r3g
+      - Dockerfile.ts-v5-r3g1
+      - Dockerfile.ts-v5-r3g2-benchmark
+      - Dockerfile.ts-v6-1-ranking
+      - Dockerfile.ts-v6-3-ranked-subset
+      - Dockerfile.ts-v6-4-no-takeprofit
+      - Dockerfile.ts-v6-entry-quality
+      - compose.m6-attribution.yaml
+      - compose.m6-head30-500k-entrypoint-recovery.yaml
+      - compose.m6-head30-500k-release.yaml
+      - compose.m6-production-head30-price-recovery.yaml
+      - compose.m6-production-head30-recovery.yaml
+      - compose.m6-production-head30-release.yaml
+      - compose.m6-topk-conversion-release.yaml
+      - compose.research.yaml
+      - compose.ts-b-holdout.yaml
+      - compose.ts-c-qualification-v2.yaml
+      - compose.ts-c-qualification.yaml
+      - compose.ts-recovery.yaml
+      - compose.ts-rf-0b.yaml
+      - compose.ts-rf-0c.yaml
+      - compose.ts-rf-1.yaml
+      - compose.ts-rf-diag.yaml
+      - compose.ts-v5-llm.yaml
+      - compose.ts-v5-r2.yaml
+      - compose.ts-v5-r3c.yaml
+      - compose.ts-v5-r3f.yaml
+      - compose.ts-v5-r3g.yaml
+      - compose.ts-v5-r3g1.yaml
+      - compose.ts-v5-r3g2-benchmark.yaml
+      - compose.ts-v5-r3g2-effect-recovery.yaml
+      - compose.ts-v5-r3g2-effect.yaml
+      - compose.ts-v5-r3g2-w7-recovery.yaml
+      - compose.ts-v5-r3g2-w7.yaml
+      - compose.ts-v5-r3g3-diagnostic.yaml
+      - compose.ts-v6-1-ranking.yaml
+      - compose.ts-v6-3-ranked-subset.yaml
+      - compose.ts-v6-4-no-takeprofit.yaml
+      - compose.ts-v6-entry-quality.yaml
+      - compose.yaml
+    consumers:
+      - src/shaiwei/provenance.py
+      - tests/test_provenance.py
+  - id: m5-dynamic
+    class: COMPONENT_RELEASE
+    status: CLOSED_FROZEN
+    reuse_policy: NEW_RELEASE_REQUIRED
+    assets:
+      - Dockerfile.m5-data-gate
+      - Dockerfile.m5-lineage-recovery
+      - compose.m5-gates.yaml
+      - compose.m5-lineage.yaml
+    consumers:
+      - Makefile
+      - tests/test_m5_dynamic_docker_contract.py
+  - id: m6-attribution-audit
+    class: COMPONENT_RELEASE
+    status: CLOSED_FROZEN
+    reuse_policy: NEW_RELEASE_REQUIRED
+    assets:
+      - Dockerfile.m6-audit-recovery
+      - compose.m6-audit-recovery.yaml
+    consumers:
+      - tests/test_m6_csi800_model_attribution_audit_recovery.py
+  - id: m6-head30-500k-fixture
+    class: FIXTURE_ONLY
+    status: CLOSED_FROZEN
+    reuse_policy: FIXTURE_ONLY
+    assets:
+      - compose.m6-head30-500k-feasibility.yaml
+    consumers:
+      - tests/test_m6_head30_500k_feasibility.py
+  - id: m6-head30-audit-recoveries
+    class: COMPONENT_RELEASE
+    status: CLOSED_FROZEN
+    reuse_policy: NEW_RELEASE_REQUIRED
+    assets:
+      - Dockerfile.m6-production-head30-audit-entrypoint-recovery
+      - Dockerfile.m6-production-head30-audit-hash-authority-recovery
+      - Dockerfile.m6-production-head30-audit-lineage-recovery
+      - Dockerfile.m6-production-head30-audit-output-root-recovery
+      - Dockerfile.m6-production-head30-audit-recovery
+      - compose.m6-production-head30-audit-entrypoint-recovery.yaml
+      - compose.m6-production-head30-audit-hash-authority-recovery.yaml
+      - compose.m6-production-head30-audit-lineage-recovery.yaml
+      - compose.m6-production-head30-audit-output-root-recovery.yaml
+      - compose.m6-production-head30-audit-recovery.yaml
+    consumers:
+      - tests/test_m6_csi800_production_head30_audit_identity_recovery.py
+      - tests/test_m6_csi800_production_head30_audit_output_root_recovery.py
+  - id: m6-top30-diagnostics
+    class: COMPONENT_RELEASE
+    status: CLOSED_FROZEN
+    reuse_policy: NEW_RELEASE_REQUIRED
+    assets:
+      - Dockerfile.m6-top30-diagnostic
+      - Dockerfile.m6-top30-diagnostic-recovery
+      - Dockerfile.m6-top30-provenance
+      - compose.m6-top30-diagnostic-recovery.yaml
+      - compose.m6-top30-diagnostic.yaml
+      - compose.m6-top30-provenance.yaml
+      - compose.m6-topk-conversion.yaml
+    consumers:
+      - tests/test_m6_csi800_top30_diagnostic.py
+      - tests/test_m6_csi800_top30_diagnostic_recovery.py
+      - tests/test_m6_csi800_top30_numeric_provenance.py
+  - id: m7-moneyflow
+    class: COMPONENT_RELEASE
+    status: CLOSED_FROZEN
+    reuse_policy: NEW_RELEASE_REQUIRED
+    assets:
+      - Dockerfile.m7-moneyflow-data-gate
+      - Dockerfile.m7-moneyflow-evidence-recovery
+      - Dockerfile.m7-moneyflow-gap-lineage
+      - Dockerfile.m7-moneyflow-recovery-network
+      - Dockerfile.m7-moneyflow-recovery-network.dockerignore
+      - Dockerfile.m7-moneyflow-target-projection
+      - compose.m7-moneyflow-evidence-recovery.yaml
+      - compose.m7-moneyflow-gap-lineage.yaml
+      - compose.m7-moneyflow-gate.yaml
+      - compose.m7-moneyflow-recovery-network.yaml
+      - compose.m7-moneyflow-target-projection.yaml
+    consumers:
+      - tests/test_m7_moneyflow_docker_contract.py
+      - tests/test_m7_moneyflow_recovery_network_engineering.py
+      - tests/test_m7_moneyflow_recovery_target_projection_engineering.py
+  - id: ts-v5-contract
+    class: COMPONENT_RELEASE
+    status: CLOSED_FROZEN
+    reuse_policy: NEW_RELEASE_REQUIRED
+    assets:
+      - compose.ts-v5-r3d.yaml
+      - compose.ts-v5-r3e.yaml
+    consumers:
+      - tests/test_trend_swing_v5_r3d_diagnostic.py
+      - tests/test_trend_swing_v5_r3e_bound_contract.py
+  - id: web-local
+    class: COMPONENT_RELEASE
+    status: ACTIVE_LOCAL_READ_ONLY
+    reuse_policy: NEW_RELEASE_REQUIRED
+    assets:
+      - Dockerfile.control
+      - Dockerfile.web
+      - compose.web.yaml
+    consumers:
+      - Makefile
+      - tests/test_web_ui.py

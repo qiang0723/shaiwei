@@ -2,6 +2,22 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-21 · A1-4B组件构建身份注册与release门
+
+- 协议提交`9cc9df8`先行推送；工程裁决`GO_ENGINEERING_ONLY`。中央注册表将91个Git跟踪构建资产
+  以`GLOBAL / COMPONENT_RELEASE / FIXTURE_ONLY / ARCHIVE_CANDIDATE`四类全部且仅登记一次，分别
+  为49/39/1/2项；10个组件的类、状态、复用政策和消费者路径均通过严格Schema与机器门。全局49项与
+  `CONTROLLED_FILES`构建资产集合相等，基础Dockerfile COPY继续反向闭合；活跃Web三项和M7专属
+  ignore边界已锁定。`CONTROLLED_FILES`常量未扩大；受控树因新增config/src/tests合同从1,209变为
+  1,214文件，开发快照为`b00264fa...65c`，未提升到运行scheduler。
+- 通用attestation门绑定注册表身份、全部构建资产SHA/组件快照、源码bundle、Git commit/origin、
+  内容寻址镜像ID及三项标签；合成Web正向和21个越权/篡改对抗场景通过，成功结果仍固定
+  `execution_authorized=false`、生产授权`none`。专项25、架构13、全仓1,719 PASS；Ruff、compileall、
+  pip check和diff-check PASS。scheduler与三项Web容器均保持原镜像且healthy，无构建/重启/发布。
+  真实Web attestation和新镜像仍为0；未来若重建须另立A1-4C真实Web release节点。runner原子记账与
+  M6-5C退市方法继续独立，不得夹带。见
+  `docs/BUILD_IDENTITY_COMPONENT_GATE_ACCEPTANCE_20260821.md`。
+
 ## 2026-08-21 · A1-4A构建身份覆盖只读审计
 
 - 审计裁决`PASS_PRODUCTION_GLOBAL_WITH_COMPONENT_FINDINGS`：36个Dockerfile、54个compose和1个专属

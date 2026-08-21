@@ -1,0 +1,98 @@
+{
+  "acceptance_id": "a1-4b-component-build-identity-gate-acceptance-20260821",
+  "authority": {
+    "component_execution_authorized": false,
+    "image_build_or_rebuild_authorized": false,
+    "production_authorization": "none",
+    "runner_mutation_authorized": false,
+    "scheduler_release_authorized": false,
+    "web_release_authorized": false
+  },
+  "build_registry": {
+    "archive_candidate_asset_count": 2,
+    "asset_count": 91,
+    "component_count": 10,
+    "component_release_asset_count": 39,
+    "consumer_paths_exist_and_are_tracked": true,
+    "fixture_only_asset_count": 1,
+    "four_classes_present": true,
+    "git_tracked_build_asset_count": 91,
+    "git_tracked_set_exactly_equal": true,
+    "global_asset_count": 49,
+    "global_controlled_files_exactly_equal": true,
+    "m7_specialized_ignore_registered": true,
+    "registry_file_sha256": "006e4f46f21de96fd808c8dc5784c76d93272a0d34e0c99ca05d1697ed3294af",
+    "registry_id": "build-assets-20260821-v1",
+    "registry_sha256": "39462db27066543762a7b1be643b709f42fa32f431900c6d3ba45e7677c7cda9",
+    "schema_version": "shaiwei-build-asset-registry-v1",
+    "web_assets": [
+      "Dockerfile.control",
+      "Dockerfile.web",
+      "compose.web.yaml"
+    ]
+  },
+  "component_release_gate": {
+    "active_component_success_fixture": "web-local",
+    "adversarial_case_count": 21,
+    "attestation_schema_version": "shaiwei-component-release-attestation-v1",
+    "execution_authorized_on_success": false,
+    "labels_required": [
+      "io.shaiwei.component_build_snapshot_sha256",
+      "io.shaiwei.source_bundle_sha256",
+      "org.opencontainers.image.revision"
+    ],
+    "m7_moneyflow_build_snapshot_sha256": "f6b49290e73aa90628853c1927fd1c65ad0e02437e2f63d817a3399e7fb9a381",
+    "production_authorization_on_success": "none",
+    "real_attestation_created": false,
+    "real_image_inspected_by_gate": false,
+    "real_release_executed": false,
+    "web_local_build_snapshot_sha256": "ba2ff55d4ddb5b0d21c32a988b9a0afa0b12af9056df7c721a4a286e39d6d853"
+  },
+  "global_snapshot": {
+    "base_dockerfile_copy_matches_existing_controlled_root_files": true,
+    "controlled_files_constant_mutated": false,
+    "controlled_tree_file_count_after_a1_4b": 1214,
+    "development_code_snapshot_sha256_after_a1_4b": "b00264fa6bd9482861e0891284bc4950974490f587ca8654a971311587bbb65c",
+    "running_scheduler_release_mutated": false
+  },
+  "implementation_files": {
+    "package_init_sha256": "ad57f3a03ee379ed782d421137e47d9a8bf8ab8327c5a32a5e5d5b45a1ef01e3",
+    "registry_module_lines": 244,
+    "registry_module_sha256": "ce34f8ece49d3f2c6e4186e3d93a8bf6682ee35ee8a66bd8b079998bf03c7808",
+    "release_module_lines": 229,
+    "release_module_sha256": "ac41c0dc906a9cce82df949ee503ef196d8b4508bcfe6461c8caf9d174e69d4c",
+    "test_module_lines": 274,
+    "test_module_sha256": "8a762122cd5e5e9d53eec38c3941a2bb6af352fbdc355859b3e49bd82b5a0291"
+  },
+  "observed_git_head_before_implementation_commit": "9cc9df8b10bb0ab83f97fc12e86531aaa9a4df2e",
+  "protocol": {
+    "commit": "9cc9df8b10bb0ab83f97fc12e86531aaa9a4df2e",
+    "path": "docs/BUILD_IDENTITY_COMPONENT_GATE_PROTOCOL_20260821.md",
+    "sha256": "2fa08121933250795411c792c226f0f7aa1618acb0f1ed4f7784f719bee7c89b"
+  },
+  "runtime_observation": {
+    "scheduler": {
+      "container_id_prefix": "183b8c6c5edd",
+      "health": "healthy",
+      "image_id": "sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76",
+      "snapshot_label": "4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708"
+    },
+    "web": {
+      "all_healthy": true,
+      "control_image_id": "sha256:95c00fb5ff770cfeb1ee35957a4ec88024b061baf46fe9120c64c18943bc22e2",
+      "query_ui_image_id": "sha256:30ee550b4cf8723d55a53a86a2c24c0f177b6a996fd98826d2b7e501d170b421"
+    }
+  },
+  "schema_version": "shaiwei-build-identity-component-gate-acceptance-v1",
+  "validation": {
+    "architecture_check_passed": 13,
+    "compileall_pass": true,
+    "diff_check_pass": true,
+    "full_test_passed": 1719,
+    "full_test_warnings": 17,
+    "pip_check_pass": true,
+    "ruff_pass": true,
+    "targeted_test_passed": 25
+  },
+  "verdict": "GO_ENGINEERING_ONLY"
+}
