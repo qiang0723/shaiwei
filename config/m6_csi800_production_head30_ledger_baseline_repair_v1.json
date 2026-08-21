@@ -1,0 +1,33 @@
+{
+  "broken_commit": "f548cbdd12e27648e202081e463fad70207a3c69",
+  "broken_parent_commit": "0cdecf8564561e26f9525736e9ae2cd9c3ced920",
+  "broken_snapshot_row_count": 867,
+  "broken_snapshot_sha256": "dd5970858e21ad8b3f23a3b08589821336f3f1e7d28ca97a92a24f0752a9420e",
+  "content_mismatch_count": 0,
+  "extra_live_experiment_ids": [
+    "cbcdc32193b7",
+    "72736b49d53f",
+    "737353fe0a27",
+    "ead91b18db11",
+    "349c4ebb1d5e",
+    "5bf0a1ccaf54",
+    "9ab51742fbf1",
+    "ec15c551132b"
+  ],
+  "extra_live_row_count": 8,
+  "head30_reconciled_experiment_ids": [
+    "e97f4e185e33",
+    "3ce8e73c0733"
+  ],
+  "head30_rows_content_equal": true,
+  "historical_results_changed": false,
+  "live_candidate_row_count": 875,
+  "live_candidate_sha256": "8567b8e3abdeafa2e24a28ec2fffcc91cd26bd6fe0e84f73bb02186f464da664",
+  "missing_broken_experiment_ids_from_live": [],
+  "new_attempt_increment": 0,
+  "path": "ledger/experiments.csv",
+  "production_authorization": "none",
+  "repair_kind": "EXPLICIT_NON_PREFIX_BASELINE_CORRECTION",
+  "schema_version": "m6-production-head30-ledger-baseline-repair-v1",
+  "status": "BASELINE_REPAIR_REQUIRED"
+}
