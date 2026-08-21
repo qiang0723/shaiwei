@@ -11,8 +11,10 @@
 - 本节点以完整活账本建立一次性非前缀纠偏基线，不新增尝试、不改效果或裁决，生产授权仍为`none`。
   纠偏提交为`601a782`；永久门已加入`HEAD -> index -> working tree`和`HEAD^ -> HEAD`双重检查，
   本次唯一例外精确绑定父子提交、路径、前后Git blob SHA、机器收据和说明文档，例外清单身份亦由测试
-  固定，禁止通配豁免。账本专项51、架构13、全仓1,659 PASS；Ruff与diff-check PASS。M6-5B/M6-5C
-  继续暂停。见`docs/M6_CSI800_PRODUCTION_HEAD30_LEDGER_BASELINE_REPAIR_20260821.md`与
+  固定，禁止通配豁免。追加门已由24份扩至全部41份Git已跟踪CSV账本，并强制实际跟踪集合与受控
+  清单完全相等，今后新增、删除或漏登记都会失败关闭；账本专项86、架构13、全仓1,694 PASS，Ruff
+  与diff-check PASS。M6-5B/M6-5C继续暂停。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_LEDGER_BASELINE_REPAIR_20260821.md`与
   `docs/LEDGER_APPEND_ONLY_GUARD_ACCEPTANCE_20260821.md`。
 
 ## 2026-08-21 · M6生产Head30审查校准与尝试账本闭环

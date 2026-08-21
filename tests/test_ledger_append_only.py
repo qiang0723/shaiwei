@@ -31,10 +31,27 @@ LEDGERS = [
     "ledger/m3_multi_pool_factor_transports.csv",
     "ledger/m3_multi_pool_factor_reviews.csv",
     "ledger/m3_multi_pool_factor_review_transports.csv",
+    "ledger/m4_star50_residual_effect_decisions.csv",
+    "ledger/m4_star50_residual_effect_runs.csv",
+    "ledger/p2_star50_effect_admissions.csv",
+    "ledger/p2_star50_effect_correction_admissions.csv",
+    "ledger/p2_star50_effect_correction_runs.csv",
+    "ledger/p2_star50_effect_runs.csv",
+    "ledger/p2_star50_engineering_admissions.csv",
+    "ledger/p2_star50_engineering_runs.csv",
     "ledger/paper_accounts.csv",
     "ledger/paper_events.csv",
     "ledger/paper_runs.csv",
     "ledger/g8_fund_evidence.csv",
+    "ledger/g8_manager_evidence.csv",
+    "ledger/ts_v5_llm_attempts.csv",
+    "ledger/ts_v5_llm_transports.csv",
+    "ledger/ts_v5_r2_llm_attempts.csv",
+    "ledger/ts_v5_r2_llm_transports.csv",
+    "ledger/ts_v5_r3c_llm_attempts.csv",
+    "ledger/ts_v5_r3c_llm_transports.csv",
+    "ledger/ts_v5_r3f_llm_attempts.csv",
+    "ledger/ts_v5_r3f_llm_transports.csv",
 ]
 
 
@@ -55,6 +72,17 @@ def _rev_parse(spec: str) -> str | None:
         ["git", "rev-parse", "--verify", spec], cwd=ROOT, capture_output=True, text=True
     )
     return result.stdout.strip() if result.returncode == 0 else None
+
+
+def _tracked_csv_ledgers() -> set[str]:
+    result = subprocess.run(
+        ["git", "ls-files", "--", "ledger/*.csv"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, "cannot enumerate tracked ledger CSV files"
+    return {path for path in result.stdout.splitlines() if path}
 
 
 def _sha256(content: bytes) -> str:
@@ -99,6 +127,18 @@ def test_git_baseline_exists():
         ["git", "rev-parse", "--verify", "HEAD"], capture_output=True, text=True
     )
     assert head.returncode == 0, "baseline commit is missing"
+
+
+def test_controlled_ledger_inventory_matches_git():
+    """新增 tracked ledger 必须同时进入追加门，不能依赖人工记得更新白名单。"""
+
+    controlled = set(LEDGERS)
+    tracked = _tracked_csv_ledgers()
+    assert len(controlled) == len(LEDGERS), "LEDGERS contains duplicate paths"
+    assert controlled == tracked, (
+        "tracked ledger inventory differs from append-only controls: "
+        f"missing={sorted(tracked - controlled)}, stale={sorted(controlled - tracked)}"
+    )
 
 
 @pytest.mark.parametrize("path", LEDGERS)
