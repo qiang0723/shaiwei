@@ -1,0 +1,46 @@
+schema_version: m6-csi800-production-head30-delisting-risk-release-context-recovery-v1
+recovery_id: m6-csi800-production-head30-delisting-risk-release-context-recovery-v1
+stage: RESULT_BLIND_DOCKER_CONTEXT_RECOVERY_ONLY
+protocol: docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_RELEASE_CONTEXT_RECOVERY_PROTOCOL_20260823.md
+production_authorization: none
+
+predecessor:
+  implementation_commit: aac357de6f2fecc57a7537b994dd9155acb5b357
+  implementation_acceptance_sha256: 799a2a20cb6828d0b8364327b68a0ae3ac892dea811ac30e4bda6925427b212d
+  base_release_protocol_sha256: bd0d9215b2104c9b68b799f06e76c5b98595cc46e20e85f3ac54134f0ff280ab
+  failed_dockerfile_sha256: 295af0c08eb3f2339a891affd67fa3a1103cc0062ffbc6f922080db670230f13
+  compose_sha256: 4faf42248fbbb28785afae799a31edafc536e155c24eb1a51a2af40092cbd648
+  failed_image_reference: shaiwei:m6-head30-delisting-risk-release-v1
+  failed_image_id: sha256:faf2ac66f43d9d22de29cf7125c058acd0a0f54a18c37d6a951c738e9c963cbf
+  failure_evidence: config/m6_csi800_production_head30_delisting_risk_release_fixture_failure_v1.json
+  failure_evidence_sha256: 3efd05584654d72ad0bbf4c644a353e19ade5f7c55707e2a38b82980286b6305
+  same_failed_image_fixture_retry_authorized: false
+
+single_change:
+  add_dedicated_dockerignore: Dockerfile.m6-head30-delisting-risk-release.dockerignore
+  copy_required_predecessor_documents:
+    - docs/EFFECT_ATTEMPT_CLAIM_GATE_ACCEPTANCE_20260823.md
+    - docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_EXECUTION_ADAPTER_ACCEPTANCE_20260823.md
+    - docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_METHOD_ACCEPTANCE_20260823.md
+  successor_image_reference: shaiwei:m6-head30-delisting-risk-release-r1-v1
+  domain_code_change_authorized: false
+  claim_or_gate_change_authorized: false
+  compose_mount_change_authorized: false
+
+authority:
+  recovery_engineering_authorized: true
+  one_successor_offline_build_authorized: true
+  one_successor_synthetic_fixture_authorized: true
+  metadata_only_scope_authorized: true
+  real_target_read_authorized: false
+  real_price_read_authorized: false
+  real_effect_read_authorized: false
+  canonical_ledger_write_authorized: false
+  approval_creation_authorized: false
+  external_network_authorized: false
+  scheduler_change_or_restart_authorized: false
+  production_authorization: none
+
+stop_condition:
+  stop_after_successor_scope_pushed: true
+  exact_user_authorization_required_before_real_run: true

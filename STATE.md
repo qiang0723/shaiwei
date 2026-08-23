@@ -2,6 +2,15 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-C首次fixture失败与R1冻结
+
+- 实现`aac357d`推送、断网镜像`faf2ac66...c963cbf`构建成功；唯一fixture在协议前序文档身份校验处
+  失败，根因是Docker context遗漏三份验收文档。合成领域未进入，真实目标/价格/效果读取0、真实账本/
+  approval 0、scheduler不变；原镜像不得重跑。
+- R1只授权专用dockerignore与三份只读文档COPY，successor用新镜像名且只构建/fixture各一次；不改
+  领域代码、claim、门、Compose或全局dockerignore。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_RELEASE_CONTEXT_RECOVERY_PROTOCOL_20260823.md`。
+
 ## 2026-08-23 · M6-5C-C claim-first release实现门
 
 - 工程裁决`GO_IMPLEMENTATION_READY_FOR_ONE_OFFLINE_IMAGE`：runner在真实reader前先fsync canonical
