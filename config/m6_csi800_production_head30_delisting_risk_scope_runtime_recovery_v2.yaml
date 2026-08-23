@@ -1,0 +1,58 @@
+schema_version: m6-csi800-production-head30-delisting-risk-scope-runtime-recovery-v2
+recovery_id: m6-csi800-production-head30-delisting-risk-scope-runtime-recovery-v2
+stage: RESULT_BLIND_PRECLAIM_SCOPE_RUNTIME_RECOVERY_ONLY
+protocol: docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_SCOPE_RUNTIME_RECOVERY_PROTOCOL_20260823.md
+production_authorization: none
+
+predecessor:
+  final_release_commit: ad07091d1afa7535669b84dfb76ab9ab84b74f45
+  final_acceptance_sha256: d346878d2f04b3b3c594d2f7b35c01fa2a538d8758a6b7a32f45ace128395e96
+  failed_scope_file_sha256: 845f623f54f207644ee3ea468aaaee2d11291ddb6e40fcdf2ca39aef230ecc70
+  failed_scope_sha256: 2afe815fbded79e221d23b431a09648c92cef64766ad47e68503425ecffec85c
+  failed_approval_sha256: 3a05b1014f2f49d5020a56d40e356238866063ddcdc6aabde285620aefac6dfa
+  failed_image_id: sha256:be1e9b47ad6e069c6e4d44e2f3cc14176529a55d060996a003eed26e50192fd9
+  failure_evidence: config/m6_csi800_production_head30_delisting_risk_scope_runtime_failure_v1.json
+  failure_evidence_sha256: a8790f4594a529aba02ee91b21df3a8a6ad054452a0b74becf2dc0862a5a2af2
+  same_failed_scope_retry_authorized: false
+  attempts_consumed_before_recovery: 0
+
+single_change:
+  registry_loader:
+    default_filesystem_validation_unchanged: true
+    explicit_metadata_only_mode_for_component_runtime: true
+  scope_contract:
+    registry_component_paths_must_equal_scoped_build_asset_paths: true
+    component_snapshot_recomputed_from_scoped_hash_records: true
+    unrelated_repository_build_assets_not_required_inside_component_image: true
+  daemon_fixture:
+    must_cross_real_release_scope_loader_in_successor_image: true
+  successor_image_reference: shaiwei:m6-head30-delisting-risk-release-r2-v1
+  successor_scope_path: config/m6_csi800_production_head30_delisting_risk_release_scope_r2_v1.json
+  domain_or_metric_change_authorized: false
+  claim_semantics_change_authorized: false
+  input_or_gate_change_authorized: false
+
+attempt:
+  family: m6_head30_500k_delisting_risk_overlay_v1
+  family_attempts_before_run: 0
+  attempt_ordinal: 1
+  reason_unchanged: preclaim_failure_consumed_zero_attempts
+
+authority:
+  recovery_engineering_authorized: true
+  one_successor_offline_build_authorized: true
+  one_successor_synthetic_fixture_authorized: true
+  metadata_only_scope_authorized: true
+  real_target_read_authorized: false
+  real_price_read_authorized: false
+  real_effect_read_authorized: false
+  canonical_ledger_write_authorized: false
+  approval_creation_authorized: false
+  external_network_authorized: false
+  scheduler_change_or_restart_authorized: false
+  production_authorization: none
+
+stop_condition:
+  stop_after_successor_scope_pushed: true
+  exact_new_user_authorization_required_before_real_run: true
+  failed_scope_and_approval_cannot_be_reused: true

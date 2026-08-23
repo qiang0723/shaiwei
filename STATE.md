@@ -2,6 +2,15 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-C真实入口claim前失败与R2冻结
+
+- scope`2afe815f...ec85c`唯一runner在`ReleaseScope.load()`因组件镜像不含无关全仓构建资产而失败；
+  execute_loaded/claim/真实读取均未进入，ledger与receipt写入0、家族仍0、auditor 0、scheduler不变。
+  原scope/approval不得重跑或复用。
+- R2只允许注册表显式metadata模式、scope按登记路径+scoped哈希重算组件身份，并强制successor fixture
+  穿过真实scope loader；默认全仓严格门、领域/claim/输入/门槛/挂载不变。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_SCOPE_RUNTIME_RECOVERY_PROTOCOL_20260823.md`。
+
 ## 2026-08-23 · M6-5C-C-R1 release终版
 
 - 终版裁决`GO_RELEASE_READY_NOT_EXECUTION_APPROVAL`。successor镜像`be1e9b47...192fd9`由已推送
