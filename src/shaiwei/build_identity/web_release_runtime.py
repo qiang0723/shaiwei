@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 import subprocess
 import time
+from urllib.error import HTTPError, URLError
 import urllib.request
 from typing import Mapping
 
@@ -12,6 +13,17 @@ from shaiwei.build_identity.web_release_config import WebReleaseConfig, WebRelea
 
 
 WEB_SERVICES = ("web-query", "research-control", "web-ui")
+CRITICAL_READ_ONLY_PATHS = (
+    "/healthz",
+    "/api/v1/overview",
+    "/api/v1/data-quality",
+    "/api/v1/system/runs",
+    "/api/v1/strategy-factory",
+    "/api/v1/factors",
+    "/api/v1/experiments?limit=1&offset=0",
+    "/api/v1/paper/portfolio?account_id=model_baseline",
+    "/api/v1/signals/latest",
+)
 _EXPECTED_NETWORK_SUFFIXES = {
     "web-query": {"web-internal"},
     "research-control": {"control-internal"},
@@ -25,6 +37,31 @@ def _run(argv: list[str], *, root: Path) -> subprocess.CompletedProcess[str]:
         detail = (result.stderr or result.stdout).strip()[-4000:]
         raise WebReleaseError(f"command failed: {' '.join(argv)}: {detail}")
     return result
+
+
+def scheduler_identity(root: Path) -> dict[str, str]:
+    """Read the exact scheduler identity without inspecting environment or secrets."""
+    container_id = _run(["docker", "compose", "ps", "-q", "scheduler"], root=root).stdout.strip()
+    if not container_id:
+        raise WebReleaseError("scheduler container is not running")
+    template = "|".join(
+        [
+            "{{.Id}}",
+            "{{.Image}}",
+            "{{.State.Health.Status}}",
+            '{{index .Config.Labels "io.shaiwei.code_snapshot_sha256"}}',
+            '{{index .Config.Labels "org.opencontainers.image.revision"}}',
+        ]
+    )
+    output = _run(
+        ["docker", "container", "inspect", "--format", template, container_id],
+        root=root,
+    ).stdout.strip()
+    parts = output.split("|")
+    if len(parts) != 5 or parts[2] != "healthy" or any(not value for value in parts):
+        raise WebReleaseError("scheduler identity is incomplete or unhealthy")
+    keys = ("container_id", "image_id", "health", "snapshot", "revision")
+    return dict(zip(keys, parts, strict=True))
 
 
 def _container_id(root: Path, config: WebReleaseConfig, service: str) -> str:
@@ -149,12 +186,16 @@ def wait_and_verify_runtime(
     raise WebReleaseError(f"Web release runtime contract did not become healthy: {last_error}")
 
 
-def verify_read_only_http(config: WebReleaseConfig) -> None:
-    for path in ("/healthz", "/api/v1/overview"):
-        with urllib.request.urlopen(f"{config.ui_base_url}{path}", timeout=10) as response:
-            if response.status != 200:
-                raise WebReleaseError(f"Web read-only endpoint failed: {path}")
-    with urllib.request.urlopen(f"{config.ui_base_url}/", timeout=10) as response:
-        csp = response.headers.get("Content-Security-Policy", "")
-        if response.status != 200 or "default-src 'self'" not in csp:
-            raise WebReleaseError("Web UI root or CSP contract differs")
+def verify_read_only_http(config: WebReleaseConfig, *, critical: bool = True) -> None:
+    paths = CRITICAL_READ_ONLY_PATHS if critical else CRITICAL_READ_ONLY_PATHS[:2]
+    try:
+        for path in paths:
+            with urllib.request.urlopen(f"{config.ui_base_url}{path}", timeout=15) as response:
+                if response.status != 200:
+                    raise WebReleaseError(f"Web read-only endpoint failed: {path}")
+        with urllib.request.urlopen(f"{config.ui_base_url}/", timeout=10) as response:
+            csp = response.headers.get("Content-Security-Policy", "")
+            if response.status != 200 or "default-src 'self'" not in csp:
+                raise WebReleaseError("Web UI root or CSP contract differs")
+    except (HTTPError, URLError, TimeoutError) as error:
+        raise WebReleaseError(f"Web read-only HTTP verification failed: {type(error).__name__}") from error

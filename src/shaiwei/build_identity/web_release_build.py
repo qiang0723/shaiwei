@@ -34,6 +34,7 @@ from shaiwei.build_identity.web_release_config import (
     WebReleaseError,
     load_web_release_config,
 )
+from shaiwei.build_identity.web_release_runtime import scheduler_identity
 
 
 CANDIDATE_SCHEMA = "shaiwei-web-component-candidate-v1"
@@ -80,7 +81,7 @@ def _canonical(value: object) -> bytes:
     ).encode("utf-8")
 
 
-def _candidate_sha256(document: Mapping[str, object]) -> str:
+def canonical_candidate_sha256(document: Mapping[str, object]) -> str:
     unsigned = {key: value for key, value in document.items() if key != "candidate_sha256"}
     return hashlib.sha256(_canonical(unsigned)).hexdigest()
 
@@ -100,7 +101,7 @@ def _write_json_atomic(path: Path, document: Mapping[str, object]) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def _git_identity(root: Path) -> str:
+def pushed_git_identity(root: Path) -> str:
     head = _run(["git", "rev-parse", "HEAD"], root=root).stdout.strip()
     origin = _run(["git", "rev-parse", "origin/main"], root=root).stdout.strip()
     if head != origin:
@@ -109,7 +110,7 @@ def _git_identity(root: Path) -> str:
 
 
 def _require_release_revision_ancestor(root: Path, revision: str) -> str:
-    current = _git_identity(root)
+    current = pushed_git_identity(root)
     ancestor = _run(
         ["git", "merge-base", "--is-ancestor", revision, current],
         root=root,
@@ -143,26 +144,6 @@ def _source_names(root: Path, config: WebReleaseConfig, build_assets: tuple[str,
     if dirty.returncode:
         raise WebReleaseError("Web release inputs differ from pushed HEAD")
     return names
-
-
-def scheduler_identity(root: Path) -> dict[str, str]:
-    container_id = _run(["docker", "compose", "ps", "-q", "scheduler"], root=root).stdout.strip()
-    if not container_id:
-        raise WebReleaseError("scheduler container is not running")
-    template = "|".join(
-        [
-            "{{.Id}}",
-            "{{.Image}}",
-            "{{.State.Health.Status}}",
-            '{{index .Config.Labels "io.shaiwei.code_snapshot_sha256"}}',
-            '{{index .Config.Labels "org.opencontainers.image.revision"}}',
-        ]
-    )
-    values = _run(["docker", "container", "inspect", "--format", template, container_id], root=root)
-    parts = values.stdout.strip().split("|")
-    if len(parts) != 5 or parts[2] != "healthy" or any(not value for value in parts):
-        raise WebReleaseError("scheduler identity is incomplete or unhealthy")
-    return dict(zip(("container_id", "image_id", "health", "snapshot", "revision"), parts, strict=True))
 
 
 def _inspect_image(root: Path, reference: str) -> dict[str, object]:
@@ -266,7 +247,7 @@ def build_candidate(*, root: Path | None = None) -> dict[str, object]:
         return load_and_verify_candidate(root=project_root)
     registry = load_build_registry(root=project_root)
     component = registry.component(config.component_id)
-    revision = _git_identity(project_root)
+    revision = pushed_git_identity(project_root)
     names = _source_names(project_root, config, component.assets)
     manifest = build_source_manifest(project_root, names, revision)
     manifest_path = project_root / config.embedded_manifest_build_path
@@ -339,7 +320,7 @@ def build_candidate(*, root: Path | None = None) -> dict[str, object]:
         "scheduler_identity_before": scheduler_identity(project_root),
         "build_attempts_by_role": attempts,
     }
-    candidate["candidate_sha256"] = _candidate_sha256(candidate)
+    candidate["candidate_sha256"] = canonical_candidate_sha256(candidate)
     _write_json_atomic(project_root / config.candidate_path, candidate)
     return candidate
 
@@ -356,7 +337,7 @@ def load_and_verify_candidate(*, root: Path | None = None) -> dict[str, object]:
         raise WebReleaseError("Web release candidate schema differs")
     if candidate.get("schema_version") != CANDIDATE_SCHEMA:
         raise WebReleaseError("Web release candidate version differs")
-    if candidate.get("candidate_sha256") != _candidate_sha256(candidate):
+    if candidate.get("candidate_sha256") != canonical_candidate_sha256(candidate):
         raise WebReleaseError("Web release candidate identity differs")
     manifest, attestation = candidate.get("source_manifest"), candidate.get("attestation")
     if not isinstance(manifest, dict) or not isinstance(attestation, dict):

@@ -8,13 +8,11 @@ import json
 import os
 from pathlib import Path
 import subprocess
-import uuid
 from typing import Mapping
 
 from shaiwei.build_identity.registry import PROJECT_ROOT
 from shaiwei.build_identity.web_release_build import (
     load_and_verify_candidate,
-    scheduler_identity,
 )
 from shaiwei.build_identity.web_release_config import (
     WebReleaseConfig,
@@ -24,14 +22,23 @@ from shaiwei.build_identity.web_release_config import (
 from shaiwei.build_identity.web_release_runtime import (
     WEB_SERVICES,
     container_identity,
+    scheduler_identity,
     validate_container_contract,
     verify_read_only_http,
     wait_and_verify_runtime,
 )
+from shaiwei.build_identity.web_release_state import (
+    STATE_SCHEMA,
+    archive_release_state,
+    load_release_state,
+    release_images,
+    write_release_state,
+)
 
 
-STATE_SCHEMA = "shaiwei-web-component-release-state-v1"
 AUDIT_SCHEMA = "shaiwei-web-component-release-audit-v1"
+
+
 def _run(
     argv: list[str],
     *,
@@ -59,21 +66,6 @@ def _canonical(value: object) -> bytes:
         sort_keys=True,
         separators=(",", ":"),
     ).encode("utf-8")
-
-
-def _write_json_atomic(path: Path, document: Mapping[str, object]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
-    try:
-        temporary.write_text(
-            json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        with temporary.open("rb") as handle:
-            os.fsync(handle.fileno())
-        temporary.replace(path)
-    finally:
-        temporary.unlink(missing_ok=True)
 
 
 def _audit_records(path: Path) -> list[dict[str, object]]:
@@ -190,6 +182,20 @@ def _legacy_images(root: Path, config: WebReleaseConfig) -> tuple[dict[str, dict
     return images, container_ids
 
 
+def _deployed_baseline(
+    root: Path,
+    config: WebReleaseConfig,
+    state: Mapping[str, object],
+) -> tuple[dict[str, dict[str, str]], dict[str, str]]:
+    images = release_images(state)
+    identities = wait_and_verify_runtime(root, config, _service_image_ids(images), timeout_seconds=15)
+    verify_read_only_http(config, critical=False)
+    if scheduler_identity(root) != state.get("scheduler_identity"):
+        raise WebReleaseError("scheduler identity differs from previous Web release state")
+    containers = {service: str(identity["container_id"]) for service, identity in identities.items()}
+    return images, containers
+
+
 def promote_with_rollback_drill(*, root: Path | None = None) -> dict[str, object]:
     project_root = (root or PROJECT_ROOT).resolve()
     config = load_web_release_config(root=project_root)
@@ -198,17 +204,33 @@ def promote_with_rollback_drill(*, root: Path | None = None) -> dict[str, object
     if scheduler_identity(project_root) != scheduler_before:
         raise WebReleaseError("scheduler changed after Web candidate build")
     state_path, audit_path = project_root / config.state_path, project_root / config.audit_path
-    if state_path.exists():
-        raise WebReleaseError("initial Web component migration state already exists")
-    legacy_images, legacy_containers = _legacy_images(project_root, config)
+    previous_state = load_release_state(state_path, required=False)
+    if previous_state is None:
+        previous_images, previous_containers = _legacy_images(project_root, config)
+        generation = 1
+        start_event = "MIGRATION_STARTED"
+    else:
+        previous_images, previous_containers = _deployed_baseline(
+            project_root,
+            config,
+            previous_state,
+        )
+        generation = int(previous_state.get("release_generation", 1)) + 1
+        start_event = "SUCCESSOR_STARTED"
     candidate_images = _candidate_images(candidate)
     _append_audit(
         audit_path,
-        "MIGRATION_STARTED",
+        start_event,
         {
             "candidate_sha256": candidate["candidate_sha256"],
-            "legacy_container_ids": legacy_containers,
-            "legacy_image_ids": {role: row["image_id"] for role, row in legacy_images.items()},
+            "previous_candidate_sha256": (
+                previous_state.get("current_candidate_sha256") if previous_state else None
+            ),
+            "previous_container_ids": previous_containers,
+            "previous_image_ids": {
+                role: row["image_id"] for role, row in previous_images.items()
+            },
+            "release_generation": generation,
         },
     )
     candidate_started = True
@@ -219,9 +241,9 @@ def promote_with_rollback_drill(*, root: Path | None = None) -> dict[str, object
         _append_audit(audit_path, "CANDIDATE_PROMOTED", {"container_ids": {
             key: value["container_id"] for key, value in promoted.items()
         }})
-        rolled_back = _deploy(project_root, config, legacy_images)
-        verify_read_only_http(config)
-        _append_audit(audit_path, "LEGACY_ROLLBACK_VERIFIED", {"container_ids": {
+        rolled_back = _deploy(project_root, config, previous_images)
+        verify_read_only_http(config, critical=False)
+        _append_audit(audit_path, "PREVIOUS_ROLLBACK_VERIFIED", {"container_ids": {
             key: value["container_id"] for key, value in rolled_back.items()
         }})
         final = _deploy(project_root, config, candidate_images)
@@ -238,31 +260,41 @@ def promote_with_rollback_drill(*, root: Path | None = None) -> dict[str, object
             "current_candidate_sha256": candidate["candidate_sha256"],
             "current_release_identity_sha256": candidate["attestation"]["attestation_sha256"],
             "current_images": candidate_images,
-            "previous_legacy_images": legacy_images,
-            "legacy_container_ids_before_migration": legacy_containers,
+            "previous_images": previous_images,
+            "previous_candidate_sha256": (
+                previous_state.get("current_candidate_sha256") if previous_state else None
+            ),
+            "previous_container_ids": previous_containers,
             "scheduler_identity": scheduler_after,
             "final_container_ids": {key: value["container_id"] for key, value in final.items()},
             "rollback_drill_passed": True,
+            "release_generation": generation,
             "production_authorization": "none",
             "local_read_only_deployment": True,
             "audit_tail_sha256": audit_tail,
         }
-        _write_json_atomic(state_path, state)
+        if previous_state is not None:
+            archive_release_state(state_path, previous_state)
+        write_release_state(state_path, state)
         state_written = True
         _append_audit(audit_path, "MIGRATION_COMPLETED", {"state_schema": STATE_SCHEMA})
         return state
     except Exception as error:
         if candidate_started:
             try:
-                restored = _deploy(project_root, config, legacy_images)
+                restored = _deploy(project_root, config, previous_images)
                 if state_written:
-                    state_path.unlink(missing_ok=True)
-                _append_audit(audit_path, "FAILED_AND_LEGACY_RESTORED", {"container_ids": {
+                    if previous_state is None:
+                        state_path.unlink(missing_ok=True)
+                    else:
+                        write_release_state(state_path, previous_state)
+                _append_audit(audit_path, "FAILED_AND_PREVIOUS_RESTORED", {"container_ids": {
                     key: value["container_id"] for key, value in restored.items()
                 }, "error_type": type(error).__name__})
             except Exception as restore_error:
                 raise WebReleaseError(
-                    f"Web release failed and legacy restoration also failed: {type(restore_error).__name__}"
+                    "Web release failed and previous release restoration also failed: "
+                    f"{type(restore_error).__name__}"
                 ) from error
         raise
 
@@ -272,13 +304,9 @@ def start_deployed_release(*, root: Path | None = None) -> dict[str, object]:
     project_root = (root or PROJECT_ROOT).resolve()
     config = load_web_release_config(root=project_root)
     candidate = load_and_verify_candidate(root=project_root)
-    try:
-        state = json.loads((project_root / config.state_path).read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
-        raise WebReleaseError("Web release must be promoted before it can be started") from error
+    state = load_release_state(project_root / config.state_path)
     if (
-        not isinstance(state, dict)
-        or state.get("schema_version") != STATE_SCHEMA
+        state is None
         or state.get("current_candidate_sha256") != candidate.get("candidate_sha256")
     ):
         raise WebReleaseError("Web release state does not match the current candidate")
@@ -301,12 +329,9 @@ def verify_deployed_release(*, root: Path | None = None) -> dict[str, object]:
     project_root = (root or PROJECT_ROOT).resolve()
     config = load_web_release_config(root=project_root)
     candidate = load_and_verify_candidate(root=project_root)
-    try:
-        state = json.loads((project_root / config.state_path).read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
-        raise WebReleaseError("Web release state is missing or invalid") from error
-    if not isinstance(state, dict) or state.get("schema_version") != STATE_SCHEMA:
-        raise WebReleaseError("Web release state schema differs")
+    state = load_release_state(project_root / config.state_path)
+    if state is None:
+        raise WebReleaseError("Web release state is missing")
     if state.get("current_candidate_sha256") != candidate.get("candidate_sha256"):
         raise WebReleaseError("Web deployed candidate identity differs")
     images = _candidate_images(candidate)

@@ -207,6 +207,8 @@ def test_web_release_config_and_build_files_freeze_dual_image_boundary() -> None
 
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
     assert "docker-web-release-promote:" in makefile
+    assert "docker-web-release-prepare-successor:" in makefile
+    assert "-m shaiwei.build_identity.web_release prepare-successor" in makefile
     assert makefile.count("-m shaiwei.build_identity.web_release build") == 2
     assert "-m shaiwei.build_identity.web_release start" in makefile
     assert "-m shaiwei.build_identity.web_release status" in makefile

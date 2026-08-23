@@ -19,10 +19,13 @@ from shaiwei.web.query import (
     WebQueryError,
     build_snapshot,
 )
+from shaiwei.web.notification_evidence import (
+    MESSAGE_ID_PATTERN,
+    notification_records,
+)
 
 
 DATE_PATTERN = re.compile(r"^\d{4}-?\d{2}-?\d{2}$")
-MESSAGE_ID_PATTERN = re.compile(r"^[0-9a-f]{16}$")
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 IMAGE_SHA256_PATTERN = re.compile(r"^sha256:[0-9a-f]{64}$")
 FIXED_LEDGER_PATHS = (
@@ -36,20 +39,7 @@ OPTIONAL_FIXED_PATHS = (
     "logs/releases/scheduler_releases.jsonl",
     "logs/scheduler/health.json",
 )
-NOTIFICATION_FIELDS = (
-    "attempt",
-    "delivered_at",
-    "error_type",
-    "event",
-    "max_attempts",
-    "message_id",
-    "recovered",
-    "retryable",
-    "status",
-)
-NOTIFICATION_STATUSES = {"PASS", "FAIL"}
 MAX_STAGE_ATTEMPTS = 64
-MAX_MESSAGE_ATTEMPTS = 16
 MAX_INCREMENTAL_BATCHES = 32
 MAX_SENTINEL_METRIC_BYTES = 65_536
 RELEASE_SCHEMA = "shaiwei-scheduler-release-audit-v1"
@@ -632,101 +622,11 @@ def _notification_records(
     *,
     actual_as_of: str,
 ) -> tuple[dict[str, dict[str, object]], list[dict[str, object]], set[str], int]:
-    selected: list[tuple[str, dict[str, object]]] = []
-    used_sources: set[str] = set()
-    for relative_path in cut.notification_inventory:
-        match = re.fullmatch(r"logs/notifications/feishu_(\d{8})\.jsonl", relative_path)
-        if match is None or match.group(1) > actual_as_of:
-            continue
-        try:
-            lines = cut.sources[relative_path].payload.decode("utf-8").splitlines()
-        except UnicodeDecodeError as error:
-            raise WebQueryError("EVIDENCE_MISMATCH", "通知证据编码无效") from error
-        for line in lines:
-            if not line.strip():
-                continue
-            try:
-                row = json.loads(line)
-            except json.JSONDecodeError as error:
-                raise WebQueryError("EVIDENCE_MISMATCH", "通知证据格式无效") from error
-            if not isinstance(row, dict):
-                raise WebQueryError("EVIDENCE_MISMATCH", "通知证据格式无效")
-            selected.append((relative_path, row))
-            used_sources.add(relative_path)
-    grouped: dict[str, list[tuple[str, dict[str, object]]]] = {}
-    legacy_unaddressable_count = 0
-    for relative_path, row in selected:
-        message_id = str(row.get("message_id", ""))
-        file_date = relative_path.removesuffix(".jsonl").rsplit("_", maxsplit=1)[-1]
-        if not message_id:
-            if file_date < "20260723":
-                legacy_unaddressable_count += 1
-                continue
-            raise WebQueryError("EVIDENCE_MISMATCH", "当前通知证据缺少消息身份")
-        if not MESSAGE_ID_PATTERN.fullmatch(message_id):
-            raise WebQueryError("EVIDENCE_MISMATCH", "通知消息身份格式无效")
-        if set(row) != set(NOTIFICATION_FIELDS):
-            raise WebQueryError("EVIDENCE_MISMATCH", "通知证据字段超出脱敏白名单")
-        grouped.setdefault(message_id, []).append((relative_path, row))
-    summaries: dict[str, dict[str, object]] = {}
-    all_attempts: list[dict[str, object]] = []
-    for message_id, values in grouped.items():
-        if len(values) > MAX_MESSAGE_ATTEMPTS:
-            raise WebQueryError("CONFLICT", "单消息通知尝试超过固定上限")
-        ordered = sorted(
-            values,
-            key=lambda value: (
-                _parse_timestamp(value[1].get("delivered_at"), "通知"),
-                int(value[1].get("attempt", 0)),
-            ),
-        )
-        events = {str(row.get("event", "")) for _, row in ordered}
-        if len(events) != 1 or "" in events:
-            raise WebQueryError("EVIDENCE_MISMATCH", "同一通知消息绑定多个事件")
-        identities: set[tuple[int, str]] = set()
-        attempts: list[dict[str, object]] = []
-        for relative_path, row in ordered:
-            try:
-                attempt = int(row["attempt"])
-                max_attempts = int(row["max_attempts"])
-            except (TypeError, ValueError) as error:
-                raise WebQueryError("EVIDENCE_MISMATCH", "通知尝试字段无效") from error
-            status = str(row["status"])
-            event = str(row["event"])
-            error_type = str(row["error_type"])
-            if (
-                attempt < 1
-                or max_attempts < attempt
-                or status not in NOTIFICATION_STATUSES
-                or not isinstance(row["recovered"], bool)
-                or not isinstance(row["retryable"], bool)
-                or not SAFE_TOKEN_PATTERN.fullmatch(event)
-                or not SAFE_TOKEN_PATTERN.fullmatch(error_type)
-            ):
-                raise WebQueryError("EVIDENCE_MISMATCH", "通知尝试状态无效")
-            identity = (attempt, str(row["delivered_at"]))
-            if identity in identities:
-                raise WebQueryError("EVIDENCE_MISMATCH", "通知尝试身份重复")
-            identities.add(identity)
-            projected = {field: row[field] for field in NOTIFICATION_FIELDS}
-            projected["source_ref"] = relative_path
-            attempts.append(projected)
-            all_attempts.append(projected)
-        terminal = attempts[-1]
-        failed_count = sum(row["status"] == "FAIL" for row in attempts)
-        summaries[message_id] = {
-            "message_id": message_id,
-            "event": next(iter(events)),
-            "status": terminal["status"],
-            "attempt_count": len(attempts),
-            "failed_attempt_count": failed_count,
-            "recovered": terminal["status"] == "PASS" and (
-                bool(terminal["recovered"]) or failed_count > 0
-            ),
-            "duplicate_delivery_risk": len(attempts) > 1,
-            "attempts": attempts,
-        }
-    return summaries, all_attempts, used_sources, legacy_unaddressable_count
+    payloads = {
+        relative_path: cut.sources[relative_path].payload
+        for relative_path in cut.notification_inventory
+    }
+    return notification_records(payloads, actual_as_of=actual_as_of)
 
 
 def _release_profile(

@@ -11,7 +11,10 @@ from shaiwei.build_identity.web_release_deploy import (
     _append_audit,
     _audit_records,
 )
-from shaiwei.build_identity.web_release_runtime import validate_container_contract
+from shaiwei.build_identity.web_release_runtime import (
+    CRITICAL_READ_ONLY_PATHS,
+    validate_container_contract,
+)
 
 
 IMAGE_ID = f"sha256:{'a' * 64}"
@@ -123,3 +126,17 @@ def test_release_audit_is_hash_chained_and_tamper_evident(tmp_path: Path) -> Non
     path.write_text(json.dumps(document) + "\n" + lines[1] + "\n", encoding="utf-8")
     with pytest.raises(WebReleaseError, match="audit chain differs"):
         _audit_records(path)
+
+
+def test_release_http_gate_covers_every_primary_read_only_evidence_surface() -> None:
+    assert CRITICAL_READ_ONLY_PATHS == (
+        "/healthz",
+        "/api/v1/overview",
+        "/api/v1/data-quality",
+        "/api/v1/system/runs",
+        "/api/v1/strategy-factory",
+        "/api/v1/factors",
+        "/api/v1/experiments?limit=1&offset=0",
+        "/api/v1/paper/portfolio?account_id=model_baseline",
+        "/api/v1/signals/latest",
+    )

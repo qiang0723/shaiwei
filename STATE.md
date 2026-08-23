@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · A1-4C-R1查询恢复工程门
+
+- R1已完成结果盲实现，当前裁决`GO_RELEASE_READY_NOT_DEPLOYED`。通知证据按每个`attempt=1`拆分
+  occurrence，单次连续性、声明max、16次硬上限、跨事件、重复身份和字段白名单均继续失败关闭；详情
+  只取截止日最新occurrence，同日统计仍保留全部尝试。不改日志、发送端、message ID或scheduler。
+- 真实证据截至2026-08-21恢复为数据质量PASS、系统运行PASS、通知WARN（9个消息、12次尝试、3次
+  失败后3次恢复，早期40条不可寻址记录保留）。`operations.py`由1,160降至1,060行，新解析模块172
+  行；HTTP门已扩至全部关键只读接口，并加入v1/v2 state、旧candidate不可覆盖归档和successor
+  新→previous→同一新恢复路径。
+- 专项58、架构13、全仓1,766、账本86 PASS；Ruff、compileall、pip check、Compose和diff-check PASS。
+  当前未归档旧candidate、未构建或部署successor，scheduler不变。下一步仅在本实现推送后，各构建
+  一次双镜像并完成真实三段演练和七页浏览器验收。见
+  `docs/BUILD_IDENTITY_WEB_RELEASE_QUERY_RECOVERY_ACCEPTANCE_20260823.md`。
+
 ## 2026-08-23 · A1-4C真实release验收发现与R1冻结
 
 - 工程提交`a6d20f4`推送后，双镜像各只构建一次；真实candidate为`70d2cf6f...b3ee9`、release

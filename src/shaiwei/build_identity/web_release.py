@@ -15,6 +15,7 @@ from shaiwei.build_identity.web_release_deploy import (
     start_deployed_release,
     verify_deployed_release,
 )
+from shaiwei.build_identity.web_release_successor import prepare_successor_candidate
 
 
 def _summary(action: str, document: Mapping[str, object]) -> dict[str, object]:
@@ -51,6 +52,7 @@ def _summary(action: str, document: Mapping[str, object]) -> dict[str, object]:
         }
     allowed = {
         "status",
+        "archived_candidate_sha256",
         "candidate_sha256",
         "release_identity_sha256",
         "container_ids",
@@ -66,14 +68,23 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "action",
-        choices=("build", "verify-candidate", "promote", "start", "status"),
+        choices=(
+            "prepare-successor",
+            "build",
+            "verify-candidate",
+            "promote",
+            "start",
+            "status",
+        ),
     )
     return parser
 
 
 def main() -> int:
     action = _parser().parse_args().action
-    if action == "build":
+    if action == "prepare-successor":
+        result = prepare_successor_candidate()
+    elif action == "build":
         result = build_candidate()
     elif action == "verify-candidate":
         result = load_and_verify_candidate()
