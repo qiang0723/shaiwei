@@ -1,0 +1,61 @@
+schema_version: m6-csi800-production-head30-delisting-risk-method-v1
+protocol_id: m6-csi800-production-head30-delisting-risk-method-v1
+stage: EFFECT_SEALED_METHOD_ENGINEERING_ONLY
+protocol: docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_METHOD_PROTOCOL_20260823.md
+adr: docs/ADR_002_DELISTING_RISK_EXIT_OVERLAY_20260823.md
+evidence: docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_EVIDENCE_20260823.md
+
+known_predecessor:
+  status: BLOCKED_BY_UNMODELED_DELISTING
+  instrument: 002505.SZ
+  last_trade_date: "20240702"
+  delist_date: "20240830"
+  original_family_attempt_count: 2
+  original_scopes_reusable: false
+
+risk_policy:
+  policy_version: paper-v2-delisting-risk-exit
+  only_new_variable: delisting_price_risk_exit_overlay_v1
+  trigger_price_cny: 1.0
+  trigger_comparison: strict_less_than
+  trigger_consecutive_trading_closes: 10
+  calculate_as_of_signal_close: true
+  first_execution_opportunity: next_official_trade_day_open
+  held_exit_latched_until_filled: true
+  blocked_buy_replacement_authorized: false
+  remaining_target_weight_redistribution_authorized: false
+  unexecuted_exit_may_create_cash: false
+  delisting_cash_settlement_authorized: false
+
+state_contract:
+  states: [CLEAR, BUY_BLOCKED, EXIT_LATCHED, DISPOSED]
+  output_fields:
+    - blocked_buy_codes
+    - forced_exit_codes
+    - eligible_target_codes
+    - cash_reserve_weight
+    - evidence
+  effect_fields_authorized: false
+
+attempt_policy:
+  family: m6_head30_capital_feasibility_delisting_risk_v1
+  known_failure_informed_method: true
+  historical_authority: POST_HOC_METHOD_RECOVERY_DIAGNOSTIC
+  a1_5a_claim_required_before_any_future_real_read: true
+  attempts_authorized_in_m6_5c_a: 0
+
+authority:
+  synthetic_method_fixture_authorized: true
+  real_target_read_authorized: false
+  real_price_read_authorized: false
+  real_effect_read_authorized: false
+  canonical_ledger_write_authorized: false
+  paper_v1_change_authorized: false
+  paper_engine_change_authorized: false
+  model_fit_or_prediction_authorized: false
+  backtest_authorized: false
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  web_change_authorized: false
+  scheduler_change_or_restart_authorized: false
+  production_authorization: none
