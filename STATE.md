@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-C-R4 successor release终版
+
+- 裁决`GO_RELEASE_READY_NOT_EXECUTION_APPROVAL`。实现`9231372`已推送；新镜像
+  `dd29fe14...6435b`只构建1次，daemon fixture只运行1次，六窗登记→退出→detached到账→再退出、
+  claim先于reader、同scope拒绝重开、内部重放和独立重建均PASS。
+- metadata-only scope为`117e69a8...c51d`；真实读取、ordinal 2 ledger、approval、claim、effect、
+  audit和生产均为0。全仓1,838 PASS，scheduler原容器持续healthy且未重启。当前必须停止并等待用户
+  逐字绑定scope和冻结动作精确授权；R2 scope永久关闭。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_ENTITLEMENT_RELEASE_ACCEPTANCE_20260823.md`。
+
 ## 2026-08-23 · M6-5C-C-R4红股权益successor release结果前冻结
 
 - R4只把R3验收的`execute_entitlement_recovery_day`接入新release；旧模拟器仅允许增加默认保持原入口
