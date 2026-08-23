@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-C-R3红股权益恢复工程GO
+
+- 终态`GO_ENGINEERING_ONLY / strategy_effect=NOT_EVALUATED / production=none`。独立paper-v2入口在
+  红股上市日为已卖空原仓但仍有效的登记日权益建立零数量/总成本0的detached position，再调用冻结
+  风险引擎；到账后可处置，现金、费用、订单、事件Schema和既有语义均不变。
+- 初版直接修改风险引擎被3个历史release身份门正确拒绝，未提交、未发布、未读真实结果；终版恢复
+  `risk_exit_engine.py` SHA`634b4bb3...fd31`和paper-v1 engine SHA`44e64d1a...1d6b94`，以新入口
+  保持兼容。专项联合42、架构13、全仓1,826 PASS；真实读取、账本、release/scope和生产均为0。
+  见`docs/M6_CSI800_PRODUCTION_HEAD30_STOCK_DIVIDEND_ENTITLEMENT_RECOVERY_ACCEPTANCE_20260823.md`。
+- 下一步只能另立ordinal 2结果盲release，让runner显式使用新入口并生成新镜像/scope后再申请精确
+  授权；R2 scope永久关闭，不得把工程GO写成策略有效。
+
 ## 2026-08-23 · M6-5C-C-R3红股权益恢复结果前冻结
 
 - R3只补paper-v2的合法状态：登记日权益在原仓卖空后仍有效；红股上市日先建零数量、总成本0的
