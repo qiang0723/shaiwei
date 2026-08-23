@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-C-R2真实诊断claim后失败
+
+- scope`94a45605...9829`唯一runner先完成canonical claim与receipt再进入真实reader，尝试家族已消费
+  ordinal 1；首遍在红股权益上市日因原持仓已清空、paper-v2未定义新持仓及成本基础语义而fail closed。
+  first pass未完成、replay未开始、auditor 0，策略仍`NOT_EVALUATED`、生产none；同scope永久关闭。
+- experiment=`6797875cf3c0`，receipt=`cb555a8c...f510`，唯一effect文件为failure
+  `b06bd93e...7fc7`。scheduler未变且healthy。继续只能另立结果盲paper-v2权益处置恢复协议，以同家族
+  ordinal 2和新scope重新授权；paper-v1身份、退市参数与收益门均不得改。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_REAL_EXECUTION_FAILURE_R2_20260823.md`。
+
 ## 2026-08-23 · M6-5C-C-R2 release终版
 
 - 终版裁决`GO_RELEASE_READY_NOT_EXECUTION_APPROVAL`。实现`68f1192`先推送；R2镜像
