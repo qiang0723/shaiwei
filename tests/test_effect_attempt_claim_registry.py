@@ -28,12 +28,15 @@ def _discovered(document: dict) -> set[str]:
 def test_effect_runner_inventory_is_self_discovered_complete_and_hash_bound() -> None:
     document = _document()
     legacy = document["legacy_closed_entrypoints"]
-    registered = {row["path"] for row in legacy}
+    active = document["claim_gate_entrypoints"]
+    registered = {row["path"] for row in [*legacy, *active]}
 
     assert document["schema_version"] == "effect-attempt-claim-gate-registry-v1"
-    assert len(legacy) == len(registered) == 8
+    assert len(legacy) == 8
+    assert len(registered) == 9
+    assert len(active) == 1
     assert registered == _discovered(document)
-    for row in legacy:
+    for row in [*legacy, *active]:
         payload = (ROOT / row["path"]).read_bytes()
         assert hashlib.sha256(payload).hexdigest() == row["sha256"]
 
@@ -50,7 +53,13 @@ def test_legacy_entries_remain_closed_and_future_entries_cannot_be_implied() -> 
         "same_scope_reuse_authorized": False,
         "historical_ledger_or_result_mutation_authorized": False,
     }
-    assert document["claim_gate_entrypoints"] == []
+    entry = document["claim_gate_entrypoints"][0]
+    assert entry["classification"] == "CLAIM_FIRST_RELEASE_READY_NOT_EXECUTED"
+    assert entry["claim_before_effect_reader"] is True
+    assert entry["canonical_ledger_write_authorized_before_exact_approval"] is False
+    assert entry["real_effect_read_authorized_before_exact_approval"] is False
+    assert entry["same_scope_retry_authorized"] is False
+    assert entry["production_authorization"] == "none"
     assert gate["claim_before_effect_reader"] is True
     assert gate["same_scope_retry_authorized"] is False
     assert gate["actual_ledger_write_authorized_in_a1_5a"] is False

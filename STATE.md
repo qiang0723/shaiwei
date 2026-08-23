@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-C claim-first release实现门
+
+- 工程裁决`GO_IMPLEMENTATION_READY_FOR_ONE_OFFLINE_IMAGE`：runner在真实reader前先fsync canonical
+  ledger与receipt；独立auditor只读封存产物和claim，不挂raw/R2。新组件Docker/Compose不扩大生产
+  `CONTROLLED_FILES`，新生产模块均低于400行。
+- 合成六窗每窗恰好1次锁存风险退出（共6次），PIT前一交易日时钟、内部重放、独立重建、claim先于
+  reader和同scope拒绝重开均PASS；专项34、架构13、全仓1,814 PASS。真实目标/价格/效果读取0、真实
+  ledger追加0、approval 0、scheduler不变。实现推送后仅可构建一次断网镜像并生成metadata-only
+  scope，随后停在用户精确授权前。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_RELEASE_ENGINEERING_ACCEPTANCE_20260823.md`。
+
 ## 2026-08-23 · M6-5C-C claim-first结果盲release协议冻结
 
 - M6-5C-C已冻结：只把M6-5C的“连续10个有效收盘严格低于1元后锁存退出、不补位、留现金”作为

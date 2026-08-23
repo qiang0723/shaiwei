@@ -15,6 +15,7 @@ claim_gate:
 
 discovery:
   runner_filenames:
+    - delisting_release_run.py
     - effect_run.py
     - real_run.py
     - release_run.py
@@ -50,7 +51,17 @@ legacy_status:
   same_scope_reuse_authorized: false
   historical_ledger_or_result_mutation_authorized: false
 
-claim_gate_entrypoints: []
+claim_gate_entrypoints:
+  - path: src/shaiwei/research/capital_feasibility/delisting_release_run.py
+    sha256: 26ce4763f8b24f64afc60cf3d4634a69454c15984ffe024c9bedcd7843a8dfc6
+    classification: CLAIM_FIRST_RELEASE_READY_NOT_EXECUTED
+    protocol: docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_RELEASE_PROTOCOL_20260823.md
+    attempt_family: m6_head30_500k_delisting_risk_overlay_v1
+    claim_before_effect_reader: true
+    canonical_ledger_write_authorized_before_exact_approval: false
+    real_effect_read_authorized_before_exact_approval: false
+    same_scope_retry_authorized: false
+    production_authorization: none
 
 next_migration:
   candidate: M6-5C_OR_ANOTHER_SEPARATELY_FROZEN_REAL_EFFECT_RUNNER

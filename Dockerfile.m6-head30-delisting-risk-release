@@ -1,0 +1,18 @@
+FROM shaiwei:m6-head30-500k-entrypoint-recovery-v1
+
+ARG SHAIWEI_COMPONENT_GIT_COMMIT=""
+ARG SHAIWEI_COMPONENT_BUILD_SNAPSHOT_SHA256=""
+ARG SHAIWEI_SOURCE_BUNDLE_SHA256=""
+
+LABEL org.opencontainers.image.revision="${SHAIWEI_COMPONENT_GIT_COMMIT}" \
+      io.shaiwei.component_build_snapshot_sha256="${SHAIWEI_COMPONENT_BUILD_SNAPSHOT_SHA256}" \
+      io.shaiwei.source_bundle_sha256="${SHAIWEI_SOURCE_BUNDLE_SHA256}"
+
+COPY src ./src
+COPY config ./config
+COPY .web-release/m6-head30-delisting-risk-source-manifest.json /opt/shaiwei/component-source-manifest.json
+
+ENV SHAIWEI_COMPONENT_GIT_COMMIT=${SHAIWEI_COMPONENT_GIT_COMMIT} \
+    SHAIWEI_COMPONENT_SOURCE_MANIFEST=/opt/shaiwei/component-source-manifest.json
+
+CMD ["python", "-m", "shaiwei.research.capital_feasibility.delisting_release_fixture", "--help"]

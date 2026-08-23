@@ -114,6 +114,15 @@ components:
     consumers:
       - tests/test_m6_csi800_production_head30_audit_identity_recovery.py
       - tests/test_m6_csi800_production_head30_audit_output_root_recovery.py
+  - id: m6-head30-delisting-risk-release
+    class: COMPONENT_RELEASE
+    status: CLOSED_FROZEN
+    reuse_policy: NEW_RELEASE_REQUIRED
+    assets:
+      - Dockerfile.m6-head30-delisting-risk-release
+      - compose.m6-head30-delisting-risk-release.yaml
+    consumers:
+      - tests/test_m6_head30_delisting_risk_release.py
   - id: m6-top30-diagnostics
     class: COMPONENT_RELEASE
     status: CLOSED_FROZEN
