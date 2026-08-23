@@ -2,16 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-08-23 · A1-5A真实效果attempt claim门结果前冻结
+## 2026-08-23 · A1-5A真实效果attempt claim工程门
 
-- 只读审计确认8个已关闭真实效果runner采用本地started标记而非canonical ledger先占号；历史M6
-  Head30两次效果读取因release禁止账本挂载而事后补录，是同一结构缺口。直接回改冻结runner会破坏
-  历史身份，完成后追加又保留崩溃漏账窗口，故裁定采用claim-first：账本fsync和receipt完成后才允许
-  reader调用；claim后任何失败均消费尝试，同scope不得重跑。
-- A1-5A协议与ADR已结果前冻结。本节点只建设共享窄门、旧入口自发现注册和synthetic对抗测试，不改
-  8个旧runner，不读效果、不写真实账本、不运行模型/回测、不碰Web或scheduler。未来M6-5C或其他
-  真实效果节点必须另立迁移协议后才能接入。见`docs/ADR_001_EFFECT_ATTEMPT_CLAIM_GATE_20260823.md`
-  与`docs/EFFECT_ATTEMPT_CLAIM_GATE_PROTOCOL_20260823.md`。
+- 工程裁决`GO_ENGINEERING_ONLY`。未来真实效果入口必须先向canonical experiment ledger追加确定性
+  claim并fsync，再写内容寻址receipt并fsync，之后才允许调用effect reader；claim后任何失败均保守
+  消费尝试，相同scope不得通过幂等路径重开。最终结果与裁决仍由版本化report和独立audit表达。
+- 8个已关闭旧runner已按路径和源码SHA精确登记，自发现门要求全部带冻结effect-start marker的入口
+  与登记表集合相等；旧源码、scope和证据均不回改。共享模块271行，`ledger.py`390行；专项19、架构
+  13、全仓1,781、账本86 PASS，Ruff、compileall、pip check及diff-check PASS。真实效果读取0、真实
+  账本追加0，Web/scheduler/生产身份不变。未来M6-5C或其他真实效果节点仍须另立迁移协议、release
+  scope和用户授权。见`docs/EFFECT_ATTEMPT_CLAIM_GATE_ACCEPTANCE_20260823.md`。
 
 ## 2026-08-23 · A1-4C-R1查询恢复与本机只读发布
 

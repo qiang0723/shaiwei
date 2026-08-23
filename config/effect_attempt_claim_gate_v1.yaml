@@ -1,0 +1,58 @@
+schema_version: effect-attempt-claim-gate-registry-v1
+registry_id: a1-5a-effect-attempt-claim-gate-v1
+protocol: docs/EFFECT_ATTEMPT_CLAIM_GATE_PROTOCOL_20260823.md
+adr: docs/ADR_001_EFFECT_ATTEMPT_CLAIM_GATE_20260823.md
+
+claim_gate:
+  module: src/shaiwei/research/effect_attempt_claim.py
+  claim_schema: shaiwei-effect-attempt-claim-v1
+  receipt_schema: shaiwei-effect-attempt-claim-receipt-v1
+  canonical_ledger: ledger/experiments.csv
+  claim_before_effect_reader: true
+  same_scope_retry_authorized: false
+  actual_ledger_write_authorized_in_a1_5a: false
+  real_effect_read_authorized_in_a1_5a: false
+
+discovery:
+  runner_filenames:
+    - effect_run.py
+    - real_run.py
+    - release_run.py
+    - run.py
+  effect_start_markers:
+    - effect_read_started.json
+    - effect_started.json
+    - top20_effect_started.json
+    - treatment_effect_started.json
+
+legacy_closed_entrypoints:
+  - path: src/shaiwei/research/capital_feasibility/release_run.py
+    sha256: d4635b751873bb984cd0a4fe899ea062fc6c63a423b9c645f37b2f4ed96567af
+  - path: src/shaiwei/research/model_attribution/effect_run.py
+    sha256: 1fdc907aac5975c6deaaa22b3c576496be3fa614654c00924adb13ac4f411aae
+  - path: src/shaiwei/research/production_conversion/real_run.py
+    sha256: c36bbe8760bbeddf6e2aa371f9a646f27e9bce923235e2ac020299ea65458587
+  - path: src/shaiwei/research/topk_conversion/real_run.py
+    sha256: 3484072d335b91306da83a96c6fcf71cf4f822f6ec5e84d26427a70ddb225c97
+  - path: src/shaiwei/research/trend_swing/r3g2/effect_run.py
+    sha256: 4a4b4df98f83356df71dd69aff81c5f1aeae2475797d8ffe4e136e267f85800d
+  - path: src/shaiwei/research/trend_swing/ts_b/run.py
+    sha256: 831acc5cacdc39a0eb61b6387b5665b185bfc5f7cb0185d9ee9240cdc0dfd086
+  - path: src/shaiwei/research/trend_swing/v6_3/run.py
+    sha256: 1cbfc5ec350e7993c2a91f35fbc93d47b4d788306c6e718b78394894c737f8e0
+  - path: src/shaiwei/research/trend_swing/v6_4/run.py
+    sha256: 356db95ea83f5dba1f193c49cbbcfa4eb14af2874b540720f53c0642d15b82e9
+
+legacy_status:
+  classification: LEGACY_CLOSED_NO_CANONICAL_CLAIM
+  original_scopes_closed: true
+  source_retrofit_authorized: false
+  same_scope_reuse_authorized: false
+  historical_ledger_or_result_mutation_authorized: false
+
+claim_gate_entrypoints: []
+
+next_migration:
+  candidate: M6-5C_OR_ANOTHER_SEPARATELY_FROZEN_REAL_EFFECT_RUNNER
+  requires_new_protocol_release_scope_and_user_authorization: true
+  production_authorization: none

@@ -210,10 +210,10 @@ def append_experiment(**kw) -> str:
     return kw["experiment_id"]
 
 
-def append_reconciled_experiment(*, path: Path | None = None, **kw: object) -> bool:
-    """Idempotently append one audited historical experiment-attempt record."""
+def append_experiment_once(*, path: Path | None = None, **kw: object) -> bool:
+    """Append one deterministic experiment row; identical replay is a no-op."""
     if not kw.get("experiment_id") or not kw.get("ts"):
-        raise ValueError("reconciled experiment requires deterministic experiment_id and ts")
+        raise ValueError("deterministic experiment append requires experiment_id and ts")
     for field in ("params_json", "result_json"):
         value = kw.get(field)
         _reject_sensitive_params(value, field)
@@ -222,6 +222,11 @@ def append_reconciled_experiment(*, path: Path | None = None, **kw: object) -> b
     if isinstance(kw.get("admitted"), bool):
         kw["admitted"] = str(kw["admitted"]).lower()
     return _append_idempotent(path or EXPERIMENTS, kw, key="experiment_id")
+
+
+def append_reconciled_experiment(*, path: Path | None = None, **kw: object) -> bool:
+    """Compatibility wrapper for audited historical experiment reconciliation."""
+    return append_experiment_once(path=path, **kw)
 
 
 def append_daily_run(**kw: object) -> str:
