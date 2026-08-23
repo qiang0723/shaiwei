@@ -2,6 +2,14 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-C-R4红股权益successor release结果前冻结
+
+- R4只把R3验收的`execute_entitlement_recovery_day`接入新release；旧模拟器仅允许增加默认保持原入口
+  的窄executor注入点，禁止复制整条模拟、风险、费用或指标计算。新组件独立登记，不改封存R2资产。
+- 尝试家族不重置：ordinal 2、parent=`6797875cf3c0`、运行前1次、claim后2次；R2 scope永久关闭。
+  当前只授权工程、一次镜像构建、一次断网fixture和metadata scope，真实读取/账本/approval/执行/生产
+  均为0。见`docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_ENTITLEMENT_RELEASE_PROTOCOL_20260823.md`。
+
 ## 2026-08-23 · ADR-002封存组件注册表权威裁决
 
 - 已裁定封存release以scope自哈希绑定的历史注册表SHA、固定资产路径和逐资产SHA为权威，不再错误
