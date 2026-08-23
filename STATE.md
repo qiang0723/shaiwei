@@ -2,6 +2,22 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · A1-4C真实release验收发现与R1冻结
+
+- 工程提交`a6d20f4`推送后，双镜像各只构建一次；真实candidate为`70d2cf6f...b3ee9`、release
+  identity为`373ef4f2...28b7`，control/runtime镜像分别为`bb81a2fb...e94a`与`61889afd...e252`。
+  v2身份、内嵌manifest、daemon定向字段、新→旧→同一新回滚演练、loopback端口和scheduler不变均
+  PASS；最终三项Web容器运行新镜像且healthy，前端33项PASS，生产依赖审计0漏洞。
+- 真实浏览器随后发现数据质量/系统运行查询因“单消息通知尝试超过固定上限”失败关闭。最高相同
+  message ID累计25/20行；旧/新镜像`operations.py`哈希同为`fc0f9b03...f692c`，证明是稳定内容ID在
+  多日合法复用后被查询层误聚成一次重试，不是本次release回归，旧版回滚不能恢复。故最终裁决暂为
+  `BLOCKED_QUERY_ACCEPTANCE`，不记本机发布GO；新release保持本机只读运行且不触碰scheduler。
+- R1已结果前冻结：按每个`attempt=1`拆分投递occurrence，单次仍严格顺序且不超过max/hard limit，
+  详情返回截止日最新occurrence；不改日志、发送端、message ID或重试。实现须从1,160行热点
+  `operations.py`抽出纯解析模块，并把release门扩至七页关键API；随后用当前v2作为previous完成
+  successor新→旧v2→同一新演练。见
+  `docs/BUILD_IDENTITY_WEB_RELEASE_QUERY_RECOVERY_PROTOCOL_20260823.md`。
+
 ## 2026-08-23 · A1-4C Web双镜像release工程门
 
 - 结果前协议提交`42ab126`已先行推送；工程裁决`GO_RELEASE_READY_NOT_DEPLOYED`。A1-4B v1保持兼容，
