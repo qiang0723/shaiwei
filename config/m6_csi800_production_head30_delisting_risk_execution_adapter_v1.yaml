@@ -1,0 +1,48 @@
+schema_version: m6-csi800-production-head30-delisting-risk-execution-adapter-v1
+protocol_id: m6-csi800-production-head30-delisting-risk-execution-adapter-v1
+stage: RESULT_SEALED_EXECUTION_ADAPTER_ENGINEERING_ONLY
+protocol: docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_EXECUTION_ADAPTER_PROTOCOL_20260823.md
+adr: docs/ADR_002_DELISTING_RISK_EXIT_OVERLAY_20260823.md
+
+predecessor:
+  method_config: config/m6_csi800_production_head30_delisting_risk_method_v1.yaml
+  method_config_sha256: e38b5a596d4db520794ffc403e8efd5c7672caa050909ac4a5f4bbc31fb2df4b
+  method_module_sha256: cce4880069c2b5295185c469d0fecdd6b921932ce183e5a39cbe8d40e27fa1de
+  method_acceptance_sha256: d6371b6cead3f459e3798a11f89d7d0d23423def354875e11b914bff46eb7d74
+
+paper_v1_regression:
+  engine_before_sha256: 44e64d1a776973b0eb5b9ba5ce6d8a7d103a7e8a20aaeb172929c7ca4b1d6b94
+  engine_before_lines: 860
+  synthetic_two_day_canonical_sha256: dd7b40b33b75f7e5b261bebaf64b8d1e748d6e42f62225da0b4d490f6e9d1faa
+  default_and_explicit_empty_directive_must_match: true
+  order_and_fill_schema_change_authorized: false
+
+adapter_contract:
+  policy_type: PaperDelistingRiskPortfolio
+  account_id: m6_head30_delisting_risk
+  execution_policy_version: paper-v2-delisting-risk-exit
+  forced_exit_parameter: forced_exit_codes
+  parameter_default: []
+  non_rebalance_exit_authorized: true
+  execution_reason: DELISTING_PRICE_RISK_EXIT
+  target_intersection_authorized: false
+  unheld_or_duplicate_or_bj_authorized: false
+  target_weight_sum_below_one_authorized_for_v2_only: true
+  failed_exit_may_create_cash_or_remove_position: false
+  paper_v1_default_semantics_change_authorized: false
+
+authority:
+  synthetic_adapter_fixture_authorized: true
+  paper_engine_refactor_authorized: true
+  real_target_read_authorized: false
+  real_price_read_authorized: false
+  real_effect_read_authorized: false
+  canonical_ledger_write_authorized: false
+  model_fit_or_prediction_authorized: false
+  backtest_authorized: false
+  release_or_scope_build_authorized: false
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  web_change_authorized: false
+  scheduler_change_or_restart_authorized: false
+  production_authorization: none
