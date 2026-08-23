@@ -1,0 +1,133 @@
+schema_version: m6-csi800-production-head30-delisting-risk-release-v1
+protocol_id: m6-csi800-production-head30-delisting-risk-release-v1
+stage: RESULT_BLIND_CLAIM_FIRST_RELEASE_ENGINEERING_ONLY
+protocol: docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_RELEASE_PROTOCOL_20260823.md
+production_authorization: none
+
+single_variable:
+  id: ten_valid_closes_below_one_yuan_latched_exit_no_replacement
+  post_hoc_method_recovery_diagnostic_only: true
+  parameter_search_authorized: false
+  model_fit_authorized: false
+  prediction_generation_authorized: false
+  target_regeneration_authorized: false
+
+predecessors:
+  method_config:
+    path: config/m6_csi800_production_head30_delisting_risk_method_v1.yaml
+    sha256: e38b5a596d4db520794ffc403e8efd5c7672caa050909ac4a5f4bbc31fb2df4b
+  method_module:
+    path: src/shaiwei/research/capital_feasibility/delisting_risk.py
+    sha256: cce4880069c2b5295185c469d0fecdd6b921932ce183e5a39cbe8d40e27fa1de
+  method_acceptance:
+    path: docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_METHOD_ACCEPTANCE_20260823.md
+    sha256: d6371b6cead3f459e3798a11f89d7d0d23423def354875e11b914bff46eb7d74
+  adapter_recovery_config:
+    path: config/m6_csi800_production_head30_delisting_risk_execution_adapter_recovery_v1.yaml
+    sha256: bb6a75ab7ba332964360e6e420b2a181c6cdc4de68a59c2e1eeaa76d3034221a
+  adapter_acceptance:
+    path: docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_EXECUTION_ADAPTER_ACCEPTANCE_20260823.md
+    sha256: 3256493f27b9665172cbb8c1074589d40938f446c527f77ad1682c1e18de7216
+  risk_engine:
+    path: src/shaiwei/paper/risk_exit_engine.py
+    sha256: 634b4bb32428f3646e2805ab745dfb600544f0802517c3d8a5df767b53c9fd31
+  risk_policy:
+    path: src/shaiwei/paper/risk_exit_policy.py
+    sha256: f5a7b8b7155a1073d816ee51041202b1ce862698d3df039b2ccd92530c592ead
+  sell_execution:
+    path: src/shaiwei/paper/sell_execution.py
+    sha256: 8d076ee9ca8146a7fa64716c829d5cc685d8716cc6296fe510a69a84c23be99a
+  claim_module:
+    path: src/shaiwei/research/effect_attempt_claim.py
+    sha256: f437a576bc606e45054ee7fe4d36bfd9765daf8cac2aa6c86fbd54f6c6947399
+  claim_acceptance:
+    path: docs/EFFECT_ATTEMPT_CLAIM_GATE_ACCEPTANCE_20260823.md
+    sha256: 04f9bf76dec4f7c7fb0b79059426f1309df47cd4554ed7fde19b0177fbec44d6
+  blocked_scope:
+    path: config/m6_csi800_production_head30_500k_entrypoint_recovery_scope_v1.json
+    file_sha256: 5c73298a5b6730a55961a699eeabb32097f16789e977c1821e41ffaa97735e40
+    release_scope_sha256: c73b4afb452c55dce0149ef1fd8770c28538be03ec16de6c6de00881f3c74757
+    permanently_closed: true
+  blocked_failure:
+    path: config/m6_csi800_production_head30_500k_entrypoint_recovery_execution_failure_v1.json
+    sha256: 5cc68507e18ec75b6bcb7194b00e7241337d5751dcf3423d3713880b957118f9
+    decision: BLOCKED_BY_UNMODELED_DELISTING
+
+frozen_reuse:
+  sealed_target_identity_source: blocked_scope.inputs.sealed_r2
+  raw_manifest_identity_source: blocked_scope.inputs.raw_batch_manifest
+  windows: [W1, W2, W3, W4, W5, W6]
+  target_count_each_rebalance: 30
+  target_weight_each: 0.03333333333333333
+  benchmark: 000906.SH
+  initial_cash_rmb: 500000
+  original_capital_metrics_and_gates_unchanged: true
+  original_release_metrics_module: src/shaiwei/research/capital_feasibility/release_metrics.py
+  original_independent_statistics_module: src/shaiwei/research/capital_feasibility/audit_statistics.py
+
+risk_clock:
+  as_of: immediately_previous_official_open_trade_date
+  execution_day_open_authorized_for_execution_only: true
+  execution_day_close_in_trigger_authorized: false
+  future_observation_authorized: false
+  trigger_price_cny: 1.0
+  trigger_valid_closes: 10
+  state_latched: true
+  excluded_weight_reallocated: false
+
+attempt_claim:
+  attempt_family: m6_head30_500k_delisting_risk_overlay_v1
+  attempt_ordinal: 1
+  family_attempts_before_run: 0
+  family_attempts_after_claim: 1
+  candidate_source: sealed-m6-r2-production-head30
+  model_or_engine: paper-v2-delisting-risk-exit
+  engine_version: m6-5c-risk-overlay-v1
+  feature_or_formula: 10 valid closes < 1 CNY; latch exit; no replacement
+  train_period: none; fixed post-hoc method recovery
+  valid_period: sealed W1-W6 historical diagnostic
+  canonical_ledger: ledger/experiments.csv
+  receipt_before_effect_read: true
+  same_scope_retry_authorized: false
+
+execution:
+  runner_invocation_count: 1
+  complete_internal_passes: [first_pass, replay]
+  independent_auditor_invocation_count: 1
+  action: M6_HEAD30_500K_DELISTING_RISK_RECOVERY_ONCE_WITH_CLAIM_REPLAY_AND_INDEPENDENT_AUDIT
+  no_raw_or_r2_mount_for_auditor: true
+  numeric_tolerance: 1.0e-12
+
+decisions:
+  pass: RECOVERY_DIAGNOSTIC_PASSES_FROZEN_CAPITAL_GATES
+  fail: RECOVERY_DIAGNOSTIC_FAILS_FROZEN_CAPITAL_GATES
+  blocked: BLOCKED
+  strategy_effectiveness_authority: NOT_FOR_PRODUCTION_VERDICT
+  production_authorization: none
+
+authority_before_exact_user_approval:
+  release_engineering_authorized: true
+  synthetic_fixture_authorized: true
+  metadata_identity_read_authorized: true
+  build_image_authorized: true
+  build_release_scope_authorized: true
+  real_target_read_authorized: false
+  real_price_read_authorized: false
+  real_effect_read_authorized: false
+  canonical_ledger_write_authorized: false
+  approval_creation_authorized: false
+  runner_authorized: false
+  independent_auditor_authorized: false
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  model_fit_authorized: false
+  prediction_generation_authorized: false
+  paper_portfolio_write_authorized: false
+  web_change_authorized: false
+  scheduler_change_or_restart_authorized: false
+  production_authorization: none
+
+stop_condition:
+  stop_after_release_scope_frozen_and_pushed: true
+  exact_user_authorization_required_before_real_run: true
+  same_scope_retry_authorized: false

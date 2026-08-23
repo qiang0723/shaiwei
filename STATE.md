@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-C claim-first结果盲release协议冻结
+
+- M6-5C-C已冻结：只把M6-5C的“连续10个有效收盘严格低于1元后锁存退出、不补位、留现金”作为
+  单一post-hoc恢复变量；生产Head30目标、50万元账户、费用/容量和原六窗口门均不变。风险`as_of`
+  固定为执行日前一官方交易日，执行日收盘及未来数据禁止参与触发。
+- 新尝试家族`m6_head30_500k_delisting_risk_overlay_v1`从ordinal 1开始；未来runner必须先向canonical
+  experiment ledger fsync claim、再fsync receipt，之后才准读真实目标/价格/效果。当前只授权代码、
+  synthetic daemon fixture、独立镜像和metadata-only scope，不授权approval、真实读取、账本写入、
+  Web、scheduler或生产。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_RELEASE_PROTOCOL_20260823.md`。
+
 ## 2026-08-23 · M6-5C-B-R1退市风险执行适配工程门
 
 - 最终裁决`GO_EXECUTION_ADAPTER_ENGINEERING_ONLY`。旧`paper/engine.py`保持860行和
