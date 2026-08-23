@@ -2,7 +2,7 @@
 
 - 协议：`a1-4c-r1-web-query-release-recovery-v1`
 - 日期：2026-08-23（UTC+8）
-- 当前裁决：`GO_RELEASE_READY_NOT_DEPLOYED`
+- 最终裁决：`GO_LOCAL_READ_ONLY_RELEASED`
 - 策略效果：`NOT_EVALUATED`
 - 生产授权：`none`
 
@@ -42,8 +42,37 @@
 - Ruff、compileall、pip check、Compose config、diff-check：PASS；
 - 当前阶段未归档旧 candidate、未构建 successor、未重启 Web，scheduler 未改变。
 
-## 4. 下一步边界
+## 4. 真实 successor 发布
 
-只有本实现提交并推送后，才允许执行一次显式 successor 准备、两角色各一次构建，以及
-“新 → 当前 v2 → 同一新”本机只读演练。随后必须复核全关键 API、七页真实浏览器、前端单元、CSP、
-本机端口/挂载/权限和 scheduler 身份；在这些证据完成前不把 A1-4C/R1 裁为最终发布 GO。
+- 实现提交：`ea987be979837938523eb17d33c3c7ec180afb05`，构建前已与 `origin/main` 同步；
+- 已归档 previous candidate：
+  `70d2cf6f563478692f4f422aeef835af091a8fd288dee81244064342c35b3ee9`；
+- successor candidate：
+  `9c7ac1a81f003c68cd86bcab602a15dd19ff07f3550d133dbdb45160df8d3b27`；
+- release identity：
+  `60d15cbb22b6a175fa77c7110b5549a692aca9faeba8ac1827d86558896a2b13`；
+- `research-control` 镜像：
+  `sha256:6e10aa2d7edae20386fbf584009e3a1f3695ac291a03df9c19d87b27b70d6fe1`；
+- `web-runtime` 镜像：
+  `sha256:1646a3a86e92e190007e90637ca350affd477421b007edd17d4eebe4c1364c7a`。
+
+两角色构建计数均为 1，第二次 build 调用仅验证并复用同一候选。发布按“successor 全关键 API →
+previous v2 健康/总览 → 同一 successor 全关键 API”完成，rollback drill PASS；previous state 与 candidate
+均按身份归档，当前 state 为 v2、第 2 代。
+
+## 5. 运行与界面验收
+
+- `make docker-web-status`：PASS，三容器均为预期镜像、只读根、精确网络/挂载，UI 仅监听
+  `127.0.0.1:8080`；
+- 全关键只读 HTTP API 与 CSP：PASS；
+- 真实浏览器：总览、策略工厂、因子工厂、研究证据、模拟组合、股票池与信号、数据质量、系统运行
+  共 8 页均加载主标题，无通知上限错误或加载失败；数据质量 PASS、核心运行 PASS、通知 WARN 及恢复
+  历史均如实展示；
+- 一次性只读、无特权 Node 容器 fresh 安装锁定依赖后，前端 33/33 PASS；完整依赖树有 1 个高危开发
+  依赖提示，`npm audit --omit=dev` 为 0 个生产依赖漏洞；
+- scheduler 的容器、镜像、代码快照、Git revision 和 healthy 状态在候选构建、三段演练及终检前后
+  完全相同；未重启或重建 scheduler。
+
+最终仅授权本机只读 Web 运行，不授权外网开放、写操作、模型切换、模拟仓写入、交易或生产策略变更。
+A1-4C 初次发现的 `BLOCKED_QUERY_ACCEPTANCE` 作为历史发现永久保留，本 R1 以新证据完成恢复，不改写
+原记录。

@@ -2,18 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-08-23 · A1-4C-R1查询恢复工程门
+## 2026-08-23 · A1-4C-R1查询恢复与本机只读发布
 
-- R1已完成结果盲实现，当前裁决`GO_RELEASE_READY_NOT_DEPLOYED`。通知证据按每个`attempt=1`拆分
+- R1最终裁决`GO_LOCAL_READ_ONLY_RELEASED`。通知证据按每个`attempt=1`拆分
   occurrence，单次连续性、声明max、16次硬上限、跨事件、重复身份和字段白名单均继续失败关闭；详情
   只取截止日最新occurrence，同日统计仍保留全部尝试。不改日志、发送端、message ID或scheduler。
 - 真实证据截至2026-08-21恢复为数据质量PASS、系统运行PASS、通知WARN（9个消息、12次尝试、3次
   失败后3次恢复，早期40条不可寻址记录保留）。`operations.py`由1,160降至1,060行，新解析模块172
   行；HTTP门已扩至全部关键只读接口，并加入v1/v2 state、旧candidate不可覆盖归档和successor
   新→previous→同一新恢复路径。
-- 专项58、架构13、全仓1,766、账本86 PASS；Ruff、compileall、pip check、Compose和diff-check PASS。
-  当前未归档旧candidate、未构建或部署successor，scheduler不变。下一步仅在本实现推送后，各构建
-  一次双镜像并完成真实三段演练和七页浏览器验收。见
+- 专项58、架构13、全仓1,766、账本86和前端33 PASS；Ruff、compileall、pip check、Compose和
+  diff-check PASS，生产npm依赖漏洞0。实现`ea987be`推送后归档旧candidate`70d2cf6f...b3ee9`，
+  successor candidate为`9c7ac1a8...d3b27`、release identity为`60d15cbb...a2b13`，两角色均只
+  构建1次。新→旧v2→同一新三段、全关键API、CSP及真实浏览器8页均PASS；当前state为v2第2代，
+  scheduler容器/镜像/快照/revision/health全程不变。仅授权本机只读Web，不授权外网、写入、交易或
+  生产策略变更。见
   `docs/BUILD_IDENTITY_WEB_RELEASE_QUERY_RECOVERY_ACCEPTANCE_20260823.md`。
 
 ## 2026-08-23 · A1-4C真实release验收发现与R1冻结
