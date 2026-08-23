@@ -2,6 +2,13 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · ADR-002封存组件注册表权威裁决
+
+- 已裁定封存release以scope自哈希绑定的历史注册表SHA、固定资产路径和逐资产SHA为权威，不再错误
+  要求历史SHA等于持续演进的当前全仓注册表；当前/未来release仍必须使用当前注册表且保持构建资产
+  100%恰好一次纳管。该改动只修只读复核语义，不改R2 scope/镜像/产物，也不授权旧scope重跑。
+  见`docs/ADR_002_FROZEN_COMPONENT_REGISTRY_AUTHORITY_20260823.md`。
+
 ## 2026-08-23 · M6-5C-C-R3红股权益恢复工程GO
 
 - 终态`GO_ENGINEERING_ONLY / strategy_effect=NOT_EVALUATED / production=none`。独立paper-v2入口在

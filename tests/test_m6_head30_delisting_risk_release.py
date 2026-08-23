@@ -12,6 +12,8 @@ from shaiwei.research.capital_feasibility.delisting_independent_audit import (
 )
 from shaiwei.research.capital_feasibility.delisting_release_contract import (
     ACTION,
+    FROZEN_COMPONENT_ASSETS,
+    FROZEN_REGISTRY_SHA256,
     IMAGE,
     ReleaseProtocol,
     ReleaseScope,
@@ -122,6 +124,21 @@ def test_scope_loader_recomputes_scoped_build_identity(tmp_path: Path) -> None:
 
     with pytest.raises(ProtocolError, match="component build identity"):
         ReleaseScope.load(path, ReleaseProtocol.load())
+
+
+def test_closed_scope_uses_its_frozen_registry_and_component_assets() -> None:
+    protocol = ReleaseProtocol.load()
+    release = ReleaseScope.load(
+        ROOT / "config/m6_csi800_production_head30_delisting_risk_release_scope_r2_v1.json",
+        protocol,
+    )
+
+    assert tuple(
+        row["path"] for row in release.scope["implementation"]["build_assets"]
+    ) == FROZEN_COMPONENT_ASSETS
+    assert release.scope["implementation"]["registry_sha256"] == (
+        FROZEN_REGISTRY_SHA256
+    )
 
 
 def test_compose_has_narrow_mounts_and_auditor_has_no_raw_or_r2() -> None:

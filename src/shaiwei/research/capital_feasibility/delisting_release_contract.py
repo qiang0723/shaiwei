@@ -10,7 +10,6 @@ from typing import Any
 
 import yaml
 
-from shaiwei.build_identity.registry import load_build_registry
 from shaiwei.build_identity.release import component_build_snapshot_sha256
 from shaiwei.build_identity.source_bundle import verify_source_manifest
 from shaiwei.config import PROJECT_ROOT
@@ -37,6 +36,12 @@ ACTION = (
 )
 SCOPE_SCHEMA = "m6-head30-500k-delisting-risk-release-scope-v1"
 SCOPE_KIND = "HEAD30_500K_DELISTING_RISK_RELEASE_READY_NOT_EXECUTION_APPROVAL"
+FROZEN_COMPONENT_ASSETS = (
+    "Dockerfile.m6-head30-delisting-risk-release",
+    "Dockerfile.m6-head30-delisting-risk-release.dockerignore",
+    "compose.m6-head30-delisting-risk-release.yaml",
+)
+FROZEN_REGISTRY_SHA256 = "e0251d3cd9f38da055d533f8fb2f059ef5213f7ed13ef9caab7a653e64155035"
 
 
 def mapping(path: Path, *, yaml_document: bool = False) -> dict[str, Any]:
@@ -228,11 +233,11 @@ def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
         or len(str(implementation.get("source_bundle_sha256", ""))) != 64
     ):
         raise ProtocolError("M6-5C-C implementation identity differs")
-    registry = load_build_registry(validate_filesystem=False)
-    component = registry.component("m6-head30-delisting-risk-release")
-    records, asset_hashes = _scoped_build_assets(implementation, component.assets)
+    records, asset_hashes = _scoped_build_assets(
+        implementation, FROZEN_COMPONENT_ASSETS
+    )
     if (
-        implementation.get("registry_sha256") != registry.registry_sha256
+        implementation.get("registry_sha256") != FROZEN_REGISTRY_SHA256
         or implementation.get("component_build_snapshot_sha256")
         != component_build_snapshot_sha256(records)
         or len(str(implementation.get("source_manifest_sha256", ""))) != 64
