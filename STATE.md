@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-C-R1 release终版
+
+- 终版裁决`GO_RELEASE_READY_NOT_EXECUTION_APPROVAL`。successor镜像`be1e9b47...192fd9`由已推送
+  `5a142da`唯一断网构建；daemon fixture唯一运行PASS，六窗共6次锁存退出，claim先于reader、拒绝
+  重开、内部重放和独立重建均闭合。首次失败镜像`faf2ac66...c963cbf`永久关闭。
+- metadata-only scope为`2afe815f...ec85c`；真实目标/价格/效果读取0、真实ledger/approval/effect/audit
+  0，scheduler原容器持续healthy且未重启。当前必须停止并等待用户绑定scope与冻结动作精确授权唯一
+  真实运行；结果仍只具post-hoc诊断权限、生产none。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_RELEASE_ACCEPTANCE_20260823.md`。
+
 ## 2026-08-23 · M6-5C-C首次fixture失败与R1冻结
 
 - 实现`aac357d`推送、断网镜像`faf2ac66...c963cbf`构建成功；唯一fixture在协议前序文档身份校验处
