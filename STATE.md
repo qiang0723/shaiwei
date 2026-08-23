@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-B-R1退市风险执行适配工程门
+
+- 最终裁决`GO_EXECUTION_ADAPTER_ENGINEERING_ONLY`。旧`paper/engine.py`保持860行和
+  `44e64d1...1d6b94`原始SHA；paper-v2由362行独立风险编排、193行卖出原子和16行策略类型组成，
+  默认/显式空指令的paper-v1两日金标均为`dd7b40...d1faa`。非调仓风险退出、失败保留持仓与现金、
+  v2留现金和全部越权门通过，退市日无显式处置仍硬停。
+- 专项25、旧M6联合51、架构13、全仓1,808、账本86 PASS；Ruff、compileall、pip check、diff-check
+  PASS。真实目标/价格/效果读取0、账本追加0、release/scope 0；scheduler原容器持续healthy且未重启。
+  下一步只能另立M6-5C-C claim-first runner/replay/auditor/release结果盲工程，真实诊断仍须精确授权。
+  见`docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_EXECUTION_ADAPTER_ACCEPTANCE_20260823.md`。
+
 ## 2026-08-23 · M6-5C-B兼容失败与R1恢复协议冻结
 
 - M6-5C-B合成功能门曾通过，但全仓23项旧M6 release测试因`paper/engine.py`字节身份变化失败；真实
