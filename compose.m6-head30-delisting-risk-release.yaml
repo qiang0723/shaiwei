@@ -1,7 +1,7 @@
 name: shaiwei-m6-head30-delisting-risk-release
 
 x-security: &security
-  image: shaiwei:m6-head30-delisting-risk-release-r1-v1
+  image: shaiwei:m6-head30-delisting-risk-release-r2-v1
   pull_policy: never
   profiles: [m6-head30-delisting-risk-release]
   init: true
@@ -33,26 +33,26 @@ services:
   runner:
     <<: *security
     volumes:
-      - {type: bind, source: ./config/m6_csi800_production_head30_delisting_risk_release_scope_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-risk-approval.json, target: /inputs/approval.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_delisting_risk_release_scope_r2_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-risk-approval-r2.json, target: /inputs/approval.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/raw-batch-manifest.json, target: /inputs/raw-batch-manifest.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/m6_csi800_production_head30_v1/effect-r2, target: /inputs/r2, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./data/research/m6_csi800_production_head30_v1/effect-r2-audit-output-root-recovery/audit.json, target: /inputs/r7-audit.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./ledger/experiments.csv, target: /workspace/ledger/experiments.csv, read_only: false, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-risk-claim, target: /claim, read_only: false, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-risk, target: /outputs, read_only: false, bind: {create_host_path: false}}
-    command: [python, -m, shaiwei.research.capital_feasibility.delisting_release_run, --release, /inputs/release.json, --approval, /inputs/approval.json, --r2-root, /inputs/r2, --r7-audit, /inputs/r7-audit.json, --raw-manifest, /inputs/raw-batch-manifest.json, --project-root, /workspace, --ledger, /workspace/ledger/experiments.csv, --claim-receipt, /claim/delisting-risk-claim.json, --output-root, /outputs]
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-risk-claim-r2, target: /claim, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-risk-r2, target: /outputs, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.capital_feasibility.delisting_release_run, --release, /inputs/release.json, --approval, /inputs/approval.json, --r2-root, /inputs/r2, --r7-audit, /inputs/r7-audit.json, --raw-manifest, /inputs/raw-batch-manifest.json, --project-root, /workspace, --ledger, /workspace/ledger/experiments.csv, --claim-receipt, /claim/claim.json, --output-root, /outputs]
 
   auditor:
     <<: *security
     mem_limit: 2g
     cpus: 1.0
     volumes:
-      - {type: bind, source: ./config/m6_csi800_production_head30_delisting_risk_release_scope_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-risk-approval.json, target: /inputs/approval.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./config/m6_csi800_production_head30_delisting_risk_release_scope_r2_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-risk-approval-r2.json, target: /inputs/approval.json, read_only: true, bind: {create_host_path: false}}
       - {type: bind, source: ./ledger/experiments.csv, target: /workspace/ledger/experiments.csv, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-risk-claim/claim.json, target: /inputs/claim.json, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-risk, target: /outputs, read_only: true, bind: {create_host_path: false}}
-      - {type: bind, source: ./data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-risk-audit, target: /audit, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-risk-claim-r2/claim.json, target: /inputs/claim.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-risk-r2, target: /outputs, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-risk-r2-audit, target: /audit, read_only: false, bind: {create_host_path: false}}
     command: [python, -m, shaiwei.research.capital_feasibility.delisting_release_audit, --release, /inputs/release.json, --approval, /inputs/approval.json, --effect-root, /outputs, --ledger, /workspace/ledger/experiments.csv, --claim-receipt, /inputs/claim.json, --audit-root, /audit]

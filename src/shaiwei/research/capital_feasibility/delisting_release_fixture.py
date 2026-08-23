@@ -11,13 +11,25 @@ from typing import Any
 
 import pandas as pd
 
+from shaiwei.build_identity.registry import load_build_registry
+from shaiwei.build_identity.release import component_build_snapshot_sha256
 from shaiwei.research.effect_attempt_claim import EffectAttemptSpec, read_effect_after_claim
 from shaiwei.research.model_attribution.contract import canonical_sha256
 from shaiwei.research.production_conversion.real_contract import write_once_document
 
 from .delisting_independent_audit import independently_evaluate
 from .delisting_release_audit import main as audit_main
-from .delisting_release_contract import ReleaseProtocol
+from .delisting_release_contract import (
+    ACTION,
+    COMPOSE_PATH,
+    DOCKERFILE_PATH,
+    IMAGE,
+    SCOPE_KIND,
+    SCOPE_SCHEMA,
+    ReleaseProtocol,
+    ReleaseScope,
+    expected_authority,
+)
 from .delisting_release_metrics import evaluate
 from .delisting_release_run import main as runner_main
 from .delisting_release_simulation import run_all
@@ -175,9 +187,92 @@ def _claim_fixture(root: Path) -> dict[str, object]:
     }
 
 
+def _scope_loader_fixture(root: Path, protocol: ReleaseProtocol) -> bool:
+    registry = load_build_registry(validate_filesystem=False)
+    component = registry.component("m6-head30-delisting-risk-release")
+    records = [
+        {"path": path, "sha256": canonical_sha256({"fixture_asset": path})}
+        for path in component.assets
+    ]
+    asset_hashes = {record["path"]: record["sha256"] for record in records}
+    component_snapshot = component_build_snapshot_sha256(records)
+    inputs = protocol.blocked_scope["inputs"]
+    revision = "a" * 40
+    source_bundle = "b" * 64
+    scope = {
+        "scope_kind": SCOPE_KIND,
+        "created_at": "2026-08-23T12:00:00+08:00",
+        "protocol_sha256": protocol.sha256,
+        "recovery_protocol_sha256": protocol.recovery_sha256,
+        "scope_runtime_recovery_sha256": protocol.scope_runtime_recovery_sha256,
+        "implementation": {
+            "git_commit": revision,
+            "origin_main_commit": revision,
+            "source_bundle_sha256": source_bundle,
+            "source_manifest_sha256": "c" * 64,
+            "registry_sha256": registry.registry_sha256,
+            "build_assets": records,
+            "component_build_snapshot_sha256": component_snapshot,
+        },
+        "image": {
+            "reference": IMAGE,
+            "image_id": f"sha256:{'d' * 64}",
+            "git_commit": revision,
+            "source_bundle_sha256": source_bundle,
+            "component_build_snapshot_sha256": component_snapshot,
+            "labels": {},
+        },
+        "inputs": inputs,
+        "attempt_claim": {
+            "spec": protocol.document["attempt_claim"],
+            "input_identity_sha256": canonical_sha256(inputs),
+            "claim_before_effect_reader": True,
+        },
+        "execution": {
+            "approval_action": ACTION,
+            "runner_invocation_count": 1,
+            "complete_internal_passes": ["first_pass", "replay"],
+            "independent_auditor_invocation_count": 1,
+            "attempt_family": "m6_head30_500k_delisting_risk_overlay_v1",
+            "family_attempts_before_run": 0,
+            "new_attempts_consumed_at_claim": 1,
+            "total_family_attempts_after_claim": 1,
+            "same_scope_retry_authorized": False,
+        },
+        "container": {
+            "compose_path": COMPOSE_PATH.name,
+            "compose_sha256": asset_hashes[COMPOSE_PATH.name],
+            "dockerfile_path": DOCKERFILE_PATH.name,
+            "dockerfile_sha256": asset_hashes[DOCKERFILE_PATH.name],
+            "network_mode": "none",
+            "read_only_root": True,
+            "run_as_non_root": True,
+            "cap_drop_all": True,
+            "no_new_privileges": True,
+            "env_file_mounted": False,
+            "docker_socket_mounted": False,
+            "full_project_root_mounted": False,
+            "production_write_mount_present": False,
+            "canonical_ledger_mount": "runner-rw-auditor-ro",
+            "claim_receipt_mount": "runner-rw-auditor-ro",
+            "auditor_raw_or_r2_mount": False,
+        },
+        "authority": expected_authority(),
+    }
+    document = {
+        "schema_version": SCOPE_SCHEMA,
+        "release_scope_sha256": canonical_sha256(scope),
+        "scope": scope,
+    }
+    path = root / "release-scope.json"
+    path.write_text(json.dumps(document, sort_keys=True) + "\n", encoding="utf-8")
+    return ReleaseScope.load(path, protocol).sha256 == document["release_scope_sha256"]
+
+
 def build_fixture(root: Path) -> dict[str, Any]:
     protocol = ReleaseProtocol.load()
     root.mkdir(parents=True, exist_ok=True)
+    scope_loader_pass = _scope_loader_fixture(root, protocol)
     cli = _cli_mapping()
     claim = _claim_fixture(root)
     bundle, sources = _synthetic()
@@ -194,12 +289,15 @@ def build_fixture(root: Path) -> dict[str, Any]:
         or not all(cli.values())
         or not claim["claim_before_reader"]
         or not claim["same_scope_retry_blocked"]
+        or not scope_loader_pass
     ):
         raise RuntimeError("M6-5C synthetic release fixture failed")
     return {
         "schema_version": "m6-head30-500k-delisting-risk-release-fixture-v1",
         "status": "PASS",
         "protocol_sha256": protocol.sha256,
+        "scope_runtime_recovery_sha256": protocol.scope_runtime_recovery_sha256,
+        "release_scope_loader_pass": scope_loader_pass,
         "runner_cli_mapping_pass": cli["runner"],
         "auditor_cli_mapping_pass": cli["auditor"],
         "claim_before_effect_reader": True,

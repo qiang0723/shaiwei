@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import json
 from pathlib import Path
 
 import pytest
@@ -11,7 +12,9 @@ from shaiwei.research.capital_feasibility.delisting_independent_audit import (
 )
 from shaiwei.research.capital_feasibility.delisting_release_contract import (
     ACTION,
+    IMAGE,
     ReleaseProtocol,
+    ReleaseScope,
 )
 from shaiwei.research.capital_feasibility.delisting_release_fixture import (
     _synthetic,
@@ -43,6 +46,8 @@ def test_protocol_is_claim_first_post_hoc_and_non_production() -> None:
     assert authority["canonical_ledger_write_authorized"] is False
     assert authority["production_authorization"] == "none"
     assert len(protocol.recovery_sha256) == 64
+    assert len(protocol.scope_runtime_recovery_sha256) == 64
+    assert IMAGE == "shaiwei:m6-head30-delisting-risk-release-r2-v1"
 
 
 def test_recovery_context_is_minimal_and_global_ignore_is_untouched() -> None:
@@ -104,6 +109,19 @@ def test_synthetic_release_fixture_claims_before_reader_and_blocks_retry(
     assert result["same_scope_retry_blocked"] is True
     assert result["canonical_ledger_write"] is False
     assert result["real_target_or_price_or_effect_read"] is False
+    assert result["release_scope_loader_pass"] is True
+
+
+def test_scope_loader_recomputes_scoped_build_identity(tmp_path: Path) -> None:
+    build_fixture(tmp_path)
+    path = tmp_path / "release-scope.json"
+    document = json.loads(path.read_text(encoding="utf-8"))
+    document["scope"]["implementation"]["build_assets"][0]["sha256"] = "e" * 64
+    document["release_scope_sha256"] = canonical_sha256(document["scope"])
+    path.write_text(json.dumps(document, sort_keys=True) + "\n", encoding="utf-8")
+
+    with pytest.raises(ProtocolError, match="component build identity"):
+        ReleaseScope.load(path, ReleaseProtocol.load())
 
 
 def test_compose_has_narrow_mounts_and_auditor_has_no_raw_or_r2() -> None:
@@ -111,6 +129,10 @@ def test_compose_has_narrow_mounts_and_auditor_has_no_raw_or_r2() -> None:
     services = document["services"]
     runner = services["runner"]
     auditor = services["auditor"]
+
+    assert services["fixture"]["image"].endswith("-r2-v1")
+    assert "release_scope_r2_v1.json" in runner["volumes"][0]["source"]
+    assert "delisting-risk-approval-r2.json" in runner["volumes"][1]["source"]
 
     for service in services.values():
         assert service["network_mode"] == "none"
@@ -129,6 +151,7 @@ def test_compose_has_narrow_mounts_and_auditor_has_no_raw_or_r2() -> None:
 def test_new_release_modules_stay_bounded_and_auditor_is_independent() -> None:
     modules = [
         ROOT / "src/shaiwei/research/capital_feasibility/delisting_release_contract.py",
+        ROOT / "src/shaiwei/research/capital_feasibility/delisting_release_recovery_contract.py",
         ROOT / "src/shaiwei/research/capital_feasibility/delisting_release_builder.py",
         ROOT / "src/shaiwei/research/capital_feasibility/delisting_release_run.py",
         ROOT / "src/shaiwei/research/capital_feasibility/delisting_release_audit.py",
@@ -137,7 +160,9 @@ def test_new_release_modules_stay_bounded_and_auditor_is_independent() -> None:
         ROOT / "src/shaiwei/research/capital_feasibility/delisting_independent_audit.py",
     ]
     assert all(len(path.read_text(encoding="utf-8").splitlines()) <= 400 for path in modules)
-    auditor = modules[3].read_text(encoding="utf-8")
+    auditor = (ROOT / "src/shaiwei/research/capital_feasibility/delisting_release_audit.py").read_text(
+        encoding="utf-8"
+    )
     assert "delisting_release_simulation" not in auditor
     assert "delisting_release_metrics" not in auditor
     assert "evaluate_risk_overlay" not in auditor

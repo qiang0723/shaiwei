@@ -116,7 +116,11 @@ def build_scope(
     if any(labels.get(key) != value for key, value in expected_labels.items()):
         raise ProtocolError("M6-5C image labels differ")
     fixture = json.loads(fixture_evidence.read_text(encoding="utf-8"))
-    if fixture.get("status") != "PASS" or fixture.get("production_authorization") != "none":
+    if (
+        fixture.get("status") != "PASS"
+        or fixture.get("release_scope_loader_pass") is not True
+        or fixture.get("production_authorization") != "none"
+    ):
         raise ProtocolError("M6-5C daemon fixture differs")
     inputs = protocol.blocked_scope["inputs"]
     scope = {
@@ -124,6 +128,7 @@ def build_scope(
         "created_at": datetime.now(timezone.utc).isoformat(),
         "protocol_sha256": protocol.sha256,
         "recovery_protocol_sha256": protocol.recovery_sha256,
+        "scope_runtime_recovery_sha256": protocol.scope_runtime_recovery_sha256,
         "implementation": {
             "git_commit": revision,
             "origin_main_commit": revision,
@@ -187,10 +192,10 @@ def build_scope(
             "canonical_ledger_write": False,
         },
         "outputs": {
-            "approval_path": "data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-risk-approval.json",
-            "claim_receipt_path": "data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-risk-claim/claim.json",
-            "effect_root": "data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-risk",
-            "audit_root": "data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-risk-audit",
+            "approval_path": "data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-risk-approval-r2.json",
+            "claim_receipt_path": "data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-risk-claim-r2/claim.json",
+            "effect_root": "data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-risk-r2",
+            "audit_root": "data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-risk-r2-audit",
             "write_once": True,
         },
         "authority": expected_authority(),

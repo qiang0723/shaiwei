@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-C-R2 scope运行时恢复工程门
+
+- 工程裁决`GO_SUCCESSOR_BUILD_READY_NOT_EXECUTION_APPROVAL`。中央构建注册表新增显式metadata模式，
+  默认全仓严格文件门不变；release scope要求组件三条登记路径与scoped哈希逐项相等并重算组件身份，
+  Compose/Dockerfile身份只取同一封存记录，不再要求组件镜像携带无关构建资产。
+- successor fixture已在宿主测试中真实穿过`ReleaseScope.load()`；R2 approval/claim/effect/audit使用全新
+  隔离路径。专项34、架构13、全仓1,817 PASS；真实读取、账本、approval、镜像构建和fixture真实运行
+  仍为0。下一步仅可在实现推送后构建一次R2镜像并运行一次daemon fixture，通过后生成新scope并停在
+  用户精确授权前。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_SCOPE_RUNTIME_RECOVERY_ENGINEERING_ACCEPTANCE_20260823.md`。
+
 ## 2026-08-23 · M6-5C-C真实入口claim前失败与R2冻结
 
 - scope`2afe815f...ec85c`唯一runner在`ReleaseScope.load()`因组件镜像不含无关全仓构建资产而失败；

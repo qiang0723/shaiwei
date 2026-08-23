@@ -17,6 +17,8 @@ from shaiwei.config import PROJECT_ROOT
 from shaiwei.research.model_attribution.contract import canonical_sha256, sha256_file
 from shaiwei.research.production_conversion.contract import ProtocolError
 
+from .delisting_release_recovery_contract import R2_IMAGE, load_release_recoveries
+
 
 PROTOCOL_PATH = (
     PROJECT_ROOT
@@ -24,15 +26,11 @@ PROTOCOL_PATH = (
 )
 SCOPE_PATH = (
     PROJECT_ROOT
-    / "config/m6_csi800_production_head30_delisting_risk_release_scope_v1.json"
-)
-RECOVERY_PATH = (
-    PROJECT_ROOT
-    / "config/m6_csi800_production_head30_delisting_risk_release_context_recovery_v1.yaml"
+    / "config/m6_csi800_production_head30_delisting_risk_release_scope_r2_v1.json"
 )
 COMPOSE_PATH = PROJECT_ROOT / "compose.m6-head30-delisting-risk-release.yaml"
 DOCKERFILE_PATH = PROJECT_ROOT / "Dockerfile.m6-head30-delisting-risk-release"
-IMAGE = "shaiwei:m6-head30-delisting-risk-release-r1-v1"
+IMAGE = R2_IMAGE
 ACTION = (
     "M6_HEAD30_500K_DELISTING_RISK_RECOVERY_ONCE_WITH_CLAIM_REPLAY_"
     "AND_INDEPENDENT_AUDIT"
@@ -143,70 +141,32 @@ def _validate_protocol(document: dict[str, Any]) -> None:
         raise ProtocolError("M6-5C-C preapproval authority was broadened")
 
 
-def _validate_recovery(document: dict[str, Any], protocol_sha256: str) -> None:
-    predecessor = document.get("predecessor", {})
-    failure_path = PROJECT_ROOT / str(predecessor.get("failure_evidence", ""))
-    failure = mapping(failure_path)
-    if (
-        document.get("schema_version")
-        != "m6-csi800-production-head30-delisting-risk-release-context-recovery-v1"
-        or document.get("stage") != "RESULT_BLIND_DOCKER_CONTEXT_RECOVERY_ONLY"
-        or predecessor.get("base_release_protocol_sha256") != protocol_sha256
-        or sha256_file(failure_path) != predecessor.get("failure_evidence_sha256")
-        or failure.get("decision") != "BLOCKED_BEFORE_SYNTHETIC_DOMAIN_ENTRY"
-        or failure.get("effect_or_target_or_price_read") is not False
-        or failure.get("new_attempts_consumed") != 0
-    ):
-        raise ProtocolError("M6-5C-C-R1 predecessor identity differs")
-    if document.get("single_change") != {
-        "add_dedicated_dockerignore": (
-            "Dockerfile.m6-head30-delisting-risk-release.dockerignore"
-        ),
-        "copy_required_predecessor_documents": [
-            "docs/EFFECT_ATTEMPT_CLAIM_GATE_ACCEPTANCE_20260823.md",
-            "docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_EXECUTION_ADAPTER_ACCEPTANCE_20260823.md",
-            "docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_METHOD_ACCEPTANCE_20260823.md",
-        ],
-        "successor_image_reference": IMAGE,
-        "domain_code_change_authorized": False,
-        "claim_or_gate_change_authorized": False,
-        "compose_mount_change_authorized": False,
-    }:
-        raise ProtocolError("M6-5C-C-R1 single change differs")
-    authority = document.get("authority", {})
-    allowed = {
-        "recovery_engineering_authorized",
-        "one_successor_offline_build_authorized",
-        "one_successor_synthetic_fixture_authorized",
-        "metadata_only_scope_authorized",
-    }
-    if any(authority.get(key) is not True for key in allowed) or any(
-        value not in (False, "none")
-        for key, value in authority.items()
-        if key not in allowed
-    ):
-        raise ProtocolError("M6-5C-C-R1 authority differs")
-
-
 @dataclass(frozen=True)
 class ReleaseProtocol:
     path: Path
     document: dict[str, Any]
     sha256: str
     recovery_sha256: str
+    scope_runtime_recovery_sha256: str
     blocked_scope: dict[str, Any]
 
     @classmethod
     def load(cls, path: Path = PROTOCOL_PATH) -> "ReleaseProtocol":
         document = mapping(path, yaml_document=True)
         _validate_protocol(document)
-        recovery = mapping(RECOVERY_PATH, yaml_document=True)
-        _validate_recovery(recovery, sha256_file(path))
+        recovery_sha256, runtime_recovery_sha256 = load_release_recoveries(
+            sha256_file(path)
+        )
         blocked = mapping(
             PROJECT_ROOT / document["predecessors"]["blocked_scope"]["path"]
         )["scope"]
         return cls(
-            path.resolve(), document, sha256_file(path), sha256_file(RECOVERY_PATH), blocked
+            path.resolve(),
+            document,
+            sha256_file(path),
+            recovery_sha256,
+            runtime_recovery_sha256,
+            blocked,
         )
 
 
@@ -224,11 +184,39 @@ def _expected_execution() -> dict[str, Any]:
     }
 
 
+def _scoped_build_assets(
+    implementation: dict[str, Any], component_assets: tuple[str, ...]
+) -> tuple[list[dict[str, str]], dict[str, str]]:
+    records = implementation.get("build_assets")
+    if not isinstance(records, list) or any(
+        not isinstance(record, dict) or set(record) != {"path", "sha256"}
+        for record in records
+    ):
+        raise ProtocolError("M6-5C-C scoped build asset records differ")
+    normalized: list[dict[str, str]] = []
+    for record in records:
+        path = record.get("path")
+        digest = record.get("sha256")
+        if (
+            not isinstance(path, str)
+            or not isinstance(digest, str)
+            or len(digest) != 64
+            or any(character not in "0123456789abcdef" for character in digest)
+        ):
+            raise ProtocolError("M6-5C-C scoped build asset record is invalid")
+        normalized.append({"path": path, "sha256": digest})
+    if [record["path"] for record in normalized] != list(component_assets):
+        raise ProtocolError("M6-5C-C scoped build asset paths differ")
+    return normalized, {record["path"]: record["sha256"] for record in normalized}
+
+
 def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
     if (
         scope.get("scope_kind") != SCOPE_KIND
         or scope.get("protocol_sha256") != protocol.sha256
         or scope.get("recovery_protocol_sha256") != protocol.recovery_sha256
+        or scope.get("scope_runtime_recovery_sha256")
+        != protocol.scope_runtime_recovery_sha256
     ):
         raise ProtocolError("M6-5C-C scope identity differs")
     implementation = scope.get("implementation", {})
@@ -240,15 +228,11 @@ def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
         or len(str(implementation.get("source_bundle_sha256", ""))) != 64
     ):
         raise ProtocolError("M6-5C-C implementation identity differs")
-    registry = load_build_registry()
+    registry = load_build_registry(validate_filesystem=False)
     component = registry.component("m6-head30-delisting-risk-release")
-    records = [
-        {"path": name, "sha256": sha256_file(PROJECT_ROOT / name)}
-        for name in component.assets
-    ]
+    records, asset_hashes = _scoped_build_assets(implementation, component.assets)
     if (
         implementation.get("registry_sha256") != registry.registry_sha256
-        or implementation.get("build_assets") != records
         or implementation.get("component_build_snapshot_sha256")
         != component_build_snapshot_sha256(records)
         or len(str(implementation.get("source_manifest_sha256", ""))) != 64
@@ -305,9 +289,9 @@ def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
         raise ProtocolError("M6-5C-C container boundary differs")
     if (
         container.get("compose_path") != COMPOSE_PATH.name
-        or container.get("compose_sha256") != sha256_file(COMPOSE_PATH)
+        or container.get("compose_sha256") != asset_hashes.get(COMPOSE_PATH.name)
         or container.get("dockerfile_path") != DOCKERFILE_PATH.name
-        or container.get("dockerfile_sha256") != sha256_file(DOCKERFILE_PATH)
+        or container.get("dockerfile_sha256") != asset_hashes.get(DOCKERFILE_PATH.name)
     ):
         raise ProtocolError("M6-5C-C container build asset differs")
 

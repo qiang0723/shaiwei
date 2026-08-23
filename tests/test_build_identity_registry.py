@@ -184,6 +184,27 @@ def test_registry_rejects_duplicate_yaml_keys(tmp_path: Path) -> None:
         load_build_registry(path, root=ROOT)
 
 
+def test_registry_metadata_mode_keeps_schema_and_path_safety_without_assets(
+    tmp_path: Path,
+) -> None:
+    document = yaml.safe_load(REGISTRY_PATH.read_text(encoding="utf-8"))
+    path = _write_registry(tmp_path, document)
+
+    registry = load_build_registry(path, root=tmp_path, validate_filesystem=False)
+    assert registry.component("m6-head30-delisting-risk-release").assets == (
+        "Dockerfile.m6-head30-delisting-risk-release",
+        "Dockerfile.m6-head30-delisting-risk-release.dockerignore",
+        "compose.m6-head30-delisting-risk-release.yaml",
+    )
+    with pytest.raises(BuildIdentityError, match="missing, not a file"):
+        load_build_registry(path, root=tmp_path)
+
+    document["components"][0]["assets"][0] = "../Dockerfile"
+    unsafe = _write_registry(tmp_path, document)
+    with pytest.raises(BuildIdentityError, match="safe repository-relative path"):
+        load_build_registry(unsafe, root=tmp_path, validate_filesystem=False)
+
+
 def test_active_web_attestation_verifies_without_execution_authority() -> None:
     document, registry = _web_attestation()
     result = verify_component_release_attestation(document, registry)

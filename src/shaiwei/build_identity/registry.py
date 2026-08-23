@@ -148,7 +148,13 @@ def _require_string_list(value: object, where: str, *, allow_empty: bool = False
     return items
 
 
-def _validate_relative_file(root: Path, relative: str, where: str) -> None:
+def _validate_relative_file(
+    root: Path,
+    relative: str,
+    where: str,
+    *,
+    validate_filesystem: bool,
+) -> None:
     path = PurePosixPath(relative)
     if (
         not relative
@@ -157,6 +163,8 @@ def _validate_relative_file(root: Path, relative: str, where: str) -> None:
         or any(part in {"", ".", ".."} for part in path.parts)
     ):
         raise BuildIdentityError(f"{where} is not a safe repository-relative path: {relative}")
+    if not validate_filesystem:
+        return
     candidate = root / path
     if not candidate.is_file() or candidate.is_symlink():
         raise BuildIdentityError(f"{where} is missing, not a file, or a symlink: {relative}")
@@ -175,7 +183,12 @@ def _enum(enum_type: type[StrEnum], raw: object, where: str) -> StrEnum:
         raise BuildIdentityError(f"{where} is unknown: {raw}") from error
 
 
-def _parse_component(raw: object, root: Path) -> BuildComponent:
+def _parse_component(
+    raw: object,
+    root: Path,
+    *,
+    validate_filesystem: bool,
+) -> BuildComponent:
     if not isinstance(raw, dict) or any(not isinstance(key, str) for key in raw):
         raise BuildIdentityError("build registry component must be a mapping with string keys")
     _require_exact_keys(raw, _COMPONENT_KEYS, "build registry component")
@@ -191,9 +204,19 @@ def _parse_component(raw: object, root: Path) -> BuildComponent:
     assets = _require_string_list(raw["assets"], f"{component_id}.assets")
     consumers = _require_string_list(raw["consumers"], f"{component_id}.consumers")
     for asset in assets:
-        _validate_relative_file(root, asset, f"{component_id}.asset")
+        _validate_relative_file(
+            root,
+            asset,
+            f"{component_id}.asset",
+            validate_filesystem=validate_filesystem,
+        )
     for consumer in consumers:
-        _validate_relative_file(root, consumer, f"{component_id}.consumer")
+        _validate_relative_file(
+            root,
+            consumer,
+            f"{component_id}.consumer",
+            validate_filesystem=validate_filesystem,
+        )
     return BuildComponent(
         component_id=component_id,
         asset_class=asset_class,
@@ -208,6 +231,7 @@ def load_build_registry(
     path: Path | None = None,
     *,
     root: Path | None = None,
+    validate_filesystem: bool = True,
 ) -> BuildRegistry:
     """Load and fully validate the build-asset ownership registry."""
     project_root = (root or PROJECT_ROOT).resolve()
@@ -227,7 +251,14 @@ def load_build_registry(
     raw_components = document["components"]
     if not isinstance(raw_components, list) or not raw_components:
         raise BuildIdentityError("build registry components must be a non-empty list")
-    components = tuple(_parse_component(raw, project_root) for raw in raw_components)
+    components = tuple(
+        _parse_component(
+            raw,
+            project_root,
+            validate_filesystem=validate_filesystem,
+        )
+        for raw in raw_components
+    )
     component_ids = [item.component_id for item in components]
     if component_ids != sorted(component_ids) or len(component_ids) != len(set(component_ids)):
         raise BuildIdentityError("build registry component ids are not unique and canonical")
