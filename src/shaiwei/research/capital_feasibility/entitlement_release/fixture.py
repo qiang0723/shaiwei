@@ -167,6 +167,8 @@ def _scope_loader_fixture(root: Path, protocol: ReleaseProtocol) -> bool:
     ]
     revision = "a" * 40
     source_bundle = "b" * 64
+    component_snapshot = component_build_snapshot_sha256(records)
+    image_id = f"sha256:{'d' * 64}"
     inputs = protocol.failed_scope["inputs"]
     scope = {
         "scope_kind": SCOPE_KIND,
@@ -179,15 +181,19 @@ def _scope_loader_fixture(root: Path, protocol: ReleaseProtocol) -> bool:
             "source_manifest_sha256": "c" * 64,
             "registry_sha256": registry.registry_sha256,
             "build_assets": records,
-            "component_build_snapshot_sha256": component_build_snapshot_sha256(records),
+            "component_build_snapshot_sha256": component_snapshot,
         },
         "image": {
             "reference": IMAGE,
-            "image_id": f"sha256:{'d' * 64}",
+            "image_id": image_id,
             "git_commit": revision,
             "source_bundle_sha256": source_bundle,
-            "component_build_snapshot_sha256": component_build_snapshot_sha256(records),
-            "labels": {},
+            "component_build_snapshot_sha256": component_snapshot,
+            "labels": {
+                "org.opencontainers.image.revision": revision,
+                "io.shaiwei.component_build_snapshot_sha256": component_snapshot,
+                "io.shaiwei.source_bundle_sha256": source_bundle,
+            },
         },
         "inputs": inputs,
         "attempt_claim": {
@@ -207,12 +213,42 @@ def _scope_loader_fixture(root: Path, protocol: ReleaseProtocol) -> bool:
             "same_scope_retry_authorized": False,
         },
         "container": {
+            "compose_path": protocol.document["release"]["compose"],
+            "compose_sha256": next(
+                row["sha256"]
+                for row in records
+                if row["path"] == protocol.document["release"]["compose"]
+            ),
+            "dockerfile_path": protocol.document["release"]["dockerfile"],
+            "dockerfile_sha256": next(
+                row["sha256"]
+                for row in records
+                if row["path"] == protocol.document["release"]["dockerfile"]
+            ),
             "network_mode": "none", "read_only_root": True, "run_as_non_root": True,
             "cap_drop_all": True, "no_new_privileges": True, "env_file_mounted": False,
             "docker_socket_mounted": False, "full_project_root_mounted": False,
             "production_write_mount_present": False,
             "canonical_ledger_mount": "runner-rw-auditor-ro",
             "claim_receipt_mount": "runner-rw-auditor-ro", "auditor_raw_or_r2_mount": False,
+        },
+        "daemon_fixture": {
+            "evidence_sha256": "e" * 64,
+            "image_id": image_id,
+            "claim_before_effect_reader": True,
+            "same_scope_retry_blocked": True,
+            "internal_replay_pass": True,
+            "independent_reconstruction_pass": True,
+            "detached_entitlement_round_trip_pass": True,
+            "real_target_or_price_or_effect_read": False,
+            "canonical_ledger_write": False,
+        },
+        "outputs": {
+            "approval_path": "data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-entitlement-approval-r4.json",
+            "claim_receipt_path": "data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-entitlement-claim-r4/claim.json",
+            "effect_root": "data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-entitlement-r4",
+            "audit_root": "data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-entitlement-r4-audit",
+            "write_once": True,
         },
         "authority": expected_authority(),
     }

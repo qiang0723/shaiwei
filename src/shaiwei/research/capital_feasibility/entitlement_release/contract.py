@@ -186,6 +186,7 @@ def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
     registry = load_build_registry(validate_filesystem=False)
     component = registry.component(COMPONENT_ID)
     records = _build_records(implementation.get("build_assets"), component.assets)
+    asset_sha256 = {record["path"]: record["sha256"] for record in records}
     if (
         implementation.get("registry_sha256") != registry.registry_sha256
         or implementation.get("component_build_snapshot_sha256")
@@ -194,6 +195,13 @@ def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
     ):
         raise ProtocolError("M6-5C-C-R4 component identity differs")
     image = scope.get("image", {})
+    expected_labels = {
+        "org.opencontainers.image.revision": commit,
+        "io.shaiwei.component_build_snapshot_sha256": implementation.get(
+            "component_build_snapshot_sha256"
+        ),
+        "io.shaiwei.source_bundle_sha256": implementation.get("source_bundle_sha256"),
+    }
     if (
         image.get("reference") != IMAGE
         or image.get("git_commit") != commit
@@ -201,6 +209,7 @@ def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
         or image.get("component_build_snapshot_sha256")
         != implementation.get("component_build_snapshot_sha256")
         or not str(image.get("image_id", "")).startswith("sha256:")
+        or image.get("labels") != expected_labels
     ):
         raise ProtocolError("M6-5C-C-R4 image identity differs")
     inputs = scope.get("inputs", {})
@@ -229,7 +238,12 @@ def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
     if scope.get("authority") != expected_authority():
         raise ProtocolError("M6-5C-C-R4 authority differs")
     container = scope.get("container", {})
+    release = protocol.document["release"]
     required = {
+        "compose_path": release["compose"],
+        "compose_sha256": asset_sha256.get(release["compose"]),
+        "dockerfile_path": release["dockerfile"],
+        "dockerfile_sha256": asset_sha256.get(release["dockerfile"]),
         "network_mode": "none",
         "read_only_root": True,
         "run_as_non_root": True,
@@ -245,6 +259,32 @@ def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
     }
     if any(container.get(key) != value for key, value in required.items()):
         raise ProtocolError("M6-5C-C-R4 container boundary differs")
+    fixture = scope.get("daemon_fixture", {})
+    if (
+        len(str(fixture.get("evidence_sha256", ""))) != 64
+        or fixture.get("image_id") != image.get("image_id")
+        or any(
+            fixture.get(key) is not True
+            for key in (
+                "claim_before_effect_reader",
+                "same_scope_retry_blocked",
+                "internal_replay_pass",
+                "independent_reconstruction_pass",
+                "detached_entitlement_round_trip_pass",
+            )
+        )
+        or fixture.get("real_target_or_price_or_effect_read") is not False
+        or fixture.get("canonical_ledger_write") is not False
+    ):
+        raise ProtocolError("M6-5C-C-R4 daemon fixture differs")
+    if scope.get("outputs") != {
+        "approval_path": "data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-entitlement-approval-r4.json",
+        "claim_receipt_path": "data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-entitlement-claim-r4/claim.json",
+        "effect_root": "data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-entitlement-r4",
+        "audit_root": "data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-entitlement-r4-audit",
+        "write_once": True,
+    }:
+        raise ProtocolError("M6-5C-C-R4 output boundary differs")
 
 
 @dataclass(frozen=True)

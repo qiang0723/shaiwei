@@ -91,6 +91,33 @@ def test_scope_loader_rejects_component_identity_tampering(tmp_path: Path) -> No
         ReleaseScope.load(path, ReleaseProtocol.load())
 
 
+@pytest.mark.parametrize(
+    ("section", "field", "value", "message"),
+    [
+        ("image", "labels", {}, "image identity"),
+        ("container", "compose_sha256", "f" * 64, "container boundary"),
+        ("daemon_fixture", "image_id", f"sha256:{'f' * 64}", "daemon fixture"),
+        ("outputs", "effect_root", "data/research/wrong", "output boundary"),
+    ],
+)
+def test_scope_loader_rejects_release_boundary_tampering(
+    tmp_path: Path,
+    section: str,
+    field: str,
+    value: object,
+    message: str,
+) -> None:
+    build_fixture(tmp_path)
+    path = tmp_path / "release-scope.json"
+    document = json.loads(path.read_text(encoding="utf-8"))
+    document["scope"][section][field] = value
+    document["release_scope_sha256"] = canonical_sha256(document["scope"])
+    path.write_text(json.dumps(document, sort_keys=True) + "\n", encoding="utf-8")
+
+    with pytest.raises(ProtocolError, match=message):
+        ReleaseScope.load(path, ReleaseProtocol.load())
+
+
 def test_compose_is_isolated_and_auditor_has_no_raw_or_r2() -> None:
     document = yaml.safe_load(COMPOSE.read_text(encoding="utf-8"))
     services = document["services"]
