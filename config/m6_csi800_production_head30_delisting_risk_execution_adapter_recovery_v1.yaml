@@ -1,0 +1,51 @@
+schema_version: m6-csi800-production-head30-delisting-risk-execution-adapter-recovery-v1
+protocol_id: m6-csi800-production-head30-delisting-risk-execution-adapter-recovery-v1
+stage: RESULT_SEALED_EXECUTION_ADAPTER_RECOVERY_ENGINEERING_ONLY
+protocol: docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_EXECUTION_ADAPTER_RECOVERY_PROTOCOL_20260823.md
+
+base_protocol:
+  config_path: config/m6_csi800_production_head30_delisting_risk_execution_adapter_v1.yaml
+  config_sha256: 7e1b073b98e636308daba3a39b56c54994ebd8bb5212afed3dd316ff27be8bdb
+  document_path: docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_EXECUTION_ADAPTER_PROTOCOL_20260823.md
+  document_sha256: df887daec733da3a1f3d8ed5ed3f61d4b456f327b0ffd705de03c73ae605781a
+  freeze_commit: c6da4005f37dc8f5b9ce43b7e62a154fa46de6fe
+
+failure_ruling:
+  original_engine_refactor_verdict: NO_GO_DUE_TO_ARCHIVED_PREDECESSOR_IDENTITY
+  full_regression_failure_count_before_recovery: 23
+  failure_root: ARCHIVED_M6_RELEASES_BIND_PAPER_ENGINE_BYTES
+  real_target_read_count: 0
+  real_price_read_count: 0
+  real_effect_read_count: 0
+  canonical_ledger_write_count: 0
+
+compatibility_recovery:
+  legacy_engine_path: src/shaiwei/paper/engine.py
+  legacy_engine_sha256: 44e64d1a776973b0eb5b9ba5ce6d8a7d103a7e8a20aaeb172929c7ca4b1d6b94
+  legacy_engine_lines: 860
+  legacy_engine_mutation_authorized: false
+  risk_engine_path: src/shaiwei/paper/risk_exit_engine.py
+  sell_execution_path: src/shaiwei/paper/sell_execution.py
+  risk_policy_path: src/shaiwei/paper/risk_exit_policy.py
+  maximum_new_module_lines: 400
+  explicit_legacy_private_seam_authorized: true
+  paper_v1_dispatch: EXACT_DELEGATION_WHEN_DIRECTIVE_EMPTY
+  paper_v1_nonempty_directive_authorized: false
+  paper_v1_synthetic_two_day_canonical_sha256: dd7b40b33b75f7e5b261bebaf64b8d1e748d6e42f62225da0b4d490f6e9d1faa
+
+authority:
+  synthetic_adapter_fixture_authorized: true
+  compatibility_recovery_authorized: true
+  paper_engine_refactor_authorized: false
+  real_target_read_authorized: false
+  real_price_read_authorized: false
+  real_effect_read_authorized: false
+  canonical_ledger_write_authorized: false
+  model_fit_or_prediction_authorized: false
+  backtest_authorized: false
+  release_or_scope_build_authorized: false
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  web_change_authorized: false
+  scheduler_change_or_restart_authorized: false
+  production_authorization: none

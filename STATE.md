@@ -2,6 +2,15 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-B兼容失败与R1恢复协议冻结
+
+- M6-5C-B合成功能门曾通过，但全仓23项旧M6 release测试因`paper/engine.py`字节身份变化失败；真实
+  目标/价格/效果读取0、canonical ledger写入0。原协议的“旧engine抽薄”裁决为
+  `NO_GO_DUE_TO_ARCHIVED_PREDECESSOR_IDENTITY`，不能用新功能通过覆盖历史可复核性失败。
+- M6-5C-B-R1已显式冻结唯一恢复变量：旧engine恢复并保持SHA`44e64d1...1d6b94`、860行；paper-v2
+  改走独立、低于400行的风险适配编排和卖出原子，paper-v1空指令只作精确委托。R1仍不授权真实
+  读取、账本、回测、release/scope、Web、scheduler或生产；实现后必须让旧M6和全仓门全部恢复。
+
 ## 2026-08-23 · M6-5C-B退市风险执行适配结果前冻结
 
 - M6-5C-B协议已冻结：新增研究专用`paper-v2-delisting-risk-exit`和默认空的`forced_exit_codes`窄
