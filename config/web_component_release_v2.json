@@ -1,0 +1,42 @@
+{
+  "schema_version": "shaiwei-web-component-release-config-v2",
+  "component_id": "web-local",
+  "compose_path": "compose.web.yaml",
+  "embedded_manifest_build_path": ".web-release/component-source-manifest.json",
+  "embedded_manifest_container_path": "/opt/shaiwei/component-source-manifest.json",
+  "source_roots": [
+    "src",
+    "web-ui"
+  ],
+  "source_files": [
+    "config/r2_1_forward_checkpoint_v1.yaml",
+    "config/web_component_release_v2.json",
+    "config/web_forward_checkpoint_v1.yaml",
+    "config/web_route_status_v1.yaml",
+    "pyproject.toml",
+    "requirements.web.lock"
+  ],
+  "images": [
+    {
+      "role": "research-control",
+      "dockerfile": "Dockerfile.control",
+      "repository": "shaiwei:research-control-release",
+      "services": [
+        "research-control"
+      ]
+    },
+    {
+      "role": "web-runtime",
+      "dockerfile": "Dockerfile.web",
+      "repository": "shaiwei:web-runtime-release",
+      "services": [
+        "web-query",
+        "web-ui"
+      ]
+    }
+  ],
+  "candidate_path": ".release/web_component_candidate.json",
+  "state_path": ".release/web_component_state.json",
+  "audit_path": "logs/releases/web_component_releases.jsonl",
+  "ui_base_url": "http://127.0.0.1:8080"
+}

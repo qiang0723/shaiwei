@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · A1-4C Web双镜像release工程门
+
+- 结果前协议提交`42ab126`已先行推送；工程裁决`GO_RELEASE_READY_NOT_DEPLOYED`。A1-4B v1保持兼容，
+  新增v2双镜像合同，同时绑定`web-runtime`与`research-control`的已推送Git revision、完整源码bundle、
+  三项注册构建资产、角色/服务、内容寻址image ID、四项标签与镜像内manifest，成功仍固定生产授权
+  `none`。Makefile的build/up/status已统一进入release CLI，禁止单镜像或直接Compose旁路。
+- 运行时门失败关闭核验只读根、cap drop、no-new-privileges、精确可写目录、网络和loopback端口，并
+  禁止整仓及Docker socket挂载；提升编排预登记旧镜像，要求新→旧→同一新三段演练，候选替换后的
+  任一失败均回到旧基线。专项57、架构13、全仓1,751 PASS；Ruff、compileall、pip check、Compose和
+  diff-check PASS。scheduler与三项Web容器仍为原镜像且healthy，真实候选/attestation/新镜像/重启
+  均为0。下一步只有在本实现推送后才可各构建一次双镜像候选并执行本机只读发布；runner记账、退市
+  规则、模型与生产scheduler继续不动。见
+  `docs/BUILD_IDENTITY_WEB_RELEASE_ENGINEERING_ACCEPTANCE_20260823.md`。
+
 ## 2026-08-21 · A1-4B组件构建身份注册与release门
 
 - 协议提交`9cc9df8`先行推送；工程裁决`GO_ENGINEERING_ONLY`。中央注册表将91个Git跟踪构建资产

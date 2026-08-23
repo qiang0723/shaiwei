@@ -11,6 +11,16 @@ RUN npm run build
 
 FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93
 
+ARG SHAIWEI_COMPONENT_GIT_COMMIT=""
+ARG SHAIWEI_COMPONENT_BUILD_SNAPSHOT_SHA256=""
+ARG SHAIWEI_SOURCE_BUNDLE_SHA256=""
+ARG SHAIWEI_COMPONENT_IMAGE_ROLE="web-runtime"
+
+LABEL org.opencontainers.image.revision="${SHAIWEI_COMPONENT_GIT_COMMIT}" \
+      io.shaiwei.component_build_snapshot_sha256="${SHAIWEI_COMPONENT_BUILD_SNAPSHOT_SHA256}" \
+      io.shaiwei.source_bundle_sha256="${SHAIWEI_SOURCE_BUNDLE_SHA256}" \
+      io.shaiwei.component_image_role="${SHAIWEI_COMPONENT_IMAGE_ROLE}"
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -24,6 +34,7 @@ RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
 
 COPY src ./src
 COPY config/web_forward_checkpoint_v1.yaml config/r2_1_forward_checkpoint_v1.yaml config/web_route_status_v1.yaml ./config/
+COPY .web-release/component-source-manifest.json /opt/shaiwei/component-source-manifest.json
 COPY --from=web-ui-build /ui/dist ./web-ui/dist
 RUN groupadd --gid 10001 shaiwei \
     && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin shaiwei \

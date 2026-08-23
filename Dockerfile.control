@@ -1,5 +1,15 @@
 FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93
 
+ARG SHAIWEI_COMPONENT_GIT_COMMIT=""
+ARG SHAIWEI_COMPONENT_BUILD_SNAPSHOT_SHA256=""
+ARG SHAIWEI_SOURCE_BUNDLE_SHA256=""
+ARG SHAIWEI_COMPONENT_IMAGE_ROLE="research-control"
+
+LABEL org.opencontainers.image.revision="${SHAIWEI_COMPONENT_GIT_COMMIT}" \
+      io.shaiwei.component_build_snapshot_sha256="${SHAIWEI_COMPONENT_BUILD_SNAPSHOT_SHA256}" \
+      io.shaiwei.source_bundle_sha256="${SHAIWEI_SOURCE_BUNDLE_SHA256}" \
+      io.shaiwei.component_image_role="${SHAIWEI_COMPONENT_IMAGE_ROLE}"
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -12,6 +22,7 @@ RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
     python -m pip install --no-deps -r requirements.web.lock
 
 COPY src ./src
+COPY .web-release/component-source-manifest.json /opt/shaiwei/component-source-manifest.json
 RUN groupadd --gid 10001 control \
     && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin control \
     && mkdir -p /workspace/config /workspace/docs \

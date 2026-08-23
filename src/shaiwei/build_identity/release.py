@@ -80,7 +80,8 @@ def _require_string(document: Mapping[str, object], key: str) -> str:
     return value
 
 
-def _asset_records(component_assets: tuple[str, ...], root: Path) -> list[dict[str, str]]:
+def component_asset_records(component_assets: tuple[str, ...], root: Path) -> list[dict[str, str]]:
+    """Read canonical registered build-asset identities from one source tree."""
     records: list[dict[str, str]] = []
     for relative in component_assets:
         path = root / relative
@@ -177,7 +178,7 @@ def verify_component_release_attestation(
         raise BuildIdentityError("component release registry identity differs")
 
     project_root = (root or PROJECT_ROOT).resolve()
-    expected_records = _asset_records(component.assets, project_root)
+    expected_records = component_asset_records(component.assets, project_root)
     actual_records = _parse_asset_records(document.get("build_assets"))
     if actual_records != expected_records:
         raise BuildIdentityError("component release build assets differ from the registry or working tree")

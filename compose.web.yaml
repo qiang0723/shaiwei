@@ -1,7 +1,7 @@
 name: shaiwei-web
 
 x-web-security: &web-security
-  image: shaiwei:web-v1
+  image: ${SHAIWEI_WEB_RUNTIME_IMAGE:-shaiwei:web-v1}
   profiles: [web]
   init: true
   user: "10001:10001"
@@ -416,7 +416,7 @@ services:
           create_host_path: false
 
   research-control:
-    image: shaiwei:research-control-v1
+    image: ${SHAIWEI_WEB_CONTROL_IMAGE:-shaiwei:research-control-v1}
     profiles: [web, control]
     build:
       context: .
