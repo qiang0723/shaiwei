@@ -2,6 +2,15 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-C-R3红股权益恢复结果前冻结
+
+- R3只补paper-v2的合法状态：登记日权益在原仓卖空后仍有效；红股上市日先建零数量、总成本0的
+  detached position，再复用冻结到期动作加精确整数股。成本字段仍表示累计现金支出，不冒充税法
+  成本；现金股利、已有持仓、应收估值、退市参数、事件Schema和paper-v1全部不变。
+- 本节点只授权独立适配模块与synthetic工程门，真实读取、账本、release/scope和生产均为0。工程通过
+  即停；未来真实恢复为同家族ordinal 2、历史尝试1，须另立release协议和新授权。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_STOCK_DIVIDEND_ENTITLEMENT_RECOVERY_PROTOCOL_20260823.md`。
+
 ## 2026-08-23 · M6-5C-C-R2真实诊断claim后失败
 
 - scope`94a45605...9829`唯一runner先完成canonical claim与receipt再进入真实reader，尝试家族已消费

@@ -1,0 +1,83 @@
+schema_version: m6-csi800-production-head30-stock-dividend-entitlement-recovery-v1
+protocol_id: m6-csi800-production-head30-stock-dividend-entitlement-recovery-v1
+stage: RESULT_BLIND_PAPER_V2_STOCK_DIVIDEND_ENTITLEMENT_ENGINEERING_ONLY
+protocol: docs/M6_CSI800_PRODUCTION_HEAD30_STOCK_DIVIDEND_ENTITLEMENT_RECOVERY_PROTOCOL_20260823.md
+production_authorization: none
+
+predecessor:
+  failure_evidence: config/m6_csi800_production_head30_delisting_risk_real_execution_failure_r2_v1.json
+  failure_evidence_sha256: d176fb1c314afdb3f8a9b45dc9c8a8fb2cdae95d1162231c08ea4c838b8d6b47
+  failure_document: docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_REAL_EXECUTION_FAILURE_R2_20260823.md
+  failure_document_sha256: d9fadd464732125a117ec763fdc42f6930f02a0e38d7e47af001aaf7783731d5
+  failed_release_scope_sha256: 94a4560553cd67899988276f336cc103de052b2088a2d4adbb63e5ff2d2e9829
+  failed_experiment_id: 6797875cf3c0
+  attempt_family: m6_head30_500k_delisting_risk_overlay_v1
+  family_attempts_before_future_recovery: 1
+  same_failed_scope_retry_authorized: false
+
+frozen_legacy:
+  paper_v1_engine: src/shaiwei/paper/engine.py
+  paper_v1_engine_sha256: 44e64d1a776973b0eb5b9ba5ce6d8a7d103a7e8a20aaeb172929c7ca4b1d6b94
+  paper_v1_engine_lines: 860
+  paper_v1_mutation_authorized: false
+  paper_v1_two_day_golden_sha256: dd7b40b33b75f7e5b261bebaf64b8d1e748d6e42f62225da0b4d490f6e9d1faa
+  risk_engine_before_sha256: 634b4bb32428f3646e2805ab745dfb600544f0802517c3d8a5df767b53c9fd31
+  sell_execution_before_sha256: 8d076ee9ca8146a7fa64716c829d5cc685d8716cc6296fe510a69a84c23be99a
+
+single_change:
+  strategy_version: paper-v2-delisting-risk-exit
+  adapter_module: src/shaiwei/paper/stock_dividend_entitlement.py
+  record_date_entitlement_survives_position_sale: true
+  detached_stock_credit:
+    trigger: stock dividend due today and entitlement unpaid and current position absent
+    quantity: exact integral stock_per_share multiplied by record-date entitled_quantity
+    position_cost_basis: "0.00"
+    cost_basis_meaning: cumulative cash outlay carried by the paper engine, not statutory tax basis
+    cash_change: "0.00"
+    fee_change: "0.00"
+    order_or_fill_created: false
+    event_schema_change_authorized: false
+  existing_position_semantics_change_authorized: false
+  cash_dividend_semantics_change_authorized: false
+  fractional_share_semantics_change_authorized: false
+  receivable_valuation_between_record_and_listing_authorized: false
+  risk_trigger_or_exit_parameter_change_authorized: false
+
+engineering_gates:
+  detached_credit_then_sell_supported: true
+  existing_position_total_cost_basis_preserved: true
+  repeated_application_idempotent: true
+  fractional_credit_fails_without_detached_position: true
+  cash_only_entitlement_does_not_create_position: true
+  multiple_same_code_entitlements_are_deterministic: true
+  paper_v1_byte_identity_preserved: true
+  paper_v1_golden_preserved: true
+  maximum_new_module_lines: 400
+
+future_attempt:
+  attempt_family: m6_head30_500k_delisting_risk_overlay_v1
+  attempt_ordinal: 2
+  family_attempts_before_run: 1
+  new_attempts_if_later_authorized: 1
+  same_scope_retry_authorized: false
+
+authority:
+  protocol_freeze_authorized: true
+  synthetic_adapter_engineering_authorized: true
+  synthetic_fixture_authorized: true
+  real_target_read_authorized: false
+  real_price_read_authorized: false
+  real_effect_read_authorized: false
+  canonical_ledger_write_authorized: false
+  release_or_scope_build_authorized: false
+  model_fit_or_prediction_authorized: false
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  web_change_authorized: false
+  scheduler_change_or_restart_authorized: false
+  production_authorization: none
+
+stop_condition:
+  stop_after_engineering_acceptance: true
+  future_release_requires_separate_result_blind_protocol: true
+  future_real_run_requires_new_scope_and_exact_user_authorization: true
