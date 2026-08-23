@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · M6-5C-C-R2 release终版
+
+- 终版裁决`GO_RELEASE_READY_NOT_EXECUTION_APPROVAL`。实现`68f1192`先推送；R2镜像
+  `e423a6cd...ad79`只断网构建1次，daemon fixture只运行1次并真实穿过scope loader，claim顺序、
+  同scope拒绝重开、内部重放和独立重建均PASS。
+- 新metadata scope为`94a45605...9829`；真实approval/claim/effect/audit路径均不存在，真实读取与
+  canonical ledger写入0、家族尝试仍0。scheduler原容器持续healthy且未重启。当前必须停止并等待
+  用户重新绑定新scope与冻结动作精确授权；原R1 scope/approval永久关闭。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_SCOPE_RUNTIME_RECOVERY_RELEASE_ACCEPTANCE_20260823.md`。
+
 ## 2026-08-23 · M6-5C-C-R2 scope运行时恢复工程门
 
 - 工程裁决`GO_SUCCESSOR_BUILD_READY_NOT_EXECUTION_APPROVAL`。中央构建注册表新增显式metadata模式，
