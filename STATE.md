@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-23 · A1-5A真实效果attempt claim门结果前冻结
+
+- 只读审计确认8个已关闭真实效果runner采用本地started标记而非canonical ledger先占号；历史M6
+  Head30两次效果读取因release禁止账本挂载而事后补录，是同一结构缺口。直接回改冻结runner会破坏
+  历史身份，完成后追加又保留崩溃漏账窗口，故裁定采用claim-first：账本fsync和receipt完成后才允许
+  reader调用；claim后任何失败均消费尝试，同scope不得重跑。
+- A1-5A协议与ADR已结果前冻结。本节点只建设共享窄门、旧入口自发现注册和synthetic对抗测试，不改
+  8个旧runner，不读效果、不写真实账本、不运行模型/回测、不碰Web或scheduler。未来M6-5C或其他
+  真实效果节点必须另立迁移协议后才能接入。见`docs/ADR_001_EFFECT_ATTEMPT_CLAIM_GATE_20260823.md`
+  与`docs/EFFECT_ATTEMPT_CLAIM_GATE_PROTOCOL_20260823.md`。
+
 ## 2026-08-23 · A1-4C-R1查询恢复与本机只读发布
 
 - R1最终裁决`GO_LOCAL_READ_ONLY_RELEASED`。通知证据按每个`attempt=1`拆分
