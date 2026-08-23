@@ -120,6 +120,7 @@ components:
     reuse_policy: NEW_RELEASE_REQUIRED
     assets:
       - Dockerfile.m6-head30-delisting-risk-release
+      - Dockerfile.m6-head30-delisting-risk-release.dockerignore
       - compose.m6-head30-delisting-risk-release.yaml
     consumers:
       - tests/test_m6_head30_delisting_risk_release.py

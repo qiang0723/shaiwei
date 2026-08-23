@@ -10,6 +10,10 @@
 - R1只授权专用dockerignore与三份只读文档COPY，successor用新镜像名且只构建/fixture各一次；不改
   领域代码、claim、门、Compose或全局dockerignore。见
   `docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_RELEASE_CONTEXT_RECOVERY_PROTOCOL_20260823.md`。
+- R1工程已`GO_SUCCESSOR_BUILD_READY`：专用context仅开放src/config/单一manifest/三份指定文档，
+  base+R1协议与失败证据双绑定；专项35、架构13、全仓1,815 PASS，构建资产94/94。实现推送后只可
+  构建一次新名successor并运行一次synthetic fixture，真实权限仍为0。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_RELEASE_CONTEXT_RECOVERY_ENGINEERING_ACCEPTANCE_20260823.md`。
 
 ## 2026-08-23 · M6-5C-C claim-first release实现门
 

@@ -1,7 +1,7 @@
 name: shaiwei-m6-head30-delisting-risk-release
 
 x-security: &security
-  image: shaiwei:m6-head30-delisting-risk-release-v1
+  image: shaiwei:m6-head30-delisting-risk-release-r1-v1
   pull_policy: never
   profiles: [m6-head30-delisting-risk-release]
   init: true

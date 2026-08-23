@@ -1,0 +1,11 @@
+*
+!src/
+!src/**
+!config/
+!config/**
+!.web-release/
+!.web-release/m6-head30-delisting-risk-source-manifest.json
+!docs/
+!docs/EFFECT_ATTEMPT_CLAIM_GATE_ACCEPTANCE_20260823.md
+!docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_EXECUTION_ADAPTER_ACCEPTANCE_20260823.md
+!docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_METHOD_ACCEPTANCE_20260823.md

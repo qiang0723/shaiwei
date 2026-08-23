@@ -42,6 +42,26 @@ def test_protocol_is_claim_first_post_hoc_and_non_production() -> None:
     assert authority["real_effect_read_authorized"] is False
     assert authority["canonical_ledger_write_authorized"] is False
     assert authority["production_authorization"] == "none"
+    assert len(protocol.recovery_sha256) == 64
+
+
+def test_recovery_context_is_minimal_and_global_ignore_is_untouched() -> None:
+    dedicated = ROOT / "Dockerfile.m6-head30-delisting-risk-release.dockerignore"
+    lines = dedicated.read_text(encoding="utf-8").splitlines()
+    allowed_docs = sorted(line[1:] for line in lines if line.startswith("!docs/") and line != "!docs/")
+
+    assert allowed_docs == [
+        "docs/EFFECT_ATTEMPT_CLAIM_GATE_ACCEPTANCE_20260823.md",
+        "docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_EXECUTION_ADAPTER_ACCEPTANCE_20260823.md",
+        "docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_METHOD_ACCEPTANCE_20260823.md",
+    ]
+    dockerfile = (ROOT / "Dockerfile.m6-head30-delisting-risk-release").read_text(
+        encoding="utf-8"
+    )
+    assert all(f"COPY {path} ./{path}" in dockerfile for path in allowed_docs)
+    assert "!docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_RISK_METHOD" not in (
+        ROOT / ".dockerignore"
+    ).read_text(encoding="utf-8")
 
 
 def test_synthetic_risk_exit_is_pit_deterministic_and_independently_rebuilt() -> None:

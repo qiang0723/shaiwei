@@ -123,6 +123,7 @@ def build_scope(
         "scope_kind": SCOPE_KIND,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "protocol_sha256": protocol.sha256,
+        "recovery_protocol_sha256": protocol.recovery_sha256,
         "implementation": {
             "git_commit": revision,
             "origin_main_commit": revision,
