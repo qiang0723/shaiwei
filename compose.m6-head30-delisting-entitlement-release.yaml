@@ -1,0 +1,58 @@
+name: shaiwei-m6-head30-delisting-entitlement-release
+
+x-security: &security
+  image: shaiwei:m6-head30-delisting-entitlement-release-v1
+  pull_policy: never
+  profiles: [m6-head30-delisting-entitlement-release]
+  init: true
+  restart: "no"
+  user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+  read_only: true
+  network_mode: none
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 128
+  mem_limit: 4g
+  cpus: 2.0
+  environment: &environment
+    HOME: /tmp
+    PYTHONPYCACHEPREFIX: /tmp/pycache
+    OMP_NUM_THREADS: "1"
+    OPENBLAS_NUM_THREADS: "1"
+    MKL_NUM_THREADS: "1"
+    NUMEXPR_NUM_THREADS: "1"
+  tmpfs: ["/tmp:rw,noexec,nosuid,size=1g,mode=1777"]
+
+services:
+  fixture:
+    <<: *security
+    volumes:
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_500k_feasibility_v1/release-fixture-delisting-entitlement, target: /fixture, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.capital_feasibility.entitlement_release.fixture, --root, /fixture/work, --output, /fixture/evidence.json]
+
+  runner:
+    <<: *security
+    volumes:
+      - {type: bind, source: ./config/m6_csi800_production_head30_delisting_entitlement_release_scope_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-entitlement-approval-r4.json, target: /inputs/approval.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/raw-batch-manifest.json, target: /inputs/raw-batch-manifest.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_v1/effect-r2, target: /inputs/r2, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_v1/effect-r2-audit-output-root-recovery/audit.json, target: /inputs/r7-audit.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./ledger/experiments.csv, target: /workspace/ledger/experiments.csv, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-entitlement-claim-r4, target: /claim, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-entitlement-r4, target: /outputs, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.capital_feasibility.entitlement_release.run, --release, /inputs/release.json, --approval, /inputs/approval.json, --r2-root, /inputs/r2, --r7-audit, /inputs/r7-audit.json, --raw-manifest, /inputs/raw-batch-manifest.json, --project-root, /workspace, --ledger, /workspace/ledger/experiments.csv, --claim-receipt, /claim/claim.json, --output-root, /outputs]
+
+  auditor:
+    <<: *security
+    mem_limit: 2g
+    cpus: 1.0
+    volumes:
+      - {type: bind, source: ./config/m6_csi800_production_head30_delisting_entitlement_release_scope_v1.json, target: /inputs/release.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-entitlement-approval-r4.json, target: /inputs/approval.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./ledger/experiments.csv, target: /workspace/ledger/experiments.csv, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/control/m6_csi800_production_head30_500k_feasibility_v1/delisting-entitlement-claim-r4/claim.json, target: /inputs/claim.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-entitlement-r4, target: /outputs, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/m6_csi800_production_head30_500k_feasibility_v1/effect-delisting-entitlement-r4-audit, target: /audit, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.capital_feasibility.entitlement_release.audit, --release, /inputs/release.json, --approval, /inputs/approval.json, --effect-root, /outputs, --ledger, /workspace/ledger/experiments.csv, --claim-receipt, /inputs/claim.json, --audit-root, /audit]

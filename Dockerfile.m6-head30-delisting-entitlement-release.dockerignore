@@ -1,0 +1,11 @@
+*
+!src/
+!src/**
+!config/
+!config/**
+!.web-release/
+!.web-release/m6-head30-delisting-entitlement-source-manifest.json
+!docs/
+!docs/ADR_002_FROZEN_COMPONENT_REGISTRY_AUTHORITY_20260823.md
+!docs/M6_CSI800_PRODUCTION_HEAD30_STOCK_DIVIDEND_ENTITLEMENT_RECOVERY_ACCEPTANCE_20260823.md
+!docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_ENTITLEMENT_RELEASE_PROTOCOL_20260823.md

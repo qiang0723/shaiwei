@@ -62,6 +62,16 @@ claim_gate_entrypoints:
     real_effect_read_authorized_before_exact_approval: false
     same_scope_retry_authorized: false
     production_authorization: none
+  - path: src/shaiwei/research/capital_feasibility/entitlement_release/run.py
+    sha256: a7988d38826b2d959766443a8d3dfd12d02819e181b5a7f6c5544cf9cc218b3e
+    classification: CLAIM_FIRST_SUCCESSOR_RELEASE_NOT_EXECUTED
+    protocol: docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_ENTITLEMENT_RELEASE_PROTOCOL_20260823.md
+    attempt_family: m6_head30_500k_delisting_risk_overlay_v1
+    claim_before_effect_reader: true
+    canonical_ledger_write_authorized_before_exact_approval: false
+    real_effect_read_authorized_before_exact_approval: false
+    same_scope_retry_authorized: false
+    production_authorization: none
 
 next_migration:
   candidate: M6-5C_OR_ANOTHER_SEPARATELY_FROZEN_REAL_EFFECT_RUNNER

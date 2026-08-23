@@ -114,6 +114,16 @@ components:
     consumers:
       - tests/test_m6_csi800_production_head30_audit_identity_recovery.py
       - tests/test_m6_csi800_production_head30_audit_output_root_recovery.py
+  - id: m6-head30-delisting-entitlement-release
+    class: COMPONENT_RELEASE
+    status: ACTIVE_LOCAL_READ_ONLY
+    reuse_policy: NEW_RELEASE_REQUIRED
+    assets:
+      - Dockerfile.m6-head30-delisting-entitlement-release
+      - Dockerfile.m6-head30-delisting-entitlement-release.dockerignore
+      - compose.m6-head30-delisting-entitlement-release.yaml
+    consumers:
+      - tests/test_m6_head30_delisting_entitlement_release.py
   - id: m6-head30-delisting-risk-release
     class: COMPONENT_RELEASE
     status: CLOSED_FROZEN

@@ -57,6 +57,8 @@ def _target_checks(bundle: dict[str, Any]) -> bool:
 def audit_loaded(
     *, release: ReleaseScope, approval: Approval, effect_root: Path,
     ledger_path: Path, receipt_path: Path, audit_root: Path,
+    family_attempts_before_run: int = 0,
+    total_family_attempts: int = 1,
 ) -> dict[str, Any]:
     runtime = release.verify_runtime_identity()
     actual = {
@@ -106,9 +108,9 @@ def audit_loaded(
             and report.get("decision") == rebuilt_first["decision"]
         ),
         "attempt_count": (
-            report.get("family_attempts_before_run") == 0
+            report.get("family_attempts_before_run") == family_attempts_before_run
             and report.get("new_attempts_consumed") == 1
-            and report.get("total_family_attempts") == 1
+            and report.get("total_family_attempts") == total_family_attempts
         ),
         "post_hoc_non_production": (
             report.get("strategy_effectiveness_authority") == "NOT_FOR_PRODUCTION_VERDICT"

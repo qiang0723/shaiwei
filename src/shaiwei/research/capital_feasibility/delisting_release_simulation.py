@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Any
+from typing import Any, Callable
 
 import pandas as pd
 
@@ -143,6 +143,8 @@ def run_window(
     name: str,
     treatment: dict[str, Any],
     sources: RawSources,
+    *,
+    day_executor: Callable[..., Any] = execute_paper_day,
 ) -> dict[str, Any]:
     policy = risk_portfolio()
     dates = [_date(row["date"]) for row in treatment["daily"]]
@@ -183,7 +185,7 @@ def run_window(
             raise ProtocolError(f"M6-5C benchmark row count differs: {execution_date}")
         index_row = index_rows.iloc[0]
         benchmark_base_close = benchmark_base_close or float(index_row["close"])
-        result = execute_paper_day(
+        result = day_executor(
             policy=policy,
             state=state,
             signal=signal,
@@ -270,11 +272,21 @@ def run_window(
     }
 
 
-def run_all(bundle: dict[str, Any], sources: RawSources) -> dict[str, Any]:
+def run_all(
+    bundle: dict[str, Any],
+    sources: RawSources,
+    *,
+    day_executor: Callable[..., Any] = execute_paper_day,
+) -> dict[str, Any]:
     return {
         "schema_version": "m6-head30-500k-delisting-risk-simulation-pass-v1",
         "windows": {
-            name: run_window(name, treatment, sources)
+            name: run_window(
+                name,
+                treatment,
+                sources,
+                day_executor=day_executor,
+            )
             for name, treatment in bundle["treatments"].items()
         },
     }

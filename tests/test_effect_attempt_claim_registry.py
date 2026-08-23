@@ -33,8 +33,8 @@ def test_effect_runner_inventory_is_self_discovered_complete_and_hash_bound() ->
 
     assert document["schema_version"] == "effect-attempt-claim-gate-registry-v1"
     assert len(legacy) == 8
-    assert len(registered) == 9
-    assert len(active) == 1
+    assert len(registered) == 10
+    assert len(active) == 2
     assert registered == _discovered(document)
     for row in [*legacy, *active]:
         payload = (ROOT / row["path"]).read_bytes()
@@ -53,13 +53,17 @@ def test_legacy_entries_remain_closed_and_future_entries_cannot_be_implied() -> 
         "same_scope_reuse_authorized": False,
         "historical_ledger_or_result_mutation_authorized": False,
     }
-    entry = document["claim_gate_entrypoints"][0]
-    assert entry["classification"] == "CLAIM_FIRST_RELEASE_READY_NOT_EXECUTED"
-    assert entry["claim_before_effect_reader"] is True
-    assert entry["canonical_ledger_write_authorized_before_exact_approval"] is False
-    assert entry["real_effect_read_authorized_before_exact_approval"] is False
-    assert entry["same_scope_retry_authorized"] is False
-    assert entry["production_authorization"] == "none"
+    entries = document["claim_gate_entrypoints"]
+    assert {entry["classification"] for entry in entries} == {
+        "CLAIM_FIRST_RELEASE_READY_NOT_EXECUTED",
+        "CLAIM_FIRST_SUCCESSOR_RELEASE_NOT_EXECUTED",
+    }
+    for entry in entries:
+        assert entry["claim_before_effect_reader"] is True
+        assert entry["canonical_ledger_write_authorized_before_exact_approval"] is False
+        assert entry["real_effect_read_authorized_before_exact_approval"] is False
+        assert entry["same_scope_retry_authorized"] is False
+        assert entry["production_authorization"] == "none"
     assert gate["claim_before_effect_reader"] is True
     assert gate["same_scope_retry_authorized"] is False
     assert gate["actual_ledger_write_authorized_in_a1_5a"] is False

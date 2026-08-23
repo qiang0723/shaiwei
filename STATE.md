@@ -10,6 +10,15 @@
   当前只授权工程、一次镜像构建、一次断网fixture和metadata scope，真实读取/账本/approval/执行/生产
   均为0。见`docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_ENTITLEMENT_RELEASE_PROTOCOL_20260823.md`。
 
+## 2026-08-23 · M6-5C-C-R4 successor release工程门
+
+- 裁决`GO_SUCCESSOR_BUILD_READY_NOT_EXECUTION_APPROVAL`。独立组件与claim-first ordinal 2合同完成；
+  旧模拟器只增加默认保持旧入口的executor，successor显式调用R3入口；旧R2资产与默认行为不变。
+- synthetic六窗均证明登记→清仓→detached到账→再次退出，first/replay与独立重建一致；专项54、架构
+  13、全仓1,834 PASS。真实读取、canonical账本写、镜像、daemon fixture、scope和生产均为0。
+  下一步必须先推送实现，再只构建一次新镜像并运行一次断网fixture。见
+  `docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_ENTITLEMENT_RELEASE_ENGINEERING_ACCEPTANCE_20260823.md`。
+
 ## 2026-08-23 · ADR-002封存组件注册表权威裁决
 
 - 已裁定封存release以scope自哈希绑定的历史注册表SHA、固定资产路径和逐资产SHA为权威，不再错误
