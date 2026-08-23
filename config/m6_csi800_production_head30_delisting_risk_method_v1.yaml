@@ -19,6 +19,7 @@ risk_policy:
   trigger_price_cny: 1.0
   trigger_comparison: strict_less_than
   trigger_consecutive_trading_closes: 10
+  original_target_weight: 0.03333333333333333
   calculate_as_of_signal_close: true
   first_execution_opportunity: next_official_trade_day_open
   held_exit_latched_until_filled: true
