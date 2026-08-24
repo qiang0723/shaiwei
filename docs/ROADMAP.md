@@ -1035,7 +1035,7 @@ D1-3A 已按结果前原则完成 Top2 对抗复核：固定两条表达式，�
 | R2-1 | Top30/Top20自然前瞻证据检查点 | `BLOCKED_EVIDENCE`：截至20260821 live-dual 13/20日、自然调仓0/2；20260813/14未同日完成，固定起点覆盖13/15。两日最终计算PASS，但只能归受控追赶 | v1永久保留阻断证据，不补账、不改名；等待至20260828不能恢复。先做R2-1R0连续性/阶段留痕工程，再另立缺口后连续区段自动重置的R2-1R1，20日/2次门不降低；宿主电源变更须用户另批 |
 | R2-1R0 | Scheduler运行连续性与阶段留痕 | `GO_ENGINEERING_ONLY`：独立合同/事件/写入三模块，按启动日JSONL逐事件锁+fsync+SHA链覆盖9类phase与两账户；慢阶段先WARN后通知且不改核心，跨午夜/并发/篡改/截断fail closed；专项30、架构13、全仓1,865 PASS；生产0变更 | H0宿主方案已裁但系统动作待用户批准；验证后另立不可变scheduler release和挂载fixture，稳定发布后另冻R2-1R1，20日/2次门不降低 |
 | R2-1H0 | Mac宿主连续运行裁定 | `GO_HOST_AVAILABILITY_COMPLETE`：AC system sleep=0、display sleep=5，用户确认Docker Desktop登录启动；scheduler原身份、healthy和unless-stopped均不变 | 宿主门关闭；进入R2-1R0L不可变timeline发布，构建与生产提升分开授权 |
-| R2-1R0L | Scheduler timeline不可变发布 | `R1_FROZEN_ENGINEERING_ONLY`：L-B候选构建PASS但唯一fixture为11/12；R1已绑定失败证据，冻结“进程内规范路径互斥 + 保留跨进程flock”和线程/独立进程双门 | 只施工R1源码与测试，不build、不跑第二次bind-mount fixture、不promote；工程推送后绑定新HEAD/快照另批唯一候选与fixture，通过前不进入L-C/R2-1R1 |
+| R2-1R0L | Scheduler timeline不可变发布 | `R1_GO_ENGINEERING_COMPLETE / NEW_CANDIDATE_NOT_BUILT`：进程内规范路径互斥+跨进程flock完成；无效flock下8线程32事件与真实flock下4进程16事件均成单链，全仓1,879 PASS；snapshot=`6be617e4...c1e2c` | 绑定最终HEAD/snapshot另批恰好一个新候选和一次断网只读bind-mount fixture；旧失败scope不重跑，通过前不进入L-C/R2-1R1 |
 | L2-0 | 未来新因子批紧凑审查合同 v2 | 工程GO；non-thinking JSON、最大合法2655 bytes/硬限4096、12类对抗PASS、零API；不重开M1/M3 | 仅供未来独立新批引用；真实候选与调用仍须另立结果前协议、release及用户授权 |
 | TS-v5-R2 | 四响应合同金丝雀 | 恰好4个独立完成响应、费用$0.006332411；四份JSON均严格Schema FAIL，有效候选0，断网独立audit PASS；权威`STOP_NO_VALID_CANDIDATES` | scope关闭不得递补或第五次调用；先离线匿名分析失败机制，新调用须新scope和用户批准；效果/回测/生产仍禁止 |
 | TS-v5-R3A | 四响应离线合同诊断 | 四份共同主因是LLM侧合同投影不完整；Schema/提示缺口4/4，可见规则不服从1/4，validator缺陷0；独立audit PASS | 仅允许另立R3B工程目标，构建机制专属同源投影与确定性编译器；不放宽validator、不修补旧候选，外部调用仍须新批准 |

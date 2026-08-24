@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-24 · R2-1R0L-B-R1并发锁恢复工程完成
+
+- 裁决`GO_ENGINEERING_COMPLETE / NEW_CANDIDATE_NOT_BUILT`。协议`8e0898f`先行推送，实现`ed8e4ec`
+  已推送；新代码快照`6be617e4...c1e2c`。writer先取规范路径进程内互斥，再保留`flock`完成跨进程锁，
+  最后才校验链、append、flush、fsync；注册表只保留持有/等待路径。
+- 新增互斥本体、无效`flock`下8线程32事件、真实`flock`下4独立进程16事件三层门；timeline专项15、
+  架构13、全仓1,879 PASS，Ruff/compileall/pip/diff-check PASS。writer 360行，新锁模块54行。
+- Docker build/fixture/promote/restart及真实业务均为0；生产仍为原容器`183b8c6c5edd`、原镜像
+  `722f63de...13b76`且healthy，失败候选与产物原样保留。下一节点须绑定最终HEAD和上述snapshot，
+  另批唯一新候选与唯一bind-mount fixture。见
+  `docs/R2_1R0L_B_R1_TIMELINE_LOCK_RECOVERY_ACCEPTANCE_20260824.md`。
+
 ## 2026-08-24 · R2-1R0L-B-R1并发锁恢复协议冻结
 
 - 绑定L-B失败候选、JUnit、分叉timeline与输出树哈希，失败scope不重跑、旧候选和产物永久保留。
