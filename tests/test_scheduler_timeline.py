@@ -1,4 +1,8 @@
 import json
+import subprocess
+import sys
+import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -7,11 +11,16 @@ from pathlib import Path
 import pytest
 import yaml
 
+import shaiwei.pipeline.scheduler_timeline as timeline_module
 from shaiwei.pipeline.scheduler_timeline import (
     SchedulerTimeline,
     TimelineError,
     load_timeline_contract,
     verify_timeline,
+)
+from shaiwei.pipeline.scheduler_timeline_lock import (
+    _active_path_mutex_count,
+    timeline_path_mutex,
 )
 
 
@@ -232,6 +241,141 @@ def test_two_writers_produce_one_valid_chain(tmp_path: Path):
     path = next((tmp_path / "logs/scheduler").glob("timeline_*.jsonl"))
     events = verify_timeline(path, contract)
     assert len(events) == 32
+    by_cycle: dict[str, list[int]] = {}
+    for event in events:
+        by_cycle.setdefault(str(event["cycle_id"]), []).append(int(event["sequence"]))
+    assert all(sequence == [1, 2, 3, 4] for sequence in by_cycle.values())
+
+
+def test_process_path_mutex_serializes_threads_and_releases_registry(tmp_path: Path):
+    barrier = threading.Barrier(8)
+    state_mutex = threading.Lock()
+    active = 0
+    maximum_active = 0
+
+    def enter() -> None:
+        nonlocal active, maximum_active
+        barrier.wait()
+        with timeline_path_mutex(tmp_path / "same.jsonl"):
+            with state_mutex:
+                active += 1
+                maximum_active = max(maximum_active, active)
+            time.sleep(0.005)
+            with state_mutex:
+                active -= 1
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(lambda _index: enter(), range(8)))
+
+    assert maximum_active == 1
+    assert _active_path_mutex_count() == 0
+
+
+def test_thread_chain_stays_valid_when_flock_is_ineffective(
+    tmp_path: Path, monkeypatch
+):
+    original_read = timeline_module.read_and_verify
+
+    def slow_read(handle, contract):
+        result = original_read(handle, contract)
+        time.sleep(0.005)
+        return result
+
+    monkeypatch.setattr(timeline_module.fcntl, "flock", lambda *_args: None)
+    monkeypatch.setattr(timeline_module, "read_and_verify", slow_read)
+    contract = load_timeline_contract()
+    barrier = threading.Barrier(8)
+
+    def write_cycle(index: int) -> None:
+        timeline = SchedulerTimeline(
+            contract,
+            root=tmp_path,
+            cycle_id_factory=lambda: f"{index:024x}",
+        )
+        barrier.wait()
+        cycle = timeline.start_cycle()
+        with cycle.phase("DAILY") as phase:
+            phase.outcome = "NOOP"
+        cycle.finish("NOOP")
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(write_cycle, range(1, 9)))
+
+    path = next((tmp_path / "logs/scheduler").glob("timeline_*.jsonl"))
+    assert len(verify_timeline(path, contract)) == 32
+    assert _active_path_mutex_count() == 0
+
+
+def test_independent_processes_produce_one_valid_chain(tmp_path: Path):
+    worker = """
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+from shaiwei.pipeline.scheduler_timeline import SchedulerTimeline, load_timeline_contract
+
+root = Path(sys.argv[1])
+index = int(sys.argv[2])
+ready = Path(sys.argv[3])
+gate = Path(sys.argv[4])
+ready.write_text("ready", encoding="utf-8")
+deadline = time.monotonic() + 15
+while not gate.exists():
+    if time.monotonic() > deadline:
+        raise RuntimeError("process concurrency gate timed out")
+    time.sleep(0.001)
+fixed_now = lambda: datetime(2026, 8, 24, 15, 59, tzinfo=timezone.utc)
+timeline = SchedulerTimeline(
+    load_timeline_contract(),
+    root=root,
+    now=fixed_now,
+    cycle_id_factory=lambda: f"{index:024x}",
+)
+cycle = timeline.start_cycle()
+with cycle.phase("DAILY") as phase:
+    phase.outcome = "NOOP"
+cycle.finish("NOOP")
+"""
+    gate = tmp_path / "start"
+    processes = []
+    for index in range(1, 5):
+        ready = tmp_path / f"ready-{index}"
+        processes.append(
+            subprocess.Popen(
+                [sys.executable, "-c", worker, str(tmp_path), str(index), str(ready), str(gate)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+        )
+
+    failures = []
+    try:
+        deadline = time.monotonic() + 15
+        ready_paths = [tmp_path / f"ready-{index}" for index in range(1, 5)]
+        while not all(path.exists() for path in ready_paths):
+            if time.monotonic() > deadline:
+                pytest.fail("independent process workers did not become ready")
+            time.sleep(0.005)
+        gate.write_text("start", encoding="utf-8")
+
+        for process in processes:
+            stdout, stderr = process.communicate(timeout=20)
+            if process.returncode:
+                failures.append((process.returncode, stdout, stderr))
+    finally:
+        for process in processes:
+            if process.poll() is None:
+                process.terminate()
+        for process in processes:
+            if process.poll() is None:
+                process.wait(timeout=5)
+    assert failures == []
+
+    contract = load_timeline_contract()
+    path = next((tmp_path / "logs/scheduler").glob("timeline_*.jsonl"))
+    events = verify_timeline(path, contract)
+    assert len(events) == 16
     by_cycle: dict[str, list[int]] = {}
     for event in events:
         by_cycle.setdefault(str(event["cycle_id"]), []).append(int(event["sequence"]))

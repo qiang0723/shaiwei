@@ -28,6 +28,7 @@ from shaiwei.pipeline.scheduler_timeline_events import (
     validate_event,
     verify_timeline,
 )
+from shaiwei.pipeline.scheduler_timeline_lock import timeline_path_mutex
 
 __all__ = [
     "CycleTimeline",
@@ -126,26 +127,31 @@ class CycleTimeline:
 
     def _append(self, event: dict[str, object]) -> None:
         try:
-            self.path.parent.mkdir(parents=True, exist_ok=True)
-            with self.path.open("a+", encoding="utf-8") as handle:
-                fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-                previous_hash, sequences = read_and_verify(handle, self.contract)
-                expected = sequences.get(self.cycle_id, 0) + 1
-                if expected != self.sequence + 1:
-                    raise TimelineError("in-memory cycle sequence differs from persisted timeline")
-                event["previous_event_sha256"] = previous_hash
-                event["event_sha256"] = event_hash(event)
-                validate_event(
-                    event,
-                    self.contract,
-                    previous_hash=previous_hash,
-                    expected_sequence=expected,
-                )
-                handle.seek(0, os.SEEK_END)
-                handle.write(json.dumps(event, sort_keys=True, separators=(",", ":")) + "\n")
-                handle.flush()
-                os.fsync(handle.fileno())
-                self.sequence = expected
+            with timeline_path_mutex(self.path):
+                self.path.parent.mkdir(parents=True, exist_ok=True)
+                with self.path.open("a+", encoding="utf-8") as handle:
+                    fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+                    previous_hash, sequences = read_and_verify(handle, self.contract)
+                    expected = sequences.get(self.cycle_id, 0) + 1
+                    if expected != self.sequence + 1:
+                        raise TimelineError(
+                            "in-memory cycle sequence differs from persisted timeline"
+                        )
+                    event["previous_event_sha256"] = previous_hash
+                    event["event_sha256"] = event_hash(event)
+                    validate_event(
+                        event,
+                        self.contract,
+                        previous_hash=previous_hash,
+                        expected_sequence=expected,
+                    )
+                    handle.seek(0, os.SEEK_END)
+                    handle.write(
+                        json.dumps(event, sort_keys=True, separators=(",", ":")) + "\n"
+                    )
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                    self.sequence = expected
         except TimelineError:
             raise
         except OSError as error:
