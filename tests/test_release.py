@@ -1,4 +1,5 @@
 import json
+from contextlib import contextmanager
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -93,6 +94,64 @@ def test_image_verification_binds_runtime_snapshot_and_revision(monkeypatch):
     )
     with pytest.raises(release.ReleaseError, match="runtime identity differ"):
         release.verify_image("shaiwei:scheduler-fixed")
+
+
+def test_build_uses_archived_source_identity_and_never_live_worktree(monkeypatch, tmp_path):
+    context = tmp_path / "archived-context"
+    context.mkdir()
+    source = SimpleNamespace(
+        path=context,
+        git_head="b" * 40,
+        code_snapshot_sha256="a" * 64,
+        file_count=7,
+    )
+    requests = []
+
+    @contextmanager
+    def prepared(**kwargs):
+        assert kwargs == {
+            "project_root": release.PROJECT_ROOT,
+            "context_parent": release.STATE_DIR / "scheduler-build-contexts",
+        }
+        yield source
+
+    def fake_run(argv, *, check=True):
+        requests.append(argv)
+        return SimpleNamespace(stdout="")
+
+    metadata = {
+        "image": f"shaiwei:scheduler-{'a' * 16}",
+        "image_id": "sha256:fixed",
+        "code_snapshot_sha256": "a" * 64,
+        "git_head": "b" * 40,
+    }
+    monkeypatch.setattr(
+        release.release_build_context,
+        "prepare_scheduler_build_context",
+        prepared,
+    )
+    monkeypatch.setattr(release, "_run", fake_run)
+    monkeypatch.setattr(release, "verify_image", lambda _image: metadata)
+    monkeypatch.setattr(
+        release,
+        "_append_audit",
+        lambda event, details: {
+            "event": event,
+            "details": details,
+            "record_sha256": "c" * 64,
+        },
+    )
+
+    result = release.build_image()
+
+    assert result["audit_record_sha256"] == "c" * 64
+    assert len(requests) == 1
+    command = requests[0]
+    assert command[:2] == ["docker", "build"]
+    assert command[-1] == str(context)
+    assert "." not in command
+    assert f"{release.SNAPSHOT_LABEL}={'a' * 64}" in command
+    assert f"{release.REVISION_LABEL}={'b' * 40}" in command
 
 
 def test_container_contract_never_requests_environment(monkeypatch):

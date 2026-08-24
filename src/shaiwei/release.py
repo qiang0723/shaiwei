@@ -16,7 +16,8 @@ from datetime import datetime, timezone
 
 from shaiwei.config import PROJECT_ROOT
 from shaiwei.ledger import DAILY_RUNS, PAPER_RUNS
-from shaiwei.provenance import code_snapshot_sha256, git_head
+from shaiwei.provenance import git_head
+from shaiwei import release_build_context
 
 
 STATE_DIR = PROJECT_ROOT / ".release"
@@ -214,34 +215,31 @@ def verify_image(image: str) -> dict[str, str]:
     return metadata
 
 
-def _require_clean_worktree() -> None:
-    if _run(["git", "status", "--porcelain"]).stdout.strip():
-        raise ReleaseError("release build requires a clean Git worktree")
-
-
 def build_image() -> dict[str, object]:
-    _require_clean_worktree()
-    snapshot = code_snapshot_sha256()
-    revision = git_head()
-    image = f"{CONTENT_TAG_PREFIX}{snapshot[:16]}"
-    _run(
-        [
-            "docker",
-            "build",
-            "--label",
-            f"{SNAPSHOT_LABEL}={snapshot}",
-            "--label",
-            f"{REVISION_LABEL}={revision}",
-            "--build-arg",
-            f"{RELEASE_GIT_HEAD_ENV}={revision}",
-            "--tag",
-            image,
-            ".",
-        ]
-    )
-    metadata = verify_image(image)
-    if metadata["code_snapshot_sha256"] != snapshot:
-        raise ReleaseError("built image snapshot differs from the clean worktree")
+    with release_build_context.prepare_scheduler_build_context(
+        project_root=PROJECT_ROOT,
+        context_parent=STATE_DIR / "scheduler-build-contexts",
+    ) as source:
+        snapshot, revision = source.code_snapshot_sha256, source.git_head
+        image = f"{CONTENT_TAG_PREFIX}{snapshot[:16]}"
+        _run(
+            [
+                "docker",
+                "build",
+                "--label",
+                f"{SNAPSHOT_LABEL}={snapshot}",
+                "--label",
+                f"{REVISION_LABEL}={revision}",
+                "--build-arg",
+                f"{RELEASE_GIT_HEAD_ENV}={revision}",
+                "--tag",
+                image,
+                str(source.path),
+            ]
+        )
+        metadata = verify_image(image)
+        if metadata["code_snapshot_sha256"] != snapshot:
+            raise ReleaseError("built image snapshot differs from archived Git source")
     record = _append_audit("BUILD_PASS", metadata)
     return {**metadata, "audit_record_sha256": record["record_sha256"]}
 
