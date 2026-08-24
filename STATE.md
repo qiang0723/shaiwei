@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-24 · M6-5C-C-R4唯一真实恢复终态
+
+- scope`117e69a8...c51d`唯一runner先claim再完成first/replay，ordinal 2 experiment为`362b5b223108`，
+  家族累计2次；两遍bundle同SHA`4e91436f...d2ef`。唯一独立auditor 14项全PASS，audit
+  `14b35de8...4686`，同scope永久关闭。
+- 红股权益阻断已解除，风险退出1单/1成交、容量违规0；但最大现金比例42.9416%>35%、最大目标L1
+  85.9510%>50%，故权威诊断`RECOVERY_DIAGNOSTIC_FAILS_FROZEN_CAPITAL_GATES`、capital
+  `INFEASIBLE`、生产none。不得以其余门通过或5/6正超额窗口放宽极值门；M6-5C-C关闭，不追加同家族
+  变体。见`docs/M6_CSI800_PRODUCTION_HEAD30_DELISTING_ENTITLEMENT_EXECUTION_ACCEPTANCE_20260824.md`。
+
 ## 2026-08-23 · M6-5C-C-R4 successor release终版
 
 - 裁决`GO_RELEASE_READY_NOT_EXECUTION_APPROVAL`。实现`9231372`已推送；新镜像
