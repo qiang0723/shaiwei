@@ -1,0 +1,60 @@
+schema_version: shaiwei-scheduler-timeline-lock-recovery-contract-v1
+contract_id: r2-1r0l-b-r1-timeline-lock-recovery-v1
+frozen_at: '2026-08-24T21:54:08+08:00'
+status: FROZEN_ENGINEERING_ONLY
+predecessor:
+  release_contract: r2-1r0l-scheduler-timeline-release-v1
+  failed_candidate_git_head: 0018224c4eb803191e2ac07edad3857868aab21f
+  failed_candidate_code_snapshot_sha256: ccf4aa05bc3e07ffc2f62fcf09f79a7cd9aa339e7a80999d3e0c7f049a823d34
+  failed_candidate_image_id: sha256:56a97f020603e91eca897bfe034b27a76aa143f64b3e1c381b8a2a71d470064f
+  failed_fixture_junit_sha256: e3a8ce0f49ed3a9102d65b456d7d513659bdefc483c907a15e3ac7ff90048d7e
+  failed_timeline_sha256: 582c7f0d3b3ab0e5aa99251ddcfb64ede7cabb52e25ce5d137acdb8f131888d9
+  failed_fixture_tree_sha256: f4d3382ca95dfbeedbc72673246441e11173a80ceb8a9c57ecc3238f98694a9e
+failure:
+  authoritative_status: FIXTURE_FAIL
+  failed_test: test_two_writers_produce_one_valid_chain
+  observed_shape: two_concurrent_first_records_share_zero_predecessor
+  exact_platform_cause: NOT_PROVEN
+  fail_closed: true
+change:
+  process_local_mutex_per_canonical_path: required
+  operating_system_file_lock: retained
+  lock_order:
+    - process_local_path_mutex
+    - open_append_handle
+    - operating_system_file_lock
+    - verify_existing_chain
+    - append_flush_fsync
+  mutex_registry_lifetime: active_and_waiting_users_only
+  timeline_schema_change: false
+  storage_path_change: false
+  phase_or_budget_change: false
+  notification_change: false
+  business_ledger_change: false
+verification:
+  process_local_mutex_unit_test: required
+  thread_concurrency_without_effective_flock: required
+  independent_process_concurrency_with_real_flock: required
+  existing_hash_chain_and_cross_midnight_tests: required
+  tamper_and_truncated_tail_fail_closed: required
+  full_repository_test: required
+  architecture_check: required
+  ruff: required
+  daemon_bind_mount_fixture: forbidden_until_separate_authorization
+execution:
+  source_change_authorized: true
+  docker_build_authorized: false
+  docker_fixture_authorized: false
+  promote_authorized: false
+  restart_authorized: false
+  business_run_or_backfill: false
+  secrets_or_env_file: forbidden
+  web_model_or_strategy_change: false
+  production_ledger_write: false
+recovery:
+  failed_scope_rerun: forbidden
+  failed_candidate_preserved: true
+  new_candidate_requires_new_git_head_and_code_snapshot: true
+  exactly_one_new_build_requires_separate_user_approval: true
+  exactly_one_new_bind_mount_fixture_requires_separate_user_approval: true
+  production_promotion_requires_later_exact_user_approval: true

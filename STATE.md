@@ -2,6 +2,15 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-24 · R2-1R0L-B-R1并发锁恢复协议冻结
+
+- 绑定L-B失败候选、JUnit、分叉timeline与输出树哈希，失败scope不重跑、旧候选和产物永久保留。
+- R1只恢复timeline append临界区：新增按规范路径的进程内互斥，既有`flock`继续承担跨进程锁；注册表
+  只保留正在持有/等待的路径。Schema、phase、预算、跨午夜、通知和业务账本均不变。
+- 本节点只授权源码、测试、合同和验收；Docker build/bind-mount fixture/promote/restart、真实业务、
+  回填、密钥读取、Web、模型和生产账本写入均为0。工程推送后，新候选与唯一fixture仍须另批。见
+  `docs/R2_1R0L_B_R1_TIMELINE_LOCK_RECOVERY_PROTOCOL_20260824.md`。
+
 ## 2026-08-24 · R2-1R0L-B候选构建通过但断网fixture失败
 
 - 终态`BUILD_PASS / FIXTURE_FAIL / NO_GO_PROMOTION`。绑定HEAD `0018224`与代码快照
