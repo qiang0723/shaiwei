@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-24 · R2-1R0L-B候选构建通过但断网fixture失败
+
+- 终态`BUILD_PASS / FIXTURE_FAIL / NO_GO_PROMOTION`。绑定HEAD `0018224`与代码快照
+  `ccf4aa05...823d34`恰好构建一个候选镜像`56a97f02...0064f`，镜像label、运行时manifest和Git身份
+  一致；构建审计记录为`3045ab97...eb832`。
+- 同一镜像只运行一次断网、只读、无业务挂载的synthetic fixture，12项中11 PASS、1 FAIL。并发测试
+  在Docker bind mount留下两条都指向零哈希的首记录，独立读取正确报`SHA-256 predecessor mismatch`；
+  JUnit=`e3a8ce0f...8d7e`，失败timeline=`582c7f0d...88d9`，输出树摘要=`f4d3382c...a9e`。
+- 同scope不重跑；候选不promote。生产scheduler仍为原容器`183b8c6c5edd`、原镜像`722f63de...13b76`
+  且healthy，真实业务、回填、Web、模型、生产账本写入均为0。下一步须另立R1，先补进程内互斥并保留
+  跨进程锁，再以新HEAD/快照另批唯一候选与唯一fixture。见
+  `docs/R2_1R0L_B_SCHEDULER_TIMELINE_FIXTURE_FAILURE_20260824.md`。
+
 ## 2026-08-24 · R2-1R0L-A隔离Git构建上下文工程完成
 
 - 裁决`GO_ENGINEERING_COMPLETE`。scheduler builder不再要求整个live worktree干净；它只接受
