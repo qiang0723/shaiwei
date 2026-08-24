@@ -4,6 +4,14 @@
 > Web，以及长期 LLM 多源因子研究。
 > 领先不是验收标准；只有可复现、扣除成本、通过预注册门槛的增量结果才算完成。
 
+## 2026-08-25 TS家族继续研究，旧事件身份保持关闭
+
+用户明确TS大方向继续。既有TS-v3—v6事件策略和TS-B继续`CLOSED_REJECTED`，TS-C两版资格身份继续
+`CLOSED_NOT_EVALUATED`；不重跑、不调旧参数、不复用已读结果。TS经济假设家族升级为
+`ACTIVE_RESEARCH`，当前优先形态为TP-F横截面排序。执行顺序为scheduler锁/发布、G1阳性对照、
+TP-F-0B结果盲预检；ACTIVE不等于策略有效或执行授权。见
+`docs/ADR_0008_TS_FAMILY_CONTINUATION_AFTER_EVENT_LANE_CLOSURE.md`。
+
 ## 2026-08-19 TS-v6-4删除固定止盈REJECT，TS支线关闭
 
 最后1次预算：删除固定止盈后父版188事件仍五门失败（费前期望-101.49元、胜率32.1%、DSR

@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · TS具体事件策略关闭，但经济假设家族继续研究
+
+- 用户明确裁决TS大方向不能关闭。权威分层为：既有TS-v3—v6事件策略与TS-B身份保持
+  `CLOSED_REJECTED`，TS-C两版资格身份保持`CLOSED_NOT_EVALUATED`；旧结果、预算和留出期均不重开。
+- `TS_ECONOMIC_HYPOTHESIS_FAMILY=ACTIVE_RESEARCH`：强市场/板块、个股右侧结构与高质量回踩继续作为
+  长期主题，但ACTIVE不表示有效，也不授权参数搜索、LLM、效果、模拟仓或生产。
+- 当前优先后继仍为TP-F横截面排序形态。顺序冻结为scheduler跨进程锁/发布→G1阳性对照→TP-F-0B
+  结果盲数据与身份预检；通过后再逐批申请候选和费用授权。见
+  `docs/ADR_0008_TS_FAMILY_CONTINUATION_AFTER_EVENT_LANE_CLOSURE.md`。
+
 ## 2026-08-24 · R2-1R0L-B-R1B新候选构建通过但跨进程fixture失败
 
 - 终态`BUILD_PASS / FIXTURE_FAIL / NO_GO_PROMOTION`。绑定HEAD `76ec0bc`与snapshot
