@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-24 · R2-1H0接电防休眠已执行并验证
+
+- 用户明确批准后，AC Power `sleep`已由1改为0；原生管理员弹窗完成认证，密码未进入Codex、项目或
+  Git。复核`displaysleep=5`及其余接电字段不变，电池、VPN、代理和其他程序均未修改。
+- scheduler仍为容器`183b8c6c5edd`、镜像`722f63de...13b76`、原启动时间，状态running/healthy，
+  RestartPolicy仍为`unless-stopped`；Docker构建/提升/重启和真实业务运行均为0。
+- 裁决`GO_POWER_POLICY_VERIFIED / LOGIN_AUTOSTART_CONFIRMATION_PENDING`。Docker Desktop登录启动
+  仍需用户在应用内人工确认；确认后另立不可变timeline release，避开16:00—19:30窗口。见
+  `docs/R2_1H0_MAC_HOST_AVAILABILITY_ACCEPTANCE_20260824.md`。
+
 ## 2026-08-24 · ADR-005宿主连续运行方案裁定
 
 - 只读核对发现接电配置`system sleep=1分钟`、`display sleep=5分钟`；当前防休眠来自Kimi/Chrome/
@@ -10,8 +20,9 @@
 - 裁决`GO_HOST_DESIGN_ONLY / SYSTEM_ACTION_PENDING_USER_APPROVAL`：只在接电时设`system sleep=0`，
   保留熄屏5分钟和电池策略；不用`caffeinate`、裸机launchd或前台应用断言。便携式Mac须接电且不普通
   合盖，Docker Desktop登录启动由用户在应用内确认。
-- 精确系统动作`sudo pmset -c sleep 0`及原值回滚`sudo pmset -c sleep 1`已登记，但尚未执行。获得用户
-  明确批准并验证后，才另立不可变scheduler timeline release；避开16:00—19:30数据窗口发布。见
+- 精确系统动作`sudo pmset -c sleep 0`及原值回滚`sudo pmset -c sleep 1`已登记；系统动作随后经用户
+  明确批准并验证，执行终态以上方R2-1H0记录为准。仍须确认Docker Desktop登录启动，再另立不可变
+  scheduler timeline release；避开16:00—19:30数据窗口发布。见
   `docs/ADR_005_MAC_HOST_AVAILABILITY_20260824.md`。
 
 ## 2026-08-24 · R2-1R0运行连续性工程完成

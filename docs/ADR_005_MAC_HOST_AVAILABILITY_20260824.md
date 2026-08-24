@@ -1,7 +1,7 @@
 # ADR-005：Mac 宿主连续运行方案
 
 - 日期：2026-08-24（UTC+8）
-- 状态：`ACCEPTED_ACTION_PENDING_USER_APPROVAL`
+- 状态：`ACCEPTED_SYSTEM_ACTION_VERIFIED`
 - 适用范围：筛微生产 scheduler 的宿主可用性
 - 生产发布授权：无
 
@@ -77,6 +77,11 @@ Docker Desktop“登录后启动”由用户在应用设置内确认；Codex 不
 
 ## 6. 当前裁决
 
-`GO_HOST_DESIGN_ONLY / SYSTEM_ACTION_PENDING_USER_APPROVAL`。
+2026-08-24用户已明确批准并完成`sudo pmset -c sleep 0`；只读复核为AC Power `sleep=0`、
+`displaysleep=5`，scheduler原身份保持healthy。
 
-本 ADR 没有修改 macOS、Docker Desktop、Docker 容器、生产镜像、项目配置、业务账本或运行日志。
+当前为`GO_POWER_POLICY_VERIFIED / LOGIN_AUTOSTART_CONFIRMATION_PENDING`。Docker Desktop登录启动仍须
+用户在应用内人工确认；完成前不进入scheduler真实发布。执行证据见
+`docs/R2_1H0_MAC_HOST_AVAILABILITY_ACCEPTANCE_20260824.md`。
+
+本 ADR 未修改Docker Desktop、Docker容器、生产镜像、项目配置、业务账本或运行日志。
