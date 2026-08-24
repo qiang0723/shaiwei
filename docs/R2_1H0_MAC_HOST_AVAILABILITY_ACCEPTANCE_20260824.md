@@ -2,7 +2,7 @@
 
 - 验收时间：2026-08-24T15:15:53+08:00
 - 依据：`docs/ADR_005_MAC_HOST_AVAILABILITY_20260824.md`
-- 裁决：`GO_POWER_POLICY_VERIFIED / LOGIN_AUTOSTART_CONFIRMATION_PENDING`
+- 裁决：`GO_HOST_AVAILABILITY_COMPLETE`
 - scheduler 发布授权：无
 
 ## 1. 用户授权与执行
@@ -35,13 +35,13 @@ Docker 只读复核：
 
 容器、镜像、启动时间与重启策略均未变化；本节点未 build、promote、restart 或运行真实业务周期。
 
-## 3. 剩余人工确认
+## 3. Docker Desktop 人工确认
 
-Docker Desktop 是否配置为“登录时启动”不从项目外配置文件读取，仍需用户在 Docker Desktop 设置内人工
-确认。该项只影响 Mac 重启后的 daemon 自动恢复，不影响当前已运行且 healthy 的 scheduler。
+用户已于同日确认 Docker Desktop“登录时启动”开启；Codex未读取或修改其项目外配置文件。该项与
+AC Power `sleep=0`、scheduler `unless-stopped`共同关闭宿主连续性门。
 
-在人工确认完成前，不进入 scheduler timeline 真实发布。确认后另立不可变 release，避开
-16:00—19:30 数据窗口；本次不回填历史时间线。
+终态为`GO_HOST_AVAILABILITY_COMPLETE`。后继不可变release仍须独立协议、构建门和生产提升授权，并
+避开16:00—19:30数据窗口；本次不回填历史时间线。
 
 ## 4. 回滚
 

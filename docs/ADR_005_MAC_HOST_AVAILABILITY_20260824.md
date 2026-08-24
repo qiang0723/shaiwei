@@ -80,8 +80,8 @@ Docker Desktop“登录后启动”由用户在应用设置内确认；Codex 不
 2026-08-24用户已明确批准并完成`sudo pmset -c sleep 0`；只读复核为AC Power `sleep=0`、
 `displaysleep=5`，scheduler原身份保持healthy。
 
-当前为`GO_POWER_POLICY_VERIFIED / LOGIN_AUTOSTART_CONFIRMATION_PENDING`。Docker Desktop登录启动仍须
-用户在应用内人工确认；完成前不进入scheduler真实发布。执行证据见
+用户随后人工确认Docker Desktop登录启动已开启；Codex未读取其项目外配置。当前终态为
+`GO_HOST_AVAILABILITY_COMPLETE`。后继scheduler真实发布仍须独立协议和授权。执行证据见
 `docs/R2_1H0_MAC_HOST_AVAILABILITY_ACCEPTANCE_20260824.md`。
 
 本 ADR 未修改Docker Desktop、Docker容器、生产镜像、项目配置、业务账本或运行日志。

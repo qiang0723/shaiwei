@@ -1,0 +1,63 @@
+schema_version: shaiwei-scheduler-timeline-release-contract-v1
+contract_id: r2-1r0l-scheduler-timeline-release-v1
+frozen_at: '2026-08-24T17:02:00+08:00'
+status: FROZEN_ENGINEERING_ONLY_BUILD_AND_PROMOTE_NOT_AUTHORIZED
+predecessor:
+  timeline_contract: r2-1r0-scheduler-continuity-engineering-v1
+  host_availability: GO_HOST_AVAILABILITY_COMPLETE
+  old_container_id_prefix: 183b8c6c5edd
+  old_image_id: sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76
+source:
+  exact_pushed_commit_only: true
+  head_must_equal_local_origin_main: true
+  isolated_git_archive_context_required: true
+  context_root: .release/scheduler-build-contexts
+  context_must_remain_git_ignored: true
+  controlled_dirty_or_untracked_files: FAIL_CLOSED
+  noncontrolled_runtime_changes_may_remain_in_live_worktree: true
+  stash_checkout_reset_or_live_ledger_commit_for_build: forbidden
+  live_worktree_as_docker_build_context: forbidden
+build:
+  execution_authorized: false
+  exactly_one_candidate_build_after_separate_authorization: true
+  release_manifest_required: true
+  image_runtime_identity_must_match_labels: true
+  external_network: package_install_only_after_separate_authorization
+  secrets_or_env_file: forbidden
+fixture:
+  execution_authorized: false
+  same_candidate_image_required: true
+  network_mode: none
+  read_only_root: true
+  secrets_or_env_file: forbidden
+  business_data_or_ledger_mount: forbidden
+  temporary_logs_mount: .release/scheduler-timeline-fixture/logs
+  synthetic_cycle_only: true
+  verify_hash_chain_and_cross_midnight_binding: true
+  project_logs_write: forbidden
+promote:
+  execution_authorized: false
+  separate_exact_user_approval_required: true
+  forbidden_local_window: '16:00-19:30 Asia/Shanghai'
+  release_start_readiness_pass_required: true
+  previous_image_preserved: true
+  rollback_on_contract_or_health_failure: true
+  root_filesystem_read_only: true
+  mount_allowlist:
+    - /workspace/data
+    - /workspace/ledger
+    - /workspace/logs
+  docker_socket_mount: forbidden
+  environment_dump: forbidden
+  full_project_mount: forbidden
+acceptance:
+  first_natural_cycle_required: true
+  historical_timeline_backfill: forbidden
+  business_ledgers_remain_authoritative: true
+  r2_1_v1_status: BLOCKED_EVIDENCE
+  r2_1r1_freeze_before_counting: true
+authority:
+  model_signal_gate_or_account_change: false
+  business_run_or_backfill: false
+  web_change: false
+  production_authorization: none

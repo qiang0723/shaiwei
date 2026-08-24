@@ -2,14 +2,24 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-24 · R2-1R0L不可变timeline发布协议冻结
+
+- 用户已人工确认Docker Desktop登录启动开启，R2-1H0终态升级为`GO_HOST_AVAILABILITY_COMPLETE`。
+- 发布前审计发现旧builder要求整个live worktree干净，与scheduler持续追加自然账本及既有用户草稿
+  冲突；禁止为构建暂存/提交/stash/reset这些文件。R2-1R0L冻结从已推送HEAD生成项目内忽略的Git
+  archive上下文，受控dirty/untracked仍fail closed，非受控运行证据不进入镜像。
+- 当前只授权协议；16:00—19:30窗口内不做测试洪峰、build、fixture、promote或restart。下一节点
+  R2-1R0L-A仅施工archive builder工程，推送后再申请一次候选build+断网fixture授权，生产提升另批。
+  见`docs/R2_1R0L_SCHEDULER_TIMELINE_RELEASE_PROTOCOL_20260824.md`。
+
 ## 2026-08-24 · R2-1H0接电防休眠已执行并验证
 
 - 用户明确批准后，AC Power `sleep`已由1改为0；原生管理员弹窗完成认证，密码未进入Codex、项目或
   Git。复核`displaysleep=5`及其余接电字段不变，电池、VPN、代理和其他程序均未修改。
 - scheduler仍为容器`183b8c6c5edd`、镜像`722f63de...13b76`、原启动时间，状态running/healthy，
   RestartPolicy仍为`unless-stopped`；Docker构建/提升/重启和真实业务运行均为0。
-- 裁决`GO_POWER_POLICY_VERIFIED / LOGIN_AUTOSTART_CONFIRMATION_PENDING`。Docker Desktop登录启动
-  仍需用户在应用内人工确认；确认后另立不可变timeline release，避开16:00—19:30窗口。见
+- 用户随后人工确认Docker Desktop登录启动开启，终态为`GO_HOST_AVAILABILITY_COMPLETE`。后继
+  timeline release已另立协议，构建与提升仍分开授权并避开16:00—19:30窗口。见
   `docs/R2_1H0_MAC_HOST_AVAILABILITY_ACCEPTANCE_20260824.md`。
 
 ## 2026-08-24 · ADR-005宿主连续运行方案裁定
