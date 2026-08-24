@@ -1,7 +1,7 @@
 # ADR-003：封存组件身份与当前构建注册表解耦
 
 - 日期：2026-08-24（UTC+8）
-- 状态：`ACCEPTED / IMPLEMENTATION_PENDING`
+- 状态：`ACCEPTED / IMPLEMENTED`
 - 节点：`A1-6B`
 - 范围：组件 release 的历史只读复核与生命周期关闭；不授予任何执行或生产权限
 

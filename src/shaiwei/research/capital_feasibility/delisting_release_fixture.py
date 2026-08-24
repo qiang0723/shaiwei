@@ -11,8 +11,6 @@ from typing import Any
 
 import pandas as pd
 
-from shaiwei.build_identity.registry import load_build_registry
-from shaiwei.build_identity.release import component_build_snapshot_sha256
 from shaiwei.research.effect_attempt_claim import EffectAttemptSpec, read_effect_after_claim
 from shaiwei.research.model_attribution.contract import canonical_sha256
 from shaiwei.research.production_conversion.real_contract import write_once_document
@@ -23,6 +21,8 @@ from .delisting_release_contract import (
     ACTION,
     COMPOSE_PATH,
     DOCKERFILE_PATH,
+    FROZEN_COMPONENT_ASSET_IDENTITIES,
+    FROZEN_COMPONENT_BUILD_SNAPSHOT_SHA256,
     FROZEN_REGISTRY_SHA256,
     IMAGE,
     SCOPE_KIND,
@@ -189,14 +189,12 @@ def _claim_fixture(root: Path) -> dict[str, object]:
 
 
 def _scope_loader_fixture(root: Path, protocol: ReleaseProtocol) -> bool:
-    registry = load_build_registry(validate_filesystem=False)
-    component = registry.component("m6-head30-delisting-risk-release")
     records = [
-        {"path": path, "sha256": canonical_sha256({"fixture_asset": path})}
-        for path in component.assets
+        {"path": path, "sha256": digest}
+        for path, digest in FROZEN_COMPONENT_ASSET_IDENTITIES
     ]
     asset_hashes = {record["path"]: record["sha256"] for record in records}
-    component_snapshot = component_build_snapshot_sha256(records)
+    component_snapshot = FROZEN_COMPONENT_BUILD_SNAPSHOT_SHA256
     inputs = protocol.blocked_scope["inputs"]
     revision = "a" * 40
     source_bundle = "b" * 64

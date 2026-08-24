@@ -12,7 +12,8 @@ from shaiwei.research.capital_feasibility.delisting_independent_audit import (
 )
 from shaiwei.research.capital_feasibility.delisting_release_contract import (
     ACTION,
-    FROZEN_COMPONENT_ASSETS,
+    FROZEN_COMPONENT_ASSET_IDENTITIES,
+    FROZEN_COMPONENT_BUILD_SNAPSHOT_SHA256,
     FROZEN_REGISTRY_SHA256,
     IMAGE,
     ReleaseProtocol,
@@ -21,6 +22,9 @@ from shaiwei.research.capital_feasibility.delisting_release_contract import (
 from shaiwei.research.capital_feasibility.delisting_release_fixture import (
     _synthetic,
     build_fixture,
+)
+from shaiwei.research.capital_feasibility.delisting_release_builder import (
+    _component_identity,
 )
 from shaiwei.research.capital_feasibility.delisting_release_metrics import evaluate
 from shaiwei.research.capital_feasibility.delisting_release_simulation import run_all
@@ -133,12 +137,21 @@ def test_closed_scope_uses_its_frozen_registry_and_component_assets() -> None:
         protocol,
     )
 
-    assert tuple(
-        row["path"] for row in release.scope["implementation"]["build_assets"]
-    ) == FROZEN_COMPONENT_ASSETS
     assert release.scope["implementation"]["registry_sha256"] == (
         FROZEN_REGISTRY_SHA256
     )
+    assert tuple(
+        (row["path"], row["sha256"])
+        for row in release.scope["implementation"]["build_assets"]
+    ) == FROZEN_COMPONENT_ASSET_IDENTITIES
+    assert release.scope["implementation"]["component_build_snapshot_sha256"] == (
+        FROZEN_COMPONENT_BUILD_SNAPSHOT_SHA256
+    )
+
+
+def test_closed_component_cannot_form_a_new_release() -> None:
+    with pytest.raises(ProtocolError, match="component is closed"):
+        _component_identity()
 
 
 def test_compose_has_narrow_mounts_and_auditor_has_no_raw_or_r2() -> None:

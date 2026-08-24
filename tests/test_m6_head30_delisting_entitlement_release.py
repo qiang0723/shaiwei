@@ -7,17 +7,23 @@ from pathlib import Path
 import pytest
 import yaml
 
+from shaiwei.build_identity.registry import ComponentStatus, load_build_registry
+from shaiwei.build_identity.release import component_build_snapshot_sha256
 from shaiwei.paper.risk_exit_engine import execute_paper_day
 from shaiwei.research.capital_feasibility.delisting_release_fixture import _synthetic
 from shaiwei.research.capital_feasibility.delisting_release_simulation import run_all
 from shaiwei.research.capital_feasibility.entitlement_release.contract import (
     ACTION,
     COMPONENT_ID,
+    FROZEN_COMPONENT_ASSET_IDENTITIES,
+    FROZEN_COMPONENT_BUILD_SNAPSHOT_SHA256,
+    FROZEN_REGISTRY_SHA256,
     IMAGE,
     ReleaseProtocol,
     ReleaseScope,
 )
 from shaiwei.research.capital_feasibility.entitlement_release.fixture import build_fixture
+from shaiwei.research.capital_feasibility.entitlement_release.builder import component_identity
 from shaiwei.research.model_attribution.contract import canonical_sha256
 from shaiwei.research.production_conversion.contract import ProtocolError
 
@@ -89,6 +95,60 @@ def test_scope_loader_rejects_component_identity_tampering(tmp_path: Path) -> No
 
     with pytest.raises(ProtocolError, match="component identity"):
         ReleaseScope.load(path, ReleaseProtocol.load())
+
+
+def test_closed_real_scope_uses_historical_identity_not_current_registry() -> None:
+    registry = load_build_registry()
+    component = registry.component(COMPONENT_ID)
+    release = ReleaseScope.load(
+        ROOT
+        / "config/m6_csi800_production_head30_delisting_entitlement_release_scope_v1.json",
+        ReleaseProtocol.load(),
+    )
+
+    assert component.status is ComponentStatus.CLOSED_FROZEN
+    assert registry.registry_sha256 != FROZEN_REGISTRY_SHA256
+    assert tuple(
+        (row["path"], row["sha256"])
+        for row in release.scope["implementation"]["build_assets"]
+    ) == FROZEN_COMPONENT_ASSET_IDENTITIES
+    assert release.scope["implementation"]["component_build_snapshot_sha256"] == (
+        FROZEN_COMPONENT_BUILD_SNAPSHOT_SHA256
+    )
+
+
+@pytest.mark.parametrize("field", ["registry", "path", "asset_sha", "snapshot"])
+def test_closed_scope_rejects_historical_identity_tampering(
+    tmp_path: Path, field: str
+) -> None:
+    source = (
+        ROOT
+        / "config/m6_csi800_production_head30_delisting_entitlement_release_scope_v1.json"
+    )
+    document = json.loads(source.read_text(encoding="utf-8"))
+    implementation = document["scope"]["implementation"]
+    if field == "registry":
+        implementation["registry_sha256"] = "e" * 64
+    elif field == "path":
+        implementation["build_assets"][0]["path"] = "Dockerfile.changed"
+    elif field == "asset_sha":
+        implementation["build_assets"][0]["sha256"] = "e" * 64
+        implementation["component_build_snapshot_sha256"] = (
+            component_build_snapshot_sha256(implementation["build_assets"])
+        )
+    else:
+        implementation["component_build_snapshot_sha256"] = "e" * 64
+    document["release_scope_sha256"] = canonical_sha256(document["scope"])
+    path = tmp_path / "changed-scope.json"
+    path.write_text(json.dumps(document, sort_keys=True) + "\n", encoding="utf-8")
+
+    with pytest.raises(ProtocolError, match="component identity"):
+        ReleaseScope.load(path, ReleaseProtocol.load())
+
+
+def test_closed_component_cannot_form_a_new_release() -> None:
+    with pytest.raises(ProtocolError, match="component is closed"):
+        component_identity()
 
 
 @pytest.mark.parametrize(

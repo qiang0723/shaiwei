@@ -10,8 +10,8 @@ from typing import Any
 
 import yaml
 
-from shaiwei.build_identity.registry import load_build_registry
-from shaiwei.build_identity.release import component_build_snapshot_sha256
+from shaiwei.build_identity.registry import BuildIdentityError
+from shaiwei.build_identity.release import verify_sealed_component_identity
 from shaiwei.build_identity.source_bundle import verify_source_manifest
 from shaiwei.config import PROJECT_ROOT
 from shaiwei.research.model_attribution.contract import canonical_sha256, sha256_file
@@ -34,6 +34,24 @@ ACTION = (
 )
 SCOPE_SCHEMA = "m6-head30-500k-delisting-entitlement-release-scope-v1"
 SCOPE_KIND = "HEAD30_500K_DELISTING_ENTITLEMENT_RELEASE_READY_NOT_EXECUTION_APPROVAL"
+FROZEN_REGISTRY_SHA256 = "160159dc2c735ad4239a5bb60f1c209a4baf65ef9326d643077f3400f0be69a3"
+FROZEN_COMPONENT_ASSET_IDENTITIES = (
+    (
+        "Dockerfile.m6-head30-delisting-entitlement-release",
+        "5542140cd9083c2eff8f17fabe59161d16b0d05677d3e4214419be2892d3c324",
+    ),
+    (
+        "Dockerfile.m6-head30-delisting-entitlement-release.dockerignore",
+        "de2d6543e609c60b91e13f32757407b91006bf13cb1bf58b26783a6702dac73b",
+    ),
+    (
+        "compose.m6-head30-delisting-entitlement-release.yaml",
+        "d844831ebcd11fb34fc7c1968b8e519bf8269ba1ede9394d21af27e8f23fd703",
+    ),
+)
+FROZEN_COMPONENT_BUILD_SNAPSHOT_SHA256 = (
+    "64ca5bd0605c4b285400f93229ef106e0c489459f983f2b72428c75554e748e5"
+)
 
 
 def mapping(path: Path, *, yaml_document: bool = False) -> dict[str, Any]:
@@ -158,20 +176,6 @@ class ReleaseProtocol:
         return cls(path.resolve(), document, sha256_file(path), failed_document["scope"])
 
 
-def _build_records(raw: object, assets: tuple[str, ...]) -> list[dict[str, str]]:
-    if not isinstance(raw, list) or [row.get("path") for row in raw] != list(assets):
-        raise ProtocolError("M6-5C-C-R4 build asset paths differ")
-    records: list[dict[str, str]] = []
-    for row in raw:
-        if not isinstance(row, dict) or set(row) != {"path", "sha256"}:
-            raise ProtocolError("M6-5C-C-R4 build asset record differs")
-        digest = row.get("sha256")
-        if not isinstance(digest, str) or len(digest) != 64:
-            raise ProtocolError("M6-5C-C-R4 build asset digest differs")
-        records.append({"path": str(row["path"]), "sha256": digest})
-    return records
-
-
 def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
     if scope.get("scope_kind") != SCOPE_KIND or scope.get("protocol_sha256") != protocol.sha256:
         raise ProtocolError("M6-5C-C-R4 scope identity differs")
@@ -183,16 +187,19 @@ def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
         or implementation.get("origin_main_commit") != commit
     ):
         raise ProtocolError("M6-5C-C-R4 implementation identity differs")
-    registry = load_build_registry(validate_filesystem=False)
-    component = registry.component(COMPONENT_ID)
-    records = _build_records(implementation.get("build_assets"), component.assets)
+    try:
+        records = verify_sealed_component_identity(
+            implementation,
+            registry_sha256=FROZEN_REGISTRY_SHA256,
+            build_assets=FROZEN_COMPONENT_ASSET_IDENTITIES,
+            component_build_snapshot_sha256_value=(
+                FROZEN_COMPONENT_BUILD_SNAPSHOT_SHA256
+            ),
+        )
+    except BuildIdentityError as error:
+        raise ProtocolError("M6-5C-C-R4 component identity differs") from error
     asset_sha256 = {record["path"]: record["sha256"] for record in records}
-    if (
-        implementation.get("registry_sha256") != registry.registry_sha256
-        or implementation.get("component_build_snapshot_sha256")
-        != component_build_snapshot_sha256(records)
-        or len(str(implementation.get("source_bundle_sha256", ""))) != 64
-    ):
+    if len(str(implementation.get("source_bundle_sha256", ""))) != 64:
         raise ProtocolError("M6-5C-C-R4 component identity differs")
     image = scope.get("image", {})
     expected_labels = {

@@ -12,8 +12,6 @@ from typing import Any
 
 import pandas as pd
 
-from shaiwei.build_identity.registry import load_build_registry
-from shaiwei.build_identity.release import component_build_snapshot_sha256
 from shaiwei.paper.stock_dividend_entitlement import execute_entitlement_recovery_day
 from shaiwei.research.effect_attempt_claim import EffectAttemptSpec, read_effect_after_claim
 from shaiwei.research.model_attribution.contract import canonical_sha256
@@ -26,7 +24,9 @@ from ..delisting_release_simulation import run_all
 from .audit import main as audit_main
 from .contract import (
     ACTION,
-    COMPONENT_ID,
+    FROZEN_COMPONENT_ASSET_IDENTITIES,
+    FROZEN_COMPONENT_BUILD_SNAPSHOT_SHA256,
+    FROZEN_REGISTRY_SHA256,
     IMAGE,
     SCOPE_KIND,
     SCOPE_SCHEMA,
@@ -159,15 +159,13 @@ def _claim_fixture(root: Path) -> dict[str, object]:
 
 
 def _scope_loader_fixture(root: Path, protocol: ReleaseProtocol) -> bool:
-    registry = load_build_registry(validate_filesystem=False)
-    component = registry.component(COMPONENT_ID)
     records = [
-        {"path": path, "sha256": canonical_sha256({"fixture_asset": path})}
-        for path in component.assets
+        {"path": path, "sha256": digest}
+        for path, digest in FROZEN_COMPONENT_ASSET_IDENTITIES
     ]
     revision = "a" * 40
     source_bundle = "b" * 64
-    component_snapshot = component_build_snapshot_sha256(records)
+    component_snapshot = FROZEN_COMPONENT_BUILD_SNAPSHOT_SHA256
     image_id = f"sha256:{'d' * 64}"
     inputs = protocol.failed_scope["inputs"]
     scope = {
@@ -179,7 +177,7 @@ def _scope_loader_fixture(root: Path, protocol: ReleaseProtocol) -> bool:
             "origin_main_commit": revision,
             "source_bundle_sha256": source_bundle,
             "source_manifest_sha256": "c" * 64,
-            "registry_sha256": registry.registry_sha256,
+            "registry_sha256": FROZEN_REGISTRY_SHA256,
             "build_assets": records,
             "component_build_snapshot_sha256": component_snapshot,
         },

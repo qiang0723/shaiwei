@@ -10,7 +10,8 @@ from typing import Any
 
 import yaml
 
-from shaiwei.build_identity.release import component_build_snapshot_sha256
+from shaiwei.build_identity.registry import BuildIdentityError
+from shaiwei.build_identity.release import verify_sealed_component_identity
 from shaiwei.build_identity.source_bundle import verify_source_manifest
 from shaiwei.config import PROJECT_ROOT
 from shaiwei.research.model_attribution.contract import canonical_sha256, sha256_file
@@ -36,12 +37,24 @@ ACTION = (
 )
 SCOPE_SCHEMA = "m6-head30-500k-delisting-risk-release-scope-v1"
 SCOPE_KIND = "HEAD30_500K_DELISTING_RISK_RELEASE_READY_NOT_EXECUTION_APPROVAL"
-FROZEN_COMPONENT_ASSETS = (
-    "Dockerfile.m6-head30-delisting-risk-release",
-    "Dockerfile.m6-head30-delisting-risk-release.dockerignore",
-    "compose.m6-head30-delisting-risk-release.yaml",
-)
 FROZEN_REGISTRY_SHA256 = "e0251d3cd9f38da055d533f8fb2f059ef5213f7ed13ef9caab7a653e64155035"
+FROZEN_COMPONENT_ASSET_IDENTITIES = (
+    (
+        "Dockerfile.m6-head30-delisting-risk-release",
+        "cd8cd0d2b0936000469d64b045c3d4be62272b57c933d3f22c9a7a8ebbca6cf1",
+    ),
+    (
+        "Dockerfile.m6-head30-delisting-risk-release.dockerignore",
+        "7f07b42ba260027a96709488be80f9d81ee392bf29c26e113c09fee1148661c4",
+    ),
+    (
+        "compose.m6-head30-delisting-risk-release.yaml",
+        "e0be8c53994a15f99710ae62e9f8e7c0a1c316ee71da609b58ad454f61cddd3e",
+    ),
+)
+FROZEN_COMPONENT_BUILD_SNAPSHOT_SHA256 = (
+    "0bb3e0bb58cdd5fb5c514cbdf224100201b29bda499d640e4f9d69480cbf5a34"
+)
 
 
 def mapping(path: Path, *, yaml_document: bool = False) -> dict[str, Any]:
@@ -189,32 +202,6 @@ def _expected_execution() -> dict[str, Any]:
     }
 
 
-def _scoped_build_assets(
-    implementation: dict[str, Any], component_assets: tuple[str, ...]
-) -> tuple[list[dict[str, str]], dict[str, str]]:
-    records = implementation.get("build_assets")
-    if not isinstance(records, list) or any(
-        not isinstance(record, dict) or set(record) != {"path", "sha256"}
-        for record in records
-    ):
-        raise ProtocolError("M6-5C-C scoped build asset records differ")
-    normalized: list[dict[str, str]] = []
-    for record in records:
-        path = record.get("path")
-        digest = record.get("sha256")
-        if (
-            not isinstance(path, str)
-            or not isinstance(digest, str)
-            or len(digest) != 64
-            or any(character not in "0123456789abcdef" for character in digest)
-        ):
-            raise ProtocolError("M6-5C-C scoped build asset record is invalid")
-        normalized.append({"path": path, "sha256": digest})
-    if [record["path"] for record in normalized] != list(component_assets):
-        raise ProtocolError("M6-5C-C scoped build asset paths differ")
-    return normalized, {record["path"]: record["sha256"] for record in normalized}
-
-
 def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
     if (
         scope.get("scope_kind") != SCOPE_KIND
@@ -233,15 +220,19 @@ def validate_scope(scope: dict[str, Any], protocol: ReleaseProtocol) -> None:
         or len(str(implementation.get("source_bundle_sha256", ""))) != 64
     ):
         raise ProtocolError("M6-5C-C implementation identity differs")
-    records, asset_hashes = _scoped_build_assets(
-        implementation, FROZEN_COMPONENT_ASSETS
-    )
-    if (
-        implementation.get("registry_sha256") != FROZEN_REGISTRY_SHA256
-        or implementation.get("component_build_snapshot_sha256")
-        != component_build_snapshot_sha256(records)
-        or len(str(implementation.get("source_manifest_sha256", ""))) != 64
-    ):
+    try:
+        records = verify_sealed_component_identity(
+            implementation,
+            registry_sha256=FROZEN_REGISTRY_SHA256,
+            build_assets=FROZEN_COMPONENT_ASSET_IDENTITIES,
+            component_build_snapshot_sha256_value=(
+                FROZEN_COMPONENT_BUILD_SNAPSHOT_SHA256
+            ),
+        )
+    except BuildIdentityError as error:
+        raise ProtocolError("M6-5C-C component build identity differs") from error
+    asset_hashes = {record["path"]: record["sha256"] for record in records}
+    if len(str(implementation.get("source_manifest_sha256", ""))) != 64:
         raise ProtocolError("M6-5C-C component build identity differs")
     image = scope.get("image", {})
     if (

@@ -9,7 +9,7 @@ from pathlib import Path
 import subprocess
 from typing import Any
 
-from shaiwei.build_identity.registry import load_build_registry
+from shaiwei.build_identity.registry import ComponentStatus, load_build_registry
 from shaiwei.build_identity.release import component_build_snapshot_sha256
 from shaiwei.build_identity.source_bundle import build_source_manifest, verify_source_manifest
 from shaiwei.config import PROJECT_ROOT
@@ -69,6 +69,8 @@ def prepare_manifest(path: Path = MANIFEST_PATH) -> dict[str, Any]:
 def component_identity() -> dict[str, Any]:
     registry = load_build_registry()
     component = registry.component(COMPONENT_ID)
+    if component.status is not ComponentStatus.ACTIVE_LOCAL_READ_ONLY:
+        raise ProtocolError("M6-5C-C-R4 component is closed and cannot form a new release")
     records = [
         {"path": name, "sha256": sha256_file(PROJECT_ROOT / name)}
         for name in component.assets

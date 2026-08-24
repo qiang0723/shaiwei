@@ -21,6 +21,7 @@ from shaiwei.build_identity.release import (
     canonical_attestation_sha256,
     component_build_snapshot_sha256,
     verify_component_release_attestation,
+    verify_sealed_component_identity,
 )
 from shaiwei.provenance import CONTROLLED_FILES
 
@@ -215,6 +216,59 @@ def test_active_web_attestation_verifies_without_execution_authority() -> None:
     assert result["execution_authorized"] is False
 
 
+def test_sealed_component_identity_uses_exact_historical_authority() -> None:
+    records = [
+        {"path": "Dockerfile.closed", "sha256": "a" * 64},
+        {"path": "compose.closed.yaml", "sha256": "b" * 64},
+    ]
+    snapshot = component_build_snapshot_sha256(records)
+    implementation = {
+        "registry_sha256": "c" * 64,
+        "build_assets": records,
+        "component_build_snapshot_sha256": snapshot,
+    }
+
+    assert verify_sealed_component_identity(
+        implementation,
+        registry_sha256="c" * 64,
+        build_assets=tuple((row["path"], row["sha256"]) for row in records),
+        component_build_snapshot_sha256_value=snapshot,
+    ) == records
+
+
+@pytest.mark.parametrize("field", ["registry", "path", "asset_sha", "snapshot"])
+def test_sealed_component_identity_rejects_each_authority_dimension(field: str) -> None:
+    records = [
+        {"path": "Dockerfile.closed", "sha256": "a" * 64},
+        {"path": "compose.closed.yaml", "sha256": "b" * 64},
+    ]
+    snapshot = component_build_snapshot_sha256(records)
+    implementation = {
+        "registry_sha256": "c" * 64,
+        "build_assets": deepcopy(records),
+        "component_build_snapshot_sha256": snapshot,
+    }
+    if field == "registry":
+        implementation["registry_sha256"] = "d" * 64
+    elif field == "path":
+        implementation["build_assets"][0]["path"] = "Dockerfile.changed"
+    elif field == "asset_sha":
+        implementation["build_assets"][0]["sha256"] = "d" * 64
+        implementation["component_build_snapshot_sha256"] = (
+            component_build_snapshot_sha256(implementation["build_assets"])
+        )
+    else:
+        implementation["component_build_snapshot_sha256"] = "d" * 64
+
+    with pytest.raises(BuildIdentityError, match="sealed component identity"):
+        verify_sealed_component_identity(
+            implementation,
+            registry_sha256="c" * 64,
+            build_assets=tuple((row["path"], row["sha256"]) for row in records),
+            component_build_snapshot_sha256_value=snapshot,
+        )
+
+
 @pytest.mark.parametrize(
     ("mutation", "message"),
     [
@@ -266,6 +320,7 @@ def test_attestation_rejects_missing_extra_tampered_and_authority_drift(
     [
         "global-production",
         "m5-dynamic",
+        "m6-head30-delisting-entitlement-release",
         "m6-head30-500k-fixture",
         "archive-candidates",
     ],

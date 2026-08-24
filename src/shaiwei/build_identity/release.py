@@ -113,6 +113,36 @@ def component_build_snapshot_sha256(records: list[dict[str, str]]) -> str:
     return payload.hexdigest()
 
 
+def verify_sealed_component_identity(
+    document: Mapping[str, object],
+    *,
+    registry_sha256: str,
+    build_assets: tuple[tuple[str, str], ...],
+    component_build_snapshot_sha256_value: str,
+) -> list[dict[str, str]]:
+    """Verify a closed release against its immutable historical authority."""
+    if not _SHA256.fullmatch(registry_sha256):
+        raise BuildIdentityError("sealed component registry SHA-256 is invalid")
+    expected_records = [
+        {"path": path, "sha256": digest} for path, digest in build_assets
+    ]
+    expected_snapshot = component_build_snapshot_sha256(expected_records)
+    if (
+        not _SHA256.fullmatch(component_build_snapshot_sha256_value)
+        or expected_snapshot != component_build_snapshot_sha256_value
+    ):
+        raise BuildIdentityError("sealed component authority is internally inconsistent")
+    actual_records = _parse_asset_records(document.get("build_assets"))
+    if (
+        document.get("registry_sha256") != registry_sha256
+        or actual_records != expected_records
+        or document.get("component_build_snapshot_sha256")
+        != component_build_snapshot_sha256_value
+    ):
+        raise BuildIdentityError("sealed component identity differs from frozen authority")
+    return actual_records
+
+
 def _parse_asset_records(raw: object) -> list[dict[str, str]]:
     if not isinstance(raw, list):
         raise BuildIdentityError("component release build_assets must be a list")

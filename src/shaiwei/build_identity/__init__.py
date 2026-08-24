@@ -7,7 +7,10 @@ from shaiwei.build_identity.registry import (
     BuildRegistry,
     load_build_registry,
 )
-from shaiwei.build_identity.release import verify_component_release_attestation
+from shaiwei.build_identity.release import (
+    verify_component_release_attestation,
+    verify_sealed_component_identity,
+)
 
 __all__ = [
     "BuildAssetClass",
@@ -16,4 +19,5 @@ __all__ = [
     "BuildRegistry",
     "load_build_registry",
     "verify_component_release_attestation",
+    "verify_sealed_component_identity",
 ]

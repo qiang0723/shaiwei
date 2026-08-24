@@ -2,13 +2,14 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
-## 2026-08-24 · A1-6B封存组件身份协议冻结
+## 2026-08-24 · A1-6B封存组件身份工程完成
 
-- ADR-003 已冻结：封存 release 必须以调用方版本化合同中的历史 registry SHA、有序逐资产 SHA 和
-  组件快照为权威，不再读取当前注册表；当前/未来新 release 仍只允许 active 组件使用当前注册表。
-- 本节点只迁移 R2/R4 身份校验并把已结束的 R4 组件标为`CLOSED_FROZEN`；效果、scope、镜像、账本、
-  scheduler和生产授权均不得改变，删除固定为0。实现尚未完成，见
-  `docs/ADR_003_SEALED_COMPONENT_IDENTITY_AUTHORITY_20260824.md`。
+- 裁决`GO_ENGINEERING_COMPLETE`。通用封存校验精确绑定历史 registry SHA、逐资产 SHA 与组件快照；
+  R2/R4 真实scope在当前registry演进后仍通过，registry/path/asset SHA/snapshot四类篡改均fail closed。
+- R4组件已改为`CLOSED_FROZEN`，两个closed builder拒绝签发新release；当前97/97构建资产仍全覆盖。
+  专项59、架构13、全仓1,851 PASS；效果/新尝试/删除均0，生产none，scheduler原容器healthy未重启。
+  M6保持关闭，下一步回R2-1自然前瞻。见
+  `docs/A1_6B_SEALED_COMPONENT_IDENTITY_ACCEPTANCE_20260824.md`。
 
 ## 2026-08-24 · A1-6A M6阶段关闭与代码复盘
 
@@ -17,9 +18,8 @@
 - M6结论已足够：归因指向组合转换，Top20未评价，生产Head30仅研究尺度有效，50万元退市恢复因
   极值资本门`INFEASIBLE`；不再追加M6变体。历史release/recovery仍是唯一复核入口，异机归档未就绪，
   `SAFE_DELETE_NOW=[]`。
-- 新P1发现：R4组件仍登记为active，但其scope校验仍错误依赖当前registry SHA，直接关闭会让封存
-  scope失效。下一节点只做`A1-6B`通用封存注册表权威与组件关闭，不读效果、不删代码；通过后回到
-  R2-1自然前瞻。见`docs/M6_STAGE_CLOSURE_AND_CODEBASE_REVIEW_20260824.md`。
+- A1-6A发现的R4 active状态与历史scope依赖已由A1-6B闭合；历史身份与当前注册表现已解耦。见
+  `docs/M6_STAGE_CLOSURE_AND_CODEBASE_REVIEW_20260824.md`。
 
 ## 2026-08-24 · M6-5C-C-R4唯一真实恢复终态
 
