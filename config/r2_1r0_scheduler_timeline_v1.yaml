@@ -1,0 +1,87 @@
+schema_version: shaiwei-scheduler-timeline-contract-v1
+contract_id: r2-1r0-scheduler-continuity-engineering-v1
+frozen_at: '2026-08-24T10:30:00+08:00'
+status: FROZEN_ENGINEERING_ONLY
+timezone: Asia/Shanghai
+event_schema_version: shaiwei-scheduler-phase-event-v1
+storage:
+  directory: logs/scheduler
+  filename_pattern: timeline_{cycle_started_local_date}.jsonl
+  append_only: true
+  exclusive_file_lock: true
+  fsync_each_event: true
+  sha256_chain: true
+  cross_midnight_cycle_stays_in_start_file: true
+phases:
+  CYCLE:
+    warn_after_seconds: 7200
+    account_required: false
+  DAILY:
+    warn_after_seconds: 2700
+    account_required: false
+  READINESS_PROBE:
+    warn_after_seconds: 1200
+    account_required: false
+  DAILY_COLLECTION:
+    warn_after_seconds: 1800
+    account_required: false
+  SHADOW:
+    warn_after_seconds: 3600
+    account_required: false
+  PAPER:
+    warn_after_seconds: 1800
+    account_required: false
+  PAPER_EXECUTE:
+    warn_after_seconds: 300
+    account_required: true
+  PAPER_VERIFY:
+    warn_after_seconds: 300
+    account_required: true
+  PAPER_ACCEPTANCE:
+    warn_after_seconds: 300
+    account_required: true
+accounts:
+  - model_baseline
+  - model_top20
+events:
+  phase_statuses:
+    - STARTED
+    - COMPLETED
+    - COMPLETED_WITH_WARN
+    - FAILED
+  cycle_outcomes:
+    - PASS
+    - NOOP
+    - WAITING_SOURCE
+    - WAITING_LOCK
+    - FAILED
+    - STOPPED
+  safe_optional_fields:
+    - target_trade_date
+    - account_id
+    - elapsed_seconds
+    - budget_seconds
+    - error_type
+    - outcome
+  prohibited_fields:
+    - error_message
+    - command
+    - argv
+    - environment
+    - absolute_path
+    - token
+    - webhook
+    - security
+    - position
+    - return
+behavior:
+  timeline_write_failure: FAIL_CLOSED_BEFORE_NEXT_PHASE
+  slow_phase: PERSIST_WARN_THEN_NOTIFY_WITHOUT_CORE_RECLASSIFICATION
+  hard_timeout_or_kill_authorized: false
+  historical_backfill_authorized: false
+  production_release_authorized: false
+authority:
+  business_ledgers_remain_authoritative: true
+  timeline_can_rewrite_business_status: false
+  strategy_effect_gate: NOT_DEFINED
+  production_switch_authorized: false

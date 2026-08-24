@@ -2,6 +2,15 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-24 · R2-1R0运行连续性工程协议冻结
+
+- ADR-004与R2-1R0协议已结果盲冻结：独立按日JSONL、逐事件SHA-256链、文件锁与fsync记录
+  readiness/daily/shadow/paper及两账户execute/verify/acceptance；业务账本继续为权威。
+- 慢阶段只固化WARN并尝试通知，不改变核心PASS；R0不授权硬超时、kill、历史回填、macOS设置、
+  `caffeinate`、Web或生产release。下一步只实现合成工程门，current scheduler保持不变。见
+  `docs/ADR_004_SCHEDULER_PHASE_TIMELINE_20260824.md`和
+  `docs/R2_1R0_SCHEDULER_CONTINUITY_ENGINEERING_PROTOCOL_20260824.md`。
+
 ## 2026-08-24 · R2-1自然前瞻检查点确认阻断
 
 - 截至20260821，机器投影为live-dual `13/20`日、自然调仓`0/2`次；固定起点后15个官方开市日仅
