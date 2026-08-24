@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-24 · R2-1R0L-B-R1B新候选构建通过但跨进程fixture失败
+
+- 终态`BUILD_PASS / FIXTURE_FAIL / NO_GO_PROMOTION`。绑定HEAD `76ec0bc`与snapshot
+  `6be617e4...c1e2c`恰好构建候选`b6c4e18a...d6b83`，构建审计`740bd185...6eb5`；同镜像唯一断网
+  只读fixture为14/15。
+- R1进程内互斥及无效`flock`下8线程门已在真实bind mount通过；唯一失败收敛为4个独立Python进程，
+  两条首记录均引用零前驱，四worker均被SHA链门拒绝。JUnit=`2729c195...c8e1b`，失败timeline=
+  `b6686cf5...30cfd`，输出树摘要=`945dd02c...fe9a`；同scope不重跑。
+- 生产仍为原容器`183b8c6c5edd`、原镜像`722f63de...13b76`且healthy；新旧候选均未运行或promote。
+  下一步先做R2A只读锁语义审计与ADR，统一核对ledger/daily/paper/shadow等同类`flock`假设，不直接
+  申请第三候选。见`docs/R2_1R0L_B_R1B_SCHEDULER_TIMELINE_FIXTURE_FAILURE_20260824.md`。
+
 ## 2026-08-24 · R2-1R0L-B-R1并发锁恢复工程完成
 
 - 裁决`GO_ENGINEERING_COMPLETE / NEW_CANDIDATE_NOT_BUILT`。协议`8e0898f`先行推送，实现`ed8e4ec`
