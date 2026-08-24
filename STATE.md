@@ -2,6 +2,14 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-24 · A1-6B封存组件身份协议冻结
+
+- ADR-003 已冻结：封存 release 必须以调用方版本化合同中的历史 registry SHA、有序逐资产 SHA 和
+  组件快照为权威，不再读取当前注册表；当前/未来新 release 仍只允许 active 组件使用当前注册表。
+- 本节点只迁移 R2/R4 身份校验并把已结束的 R4 组件标为`CLOSED_FROZEN`；效果、scope、镜像、账本、
+  scheduler和生产授权均不得改变，删除固定为0。实现尚未完成，见
+  `docs/ADR_003_SEALED_COMPONENT_IDENTITY_AUTHORITY_20260824.md`。
+
 ## 2026-08-24 · A1-6A M6阶段关闭与代码复盘
 
 - 裁决`M6_CLOSED / REVIEW_COMPLETE_NO_SAFE_DELETE`。核心Python已达644文件/119,512行，较A1-2
