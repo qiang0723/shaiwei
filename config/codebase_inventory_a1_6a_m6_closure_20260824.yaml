@@ -1,0 +1,156 @@
+inventory_id: codebase-inventory-a1-6a-m6-closure-20260824
+version: 1
+status: REVIEW_COMPLETE_NO_SAFE_DELETE
+measured_at: "2026-08-24"
+measured_git: b44dff97d5a9bebe7b5bab0cc838e5d0e7aaf3eb
+document: docs/M6_STAGE_CLOSURE_AND_CODEBASE_REVIEW_20260824.md
+
+parent_authority:
+  consolidation_policy:
+    path: config/codebase_consolidation_v1.yaml
+    sha256: 8cf7b1f5f438f76bdf70211d1acfbd57fa3b82a0ec96e1219ab7baad5b43f2c8
+  prior_inventory:
+    path: config/codebase_inventory_a1_2_20260809.yaml
+    sha256: 045e91537e67f4b56a812a3e678a41f8a419039b713444cf751d14542e801565
+  registry_authority_adr:
+    path: docs/ADR_002_FROZEN_COMPONENT_REGISTRY_AUTHORITY_20260823.md
+    sha256: 5a29f96f2b8d305d95bfa912bed8dd0a72004a5607bcf0aa4755f22c893e961c
+
+scope:
+  production_code_modified: false
+  files_deleted: 0
+  files_moved: 0
+  research_or_effect_run: false
+  external_provider_call_count: 0
+  docker_image_build_count: 0
+  production_run: false
+  automatic_cleanup_authorized: false
+
+current_scale:
+  tracked_files: 2034
+  core_python:
+    files: 644
+    physical_lines: 119512
+    files_over_400_lines: 26
+    files_over_600_lines: 12
+  web_ui_src:
+    files: 69
+    physical_lines: 15225
+    files_over_400_lines: 12
+    files_over_600_lines: 1
+  tools_python:
+    files: 89
+    physical_lines: 17487
+  tests_python:
+    files: 257
+    physical_lines: 40441
+
+growth_since_a1_2:
+  prior_core_python_files: 354
+  prior_core_python_lines: 73711
+  core_python_file_change: 290
+  core_python_line_change: 45801
+  core_files_over_400_change: 0
+  core_files_over_600_change: 0
+  web_ui_line_change: 365
+  tools_python_line_change: 0
+  tests_python_line_change: 13654
+  review_trigger:
+    - major_m6_phase_closed
+    - tracked_growth_exceeds_periodic_review_threshold
+
+m6_inventory:
+  source_islands:
+    paths:
+      - src/shaiwei/research/model_attribution
+      - src/shaiwei/research/production_conversion
+      - src/shaiwei/research/topk_conversion
+      - src/shaiwei/research/top30_diagnostic
+      - src/shaiwei/research/top30_provenance
+      - src/shaiwei/research/capital_feasibility
+    files: 133
+    physical_lines: 23066
+    files_over_400_lines: 0
+    change_from_a1_2_files: 70
+    change_from_a1_2_lines: 12546
+  related_tests:
+    files: 35
+    physical_lines: 6450
+  build_assets:
+    files: 33
+    physical_lines: 2146
+  exact_duplicate_function_groups_minimum_12_lines: 9
+  python_import_cycle_count: 0
+  external_consumers:
+    model_attribution:
+      count: 4
+      family: trend_swing_r3g2
+    other_m6_source_islands: 0
+  dedicated_git_tag_present: false
+
+research_closure:
+  model_attribution: PORTFOLIO_CONVERSION_BOTTLENECK_INDICATED
+  top20_conversion: BLOCKED_BY_UNRESOLVED_NUMERIC_PROVENANCE_NO_EFFECT_READ
+  production_head30: VALIDATED_RESEARCH_SCALE_PRODUCTION_NONE
+  capital_feasibility_recovery: CAPITAL_INFEASIBLE_PRODUCTION_NONE
+  m6_5c_family_attempts_consumed: 2
+  additional_same_family_variant_authorized: false
+
+candidate_groups:
+  safe_delete: []
+  active_shared_keep:
+    - model_attribution_kernel_used_by_trend_swing
+    - paper_v1_engine_and_query
+    - effect_attempt_claim_gate
+    - build_identity_registry_and_release_gate
+  historical_replay_protected:
+    - production_conversion_release_and_audit_recoveries
+    - top20_and_top30_diagnostic_lineage
+    - capital_feasibility_and_delisting_recovery_releases
+  permanently_protected:
+    - frozen_protocols_release_scopes_and_acceptance_documents
+    - canonical_ledgers_claims_receipts_effects_and_audits
+  duplicate_but_not_mergeable_now:
+    - release_authority_contracts
+    - source_manifest_builders
+    - cli_argument_mappers
+    - independent_equivalence_helpers
+
+blocking_findings:
+  - id: A1-6A-F01
+    severity: P1
+    finding: closed_entitlement_component_still_marked_active_local_read_only
+    registry_sha256: 160159dc2c735ad4239a5bb60f1c209a4baf65ef9326d643077f3400f0be69a3
+    direct_status_change_safe: false
+    reason: sealed_r4_scope_validator_still_compares_historical_registry_sha_to_live_registry_sha
+    required_fix: versioned_generic_sealed_registry_authority_then_mark_component_closed
+    research_result_impact: NONE
+  - id: A1-6A-F02
+    severity: P1
+    finding: m6_archive_not_remote_durable
+    direct_deletion_safe: false
+    required_fix: remote_registry_or_second_host_restore_rehearsal_and_exact_retirement_list
+  - id: A1-6A-F03
+    severity: P2
+    finding: m6_release_shape_duplication_accumulated_without_large_module_or_cycle_regression
+    direct_historical_merge_safe: false
+    required_fix: use_shared_release_scaffold_only_for_future_versioned_work
+
+recommended_next_packages:
+  - id: A1-6B
+    action: GENERALIZE_SEALED_COMPONENT_REGISTRY_AUTHORITY_AND_CLOSE_R4_COMPONENT
+    research_or_effect_read_authorized: false
+    file_deletion_authorized: false
+    production_change_authorized: false
+  - id: R2-1
+    action: RETURN_TO_NATURAL_FORWARD_EVIDENCE_CHECKPOINT
+    prerequisite: A1-6B_PASS_OR_NO_NEW_BUILD_COMPONENT_CHANGE
+  - id: A1-M6-ARCHIVE
+    action: M6_REMOTE_ARCHIVE_AND_CURRENT_BRANCH_RETIREMENT_REVIEW
+    prerequisite: user_supplies_remote_registry_or_second_host_and_approves_exact_file_list
+
+review_gate:
+  safe_delete_now: []
+  no_line_reduction_target: true
+  new_strategy_or_web_expansion_before_a1_6b: false
+  natural_forward_observation_may_continue: true

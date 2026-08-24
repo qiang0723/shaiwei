@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-24 · A1-6A M6阶段关闭与代码复盘
+
+- 裁决`M6_CLOSED / REVIEW_COMPLETE_NO_SAFE_DELETE`。核心Python已达644文件/119,512行，较A1-2
+  增45,801行，但`>400`/`>600`仍为26/12、循环依赖0；M6源码岛133文件/23,066行且全部<=400。
+- M6结论已足够：归因指向组合转换，Top20未评价，生产Head30仅研究尺度有效，50万元退市恢复因
+  极值资本门`INFEASIBLE`；不再追加M6变体。历史release/recovery仍是唯一复核入口，异机归档未就绪，
+  `SAFE_DELETE_NOW=[]`。
+- 新P1发现：R4组件仍登记为active，但其scope校验仍错误依赖当前registry SHA，直接关闭会让封存
+  scope失效。下一节点只做`A1-6B`通用封存注册表权威与组件关闭，不读效果、不删代码；通过后回到
+  R2-1自然前瞻。见`docs/M6_STAGE_CLOSURE_AND_CODEBASE_REVIEW_20260824.md`。
+
 ## 2026-08-24 · M6-5C-C-R4唯一真实恢复终态
 
 - scope`117e69a8...c51d`唯一runner先claim再完成first/replay，ordinal 2 experiment为`362b5b223108`，
