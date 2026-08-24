@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-24 · R2-1R0L-A隔离Git构建上下文工程完成
+
+- 裁决`GO_ENGINEERING_COMPLETE`。scheduler builder不再要求整个live worktree干净；它只接受
+  `HEAD==origin/main`的受控Git archive，受控tracked/staged/untracked变化继续fail closed，自然账本和
+  非受控用户草稿保留但不进入上下文。
+- 实现`d2c4992`已先推送；真实零Docker smoke在七份自然账本和三份草稿共存时生成1,287个受控文件，
+  snapshot=`ccf4aa05...823d34`，`.env/data/ledger/logs`均未进入且临时根已自动删除。
+- `release.py`由581降至579行，新职责位于219行独立模块。专项20、联合专项66、架构13、全仓1,876
+  PASS；Ruff/compileall/pip/diff-check PASS。build/fixture/promote/restart均为0，scheduler原容器和镜像
+  仍healthy。
+- 下一节点L-B必须另获授权，只允许一次候选build和一次断网timeline fixture；L-C生产提升继续单独
+  精确授权。见`docs/R2_1R0L_A_SCHEDULER_BUILD_CONTEXT_ACCEPTANCE_20260824.md`。
+
 ## 2026-08-24 · R2-1R0L不可变timeline发布协议冻结
 
 - 用户已人工确认Docker Desktop登录启动开启，R2-1H0终态升级为`GO_HOST_AVAILABILITY_COMPLETE`。
