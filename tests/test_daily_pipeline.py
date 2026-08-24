@@ -25,6 +25,11 @@ from shaiwei.pipeline.daily import (
     run_once,
     validate_trade_date,
 )
+from shaiwei.pipeline.scheduler_timeline import (
+    SchedulerTimeline,
+    load_timeline_contract,
+    verify_timeline,
+)
 
 
 INGEST_HEADER = [
@@ -307,13 +312,32 @@ def test_run_once_waiting_source_has_no_business_side_effects(monkeypatch, tmp_p
         lambda *_args, **_kwargs: notifications.append((_args, _kwargs)),
     )
 
+    timeline = SchedulerTimeline(
+        load_timeline_contract(),
+        root=tmp_path,
+        now=lambda: datetime(2026, 7, 14, 8, 0, tzinfo=timezone.utc),
+        cycle_id_factory=lambda: "c" * 24,
+    )
+    cycle = timeline.start_cycle()
     result = run_once(
         settings=settings,
         now=datetime(2026, 7, 14, 8, 0, tzinfo=timezone.utc),
+        phase_observer=cycle,
     )
+    cycle.finish(result.status, target_trade_date=result.eligible_target)
     assert result.status == "WAITING_SOURCE"
     assert result.completed_trade_dates == ()
     assert result.batch_count == 0
     assert result.row_count == 0
     assert notifications == []
     assert not list(tmp_path.rglob("*.parquet"))
+    events = verify_timeline(cycle.path, timeline.contract)
+    assert [
+        (event["phase"], event["status"], event["outcome"])
+        for event in events
+    ] == [
+        ("CYCLE", "STARTED", ""),
+        ("READINESS_PROBE", "STARTED", ""),
+        ("READINESS_PROBE", "COMPLETED", "NOT_READY"),
+        ("CYCLE", "COMPLETED", "WAITING_SOURCE"),
+    ]

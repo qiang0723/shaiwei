@@ -26,6 +26,7 @@ from shaiwei.ingest.tushare import (
 )
 from shaiwei.ledger import DAILY_RUNS, INGEST, append_daily_run, ingest_snapshot_sha256
 from shaiwei.notify.feishu import FeishuNotifier
+from shaiwei.pipeline.scheduler_timeline import CycleTimeline, observe_phase
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 DATE_FORMAT = "%Y%m%d"
@@ -436,7 +437,12 @@ def _execute_dates(
     )
 
 
-def run_once(*, settings: Settings | None = None, now: datetime | None = None) -> DailyResult:
+def run_once(
+    *,
+    settings: Settings | None = None,
+    now: datetime | None = None,
+    phase_observer: CycleTimeline | None = None,
+) -> DailyResult:
     settings = settings or load()
     now = now or datetime.now(timezone.utc)
     token = settings.runtime.tushare_token
@@ -449,10 +455,17 @@ def run_once(*, settings: Settings | None = None, now: datetime | None = None) -
         calendar = load_latest_api("tushare.trade_cal")
         plan = build_plan(now=now, settings=settings, trade_cal=calendar)
         if not plan.missing_trade_dates:
-            calendar = refresh_trade_calendar(
-                settings=settings, now=now, client=client, writer=writer
-            )
-            plan = build_plan(now=now, settings=settings, trade_cal=calendar)
+            with observe_phase(
+                phase_observer,
+                "DAILY_COLLECTION",
+                target_trade_date=plan.eligible_target,
+            ) as collection:
+                calendar = refresh_trade_calendar(
+                    settings=settings, now=now, client=client, writer=writer
+                )
+                plan = build_plan(now=now, settings=settings, trade_cal=calendar)
+                collection.target_trade_date = plan.eligible_target
+                collection.outcome = "PASS" if plan.missing_trade_dates else "NOOP"
             if not plan.missing_trade_dates:
                 return DailyResult("NOOP", plan.watermark, plan.eligible_target, (), 0, 0)
 
@@ -460,12 +473,19 @@ def run_once(*, settings: Settings | None = None, now: datetime | None = None) -
             plan=plan, now=now, settings=settings
         )
         if probe_date is not None:
-            if not market_source_ready(
-                settings=settings,
-                trade_date=probe_date,
-                client=client,
-                writer=writer,
-            ):
+            with observe_phase(
+                phase_observer,
+                "READINESS_PROBE",
+                target_trade_date=probe_date,
+            ) as readiness:
+                ready = market_source_ready(
+                    settings=settings,
+                    trade_date=probe_date,
+                    client=client,
+                    writer=writer,
+                )
+                readiness.outcome = "READY" if ready else "NOT_READY"
+            if not ready:
                 return DailyResult(
                     "WAITING_SOURCE",
                     plan.watermark,
@@ -476,15 +496,22 @@ def run_once(*, settings: Settings | None = None, now: datetime | None = None) -
                 )
             formal_dates = (probe_date,)
 
-        refresh_trade_calendar(settings=settings, now=now, client=client, writer=writer)
-        return _execute_dates(
-            settings=settings,
-            plan=plan,
-            trade_dates=formal_dates,
-            client=client,
-            writer=writer,
-            notifier=notifier,
-        )
+        with observe_phase(
+            phase_observer,
+            "DAILY_COLLECTION",
+            target_trade_date=plan.eligible_target,
+        ) as collection:
+            refresh_trade_calendar(settings=settings, now=now, client=client, writer=writer)
+            result = _execute_dates(
+                settings=settings,
+                plan=plan,
+                trade_dates=formal_dates,
+                client=client,
+                writer=writer,
+                notifier=notifier,
+            )
+            collection.outcome = result.status
+        return result
 
 
 def _local_plan(settings: Settings, now: datetime) -> DailyPlan:

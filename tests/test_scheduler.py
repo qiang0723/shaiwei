@@ -3,13 +3,18 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from shaiwei.config import load
-from shaiwei.pipeline.daily import DailyResult
+from shaiwei.pipeline.daily import AlreadyRunning, DailyResult
 from shaiwei.pipeline.scheduler import (
     healthcheck,
     run_paper_cycle,
     run_scheduler,
     run_shadow_cycle,
     write_health,
+)
+from shaiwei.pipeline.scheduler_timeline import (
+    SchedulerTimeline,
+    load_timeline_contract,
+    verify_timeline,
 )
 
 
@@ -116,7 +121,7 @@ def test_scheduler_waiting_source_skips_downstream_and_notifications(monkeypatch
     )
     monkeypatch.setattr(
         "shaiwei.pipeline.scheduler.run_paper_cycle",
-        lambda _settings: downstream.append("paper"),
+        lambda _settings, **_kwargs: downstream.append("paper"),
     )
     monkeypatch.setattr(
         "shaiwei.pipeline.scheduler.FeishuNotifier",
@@ -146,7 +151,7 @@ def test_scheduler_pass_still_runs_all_downstream(monkeypatch):
     )
     monkeypatch.setattr(
         "shaiwei.pipeline.scheduler.run_paper_cycle",
-        lambda _settings: downstream.append("paper"),
+        lambda _settings, **_kwargs: downstream.append("paper"),
     )
     monkeypatch.setattr(
         "shaiwei.pipeline.scheduler.FeishuNotifier",
@@ -161,3 +166,73 @@ def test_scheduler_pass_still_runs_all_downstream(monkeypatch):
     assert downstream == ["shadow", "paper"]
     assert notifications == []
     assert ("pass", "20260804") in health
+
+
+def test_scheduler_records_outer_phase_order(monkeypatch, tmp_path: Path):
+    downstream = []
+    result = DailyResult("PASS", "20260820", "20260821", ("20260821",), 5, 10)
+    monkeypatch.setattr("shaiwei.pipeline.scheduler.run_once", lambda **_kwargs: result)
+    monkeypatch.setattr(
+        "shaiwei.pipeline.scheduler.run_shadow_cycle",
+        lambda _settings: downstream.append("shadow"),
+    )
+    monkeypatch.setattr(
+        "shaiwei.pipeline.scheduler.run_paper_cycle",
+        lambda _settings, **_kwargs: downstream.append("paper"),
+    )
+    monkeypatch.setattr("shaiwei.pipeline.scheduler.write_health", lambda *_args, **_kw: None)
+    timeline = SchedulerTimeline(
+        load_timeline_contract(),
+        root=tmp_path,
+        cycle_id_factory=lambda: "d" * 24,
+    )
+
+    assert run_scheduler(once=True, settings=load(), timeline=timeline) == 0
+    path = next((tmp_path / "logs/scheduler").glob("timeline_*.jsonl"))
+    events = verify_timeline(path, timeline.contract)
+    assert [(row["phase"], row["status"]) for row in events] == [
+        ("CYCLE", "STARTED"),
+        ("DAILY", "STARTED"),
+        ("DAILY", "COMPLETED"),
+        ("SHADOW", "STARTED"),
+        ("SHADOW", "COMPLETED"),
+        ("PAPER", "STARTED"),
+        ("PAPER", "COMPLETED"),
+        ("CYCLE", "COMPLETED"),
+    ]
+    assert events[-1]["target_trade_date"] == "20260821"
+    assert downstream == ["shadow", "paper"]
+
+
+def test_scheduler_records_daily_lock_without_downstream(monkeypatch, tmp_path: Path):
+    downstream = []
+    monkeypatch.setattr(
+        "shaiwei.pipeline.scheduler.run_once",
+        lambda **_kwargs: (_ for _ in ()).throw(AlreadyRunning("lock detail")),
+    )
+    monkeypatch.setattr(
+        "shaiwei.pipeline.scheduler.run_shadow_cycle",
+        lambda _settings: downstream.append("shadow"),
+    )
+    monkeypatch.setattr(
+        "shaiwei.pipeline.scheduler.run_paper_cycle",
+        lambda _settings, **_kwargs: downstream.append("paper"),
+    )
+    monkeypatch.setattr("shaiwei.pipeline.scheduler.write_health", lambda *_args, **_kw: None)
+    timeline = SchedulerTimeline(
+        load_timeline_contract(),
+        root=tmp_path,
+        cycle_id_factory=lambda: "e" * 24,
+    )
+
+    assert run_scheduler(once=True, settings=load(), timeline=timeline) == 0
+    path = next((tmp_path / "logs/scheduler").glob("timeline_*.jsonl"))
+    events = verify_timeline(path, timeline.contract)
+    assert [(row["phase"], row["status"], row["outcome"]) for row in events] == [
+        ("CYCLE", "STARTED", ""),
+        ("DAILY", "STARTED", ""),
+        ("DAILY", "FAILED", ""),
+        ("CYCLE", "COMPLETED", "WAITING_LOCK"),
+    ]
+    assert "lock detail" not in path.read_text(encoding="utf-8")
+    assert downstream == []

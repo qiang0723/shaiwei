@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-24 · R2-1R0运行连续性工程完成
+
+- 裁决`GO_ENGINEERING_ONLY`。独立合同/事件校验/写入三模块完成；按启动日JSONL逐事件文件锁、fsync、
+  SHA-256链覆盖9类phase、两账户子阶段、封闭outcome和慢阶段飞书回执，跨午夜与并发链均通过。
+- `daily.py`仅增readiness/collection薄编排，未改`paper_cycle.py`热点；phase写失败在body前失败关闭，
+  飞书失败不改核心状态。专项30、架构13、全仓1,865 PASS；Ruff/compileall/pip/diff-check PASS。
+- 真实跑批、回填、历史时间线、Docker构建/重启、生产发布、策略/模型/门禁/账本变更均为0；scheduler
+  仍为原容器`183b8c6c5edd`、原镜像`722f63de...13b76`且healthy。R2-1 v1仍`BLOCKED_EVIDENCE`。
+- 下一步先裁定宿主防休眠方案，再另立不可变scheduler release；发布稳定后才冻结R2-1R1连续区段，
+  20日/2次自然调仓门不降低。见
+  `docs/R2_1R0_SCHEDULER_CONTINUITY_ENGINEERING_ACCEPTANCE_20260824.md`。
+
 ## 2026-08-24 · R2-1R0运行连续性工程协议冻结
 
 - ADR-004与R2-1R0协议已结果盲冻结：独立按日JSONL、逐事件SHA-256链、文件锁与fsync记录
