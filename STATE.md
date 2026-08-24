@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-24 · ADR-005宿主连续运行方案裁定
+
+- 只读核对发现接电配置`system sleep=1分钟`、`display sleep=5分钟`；当前防休眠来自Kimi/Chrome/
+  ChatGPT/音频等临时断言，不能作为生产保证。scheduler的Docker重启策略已是`unless-stopped`且healthy，
+  但Docker无法阻止宿主睡眠。
+- 裁决`GO_HOST_DESIGN_ONLY / SYSTEM_ACTION_PENDING_USER_APPROVAL`：只在接电时设`system sleep=0`，
+  保留熄屏5分钟和电池策略；不用`caffeinate`、裸机launchd或前台应用断言。便携式Mac须接电且不普通
+  合盖，Docker Desktop登录启动由用户在应用内确认。
+- 精确系统动作`sudo pmset -c sleep 0`及原值回滚`sudo pmset -c sleep 1`已登记，但尚未执行。获得用户
+  明确批准并验证后，才另立不可变scheduler timeline release；避开16:00—19:30数据窗口发布。见
+  `docs/ADR_005_MAC_HOST_AVAILABILITY_20260824.md`。
+
 ## 2026-08-24 · R2-1R0运行连续性工程完成
 
 - 裁决`GO_ENGINEERING_ONLY`。独立合同/事件校验/写入三模块完成；按启动日JSONL逐事件文件锁、fsync、
