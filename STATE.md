@@ -6,6 +6,8 @@
 
 - ADR-004与R2-1R0协议已结果盲冻结：独立按日JSONL、逐事件SHA-256链、文件锁与fsync记录
   readiness/daily/shadow/paper及两账户execute/verify/acceptance；业务账本继续为权威。
+- 实现前合同自检已显式补足`PHASE/DURATION_WARNING_NOTIFICATION`事件种类、通知投递状态与
+  `READY/NOT_READY`封闭outcome；阈值、权限和生产边界均未改变。
 - 慢阶段只固化WARN并尝试通知，不改变核心PASS；R0不授权硬超时、kill、历史回填、macOS设置、
   `caffeinate`、Web或生产release。下一步只实现合成工程门，current scheduler保持不变。见
   `docs/ADR_004_SCHEDULER_PHASE_TIMELINE_20260824.md`和

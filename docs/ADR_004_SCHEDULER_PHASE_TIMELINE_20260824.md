@@ -36,6 +36,8 @@ R2-1 在 2026-08-13—14 形成两个不可回补的自然前瞻缺口。现有 
 
 - 新 Schema：`shaiwei-scheduler-phase-event-v1`；机器配置见
   `config/r2_1r0_scheduler_timeline_v1.yaml`。
+- 事件显式区分 `PHASE` 与 `DURATION_WARNING_NOTIFICATION`；readiness 与通知结果均使用封闭枚举，
+  不靠自由文本或相邻行猜测。
 - 新适配层只负责序列化、文件锁、`fsync`、哈希链验证和阶段计时；不得导入模型、账户、Web 或通知。
 - pipeline 编排可以把安全字段交给时间线，并以窄 callback 发送慢阶段 WARN；通知失败不得把已完成核心
   阶段改成失败。

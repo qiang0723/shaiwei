@@ -52,6 +52,10 @@
 ## 4. 事件与失败语义
 
 - phase 事件只有 `STARTED`、`COMPLETED`、`COMPLETED_WITH_WARN`、`FAILED`；
+- `event_kind` 固定为 `PHASE` 或 `DURATION_WARNING_NOTIFICATION`；后者状态只允许
+  `PASS`、`FAIL`、`DISABLED`，并沿用触发 WARN 的 phase、账户、耗时和预算；
+- readiness outcome 只允许 `READY` / `NOT_READY`；其他阶段可用 `PASS`、`NOOP`、
+  `WAITING_SOURCE`，禁止自由文本 outcome；
 - cycle 还允许业务 outcome：`PASS`、`NOOP`、`WAITING_SOURCE`、`WAITING_LOCK`、`FAILED`、`STOPPED`；
 - 每个完成/失败事件记录 wall-clock elapsed、预算和安全 `error_type`；不保存错误 message；
 - 每个文件的事件形成 SHA-256 链，写入加排他文件锁并 `fsync`；

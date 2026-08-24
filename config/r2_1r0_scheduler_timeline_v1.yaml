@@ -44,11 +44,24 @@ accounts:
   - model_baseline
   - model_top20
 events:
+  event_kinds:
+    - PHASE
+    - DURATION_WARNING_NOTIFICATION
   phase_statuses:
     - STARTED
     - COMPLETED
     - COMPLETED_WITH_WARN
     - FAILED
+  notification_statuses:
+    - PASS
+    - FAIL
+    - DISABLED
+  phase_outcomes:
+    - READY
+    - NOT_READY
+    - PASS
+    - NOOP
+    - WAITING_SOURCE
   cycle_outcomes:
     - PASS
     - NOOP
@@ -57,6 +70,7 @@ events:
     - FAILED
     - STOPPED
   safe_optional_fields:
+    - event_kind
     - target_trade_date
     - account_id
     - elapsed_seconds
