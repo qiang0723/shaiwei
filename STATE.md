@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2B统一锁工程协议冻结
+
+- 冻结`r2-1r0l-b-r2b-unified-lock-engineering-v1`：只施工统一逻辑锁、五类生产关键路径迁移、
+  Compose named lock volume及release精确挂载门；业务data/ledger/logs继续留在项目bind mount。
+- daily/shadow非阻塞、paper blocking、timeline EX/SH与ledger EX语义保持；三个研究`flock`入口只登记
+  不改动。生产缺/错mount、未知authority/资源、逆序或递归锁全部fail closed。
+- 本节点不授权Docker build/fixture、生产promote/restart、业务读取/运行、真实ledger写、外网、密钥、
+  模型、Web或DeepSeek。工程推送后R2C仍须绑定精确HEAD/snapshot另批唯一候选与fixture。见
+  `config/r2_1r0l_b_r2b_unified_lock_engineering_v1.yaml`与
+  `docs/R2_1R0L_B_R2B_UNIFIED_LOCK_ENGINEERING_PROTOCOL_20260825.md`。
+
 ## 2026-08-25 · R2A锁语义只读审计完成并冻结统一锁权威
 
 - 终态`GO_ARCHITECTURE_ONLY / IMPLEMENTATION_NOT_STARTED`。只读清点确认timeline、daily、shadow、

@@ -1,0 +1,95 @@
+schema_version: shaiwei-unified-lock-engineering-contract-v1
+contract_id: r2-1r0l-b-r2b-unified-lock-engineering-v1
+frozen_at: '2026-08-25T10:23:37+08:00'
+status: FROZEN_ENGINEERING_ONLY
+predecessor:
+  architecture_decision: docs/ADR_0009_DOCKER_INTERPROCESS_LOCK_AUTHORITY.md
+  architecture_git_head: 849aa0a1395e82dec45c3f7b3b81509552e63d0b
+  failed_candidate_image_id: sha256:b6c4e18a8447bbe5d8b257bac5de10f67344bb186c5ab93eca16b67eee6d6b83
+  failed_fixture_junit_sha256: 2729c195622bd272d525b06b0e21d9fefed939aabfa66182ad4ab7c37a4c8e1b
+  failed_timeline_sha256: b6686cf564a8c6c301df80470c757b00f39e3d4b3a3dc5c5496568bfbf630cfd
+result_firewall:
+  business_data_read: false
+  business_result_read: false
+  model_or_strategy_result_read: false
+  production_ledger_write: false
+  docker_fixture_execution: false
+  docker_image_build: false
+  production_promote_or_restart: false
+lock_authority:
+  schema: shaiwei-runtime-lock-v1
+  docker_authority: docker-named-volume-v1
+  compose_volume_key: runtime-locks
+  docker_volume_name: shaiwei_runtime_locks_v1
+  container_root: /run/shaiwei-locks
+  local_development_root: .runtime-locks
+  business_data_stays_on_project_bind_mounts: true
+  lock_volume_contains_business_evidence: false
+  resource_filename_uses_sha256: true
+  process_local_serialization_precedes_flock: true
+  production_missing_or_wrong_mount_fails_closed: true
+resources:
+  exact:
+    - runtime:daily-cycle
+    - runtime:shadow-cycle
+    - runtime:paper-cycle
+  dynamic:
+    - runtime:scheduler-timeline:YYYYMMDD
+    - ledger:project-relative-csv
+  first_migration_scope:
+    - src/shaiwei/pipeline/scheduler_timeline.py
+    - src/shaiwei/pipeline/scheduler_timeline_events.py
+    - src/shaiwei/pipeline/daily.py
+    - src/shaiwei/pipeline/shadow_cycle.py
+    - src/shaiwei/pipeline/paper_cycle.py
+    - src/shaiwei/ledger.py
+  research_flock_paths_inventory_only:
+    - src/shaiwei/research/g1.py
+    - src/shaiwei/research/star50_residual_effect/evidence.py
+    - src/shaiwei/research_gates/gate_registry/outbox.py
+semantics:
+  daily_contention: preserve_nonblocking_AlreadyRunning
+  shadow_contention: preserve_nonblocking_ShadowCycleBusy
+  paper_contention: preserve_existing_blocking_behavior
+  timeline_writer: exclusive
+  timeline_verifier: shared
+  canonical_ledger_writer: exclusive
+  reentrant_acquisition: forbidden
+  lock_order:
+    cycle: 10
+    timeline: 20
+    ledger: 30
+  unknown_resource: fail_closed
+  unknown_authority: fail_closed
+  production_host_writer_while_scheduler_runs: forbidden
+compose_and_release:
+  development_service_mounts_same_lock_volume: true
+  scheduler_mounts_lock_volume_read_write: true
+  data_ledger_logs_remain_bind_mounts: true
+  release_contract_checks_destination_type_source_and_rw: true
+  previous_image_may_ignore_volume_but_must_not_run_concurrently: true
+verification:
+  unit_resource_identity_and_validation: required
+  thread_serialization_with_noop_flock: required
+  local_independent_process_serialization: required
+  shared_exclusive_and_nonblocking_semantics: required
+  lock_order_and_reentrancy_fail_closed: required
+  missing_wrong_readonly_authority_fail_closed: required
+  canonical_ledger_concurrency_and_collision: required
+  migrated_flock_inventory_self_discovery: required
+  compose_and_release_mount_contract: required
+  existing_timeline_daily_shadow_paper_ledger_tests: required
+  architecture_check: required
+  full_repository_test: required
+  ruff_compileall_pip_diff_and_sensitive_scan: required
+execution:
+  source_test_config_compose_docs_change_authorized: true
+  production_scheduler_change_authorized: false
+  docker_build_or_fixture_authorized: false
+  external_network_or_secret_read_authorized: false
+  business_run_backfill_model_web_or_deepseek_authorized: false
+successor:
+  implementation_must_be_pushed_before_candidate_scope: true
+  r2c_requires_exact_head_snapshot_image_and_one_fixture_authorization: true
+  r2c_same_scope_rerun: forbidden
+  production_promotion_requires_later_exact_authorization: true
