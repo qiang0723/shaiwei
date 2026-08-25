@@ -1,0 +1,42 @@
+schema_version: shaiwei-r2d-controller-identity-addendum-v1
+addendum_id: r2d-host-controller-candidate-runtime-identity-split-v1
+frozen_at: '2026-08-25T18:09:00+08:00'
+status: FROZEN_PRE_IMPLEMENTATION_CORRECTION
+parent_contract: r2d-scheduler-named-lock-promotion-v1
+parent_commit: e425e73
+finding:
+  candidate_was_built_before_r2d_host_guard_engineering: true
+  final_repository_snapshot_can_equal_candidate_snapshot: false
+  rebuilding_candidate_or_replaying_fixture: forbidden
+correction:
+  candidate_runtime_identity:
+    git_head: 55f98e7085bf7f1a573c9105606c842a9655b63c
+    code_snapshot_sha256: 88e3f471565ba461fb660f41a97a2dd4ac633585c4f74efadd9a3b264e2abec0
+    image_id: sha256:b7565001835936e1235d24de3c567f0d13869d48f30596ac7172df7b849baa72
+    remains_fixture_authority: true
+  host_release_controller_identity:
+    final_head_and_origin_main_must_match: true
+    separate_component_sha256_required: true
+    allowed_source_paths:
+      - src/shaiwei/release_build_context.py
+      - src/shaiwei/release_guard.py
+      - src/shaiwei/daily_early_release_guard.py
+      - src/shaiwei/r2d_release_guard.py
+    tests_and_r2d_config_docs_may_change: true
+  forbidden_delta_from_candidate:
+    - Dockerfile
+    - compose.yaml
+    - config/settings.yaml
+    - scheduler_daily_shadow_paper_model_signal_or_gate_runtime
+    - data_ledger_logs_or_secrets
+  later_scope_requirement_replaced:
+    removed: current_controlled_code_snapshot_equals_candidate_snapshot
+    added:
+      - exact_candidate_image_identity_and_fixture_hashes_unchanged
+      - exact_host_release_controller_head_and_component_sha256
+      - candidate_to_controller_controlled_delta_allowlist_pass
+authority:
+  docker_build_fixture_promote_or_restart: false
+  source_test_config_docs_engineering: true
+  real_business_or_result_read: false
+

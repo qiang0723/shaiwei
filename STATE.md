@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2D控制器与候选运行时身份分离勘误
+
+- 候选在R2D控制器施工前已完成唯一fixture，故最终仓库snapshot不可能仍等于候选snapshot；禁止为
+  追求相等重建候选或重跑已关闭scope。
+- 候选继续精确绑定`55f98e7`/`88e3f471...abec0`/`b7565001...baa72`及原fixture；宿主控制器另绑
+  最终HEAD和组件SHA，并机器证明候选→控制器差异只含四个release控制文件、测试、R2D config/docs，
+  不含Docker/Compose/settings或scheduler业务路径。
+- 本勘误替换原scope中的仓库snapshot相等要求，其他边界不变；Docker/生产/业务/ledger/secret/网络
+  均为0。见`config/r2d_scheduler_controller_identity_addendum_v1.yaml`与
+  `docs/R2D_CONTROLLER_IDENTITY_SPLIT_ADDENDUM_20260825.md`。
+
 ## 2026-08-25 · R2D旧生产等待源证据勘误
 
 - 原协议推送后实物核对确认旧生产snapshot `4e5244b6...2708`尚无scheduler timeline，故不可要求
