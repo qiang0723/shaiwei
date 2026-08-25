@@ -1,0 +1,131 @@
+schema_version: shaiwei-r2d-scheduler-promotion-engineering-contract-v1
+contract_id: r2d-scheduler-named-lock-promotion-v1
+frozen_at: '2026-08-25T17:54:13+08:00'
+status: FROZEN_ENGINEERING_NOT_EXECUTION_APPROVAL
+
+predecessor:
+  node: R2-1R0L-B-R2C-R1
+  verdict: BUILD_PASS_FIXTURE_PASS_GO_R2D_PROTOCOL_ONLY
+  release_scope_sha256: 8887bbdf31f1f05fe0a7feffca80a5b96605f407182eb4d3275c5346c2369a22
+  fixture_report_sha256: 6e5a9ec20f8d81d9b995f74e4882d08cadbaaf858fa742f5e42787fcf21b208b
+  fixture_evidence_tree_sha256: 36b9cc9cd59a9e4d8b16b718667bf304f7d099fe73f0e280a4ce5a452b00dee6
+  fixture_receipt_sha256: 9bd08aecd49de220a51985b0b82e2821f093d02b1ea7d5c6f940c3aac2fa9fe3
+
+candidate:
+  image: shaiwei:scheduler-88e3f471565ba461
+  image_id: sha256:b7565001835936e1235d24de3c567f0d13869d48f30596ac7172df7b849baa72
+  git_head: 55f98e7085bf7f1a573c9105606c842a9655b63c
+  code_snapshot_sha256: 88e3f471565ba461fb660f41a97a2dd4ac633585c4f74efadd9a3b264e2abec0
+  lock_authority: docker-named-volume-v1
+  build_or_fixture_again: forbidden
+
+current_production:
+  image: shaiwei:scheduler-4e5244b6b02739dd
+  image_id: sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76
+  git_head: 210af4dab33c85b38c05b28f56c176b7970c41db
+  code_snapshot_sha256: 4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708
+  lock_authority: legacy-bind-flock-v0
+  expected_running_mounts:
+    - /workspace/data
+    - /workspace/ledger
+    - /workspace/logs
+
+transition:
+  result_blind: true
+  phase_a:
+    action: PROMOTE_NO_START_ONCE
+    protected_window_utc8: '16:00-19:30'
+    must_run_outside_protected_window: true
+    old_container_must_remain_running_healthy: true
+    resulting_current: candidate
+    resulting_previous: current_production
+  phase_b:
+    action: START_CURRENT_ONCE_ON_NEXT_ELIGIBLE_TRADE_DATE
+    window_utc8: '16:05-19:00'
+    target_trade_date_must_be_bound_later: true
+    target_must_be_only_new_eligible_trade_date: true
+    old_1600_probe_must_be_closed_waiting_source: true
+    manual_daily_run: forbidden
+  candidate_runtime_contract:
+    read_only_root: true
+    mount_destinations:
+      - /run/shaiwei-locks
+      - /workspace/data
+      - /workspace/ledger
+      - /workspace/logs
+    lock_mount_type: volume
+    lock_volume_name: shaiwei_runtime_locks_v1
+    lock_mount_writable: true
+    docker_socket: forbidden
+    project_worktree_mount: forbidden
+
+rollback:
+  previous_identity_exact_match: true
+  legacy_previous_classification: LEGACY_EMERGENCY_SEQUENTIAL_ONLY
+  candidate_must_be_stopped_before_legacy_previous_starts: true
+  candidate_and_legacy_concurrent_run: forbidden
+  failed_candidate_start_must_restore_previous_and_recheck_health: true
+  rollback_failure_must_report_both_failures: true
+  rollback_does_not_count_as_named_lock_acceptance: true
+  first_candidate_business_write_closes_automatic_legacy_rollback: true
+
+engineering:
+  reuse_daily_early_release_guard: true
+  duplicate_release_runner: forbidden
+  required_changes:
+    - candidate_lock_authority_exact_match
+    - candidate_four_mount_contract_exact_match
+    - controlled_release_tree_clean_while_runtime_ledgers_may_be_dirty
+    - phase_a_no_start_preparation_is_idempotent_and_fail_closed
+    - phase_b_resume_start_requires_closed_waiting_source_cycle
+    - sequential_legacy_recovery_never_overlaps_candidate
+    - exact_fixture_receipt_and_hash_binding
+    - first_natural_day_acceptance_contract
+  local_tests_only_before_execution_scope: true
+  docker_daemon_mutation_before_execution_scope: forbidden
+
+first_natural_day_acceptance:
+  scheduler_cycle: PASS
+  timeline_chain: PASS
+  daily: PASS
+  no_bj_in_actual_raw_batch: true
+  shadow_s1_s9: PASS
+  shadow_s10: NOT_APPLICABLE_OR_FROZEN_EXPECTATION
+  paper_accounts:
+    - model_baseline
+    - model_top20
+  paper_status: PASS
+  notifications_start_and_completion: PASS
+  idempotent_repeat: PASS
+  zero_manual_data_edit: true
+  code_snapshot_equals_candidate: true
+  r2_1r1_counting_starts_only_after_all_gates_pass: true
+  strategy_effectiveness_claim: forbidden
+
+later_exact_release_scope:
+  required_before_user_approval:
+    - final_engineering_head_equals_origin_main
+    - current_controlled_code_snapshot_equals_candidate_snapshot
+    - exact_phase_a_date_and_window
+    - exact_phase_b_trade_date_and_window
+    - latest_two_account_forward_dates_and_artifact_hashes
+    - latest_closed_scheduler_timeline_identity
+    - exact_candidate_current_previous_and_fixture_hashes
+    - exact_action_and_scope_sha256
+  execution_authorized: false
+  promote_authorized: false
+  restart_authorized: false
+  real_business_run_authorized: false
+
+authority:
+  source_test_config_docs_change_authorized: true
+  read_only_result_blind_status_and_hash_inspection_authorized: true
+  docker_build_or_fixture_authorized: false
+  docker_volume_create_or_delete_authorized: false
+  promote_restart_or_tag_authorized: false
+  env_or_secret_read_authorized: false
+  external_network_authorized: false
+  historical_backfill_or_manual_daily_run_authorized: false
+  model_signal_gate_web_or_strategy_change_authorized: false
+  production_authorization: none
+

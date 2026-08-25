@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2D结果盲生产提升协议冻结
+
+- 候选精确绑定`b7565001...baa72`、HEAD `55f98e7`、snapshot `88e3f471...abec0`、
+  `docker-named-volume-v1`及R2C-R1 report/tree/receipt/scope四组哈希；旧生产继续绑定
+  `722f63de...13b76`和三bind挂载，当前未切换。
+- 冻结两阶段发布：16:00—19:30之外只做一次no-start promote，旧容器继续healthy；下一唯一可用
+  交易日仅在旧16:00探测闭合`WAITING_SOURCE`后start一次。候选启动失败只允许新旧不并行的顺序
+  legacy恢复；候选首次业务写入后关闭自动legacy rollback。
+- 当前只授权复用既有daily release guard补齐lock-authority、四挂载、受控Git树、等待源闭合、fixture
+  哈希和自然日验收门；Docker build/fixture/volume/tag/promote/restart/业务/ledger/secret/网络均为0。
+  工程推送且自然跑批闭合后，须另立精确日期与scope并再次获批。见
+  `config/r2d_scheduler_named_lock_promotion_v1.yaml`与
+  `docs/R2D_SCHEDULER_NAMED_LOCK_PROMOTION_PROTOCOL_20260825.md`。
+
 ## 2026-08-25 · 三类市场观察页面只读评估归档
 
 - 三份20260824本地页面仅作机制/UI参考，不导入HTML、内嵌股票快照或第三方接口数据。价值顺序为
