@@ -1,0 +1,58 @@
+schema_version: shaiwei-runtime-lock-fixture-entry-recovery-contract-v1
+contract_id: r2-1r0l-b-r2c-r1-fixture-entry-recovery-v1
+frozen_at: '2026-08-25T16:59:05+08:00'
+status: FROZEN_ENGINEERING_NOT_EXECUTION_APPROVAL
+predecessor:
+  contract_id: r2-1r0l-b-r2c-named-volume-fixture-v1
+  release_scope_sha256: 2da6de12e3c4ab2d7b301a9e279ffc5091b458672672f4b9ca81a3adf8ed5afa
+  git_head: a909cdd1c79bc4a27e121647e9e272c8b91d02e7
+  code_snapshot_sha256: 8009eeb50c7d35f5c9a1762dc92ee36c112db75e4ff67b94f6096bee381d7b70
+  candidate: shaiwei:scheduler-8009eeb50c7d35f5
+  candidate_image_id: sha256:da26760247c55e9d2c5189aa28dcf7dc3d6fb07a74b8e5d2dca7bf5895cea4d7
+  claim_sha256: 52d956eac57bd738ab25615d6c9338bcda6052359f59facf365d72a1d1f7647f
+  report_sha256: 7bb5e6c124361ea27653a7459d2ec62e115bab4cec7a77bd88a5880adf6654e7
+  tree_file_sha256: b5fcf8a1953507725d9718d6abe0ecb8503764e2b614b79bd0133d0fcfa9fe5e
+  tree_content_sha256: 03f564da57b441c79acc2f43839b09bcce924401dccc6a32672eeb9c375fc4e4
+  terminal_status: BUILD_PASS_FIXTURE_FAIL_NO_GO_PROMOTION
+  lock_behavior_authority: LOCK_BEHAVIOR_NOT_EVALUATED
+  same_scope_rerun_authorized: false
+recovery:
+  changed_case: eight_threads_with_noop_flock
+  frozen_root_cause: FIXTURE_ENTRY_TEST_CONTRACT_MISMATCH
+  candidate_native_payload_required: true
+  explicit_lock_root_argument_forbidden: true
+  inherited_docker_lock_authority_required: true
+  inherited_named_volume_mount_required: true
+  candidate_flock_replacement: no_op
+  worker_threads: 8
+  maximum_simultaneous_critical_sections: 1
+  unchanged_case_count: 9
+  unchanged_security_boundary: true
+  unchanged_case_order: true
+  unchanged_failure_and_no_rerun_semantics: true
+  stable_lock_volume_name: shaiwei_runtime_locks_v1
+  stable_lock_volume_must_not_be_deleted: true
+engineering:
+  source_test_config_docs_change_authorized: true
+  command_shape_gate_required: true
+  local_subprocess_payload_test_authorized: true
+  docker_build_authorized: false
+  docker_fixture_authorized: false
+  docker_volume_create_or_delete_authorized: false
+  production_promote_or_restart_authorized: false
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  business_data_or_real_ledger_authorized: false
+  web_model_strategy_or_deepseek_authorized: false
+  production_authorization: none
+successor:
+  action: R2C_R1_RUNTIME_LOCK_FIXTURE_ENTRY_RECOVERY_ONCE
+  final_head_must_equal_origin_main: true
+  final_code_snapshot_must_be_bound_after_implementation_push: true
+  new_candidate_required: true
+  candidate_build_count: 1
+  suite_invocation_count: 1
+  exact_new_scope_required: true
+  exact_user_approval_required: true
+  same_scope_rerun_authorized: false
+  r2d_and_r2_1r1_forbidden_until_full_suite_pass: true

@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2C-R1 fixture入口恢复协议冻结
+
+- 永久绑定原R2C scope、候选、claim/report/tree哈希及`LOCK_BEHAVIOR_NOT_EVALUATED`；原scope不重跑、
+  稳定锁卷不删除，旧失败不改写。
+- 唯一变化冻结为第2项候选原生payload：继承真实Docker authority/named-volume mount，不传显式
+  `lock_root`，候选内no-op `flock`后8线程临界区最大并发必须为1；其余9门、安全、顺序和失败语义不变。
+- 当前仅授权源码/测试/config/docs与零Docker本地子进程门；build、fixture、volume变更、promote/restart、
+  业务/ledger/secret/网络和生产均为0。实现推送后须生成新HEAD/快照/候选/scope并再次精确批准。见
+  `config/r2_1r0l_b_r2c_r1_fixture_entry_recovery_v1.yaml`与
+  `docs/R2_1R0L_B_R2C_R1_FIXTURE_ENTRY_RECOVERY_PROTOCOL_20260825.md`。
+
 ## 2026-08-25 · R2C候选构建PASS但fixture入口合同失败
 
 - 终态`BUILD_PASS / FIXTURE_FAIL / NO_GO_PROMOTION`。scope `2da6de12...d5afa`恰好构建候选
