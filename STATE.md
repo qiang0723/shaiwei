@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2C候选构建PASS但fixture入口合同失败
+
+- 终态`BUILD_PASS / FIXTURE_FAIL / NO_GO_PROMOTION`。scope `2da6de12...d5afa`恰好构建候选
+  `da267602...ea4d7`并调用一次断网suite；身份门PASS，第2项8线程门在进入并发临界区前FAIL，后8项未跑。
+- 根因是宿主单测显式传`tmp_path lock_root`，而真实`docker-named-volume-v1`权威正确禁止显式根；属于
+  `FIXTURE_ENTRY_TEST_CONTRACT_MISMATCH`，不是锁行为失败，权威`LOCK_BEHAVIOR_NOT_EVALUATED`。
+- 原scope不重跑；稳定锁卷已创建，scope容器/临时错误卷残留0，生产scheduler原身份healthy未重启。
+  下一合法节点R2C-R1只做候选原生no-op-flock 8线程入口恢复，其余9门不变；新工程/镜像/scope均须
+  另批。见`docs/R2_1R0L_B_R2C_NAMED_VOLUME_FIXTURE_FAILURE_20260825.md`。
+
 ## 2026-08-25 · R2C真实Docker锁fixture编排工程完成
 
 - 终态`GO_RELEASE_READY_NOT_EXECUTION_APPROVAL`。新增400行宿主编排器与75行固定容器payload，
