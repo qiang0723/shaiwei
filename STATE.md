@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2C-R1真实named-volume fixture全绿
+
+- scope`8887bbdf...9a22`唯一候选构建PASS、唯一完整suite 10/10 PASS；候选
+  `b7565001...baa72`精确绑定HEAD `55f98e7`、snapshot `88e3f471...abec0`和
+  `docker-named-volume-v1`，scope永久关闭不重跑。
+- 34条受控命令完成候选原生no-op-flock 8线程、4独立进程、双容器EX/SH/NB、SIGKILL、8进程合成
+  ledger及错误mount门；report=`6e5a9ec2...208b`，tree=`36b9cc9c...dee6`，独立复算一致。
+- scope容器/错误卷残留0，稳定锁卷保留；生产scheduler原容器/镜像/创建时间不变且healthy、重启0，
+  未promote/restart。终态`BUILD_PASS / FIXTURE_PASS / GO_R2D_PROTOCOL_ONLY`、生产none。
+- 下一步只能另立R2D结果盲生产提升协议并再次精确授权；未批准前不切current、不启动R2-1R1。见
+  `docs/R2_1R0L_B_R2C_R1_NAMED_VOLUME_FIXTURE_ACCEPTANCE_20260825.md`。
+
 ## 2026-08-25 · R2C-R1 fixture入口恢复工程完成
 
 - 终态`GO_RELEASE_READY_NOT_EXECUTION_APPROVAL`。第2项已改为候选原生固定payload：不传显式
