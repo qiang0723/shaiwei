@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import fcntl
 import json
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
@@ -15,7 +14,7 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 
-from shaiwei.config import PROJECT_ROOT, Settings, load
+from shaiwei.config import Settings, load
 from shaiwei.ingest.catalog import CatalogError, load_latest_api, load_latest_request
 from shaiwei.ingest.core import RawBatchWriter
 from shaiwei.ingest.tushare import (
@@ -27,6 +26,8 @@ from shaiwei.ingest.tushare import (
 from shaiwei.ledger import DAILY_RUNS, INGEST, append_daily_run, ingest_snapshot_sha256
 from shaiwei.notify.feishu import FeishuNotifier
 from shaiwei.pipeline.scheduler_timeline import CycleTimeline, observe_phase
+from shaiwei.storage.interprocess_lock import LockBusy, logical_lock
+from shaiwei.storage.lock_resources import cycle_resource
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 DATE_FORMAT = "%Y%m%d"
@@ -310,17 +311,11 @@ def refresh_trade_calendar(
 
 @contextmanager
 def daily_lock(path: Path | None = None) -> Iterator[None]:
-    lock_path = path or PROJECT_ROOT / "logs" / "scheduler" / "daily.lock"
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
-    with lock_path.open("a+", encoding="utf-8") as handle:
-        try:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError as error:
-            raise AlreadyRunning("another daily reconciliation is already running") from error
-        try:
+    try:
+        with logical_lock(cycle_resource("daily", path), blocking=False):
             yield
-        finally:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    except LockBusy as error:
+        raise AlreadyRunning("another daily reconciliation is already running") from error
 
 
 def _notify(notifier: FeishuNotifier, event: str, title: str, fields: dict[str, object]) -> None:

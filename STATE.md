@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2B统一跨进程锁工程完成
+
+- 终态`GO_ENGINEERING_COMPLETE / R2C_NOT_AUTHORIZED`。timeline、daily、shadow、paper与canonical
+  ledger已迁移到统一逻辑锁；旧timeline局部mutex模块删除，生产直接`flock`只剩统一后端，三个研究
+  历史入口继续仅登记。
+- Compose冻结`shaiwei_runtime_locks_v1`，业务data/ledger/logs仍留本地bind。新镜像必须带lock
+  authority标签并通过四挂载门；旧生产三挂载在迁移窗口保持可观测，不因此重启。
+- 全仓1,893 PASS、架构13 PASS；新模块205/85/56行，release抽离后583行，paper热点670→664行；
+  工程snapshot=`626cacdf...d4cb`。当前生产仍为`183b8c6c5edd`/`722f63de...13b76`、healthy、
+  `legacy-bind-flock-v0`。
+- Docker build、named-volume fixture、promote/restart、业务/结果读取、真实ledger写、外网与密钥均为
+  0。下一节点R2C须精确绑定终版HEAD/snapshot后另批唯一候选与一次断网fixture，通过前不进R2-1R1。
+  见`docs/R2_1R0L_B_R2B_UNIFIED_LOCK_ENGINEERING_ACCEPTANCE_20260825.md`。
+
 ## 2026-08-25 · R2B统一锁工程协议冻结
 
 - 冻结`r2-1r0l-b-r2b-unified-lock-engineering-v1`：只施工统一逻辑锁、五类生产关键路径迁移、

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import fcntl
 import json
 import os
 import re
@@ -28,7 +27,8 @@ from shaiwei.pipeline.scheduler_timeline_events import (
     validate_event,
     verify_timeline,
 )
-from shaiwei.pipeline.scheduler_timeline_lock import timeline_path_mutex
+from shaiwei.storage.interprocess_lock import LockMode, logical_lock
+from shaiwei.storage.lock_resources import timeline_resource
 
 __all__ = [
     "CycleTimeline",
@@ -127,10 +127,9 @@ class CycleTimeline:
 
     def _append(self, event: dict[str, object]) -> None:
         try:
-            with timeline_path_mutex(self.path):
+            with logical_lock(timeline_resource(self.path), mode=LockMode.EXCLUSIVE):
                 self.path.parent.mkdir(parents=True, exist_ok=True)
                 with self.path.open("a+", encoding="utf-8") as handle:
-                    fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
                     previous_hash, sequences = read_and_verify(handle, self.contract)
                     expected = sequences.get(self.cycle_id, 0) + 1
                     if expected != self.sequence + 1:

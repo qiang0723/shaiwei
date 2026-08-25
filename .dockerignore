@@ -2,6 +2,7 @@
 .git
 .venv
 .release
+.runtime-locks
 .pytest_cache
 .ruff_cache
 __pycache__

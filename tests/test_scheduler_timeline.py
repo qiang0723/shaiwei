@@ -12,16 +12,15 @@ import pytest
 import yaml
 
 import shaiwei.pipeline.scheduler_timeline as timeline_module
+import shaiwei.storage.interprocess_lock as lock_module
 from shaiwei.pipeline.scheduler_timeline import (
     SchedulerTimeline,
     TimelineError,
     load_timeline_contract,
     verify_timeline,
 )
-from shaiwei.pipeline.scheduler_timeline_lock import (
-    _active_path_mutex_count,
-    timeline_path_mutex,
-)
+from shaiwei.storage.interprocess_lock import active_process_lock_count, logical_lock
+from shaiwei.storage.lock_resources import DAILY_CYCLE
 
 
 class Clock:
@@ -247,7 +246,7 @@ def test_two_writers_produce_one_valid_chain(tmp_path: Path):
     assert all(sequence == [1, 2, 3, 4] for sequence in by_cycle.values())
 
 
-def test_process_path_mutex_serializes_threads_and_releases_registry(tmp_path: Path):
+def test_process_mutex_serializes_threads_and_releases_registry(tmp_path: Path):
     barrier = threading.Barrier(8)
     state_mutex = threading.Lock()
     active = 0
@@ -256,7 +255,7 @@ def test_process_path_mutex_serializes_threads_and_releases_registry(tmp_path: P
     def enter() -> None:
         nonlocal active, maximum_active
         barrier.wait()
-        with timeline_path_mutex(tmp_path / "same.jsonl"):
+        with logical_lock(DAILY_CYCLE, lock_root=tmp_path):
             with state_mutex:
                 active += 1
                 maximum_active = max(maximum_active, active)
@@ -268,7 +267,7 @@ def test_process_path_mutex_serializes_threads_and_releases_registry(tmp_path: P
         list(pool.map(lambda _index: enter(), range(8)))
 
     assert maximum_active == 1
-    assert _active_path_mutex_count() == 0
+    assert active_process_lock_count() == 0
 
 
 def test_thread_chain_stays_valid_when_flock_is_ineffective(
@@ -281,7 +280,7 @@ def test_thread_chain_stays_valid_when_flock_is_ineffective(
         time.sleep(0.005)
         return result
 
-    monkeypatch.setattr(timeline_module.fcntl, "flock", lambda *_args: None)
+    monkeypatch.setattr(lock_module.fcntl, "flock", lambda *_args: None)
     monkeypatch.setattr(timeline_module, "read_and_verify", slow_read)
     contract = load_timeline_contract()
     barrier = threading.Barrier(8)
@@ -303,7 +302,7 @@ def test_thread_chain_stays_valid_when_flock_is_ineffective(
 
     path = next((tmp_path / "logs/scheduler").glob("timeline_*.jsonl"))
     assert len(verify_timeline(path, contract)) == 32
-    assert _active_path_mutex_count() == 0
+    assert active_process_lock_count() == 0
 
 
 def test_independent_processes_produce_one_valid_chain(tmp_path: Path):

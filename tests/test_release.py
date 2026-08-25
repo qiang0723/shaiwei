@@ -7,6 +7,7 @@ import pytest
 import yaml
 
 from shaiwei import release
+from shaiwei.storage import runtime_mount_contract as mount_contract
 
 
 def test_release_audit_is_hash_chained_and_detects_tampering(monkeypatch, tmp_path):
@@ -61,7 +62,16 @@ def test_scheduler_compose_has_no_development_tree_or_docker_socket():
         "/workspace/data",
         "/workspace/ledger",
         "/workspace/logs",
+        mount_contract.LOCK_VOLUME_DESTINATION,
     }
+    lock_mount = next(
+        volume
+        for volume in scheduler["volumes"]
+        if volume["target"] == mount_contract.LOCK_VOLUME_DESTINATION
+    )
+    assert lock_mount["type"] == "volume"
+    assert lock_mount["source"] == "runtime-locks"
+    assert compose["volumes"]["runtime-locks"]["name"] == mount_contract.LOCK_VOLUME_NAME
     assert "/workspace" not in destinations
     assert all("docker.sock" not in json.dumps(volume) for volume in scheduler["volumes"])
 
@@ -124,6 +134,7 @@ def test_build_uses_archived_source_identity_and_never_live_worktree(monkeypatch
         "image_id": "sha256:fixed",
         "code_snapshot_sha256": "a" * 64,
         "git_head": "b" * 40,
+        "lock_authority": release.LOCK_AUTHORITY,
     }
     monkeypatch.setattr(
         release.release_build_context,
@@ -152,6 +163,7 @@ def test_build_uses_archived_source_identity_and_never_live_worktree(monkeypatch
     assert "." not in command
     assert f"{release.SNAPSHOT_LABEL}={'a' * 64}" in command
     assert f"{release.REVISION_LABEL}={'b' * 40}" in command
+    assert f"{release.LOCK_AUTHORITY_LABEL}={release.LOCK_AUTHORITY}" in command
 
 
 def test_container_contract_never_requests_environment(monkeypatch):
@@ -168,9 +180,15 @@ def test_container_contract_never_requests_environment(monkeypatch):
             assert ".Config.Env" not in argv[3]
             mounts = json.dumps(
                 [
-                    {"Destination": "/workspace/data", "RW": True},
-                    {"Destination": "/workspace/ledger", "RW": True},
-                    {"Destination": "/workspace/logs", "RW": True},
+                    {"Destination": "/workspace/data", "RW": True, "Type": "bind"},
+                    {"Destination": "/workspace/ledger", "RW": True, "Type": "bind"},
+                    {"Destination": "/workspace/logs", "RW": True, "Type": "bind"},
+                    {
+                        "Destination": mount_contract.LOCK_VOLUME_DESTINATION,
+                        "RW": True,
+                        "Type": "volume",
+                        "Name": mount_contract.LOCK_VOLUME_NAME,
+                    },
                 ]
             )
             return SimpleNamespace(stdout=f"sha256:fixed\ttrue\t{mounts}\n")
@@ -191,11 +209,84 @@ def test_container_contract_never_requests_environment(monkeypatch):
 
     assert contract["read_only_rootfs"] is True
     assert contract["mount_destinations"] == [
+        mount_contract.LOCK_VOLUME_DESTINATION,
         "/workspace/data",
         "/workspace/ledger",
         "/workspace/logs",
     ]
     assert all(".Config.Env" not in " ".join(request) for request in requests)
+
+
+def test_legacy_running_release_remains_observable_before_lock_volume_promotion(monkeypatch):
+    expected = {
+        "image_id": "sha256:fixed",
+        "code_snapshot_sha256": "a" * 64,
+        "git_head": "b" * 40,
+    }
+    mounts = [
+        {"Destination": "/workspace/data", "RW": True, "Type": "bind"},
+        {"Destination": "/workspace/ledger", "RW": True, "Type": "bind"},
+        {"Destination": "/workspace/logs", "RW": True, "Type": "bind"},
+    ]
+
+    def fake_run(argv, *, check=True):
+        if argv[:3] == ["docker", "inspect", "--format"]:
+            return SimpleNamespace(stdout=f"sha256:fixed\ttrue\t{json.dumps(mounts)}\n")
+        return SimpleNamespace(
+            stdout=json.dumps(
+                {"code_snapshot_sha256": "a" * 64, "git_head": "b" * 40}
+            )
+            + "\n"
+        )
+
+    monkeypatch.setattr(release, "_compose_container_id", lambda: "scheduler-id")
+    monkeypatch.setattr(release, "_run", fake_run)
+    contract = release._container_contract(expected)
+    assert contract["lock_authority"] == "legacy-bind-flock-v0"
+    assert contract["mount_destinations"] == [
+        "/workspace/data",
+        "/workspace/ledger",
+        "/workspace/logs",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (lambda mounts: mounts[-1].update(Type="bind"), "mount type"),
+        (lambda mounts: mounts[-1].update(Name="other-volume"), "volume identity"),
+        (lambda mounts: mounts[-1].update(RW=False), "must remain writable"),
+    ],
+)
+def test_container_contract_rejects_lock_volume_drift(monkeypatch, mutation, message):
+    expected = {
+        "image_id": "sha256:fixed",
+        "code_snapshot_sha256": "a" * 64,
+        "git_head": "b" * 40,
+        "lock_authority": release.LOCK_AUTHORITY,
+    }
+    mounts = [
+        {"Destination": "/workspace/data", "RW": True, "Type": "bind"},
+        {"Destination": "/workspace/ledger", "RW": True, "Type": "bind"},
+        {"Destination": "/workspace/logs", "RW": True, "Type": "bind"},
+        {
+            "Destination": mount_contract.LOCK_VOLUME_DESTINATION,
+            "RW": True,
+            "Type": "volume",
+            "Name": mount_contract.LOCK_VOLUME_NAME,
+        },
+    ]
+    mutation(mounts)
+
+    def fake_run(argv, *, check=True):
+        if argv[:3] == ["docker", "inspect", "--format"]:
+            return SimpleNamespace(stdout=f"sha256:fixed\ttrue\t{json.dumps(mounts)}\n")
+        raise AssertionError("runtime identity must not be requested after mount failure")
+
+    monkeypatch.setattr(release, "_compose_container_id", lambda: "scheduler-id")
+    monkeypatch.setattr(release, "_run", fake_run)
+    with pytest.raises(release.ReleaseError, match=message):
+        release._container_contract(expected)
 
 
 def test_no_start_promote_and_rollback_swap_distinct_content_images(monkeypatch, tmp_path):

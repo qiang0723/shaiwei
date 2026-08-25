@@ -1,12 +1,14 @@
 """账本唯一写入口。任何代码禁止直接 open/pandas 重写 ledger/*.csv —— 只准调用这里的 append_*。"""
 import csv
-import fcntl
 import hashlib
 import json
 import os
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+
+from shaiwei.storage.interprocess_lock import logical_lock
+from shaiwei.storage.lock_resources import ledger_resource
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 LEDGER_DIR = PROJECT_ROOT / "ledger"
@@ -68,43 +70,45 @@ def resolve_artifact_path(path: str | Path) -> Path:
     return artifact
 
 def _append(path: Path, row: dict) -> None:
-    with path.open("r+", newline="", encoding="utf-8") as f:
-        fcntl.flock(f.fileno(), fcntl.LOCK_EX)
-        header = f.readline().strip().split(",")
-        missing = set(header) - set(row)
-        if missing:
-            raise ValueError(f"ledger row missing fields: {missing}")
-        extra = set(row) - set(header)
-        if extra:
-            raise ValueError(f"ledger row has unknown fields: {extra}")
-        f.seek(0, os.SEEK_END)
-        csv.DictWriter(f, fieldnames=header, lineterminator="\n").writerow(row)
-        f.flush()
-        os.fsync(f.fileno())
+    with logical_lock(ledger_resource(path)):
+        with path.open("r+", newline="", encoding="utf-8") as f:
+            header = f.readline().strip().split(",")
+            missing = set(header) - set(row)
+            if missing:
+                raise ValueError(f"ledger row missing fields: {missing}")
+            extra = set(row) - set(header)
+            if extra:
+                raise ValueError(f"ledger row has unknown fields: {extra}")
+            f.seek(0, os.SEEK_END)
+            csv.DictWriter(f, fieldnames=header, lineterminator="\n").writerow(row)
+            f.flush()
+            os.fsync(f.fileno())
 
 
 def _append_idempotent(path: Path, row: dict, *, key: str) -> bool:
     """Append once by a deterministic key; an existing row must be byte-equivalent."""
-    with path.open("r+", newline="", encoding="utf-8") as handle:
-        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-        reader = csv.DictReader(handle)
-        header = reader.fieldnames or []
-        missing = set(header) - set(row)
-        extra = set(row) - set(header)
-        if missing or extra:
-            raise ValueError(f"ledger row schema mismatch: missing={missing}, extra={extra}")
-        normalized = {field: str(row[field]) for field in header}
-        for existing in reader:
-            if existing[key] != normalized[key]:
-                continue
-            if existing != normalized:
-                raise ValueError(f"ledger key collision with different content: {path.name}:{normalized[key]}")
-            return False
-        handle.seek(0, os.SEEK_END)
-        csv.DictWriter(handle, fieldnames=header, lineterminator="\n").writerow(normalized)
-        handle.flush()
-        os.fsync(handle.fileno())
-        return True
+    with logical_lock(ledger_resource(path)):
+        with path.open("r+", newline="", encoding="utf-8") as handle:
+            reader = csv.DictReader(handle)
+            header = reader.fieldnames or []
+            missing = set(header) - set(row)
+            extra = set(row) - set(header)
+            if missing or extra:
+                raise ValueError(f"ledger row schema mismatch: missing={missing}, extra={extra}")
+            normalized = {field: str(row[field]) for field in header}
+            for existing in reader:
+                if existing[key] != normalized[key]:
+                    continue
+                if existing != normalized:
+                    raise ValueError(
+                        f"ledger key collision with different content: {path.name}:{normalized[key]}"
+                    )
+                return False
+            handle.seek(0, os.SEEK_END)
+            csv.DictWriter(handle, fieldnames=header, lineterminator="\n").writerow(normalized)
+            handle.flush()
+            os.fsync(handle.fileno())
+            return True
 
 
 def _reject_sensitive_params(value: object, path: str = "params") -> None:

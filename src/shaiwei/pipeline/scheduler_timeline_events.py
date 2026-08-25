@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-import fcntl
 import json
 import re
 from datetime import datetime
@@ -11,6 +10,8 @@ from pathlib import Path
 from typing import TextIO
 
 from shaiwei.pipeline.scheduler_timeline_contract import TimelineContract, TimelineError
+from shaiwei.storage.interprocess_lock import LockMode, logical_lock
+from shaiwei.storage.lock_resources import timeline_resource
 
 ZERO_HASH = "0" * 64
 EVENT_FIELDS = {
@@ -163,8 +164,8 @@ def verify_timeline(path: Path, contract: TimelineContract) -> list[dict[str, ob
     """Independently verify a complete timeline file and return its events."""
     if not path.is_file():
         raise TimelineError("timeline file is missing")
-    with path.open("r", encoding="utf-8") as handle:
-        fcntl.flock(handle.fileno(), fcntl.LOCK_SH)
-        read_and_verify(handle, contract)
-        handle.seek(0)
-        return [json.loads(line) for line in handle]
+    with logical_lock(timeline_resource(path), mode=LockMode.SHARED):
+        with path.open("r", encoding="utf-8") as handle:
+            read_and_verify(handle, contract)
+            handle.seek(0)
+            return [json.loads(line) for line in handle]

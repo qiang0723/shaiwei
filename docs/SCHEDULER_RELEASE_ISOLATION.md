@@ -25,13 +25,23 @@
   `SHAIWEI_RELEASE_MANIFEST`，继续按 Git 工作树计算动态快照。
 - `scheduler`：生产守护，只使用 `shaiwei:scheduler-current`，没有 `build` 和整仓挂载。
 
-生产 scheduler 唯一允许的宿主挂载：
+生产 scheduler 唯一允许的宿主 bind mount：
 
 | 宿主项目目录 | 容器目录 | 权限 | 用途 |
 |---|---|---|---|
 | `data/` | `/workspace/data` | 读写 | 原始批次、派生数据、信号和模拟仓产物 |
 | `ledger/` | `/workspace/ledger` | 读写 | 追加式运行与研究账本 |
 | `logs/` | `/workspace/logs` | 读写 | 健康、通知、报告和发布审计 |
+
+另允许一个不含业务证据的 Docker named volume：
+
+| Docker volume | 容器目录 | 权限 | 用途 |
+|---|---|---|---|
+| `shaiwei_runtime_locks_v1` | `/run/shaiwei-locks` | 读写 | 统一线程/进程/容器逻辑锁 inode |
+
+业务数据、账本和日志不得迁入该 volume。scheduler 和获准写项目持久化路径的常用开发容器必须挂载
+同一 volume；缺失、名称/类型不符或不可写时失败关闭。该 volume 的真实锁语义仍须由候选环境 fixture
+证明，不能由 Compose 配置本身推定。
 
 禁止挂载 `/workspace`、`.git`、Docker socket、其他项目目录或用户主目录。容器根文件系统只读，
 只为 `/tmp` 和 `/root/.cache` 提供有界 tmpfs；同时 `cap_drop=ALL`、
@@ -75,7 +85,8 @@ make docker-release-promote RELEASE_IMAGE=shaiwei:scheduler-<snapshot-prefix>
 3. 将候选提升为 `shaiwei:scheduler-current`；
 4. 原子更新 `.release/scheduler_state.json`；
 5. 重建 scheduler；
-6. 核对实际 image ID、只读根、挂载白名单、运行时快照、提交身份和健康状态；
+6. 核对实际 image ID、只读根、三个 bind mount、唯一 named lock volume、运行时快照、提交身份和
+   健康状态；
 7. 向 `logs/releases/scheduler_releases.jsonl` 追加哈希链记录。
 
 `docker-scheduler-up` 不再隐式构建镜像；没有受控 current 镜像时应失败。
@@ -103,7 +114,8 @@ promote → rollback → re-promote；最终只在真实交易日数据窗口执
 
 - 迁移前 `docker inspect` 证明旧容器确有 `.:/workspace` 可写挂载；
 - 镜像代码快照/提交身份与干净工作树相同，镜像内精确复核 PASS；
-- scheduler 实际挂载只有 `data/ledger/logs`，根文件系统只读且无 Docker socket；
+- scheduler 实际挂载只有 `data/ledger/logs` 三个 bind 与 `shaiwei_runtime_locks_v1` named volume，
+  根文件系统只读且无 Docker socket；
 - 在宿主开发树制造受控探针时，运行容器看不到该文件且代码快照不变；
 - 两个不同内容快照完成无启动 promote/rollback/re-promote，状态与审计哈希链一致；
 - 最终 scheduler 健康，日增量、S1-S10、影子、模拟仓、飞书和重复运行按原门禁完成；

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import fcntl
 import json
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
@@ -29,6 +28,8 @@ from shaiwei.notify.feishu import FeishuNotifier
 from shaiwei.provenance import code_snapshot_sha256
 from shaiwei.shadow.reconciliation import next_open_date, reconcile_forward_signal
 from shaiwei.shadow.report import write_forward_report
+from shaiwei.storage.interprocess_lock import LockBusy, logical_lock
+from shaiwei.storage.lock_resources import cycle_resource
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 
@@ -78,17 +79,11 @@ def _exact_daily(trade_date: str):
 
 @contextmanager
 def shadow_lock(path: Path | None = None) -> Iterator[None]:
-    lock_path = path or PROJECT_ROOT / "logs" / "shadow" / "cycle.lock"
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
-    with lock_path.open("a+", encoding="utf-8") as handle:
-        try:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError as error:
-            raise ShadowCycleBusy("another shadow cycle is already running") from error
-        try:
+    try:
+        with logical_lock(cycle_resource("shadow", path), blocking=False):
             yield
-        finally:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    except LockBusy as error:
+        raise ShadowCycleBusy("another shadow cycle is already running") from error
 
 
 def _manifest_path(row: dict[str, str]) -> Path:

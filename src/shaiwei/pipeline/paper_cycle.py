@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import fcntl
 import hashlib
 import json
 import uuid
@@ -18,7 +17,6 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 
 from shaiwei.config import (
-    PROJECT_ROOT,
     PaperPortfolio,
     PaperTop20Portfolio,
     Settings,
@@ -45,6 +43,8 @@ from shaiwei.paper.engine import PortfolioState, execute_day, policy_sha256
 from shaiwei.paper.projection import project_top20_signal
 from shaiwei.provenance import code_snapshot_sha256
 from shaiwei.shadow.manifest import verify_signal_manifest
+from shaiwei.storage.interprocess_lock import logical_lock
+from shaiwei.storage.lock_resources import cycle_resource
 
 
 class PaperCycleError(RuntimeError):
@@ -76,14 +76,8 @@ def _read(path: Path) -> list[dict[str, str]]:
 
 @contextmanager
 def paper_lock(path: Path | None = None) -> Iterator[None]:
-    lock_path = path or PROJECT_ROOT / "logs" / "paper" / "cycle.lock"
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
-    with lock_path.open("a+", encoding="utf-8") as handle:
-        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-        try:
-            yield
-        finally:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    with logical_lock(cycle_resource("paper", path)):
+        yield
 
 
 def _request(api_name: str, params: dict[str, object]) -> tuple[pd.DataFrame, dict[str, str | int]]:

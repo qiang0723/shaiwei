@@ -18,6 +18,11 @@ from shaiwei.config import PROJECT_ROOT
 from shaiwei.ledger import DAILY_RUNS, PAPER_RUNS
 from shaiwei.provenance import git_head
 from shaiwei import release_build_context
+from shaiwei.storage.runtime_mount_contract import (
+    LOCK_AUTHORITY,
+    RuntimeMountContractError,
+    validate_scheduler_mounts,
+)
 
 
 STATE_DIR = PROJECT_ROOT / ".release"
@@ -26,6 +31,7 @@ AUDIT_PATH = PROJECT_ROOT / "logs" / "releases" / "scheduler_releases.jsonl"
 CURRENT_ALIAS = "shaiwei:scheduler-current"
 PREVIOUS_ALIAS = "shaiwei:scheduler-previous"
 CONTENT_TAG_PREFIX = "shaiwei:scheduler-"
+LOCK_AUTHORITY_LABEL = "io.shaiwei.lock_authority"
 SNAPSHOT_LABEL = "io.shaiwei.code_snapshot_sha256"
 REVISION_LABEL = "org.opencontainers.image.revision"
 RELEASE_GIT_HEAD_ENV = "SHAIWEI_RELEASE_GIT_HEAD"
@@ -156,18 +162,24 @@ def _image_metadata(image: str) -> dict[str, str]:
     image_id = str(document.get("Id", ""))
     snapshot = str(labels.get(SNAPSHOT_LABEL, ""))
     revision = str(labels.get(REVISION_LABEL, ""))
+    lock_authority = str(labels.get(LOCK_AUTHORITY_LABEL, ""))
     if (
         not image_id.startswith("sha256:")
         or len(snapshot) != 64
         or len(revision) not in {40, 64}
     ):
         raise ReleaseError(f"image lacks immutable scheduler release metadata: {image}")
-    return {
+    metadata = {
         "image": image,
         "image_id": image_id,
         "code_snapshot_sha256": snapshot,
         "git_head": revision,
     }
+    if lock_authority:
+        if lock_authority != LOCK_AUTHORITY:
+            raise ReleaseError(f"image has an unknown scheduler lock authority: {image}")
+        metadata["lock_authority"] = lock_authority
+    return metadata
 
 
 def _image_runtime_identity(image: str) -> dict[str, str]:
@@ -230,6 +242,8 @@ def build_image() -> dict[str, object]:
                 f"{SNAPSHOT_LABEL}={snapshot}",
                 "--label",
                 f"{REVISION_LABEL}={revision}",
+                "--label",
+                f"{LOCK_AUTHORITY_LABEL}={LOCK_AUTHORITY}",
                 "--build-arg",
                 f"{RELEASE_GIT_HEAD_ENV}={revision}",
                 "--tag",
@@ -240,6 +254,8 @@ def build_image() -> dict[str, object]:
         metadata = verify_image(image)
         if metadata["code_snapshot_sha256"] != snapshot:
             raise ReleaseError("built image snapshot differs from archived Git source")
+        if metadata.get("lock_authority") != LOCK_AUTHORITY:
+            raise ReleaseError("built image lacks the named-volume lock authority")
     record = _append_audit("BUILD_PASS", metadata)
     return {**metadata, "audit_record_sha256": record["record_sha256"]}
 
@@ -362,24 +378,11 @@ def _container_contract(expected: dict[str, str]) -> dict[str, object]:
         raise ReleaseError("scheduler container is not running the promoted image ID")
     if readonly_text.lower() != "true":
         raise ReleaseError("scheduler root filesystem is not read-only")
-    if not isinstance(mounts, list):
-        raise ReleaseError("scheduler mounts are missing")
-    destinations = {
-        str(mount.get("Destination")): mount
-        for mount in mounts
-        if isinstance(mount, dict)
-    }
-    expected_destinations = {
-        "/workspace/data",
-        "/workspace/ledger",
-        "/workspace/logs",
-    }
-    if set(destinations) != expected_destinations:
-        raise ReleaseError("scheduler mounts differ from the explicit production allowlist")
-    if any(mount.get("RW") is not True for mount in destinations.values()):
-        raise ReleaseError("scheduler persistence mounts must remain writable")
-    if any(str(mount.get("Destination")) == "/workspace" for mount in mounts):
-        raise ReleaseError("scheduler still mounts a host directory over /workspace")
+    lock_required = expected.get("lock_authority") == LOCK_AUTHORITY
+    try:
+        mount_destinations = validate_scheduler_mounts(mounts, lock_required=lock_required)
+    except RuntimeMountContractError as error:
+        raise ReleaseError(str(error)) from error
     runtime_identity = _run(
         [
             "docker",
@@ -405,7 +408,8 @@ def _container_contract(expected: dict[str, str]) -> dict[str, object]:
         "code_snapshot_sha256": str(runtime["code_snapshot_sha256"]),
         "git_head": str(runtime["git_head"]),
         "read_only_rootfs": True,
-        "mount_destinations": sorted(destinations),
+        "lock_authority": str(expected.get("lock_authority", "legacy-bind-flock-v0")),
+        "mount_destinations": mount_destinations,
     }
 
 

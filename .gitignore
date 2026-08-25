@@ -15,6 +15,7 @@ __pycache__/
 .ruff_cache/
 .venv/
 .release/
+.runtime-locks/
 .web-release/
 .DS_Store
 web-ui/node_modules/
