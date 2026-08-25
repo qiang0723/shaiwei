@@ -1,5 +1,25 @@
 """In-container Python payloads used only by the R2C Docker lock fixture."""
 
+THREAD_NOOP_FLOCK = r"""
+import json,threading,time
+from concurrent.futures import ThreadPoolExecutor
+import shaiwei.storage.interprocess_lock as backend
+from shaiwei.storage.interprocess_lock import logical_lock
+from shaiwei.storage.lock_resources import DAILY_CYCLE
+backend.fcntl.flock=lambda *_args: None
+barrier=threading.Barrier(8); guard=threading.Lock(); state={'active':0,'maximum':0}
+def worker(_index):
+ barrier.wait()
+ with logical_lock(DAILY_CYCLE):
+  with guard:
+   state['active']+=1; state['maximum']=max(state['maximum'],state['active'])
+  time.sleep(.005)
+  with guard: state['active']-=1
+with ThreadPoolExecutor(max_workers=8) as pool: list(pool.map(worker,range(8)))
+assert state=={'active':0,'maximum':1},state
+print(json.dumps({'threads':8,'maximum_active':1,'explicit_root':False},sort_keys=True))
+"""
+
 HOLDER = """
 import sys,time
 from pathlib import Path

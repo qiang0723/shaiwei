@@ -22,6 +22,7 @@ from shaiwei.runtime_lock_fixture_payloads import (
     PROBE,
     READONLY_MOUNT,
     RESOURCE_RULES,
+    THREAD_NOOP_FLOCK,
 )
 from shaiwei.storage.runtime_mount_contract import (
     LOCK_AUTHORITY,
@@ -32,7 +33,7 @@ from shaiwei.storage.runtime_mount_contract import (
 )
 
 
-ACTION = "R2C_RUNTIME_LOCK_NAMED_VOLUME_FIXTURE_ONCE"
+ACTION = "R2C_R1_RUNTIME_LOCK_FIXTURE_ENTRY_RECOVERY_ONCE"
 SCHEMA = "shaiwei-runtime-lock-docker-fixture-report-v1"
 OUTPUT_PREFIX = PROJECT_ROOT / ".release" / "runtime-lock-fixture-r2c"
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -156,8 +157,7 @@ def _image_identity(client: DockerClient, spec: FixtureSpec) -> dict[str, str]:
 
 
 def _thread_concurrency(client: DockerClient, spec: FixtureSpec) -> None:
-    test = "tests/test_interprocess_lock.py::test_thread_layer_serializes_even_when_flock_is_ineffective"
-    _candidate_run(client, spec, ["python", "-m", "pytest", "-q", "-p", "no:cacheprovider", test])
+    _candidate_run(client, spec, ["python", "-c", THREAD_NOOP_FLOCK])
 
 
 def _timeline_processes(client: DockerClient, spec: FixtureSpec) -> None:

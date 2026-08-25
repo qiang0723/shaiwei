@@ -1,10 +1,14 @@
 from pathlib import Path
+import json
+import os
 import subprocess
+import sys
 
 import pytest
 import yaml
 
 import shaiwei.runtime_lock_fixture as fixture
+from shaiwei.runtime_lock_fixture_payloads import THREAD_NOOP_FLOCK
 
 
 ROOT = Path(__file__).parents[1]
@@ -33,6 +37,14 @@ def _contract() -> dict:
     )
 
 
+def _recovery_contract() -> dict:
+    return yaml.safe_load(
+        (ROOT / "config/r2_1r0l_b_r2c_r1_fixture_entry_recovery_v1.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+
+
 def test_frozen_contract_is_nonexecuting_and_complete():
     document = _contract()
     assert document["status"] == "FROZEN_RELEASE_ENGINEERING_NOT_EXECUTION_APPROVAL"
@@ -43,6 +55,19 @@ def test_frozen_contract_is_nonexecuting_and_complete():
     assert document["authority"]["production_authorization"] == "none"
     assert document["authority"]["env_or_secret_read_authorized"] is False
     assert document["authority"]["real_business_run_or_backfill_authorized"] is False
+
+
+def test_recovery_contract_changes_only_candidate_native_thread_entry():
+    document = _recovery_contract()
+    assert document["status"] == "FROZEN_ENGINEERING_NOT_EXECUTION_APPROVAL"
+    assert document["predecessor"]["same_scope_rerun_authorized"] is False
+    assert document["recovery"]["changed_case"] == "eight_threads_with_noop_flock"
+    assert document["recovery"]["explicit_lock_root_argument_forbidden"] is True
+    assert document["recovery"]["unchanged_case_count"] == 9
+    assert document["engineering"]["docker_build_authorized"] is False
+    assert document["engineering"]["docker_fixture_authorized"] is False
+    assert document["successor"]["action"] == fixture.ACTION
+    assert document["successor"]["exact_user_approval_required"] is True
 
 
 @pytest.mark.parametrize(
@@ -165,6 +190,53 @@ def test_candidate_command_has_only_frozen_security_and_synthetic_mounts(
     assert "readonly" in readonly
     with pytest.raises(fixture.FixtureError, match="unknown fixture lock mount mode"):
         fixture._runtime_args(spec, lock_mode="invalid")
+
+
+def test_candidate_native_thread_payload_runs_without_explicit_root(tmp_path: Path):
+    assert "lock_root" not in THREAD_NOOP_FLOCK
+    assert "logical_lock(DAILY_CYCLE)" in THREAD_NOOP_FLOCK
+    assert "ThreadPoolExecutor(max_workers=8)" in THREAD_NOOP_FLOCK
+    assert "backend.fcntl.flock=lambda" in THREAD_NOOP_FLOCK
+    env = os.environ.copy()
+    env.pop("SHAIWEI_LOCK_AUTHORITY", None)
+    env.pop("SHAIWEI_RELEASE_MANIFEST", None)
+    env["SHAIWEI_LOCK_ROOT"] = str(tmp_path / "locks")
+    result = subprocess.run(
+        [sys.executable, "-c", THREAD_NOOP_FLOCK],
+        cwd=ROOT,
+        env=env,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+    assert json.loads(result.stdout) == {
+        "explicit_root": False,
+        "maximum_active": 1,
+        "threads": 8,
+    }
+
+
+def test_thread_case_uses_candidate_native_payload_and_real_volume_command_shape(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    spec = _spec(tmp_path, monkeypatch)
+    spec.output_root.mkdir(parents=True)
+    seen = []
+
+    def runner(argv, **_kwargs):
+        seen.append(argv)
+        return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
+
+    fixture._thread_concurrency(fixture.DockerClient(runner), spec)
+    assert len(seen) == 1
+    command = seen[0]
+    rendered = " ".join(command)
+    assert command[-3:] == ["python", "-c", THREAD_NOOP_FLOCK]
+    assert "pytest" not in command and "test_interprocess_lock" not in rendered
+    assert "SHAIWEI_LOCK_AUTHORITY=docker-named-volume-v1" in command
+    assert "type=volume,src=shaiwei_runtime_locks_v1,dst=/run/shaiwei-locks" in command
+    assert "--network none" in rendered and "--read-only" in command
 
 
 def test_preexisting_container_is_rejected_without_cleanup():

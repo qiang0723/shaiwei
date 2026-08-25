@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2C-R1 fixture入口恢复工程完成
+
+- 终态`GO_RELEASE_READY_NOT_EXECUTION_APPROVAL`。第2项已改为候选原生固定payload：不传显式
+  `lock_root`，候选内no-op `flock`后8线程最大临界区并发为1；daemon命令形状继续绑定真实authority、
+  稳定named volume、断网、只读根与降权。其余9门、顺序和失败/不重跑语义未改。
+- 专项14、联合95、架构13、全仓1,907 PASS；controller/payload为400/95行，工程snapshot=
+  `88e3f471...abec0`。Docker daemon/build/fixture/volume/promote/restart及业务/ledger/secret/网络均为0。
+- 下一步仅可在实现推送后绑定最终HEAD、上述snapshot、候选和新scope，申请动作
+  `R2C_R1_RUNTIME_LOCK_FIXTURE_ENTRY_RECOVERY_ONCE`的一次build+一次suite；未批准不执行，未全绿不进
+  R2D/R2-1R1。见`docs/R2_1R0L_B_R2C_R1_FIXTURE_ENTRY_RECOVERY_ACCEPTANCE_20260825.md`。
+
 ## 2026-08-25 · R2C-R1 fixture入口恢复协议冻结
 
 - 永久绑定原R2C scope、候选、claim/report/tree哈希及`LOCK_BEHAVIOR_NOT_EVALUATED`；原scope不重跑、
