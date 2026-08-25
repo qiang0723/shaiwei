@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2D旧生产等待源证据勘误
+
+- 原协议推送后实物核对确认旧生产snapshot `4e5244b6...2708`尚无scheduler timeline，故不可要求
+  其提供16:00闭合timeline，也禁止补造。
+- 只替换证据载体：Phase B前必须由旧容器现有`logs/scheduler/health.json`证明目标日16:00之后
+  `waiting_source`且detail=唯一目标交易日；候选timeline从首个自然cycle起验。其余R2D冻结边界不变。
+- 勘误发生在源码实现和执行scope之前；Docker/生产/业务/ledger/secret/网络均为0。见
+  `config/r2d_scheduler_named_lock_promotion_addendum_v1.yaml`与
+  `docs/R2D_LEGACY_WAITING_SOURCE_EVIDENCE_ADDENDUM_20260825.md`。
+
 ## 2026-08-25 · R2D结果盲生产提升协议冻结
 
 - 候选精确绑定`b7565001...baa72`、HEAD `55f98e7`、snapshot `88e3f471...abec0`、

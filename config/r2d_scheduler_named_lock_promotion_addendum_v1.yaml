@@ -1,0 +1,27 @@
+schema_version: shaiwei-r2d-scheduler-promotion-addendum-v1
+addendum_id: r2d-legacy-waiting-source-evidence-v1
+frozen_at: '2026-08-25T18:02:00+08:00'
+status: FROZEN_PRE_IMPLEMENTATION_CORRECTION
+parent_contract: r2d-scheduler-named-lock-promotion-v1
+parent_commit: e425e73
+finding:
+  legacy_production_snapshot: 4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708
+  legacy_scheduler_timeline_available: false
+  legacy_health_file_available: true
+  original_requirement_not_observable: old_1600_probe_must_be_closed_waiting_source
+correction:
+  legacy_prestart_evidence:
+    source: logs/scheduler/health.json
+    status: waiting_source
+    detail_must_equal_later_bound_target_trade_date: true
+    updated_at_must_be_on_target_date_after_1600_utc8: true
+    container_id_and_legacy_identity_must_remain_exact: true
+  candidate_timeline_evidence:
+    begins_with_first_candidate_natural_cycle: true
+    synthetic_or_backfilled_legacy_timeline: forbidden
+  all_other_parent_contract_fields_unchanged: true
+authority:
+  result_or_business_read_authorized: false
+  promote_restart_or_production_authorized: false
+  source_test_config_docs_engineering_authorized: true
+
