@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2C named-volume真实fixture协议冻结
+
+- 冻结`r2-1r0l-b-r2c-named-volume-fixture-v1`：只验证R2B最终候选在真实Docker named volume上的
+  线程、独立进程、双容器EX/SH/NB、SIGKILL、合成ledger与错误mount合同；不读取业务结果。
+- 候选build恰好1次、fixture suite恰好1次，同scope任一失败均不得重跑；fixture须claim-first、断网、
+  只读根、无secret/业务/生产挂载，并固化逐项状态、命令计数、候选身份与证据树哈希。
+- 当前仅授权fixture编排源码、测试、config和文档；Docker build/fixture、volume创建删除、promote/
+  restart、真实业务与ledger写均为0。编排实现推送后须复算最终HEAD/snapshot/tag/scope并另获精确授权。
+  见`config/r2_1r0l_b_r2c_named_volume_fixture_v1.yaml`与
+  `docs/R2_1R0L_B_R2C_NAMED_VOLUME_FIXTURE_PROTOCOL_20260825.md`。
+
 ## 2026-08-25 · R2B统一跨进程锁工程完成
 
 - 终态`GO_ENGINEERING_COMPLETE / R2C_NOT_AUTHORIZED`。timeline、daily、shadow、paper与canonical

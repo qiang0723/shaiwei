@@ -1,0 +1,75 @@
+schema_version: shaiwei-runtime-lock-docker-fixture-contract-v1
+contract_id: r2-1r0l-b-r2c-named-volume-fixture-v1
+frozen_at: '2026-08-25T14:42:00+08:00'
+status: FROZEN_RELEASE_ENGINEERING_NOT_EXECUTION_APPROVAL
+predecessor:
+  engineering_contract: r2-1r0l-b-r2b-unified-lock-engineering-v1
+  engineering_git_head: 669174e2354ac2f5148e6c79a2b7a975664c612b
+  engineering_code_snapshot_sha256: 626cacdf48c96ac7a127353bf98ebe9ef3e335d4a07641d01bdb1e245704d4cb
+  engineering_verdict: GO_ENGINEERING_COMPLETE
+source:
+  final_head_must_equal_origin_main: true
+  final_code_snapshot_must_be_bound_after_fixture_runner_commit: true
+  isolated_git_archive_build_context_required: true
+  candidate_tag_prefix: shaiwei:scheduler-
+  candidate_must_not_exist_before_authorized_build: true
+  candidate_build_count: 1
+  failed_build_still_consumes_scope: true
+fixture:
+  action: R2C_RUNTIME_LOCK_NAMED_VOLUME_FIXTURE_ONCE
+  execution_authorized: false
+  same_candidate_image_required: true
+  suite_invocation_count: 1
+  same_scope_rerun_authorized: false
+  network_mode: none
+  read_only_root: true
+  cap_drop_all: true
+  no_new_privileges: true
+  docker_socket_mount: false
+  env_or_secret_mount: false
+  project_worktree_mount: false
+  business_data_mount: false
+  production_ledger_or_logs_mount: false
+  output_root_prefix: .release/runtime-lock-fixture-r2c
+  output_root_must_be_new_and_git_ignored: true
+  lock_volume_name: shaiwei_runtime_locks_v1
+  lock_volume_target: /run/shaiwei-locks
+  synthetic_output_bind_target: /fixture
+  required_cases:
+    - exact_image_label_and_runtime_identity
+    - eight_threads_with_noop_flock
+    - four_independent_timeline_processes
+    - two_container_exclusive_shared_nonblocking_matrix
+    - sigkill_releases_kernel_lock_without_lockfile_deletion
+    - eight_process_canonical_ledger_append_and_collision
+    - missing_mount_fails_closed
+    - readonly_mount_fails_closed
+    - real_wrong_volume_metadata_rejected_by_release_contract
+    - unknown_resource_order_and_reentrancy_fail_closed
+  evidence:
+    claim_before_first_container: true
+    exact_command_count_recorded: true
+    per_case_status_recorded: true
+    candidate_identity_recorded: true
+    report_sha256_required: true
+    evidence_tree_manifest_required: true
+acceptance:
+  all_required_cases_pass: true
+  any_failure: NO_GO_PROMOTION
+  build_or_fixture_retry_in_same_scope: forbidden
+  production_promote_or_restart: forbidden
+  r2_1r1_counting: forbidden_until_later_r2d_release
+authority:
+  source_test_config_docs_change_authorized: true
+  docker_build_authorized: false
+  docker_fixture_authorized: false
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  real_business_run_or_backfill_authorized: false
+  real_ledger_write_authorized: false
+  web_model_strategy_or_deepseek_authorized: false
+  production_authorization: none
+successor:
+  fixture_engineering_must_be_pushed_before_exact_scope: true
+  exact_user_approval_must_bind_head_snapshot_tag_and_scope_sha256: true
+  r2d_production_promotion_requires_later_separate_authorization: true
