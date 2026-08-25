@@ -1,5 +1,6 @@
 from dataclasses import replace
 from datetime import datetime
+import json
 from pathlib import Path
 from types import SimpleNamespace
 from zoneinfo import ZoneInfo
@@ -217,13 +218,33 @@ def test_targeted_docker_inspect_never_requests_environment(monkeypatch):
         if argv[:4] == ["docker", "compose", "ps", "-q"]:
             return SimpleNamespace(stdout="scheduler-id\n")
         if argv[:3] == ["docker", "inspect", "--format"]:
-            return SimpleNamespace(stdout="sha256:" + "a" * 64 + "|healthy\n")
+            mounts = json.dumps(
+                [
+                    {"Destination": "/workspace/data", "RW": True, "Type": "bind"},
+                    {"Destination": "/workspace/ledger", "RW": True, "Type": "bind"},
+                    {"Destination": "/workspace/logs", "RW": True, "Type": "bind"},
+                ]
+            )
+            return SimpleNamespace(
+                stdout="sha256:" + "a" * 64 + f"|healthy|true|{mounts}\n"
+            )
         return SimpleNamespace(
             stdout='{"code_snapshot_sha256":"' + "b" * 64 + '","git_head":"' + "c" * 40 + '"}\n'
         )
 
     monkeypatch.setattr(release_guard.subprocess, "run", fake_run)
+    monkeypatch.setattr(
+        release_guard.release,
+        "_image_metadata",
+        lambda _image: {
+            "image_id": "sha256:" + "a" * 64,
+            "code_snapshot_sha256": "b" * 64,
+            "git_head": "c" * 40,
+        },
+    )
     result = release_guard.GuardEnvironment().running_scheduler()
     assert result.health == "healthy"
+    assert result.read_only_rootfs is True
+    assert result.lock_authority == "legacy-bind-flock-v0"
     assert all(".Config.Env" not in " ".join(call) for call in calls)
     assert all("inspect" not in call or "--format" in call for call in calls)

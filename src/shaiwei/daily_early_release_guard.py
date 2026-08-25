@@ -14,7 +14,15 @@ import yaml
 
 from shaiwei import release
 from shaiwei.config import PROJECT_ROOT
-from shaiwei.release_guard import GuardEnvironment, SchedulerIdentity
+from shaiwei.release_guard import (
+    GuardEnvironment,
+    SchedulerIdentity,
+    validate_controlled_git_state,
+)
+from shaiwei.storage.runtime_mount_contract import (
+    LOCK_AUTHORITY,
+    LOCK_VOLUME_DESTINATION,
+)
 
 
 PROTOCOL_PATH = PROJECT_ROOT / "config" / "daily_early_readiness_release_guard_v2.yaml"
@@ -33,6 +41,7 @@ class ReleaseIdentity(FrozenModel):
     image_id: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
     code_snapshot_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     git_head: str = Field(pattern=r"^[0-9a-f]{40}$")
+    lock_authority: Literal["docker-named-volume-v1", "legacy-bind-flock-v0"] | None = None
 
 
 class ForwardIdentity(FrozenModel):
@@ -107,19 +116,56 @@ def load_protocol(path: Path = PROTOCOL_PATH) -> GuardProtocol:
     return GuardProtocol.model_validate(document)
 
 
-def _identity(document: dict[str, Any] | None) -> dict[str, str]:
+def _identity(
+    document: dict[str, Any] | None,
+    expected: ReleaseIdentity | None = None,
+) -> dict[str, str]:
     source = document or {}
-    return {
+    identity = {
         field: str(source.get(field, ""))
         for field in ("image", "image_id", "code_snapshot_sha256", "git_head")
+    }
+    if expected is not None and expected.lock_authority is not None:
+        identity["lock_authority"] = str(source.get("lock_authority", "legacy-bind-flock-v0"))
+    return identity
+
+
+def _expected_identity(expected: ReleaseIdentity) -> dict[str, str]:
+    return {
+        key: str(value)
+        for key, value in expected.model_dump(exclude_none=True).items()
     }
 
 
 def _running_matches(running: SchedulerIdentity, expected: ReleaseIdentity) -> bool:
-    return (
+    base = (
         running.image_id == expected.image_id
         and running.code_snapshot_sha256 == expected.code_snapshot_sha256
         and running.git_head == expected.git_head
+    )
+    if not base or expected.lock_authority is None:
+        return base
+    if (
+        running.lock_authority != expected.lock_authority
+        or running.read_only_rootfs is not True
+    ):
+        return False
+    destinations = set(running.mount_destinations)
+    if expected.lock_authority == LOCK_AUTHORITY:
+        return destinations == {
+            LOCK_VOLUME_DESTINATION,
+            "/workspace/data",
+            "/workspace/ledger",
+            "/workspace/logs",
+        }
+    return destinations in (
+        {"/workspace/data", "/workspace/ledger", "/workspace/logs"},
+        {
+            LOCK_VOLUME_DESTINATION,
+            "/workspace/data",
+            "/workspace/ledger",
+            "/workspace/logs",
+        },
     )
 
 
@@ -182,9 +228,11 @@ def _validate_readiness(protocol: GuardProtocol, environment: EarlyGuardEnvironm
 
 def _verify_active(protocol: GuardProtocol, environment: EarlyGuardEnvironment) -> SchedulerIdentity:
     current, previous = _release_state(environment)
-    if _identity(current) != protocol.candidate.model_dump():
+    if _identity(current, protocol.candidate) != _expected_identity(protocol.candidate):
         raise GuardError("active release state differs from the frozen candidate")
-    if _identity(previous) != protocol.expected_running_release.model_dump():
+    if _identity(previous, protocol.expected_running_release) != _expected_identity(
+        protocol.expected_running_release
+    ):
         raise GuardError("active release history differs from the frozen previous release")
     running = environment.running_scheduler()
     if not _running_matches(running, protocol.candidate) or running.health != "healthy":
@@ -200,13 +248,13 @@ def _restore_previous(
     running = environment.running_scheduler()
     old = protocol.expected_running_release
     candidate = protocol.candidate
-    if _identity(current) == old.model_dump():
+    if _identity(current, old) == _expected_identity(old):
         if _running_matches(running, old) and running.health == "healthy":
             return {"status": "ALREADY_RESTORED", "container_id": running.container_id}
         restored = environment.start_current()
     elif (
-        _identity(current) == candidate.model_dump()
-        and _identity(previous) == old.model_dump()
+        _identity(current, candidate) == _expected_identity(candidate)
+        and _identity(previous, old) == _expected_identity(old)
     ):
         restored = environment.rollback_and_start()
     else:
@@ -214,7 +262,7 @@ def _restore_previous(
     restored_current, _restored_previous = _release_state(environment)
     restored_running = environment.running_scheduler()
     if (
-        _identity(restored_current) != old.model_dump()
+        _identity(restored_current, old) != _expected_identity(old)
         or not _running_matches(restored_running, old)
         or restored_running.health != "healthy"
     ):
@@ -257,16 +305,12 @@ def run_guard(
 ) -> dict[str, object]:
     env = environment or EarlyGuardEnvironment()
     checked_at = _validate_time(protocol, now)
-    git = env.git_state()
-    if git["status"]:
-        raise GuardError("release guard requires a clean worktree")
-    if git["head"] != git["origin_main"]:
-        raise GuardError("release guard requires HEAD to equal origin/main")
+    validate_controlled_git_state(env, error_type=GuardError)
     try:
         verified = env.verify_candidate(protocol.candidate.image)
     except release.ReleaseError as error:
         raise GuardError(str(error)) from error
-    if _identity(verified) != protocol.candidate.model_dump():
+    if _identity(verified, protocol.candidate) != _expected_identity(protocol.candidate):
         raise GuardError("candidate image runtime identity differs from the protocol")
 
     current, previous = _release_state(env)
@@ -274,8 +318,8 @@ def run_guard(
     candidate = protocol.candidate
     old = protocol.expected_running_release
     if (
-        _identity(current) == candidate.model_dump()
-        and _identity(previous) == old.model_dump()
+        _identity(current, candidate) == _expected_identity(candidate)
+        and _identity(previous, old) == _expected_identity(old)
         and _running_matches(running, candidate)
         and running.health == "healthy"
     ):
@@ -286,11 +330,11 @@ def run_guard(
             "container_id": running.container_id,
             "mutation_invoked": False,
         }
-    if _identity(current) == old.model_dump() and _running_matches(running, old):
+    if _identity(current, old) == _expected_identity(old) and _running_matches(running, old):
         action: Literal["PROMOTE_AND_START", "RESUME_START"] = "PROMOTE_AND_START"
     elif (
-        _identity(current) == candidate.model_dump()
-        and _identity(previous) == old.model_dump()
+        _identity(current, candidate) == _expected_identity(candidate)
+        and _identity(previous, old) == _expected_identity(old)
         and _running_matches(running, old)
     ):
         action = "RESUME_START"

@@ -18,6 +18,12 @@ import yaml
 from shaiwei.config import PROJECT_ROOT
 from shaiwei.ledger import PAPER_RUNS
 from shaiwei import release
+from shaiwei.release_build_context import controlled_source_status
+from shaiwei.storage.runtime_mount_contract import (
+    LOCK_VOLUME_DESTINATION,
+    RuntimeMountContractError,
+    validate_scheduler_mounts,
+)
 
 
 PROTOCOL_PATH = PROJECT_ROOT / "config" / "paper_top20_release_guard_v2.yaml"
@@ -92,18 +98,18 @@ class SchedulerIdentity:
     health: str
     code_snapshot_sha256: str
     git_head: str
+    read_only_rootfs: bool | None = None
+    mount_destinations: tuple[str, ...] = ()
+    lock_authority: str = ""
 
 
 class GuardEnvironment:
     """Narrow host adapter; tests replace this object without touching Docker or Git."""
 
-    def git_state(self) -> dict[str, str]:
+    def git_state(self) -> dict[str, object]:
         status = self._run(["git", "status", "--porcelain"]).stdout.strip()
-        return {
-            "status": status,
-            "head": self._run(["git", "rev-parse", "HEAD"]).stdout.strip(),
-            "origin_main": self._run(["git", "rev-parse", "origin/main"]).stdout.strip(),
-        }
+        controlled = controlled_source_status(PROJECT_ROOT)
+        return {"status": status, **controlled}
 
     def release_status(self) -> dict[str, object]:
         return release.status()
@@ -120,14 +126,31 @@ class GuardEnvironment:
                 "docker",
                 "inspect",
                 "--format",
-                "{{.Image}}|{{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}",
+                "{{.Image}}|{{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}|"
+                "{{.HostConfig.ReadonlyRootfs}}|{{json .Mounts}}",
                 container_id,
             ]
         ).stdout.strip()
         try:
-            image_id, health = targeted.split("|", 1)
-        except ValueError as error:
+            image_id, health, readonly_text, mounts_text = targeted.split("|", 3)
+            mounts = json.loads(mounts_text)
+        except (ValueError, json.JSONDecodeError) as error:
             raise GuardError("scheduler targeted identity is invalid") from error
+        has_lock_mount = any(
+            isinstance(item, dict) and item.get("Destination") == LOCK_VOLUME_DESTINATION
+            for item in mounts
+        )
+        try:
+            destinations = validate_scheduler_mounts(
+                mounts,
+                lock_required=has_lock_mount,
+            )
+        except RuntimeMountContractError as error:
+            raise GuardError(str(error)) from error
+        try:
+            image_metadata = release._image_metadata(image_id)
+        except release.ReleaseError as error:
+            raise GuardError(str(error)) from error
         command = (
             "import json; from shaiwei.provenance import code_snapshot_sha256,git_head; "
             "print(json.dumps({'code_snapshot_sha256':code_snapshot_sha256(),'git_head':git_head()}))"
@@ -143,6 +166,11 @@ class GuardEnvironment:
             health=health,
             code_snapshot_sha256=str(runtime.get("code_snapshot_sha256", "")),
             git_head=str(runtime.get("git_head", "")),
+            read_only_rootfs=readonly_text.lower() == "true",
+            mount_destinations=tuple(destinations),
+            lock_authority=str(
+                image_metadata.get("lock_authority", "legacy-bind-flock-v0")
+            ),
         )
 
     def latest_forward(self, account_id: str) -> dict[str, str]:
@@ -180,6 +208,23 @@ class GuardEnvironment:
         except subprocess.CalledProcessError as error:
             detail = (error.stderr or error.stdout or "").strip()
             raise GuardError(f"command failed: {' '.join(argv)}: {detail}") from error
+
+
+def validate_controlled_git_state(
+    environment: GuardEnvironment,
+    *,
+    error_type: type[Exception] = GuardError,
+) -> None:
+    """Require pushed controlled source while allowing runtime evidence to remain dirty."""
+    git = environment.git_state()
+    changes = git.get("controlled_changes")
+    if changes is None:
+        if git.get("status"):
+            raise error_type("release guard requires a clean worktree")
+    elif tuple(changes):
+        raise error_type("release guard requires a clean controlled source tree")
+    if git.get("head") != git.get("origin_main"):
+        raise error_type("release guard requires HEAD to equal origin/main")
 
 
 def load_protocol(path: Path = PROTOCOL_PATH) -> GuardProtocol:

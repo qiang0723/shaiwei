@@ -48,12 +48,19 @@ class FakeEnvironment:
 
     @staticmethod
     def _running(identity, container_id, health="healthy"):
+        authority = identity.get("lock_authority") or ""
+        mounts = ["/workspace/data", "/workspace/ledger", "/workspace/logs"]
+        if authority == "docker-named-volume-v1":
+            mounts.insert(0, "/run/shaiwei-locks")
         return SchedulerIdentity(
             container_id=container_id,
             image_id=identity["image_id"],
             health=health,
             code_snapshot_sha256=identity["code_snapshot_sha256"],
             git_head=identity["git_head"],
+            read_only_rootfs=True,
+            mount_destinations=tuple(mounts),
+            lock_authority=authority,
         )
 
     def git_state(self):

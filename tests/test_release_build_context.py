@@ -8,6 +8,7 @@ import pytest
 from shaiwei.provenance import write_release_manifest
 from shaiwei.release_build_context import (
     ReleaseBuildContextError,
+    controlled_source_status,
     prepare_scheduler_build_context,
 )
 
@@ -81,6 +82,20 @@ def test_archive_context_allows_runtime_changes_and_excludes_noncontrolled_files
         run_root = source.path.parent
 
     assert not run_root.exists()
+
+
+def test_controlled_source_status_ignores_runtime_and_reports_controlled_drift(
+    tmp_path: Path,
+) -> None:
+    root, _parent = _repository(tmp_path)
+    _write(root / "ledger/runtime.csv", "id,status\n1,PASS\n2,PASS\n")
+    _write(root / "docs/user-draft.md", "draft\n")
+    status = controlled_source_status(root)
+    assert status["head"] == status["origin_main"]
+    assert status["controlled_changes"] == ()
+
+    _write(root / "src/app.py", "VALUE = 2\n")
+    assert controlled_source_status(root)["controlled_changes"] == ("src/app.py",)
 
 
 @pytest.mark.parametrize(
