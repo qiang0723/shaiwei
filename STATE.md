@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2D Phase A no-start提升完成
+
+- 用户精确批准scope `4145d601...8292`；20:45只读预检`READY_TO_PREPARE`，20:45唯一执行返回
+  `PREPARED`、`started=false`，发布审计SHA=`45bf0302...12a37`。Phase A关闭不重复。
+- release current现为named-volume候选`b7565001...baa72`，previous为旧生产`722f63de...13b76`；旧
+  scheduler仍是原容器`183b8c6c5edd`、原三bind挂载、原代码快照且healthy，未重启、候选未启动。
+- 下一节点仅为20260826 16:05—19:00 Phase B。必须先由旧容器闭合
+  `waiting_source / 20260826`且readiness只暴露该交易日；任一身份、双账户或fixture漂移均在mutation前
+  阻断。当前真实候选业务、手工跑批、secret、外网、Web、模型与策略改动均为0。
+
 ## 2026-08-25 · R2D发布工程与精确scope准备完成
 
 - 终态`GO_ENGINEERING_READY / EXECUTION_NOT_AUTHORIZED`。20260825自然日增量、影子及Top30/Top20

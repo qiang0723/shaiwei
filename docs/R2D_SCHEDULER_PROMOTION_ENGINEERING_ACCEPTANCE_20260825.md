@@ -58,3 +58,19 @@ scope 精确绑定候选、旧生产、两账户最新 FORWARD、旧周期健康
 
 工程提交推送后停止，等待用户精确授权。若 Phase A 窗口过期、任一身份/基线哈希漂移或次日不再是
 唯一 readiness 日期，本 scope 自动失效，不顺延、不改日期复用；须重新生成新 scope。
+
+## 7. Phase A 执行回执
+
+用户于 2026-08-25 精确批准 scope `4145d601...8292` 和冻结动作。20:45:21（UTC+8）同一守护器
+只读预检返回 `READY_TO_PREPARE`；20:45:57 执行唯一一次 no-start promote，终态 `PREPARED`、
+`mutation_invoked=true`、`started=false`。
+
+- release current：候选 `shaiwei:scheduler-88e3f471565ba461` / `b7565001...baa72`；
+- release previous：旧生产 `shaiwei:scheduler-4e5244b6b02739dd` / `722f63de...13b76`；
+- 发布审计记录 SHA-256：`45bf0302e2595f82877a733ae527b1e3c8918d1cd5cef3b9858e21f2fb512a37`；
+- 旧 scheduler 仍为原容器 `183b8c6c5edd`，创建于 2026-08-03，三 bind mount、原代码快照且
+  `healthy`；没有重启或启动候选。
+
+Phase A 至此关闭，不重复执行。下一停止点为 2026-08-26 Phase B：未同时满足冻结窗口、旧容器
+`waiting_source / 20260826`、唯一 readiness 日期、候选/旧生产/双账户/fixture/控制器全部身份门时，
+守护器必须在 mutation 前阻断。
