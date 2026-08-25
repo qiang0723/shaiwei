@@ -2,6 +2,16 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2C真实Docker锁fixture编排工程完成
+
+- 终态`GO_RELEASE_READY_NOT_EXECUTION_APPROVAL`。新增400行宿主编排器与75行固定容器payload，
+  claim-first后逐项运行冻结10门；输出根存在即拒绝同scope重跑，失败也固化报告和证据树。
+- 精确身份、只读/断网/降权、合成挂载、双容器、SIGKILL、ledger并发和三类坏mount均进入机器合同；
+  不把fixture职责堆入release或锁内核。snapshot=`8009eeb5...7b70`。
+- R2C专项11、联合专项92、架构13、全仓1,904 PASS；Docker build/fixture/volume、生产promote/restart、
+  真实业务/ledger、网络和密钥均为0。推送后只可生成最终HEAD/snapshot/tag/scope精确授权，未批准前
+  停止。见`docs/R2_1R0L_B_R2C_FIXTURE_ENGINEERING_ACCEPTANCE_20260825.md`。
+
 ## 2026-08-25 · R2C named-volume真实fixture协议冻结
 
 - 冻结`r2-1r0l-b-r2c-named-volume-fixture-v1`：只验证R2B最终候选在真实Docker named volume上的
