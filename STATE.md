@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2A锁语义只读审计完成并冻结统一锁权威
+
+- 终态`GO_ARCHITECTURE_ONLY / IMPLEMENTATION_NOT_STARTED`。只读清点确认timeline、daily、shadow、
+  paper与canonical ledger都在Docker Desktop项目bind mount上直接依赖`flock`；正常scheduler虽然串行，
+  但重复scheduler、手工/恢复入口及跨容器发布仍需要真实跨进程互斥。
+- 实际生产仍为容器`183b8c6c5edd`、镜像`722f63de...13b76`且healthy；三持久化挂载在容器内均为
+  `fakeowner`文件共享。没有发现账本损坏，也不据此推翻任何既有业务或研究结论。
+- ADR-0009选择“业务data/ledger/logs继续留项目目录，仅锁文件进入专用Docker named volume”，并以
+  稳定逻辑资源ID统一线程/进程/容器锁。该方案仍须真实多进程、双容器、SIGKILL释放与ledger并发
+  fixture证明；不得把Docker文档推断当PASS。
+- 本节点源码、配置、Compose、ledger、镜像、fixture、promote、restart、业务读取/运行均为0。下一
+  合法节点R2B只做结果盲工程；其后R2C另批唯一候选与fixture，全部通过前不进R2-1R1。见
+  `docs/ADR_0009_DOCKER_INTERPROCESS_LOCK_AUTHORITY.md`与
+  `docs/R2_1R0L_B_R2A_LOCK_SEMANTICS_AUDIT_20260825.md`。
+
 ## 2026-08-25 · TS具体事件策略关闭，但经济假设家族继续研究
 
 - 用户明确裁决TS大方向不能关闭。权威分层为：既有TS-v3—v6事件策略与TS-B身份保持
