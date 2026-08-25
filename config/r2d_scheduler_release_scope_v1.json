@@ -1,0 +1,82 @@
+{
+  "release_scope_sha256": "4145d6018a1cb38f48432677dce1e68558cdaf48ad5c3e81d12f7067eac58292",
+  "schema_version": "r2d-scheduler-release-scope-v1",
+  "scope": {
+    "action": "R2D_PROMOTE_NO_START_20260825_AND_START_20260826_ONCE",
+    "authority": {
+      "build_candidate_authorized": false,
+      "env_or_secret_read_authorized": false,
+      "external_network_authorized": false,
+      "historical_backfill_or_manual_daily_run_authorized": false,
+      "model_signal_gate_web_or_strategy_change_authorized": false,
+      "phase_a_promote_no_start_authorized_after_exact_user_approval": true,
+      "phase_b_start_current_authorized_after_exact_user_approval": true,
+      "production_business_run_beyond_first_natural_cycle_authorized": false,
+      "restart_legacy_scheduler_during_phase_a_authorized": false
+    },
+    "candidate": {
+      "code_snapshot_sha256": "88e3f471565ba461fb660f41a97a2dd4ac633585c4f74efadd9a3b264e2abec0",
+      "git_head": "55f98e7085bf7f1a573c9105606c842a9655b63c",
+      "image": "shaiwei:scheduler-88e3f471565ba461",
+      "image_id": "sha256:b7565001835936e1235d24de3c567f0d13869d48f30596ac7172df7b849baa72",
+      "lock_authority": "docker-named-volume-v1"
+    },
+    "controller": {
+      "component_sha256": "455aad3798b6c32f68e434da64f14ebb300047fd79de592df4f47bd0b958e625",
+      "source_head": "9ff6516e6683dd8a70147e79132aa05556fb2ac5"
+    },
+    "expected_latest_forward": [
+      {
+        "account_id": "model_baseline",
+        "artifact_sha256": "a7760947ce37126e455c520da77545264b41ee58df504f192b743505cd60bd4c",
+        "code_snapshot_sha256": "4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708",
+        "execution_trade_date": "20260825"
+      },
+      {
+        "account_id": "model_top20",
+        "artifact_sha256": "2120d49edc026d878f88533b1ce0bb67c59b4787add918646c2d6fc7b7959731",
+        "code_snapshot_sha256": "4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708",
+        "execution_trade_date": "20260825"
+      }
+    ],
+    "expected_running_release": {
+      "code_snapshot_sha256": "4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708",
+      "git_head": "210af4dab33c85b38c05b28f56c176b7970c41db",
+      "image": "shaiwei:scheduler-4e5244b6b02739dd",
+      "image_id": "sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76",
+      "lock_authority": "legacy-bind-flock-v0"
+    },
+    "guard_protocol": {
+      "path": "config/r2d_scheduler_release_guard_v1.yaml",
+      "sha256": "e8423780fadc28eca1fd82914d8dc71154cbe41e5be502bd7e4dd260f8088808"
+    },
+    "legacy_closed_cycle_evidence": {
+      "detail": "20260825",
+      "path": "logs/scheduler/health.json",
+      "sha256": "42e34fb0999de9aa9d23e634d044b56ccb721091cd779bac814020f4cb3ac3c1",
+      "status": "noop",
+      "updated_at": "2026-08-25T12:09:48.825823+00:00"
+    },
+    "phase_a": {
+      "date": "20260825",
+      "expires_at_utc8": "23:30:00",
+      "not_before_utc8": "20:45:00",
+      "operation": "PROMOTE_NO_START_ONCE"
+    },
+    "phase_b": {
+      "date": "20260826",
+      "expires_at_utc8": "19:00:00",
+      "not_before_utc8": "16:05:00",
+      "operation": "START_CURRENT_ONCE_AFTER_WAITING_SOURCE"
+    },
+    "predecessor_fixture": {
+      "evidence_tree_sha256": "36b9cc9cd59a9e4d8b16b718667bf304f7d099fe73f0e280a4ce5a452b00dee6",
+      "receipt_sha256": "9bd08aecd49de220a51985b0b82e2821f093d02b1ea7d5c6f940c3aac2fa9fe3",
+      "release_scope_sha256": "8887bbdf31f1f05fe0a7feffca80a5b96605f407182eb4d3275c5346c2369a22",
+      "report_sha256": "6e5a9ec20f8d81d9b995f74e4882d08cadbaaf858fa742f5e42787fcf21b208b"
+    },
+    "same_scope_phase_a_repeat_authorized": false,
+    "same_scope_phase_b_repeat_authorized": false,
+    "strategy_effectiveness_claim_authorized": false
+  }
+}

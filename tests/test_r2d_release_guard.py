@@ -336,3 +336,34 @@ def test_fixture_evidence_is_hash_and_identity_bound(monkeypatch, tmp_path):
     report_path.write_text("{}\n", encoding="utf-8")
     with pytest.raises(base.GuardError, match="hash or schema"):
         guard._validate_fixture(frozen)
+
+
+def test_tracked_r2d_protocol_and_release_scope_are_exactly_bound():
+    frozen = guard.load_protocol()
+    release_path = (
+        guard.PROJECT_ROOT / "config" / "r2d_scheduler_release_scope_v1.json"
+    )
+    release = json.loads(release_path.read_text(encoding="utf-8"))
+    scope = release["scope"]
+    canonical = json.dumps(scope, sort_keys=True, separators=(",", ":")).encode()
+
+    assert release["schema_version"] == "r2d-scheduler-release-scope-v1"
+    assert release["release_scope_sha256"] == hashlib.sha256(canonical).hexdigest()
+    assert release["release_scope_sha256"] == (
+        "4145d6018a1cb38f48432677dce1e68558cdaf48ad5c3e81d12f7067eac58292"
+    )
+    assert scope["action"] == (
+        "R2D_PROMOTE_NO_START_20260825_AND_START_20260826_ONCE"
+    )
+    assert scope["candidate"] == frozen.candidate.model_dump()
+    assert scope["expected_running_release"] == (
+        frozen.expected_running_release.model_dump()
+    )
+    assert scope["expected_latest_forward"] == [
+        item.model_dump() for item in frozen.expected_latest_forward
+    ]
+    assert scope["phase_a"]["date"] == frozen.prepare_date
+    assert scope["phase_b"]["date"] == frozen.target_trade_date
+    assert scope["guard_protocol"]["sha256"] == hashlib.sha256(
+        guard.PROTOCOL_PATH.read_bytes()
+    ).hexdigest()

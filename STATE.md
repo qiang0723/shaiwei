@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-25 · R2D发布工程与精确scope准备完成
+
+- 终态`GO_ENGINEERING_READY / EXECUTION_NOT_AUTHORIZED`。20260825自然日增量、影子及Top30/Top20
+  两账户均PASS；本地冻结交易日历确认20260826，检查仅使用状态、日期和哈希，未读策略效果。
+- 真实guard绑定R2C-R1候选、旧生产、fixture四组哈希、控制器组件身份和两账户最新FORWARD；两阶段
+  冻结为20260825 20:45—23:30只promote不启动、20260826 16:05—19:00等待旧容器
+  `waiting_source`后才start。
+- 精确scope=`4145d601...8292`，动作
+  `R2D_PROMOTE_NO_START_20260825_AND_START_20260826_ONCE`。用户未逐字批准前不得执行；窗口过期或
+  任一身份漂移即失效，不允许顺延复用。
+- R2D专项10、架构13、全仓1,918 PASS；Ruff、compileall、pip check、差异与脱敏检查PASS。当前
+  build/fixture/promote/restart/业务/ledger/secret/网络均为0。见
+  `docs/R2D_SCHEDULER_PROMOTION_ENGINEERING_ACCEPTANCE_20260825.md`。
+
 ## 2026-08-25 · R2D控制器与候选运行时身份分离勘误
 
 - 候选在R2D控制器施工前已完成唯一fixture，故最终仓库snapshot不可能仍等于候选snapshot；禁止为
