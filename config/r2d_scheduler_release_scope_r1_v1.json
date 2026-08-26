@@ -1,0 +1,86 @@
+{
+  "release_scope_sha256": "bb74c299a4ce5d76dc0cafd337b4d6529d6b433de72c012bcc6c54531297119a",
+  "schema_version": "r2d-scheduler-release-r1-scope-v1",
+  "scope": {
+    "action": "R2D_R1_START_CURRENT_20260827_ONCE_AFTER_LEGACY_NOOP_BOUNDARY",
+    "authority": {
+      "build_candidate_authorized": false,
+      "env_or_secret_read_authorized": false,
+      "external_network_authorized": false,
+      "historical_backfill_or_manual_daily_run_authorized": false,
+      "model_signal_gate_web_or_strategy_change_authorized": false,
+      "phase_a_promote_no_start_authorized": false,
+      "production_business_run_beyond_first_natural_cycle_authorized": false,
+      "start_current_authorized_after_exact_user_approval": true
+    },
+    "candidate": {
+      "code_snapshot_sha256": "88e3f471565ba461fb660f41a97a2dd4ac633585c4f74efadd9a3b264e2abec0",
+      "git_head": "55f98e7085bf7f1a573c9105606c842a9655b63c",
+      "image": "shaiwei:scheduler-88e3f471565ba461",
+      "image_id": "sha256:b7565001835936e1235d24de3c567f0d13869d48f30596ac7172df7b849baa72",
+      "lock_authority": "docker-named-volume-v1"
+    },
+    "completed_natural_boundary": {
+      "data_snapshot_sha256": "1cf3088249e386c1a79456803eac2dda3ae0026b009b8adb4dd2cf65abdfd615",
+      "signal_sha256": "c6b44522786ba1b721c3cc18d74e75d2ff6a6a5076e6781d78339b4cd866786b",
+      "trade_date": "20260826"
+    },
+    "controller": {
+      "component_sha256": "8c4660c24c1abb79bd2d9493362c23d24a027caebf9a4e5e922140b11ea120e5",
+      "source_head": "106a84361f86998bf51d73eb614ee7447d851c2a"
+    },
+    "expected_latest_forward": [
+      {
+        "account_id": "model_baseline",
+        "artifact_sha256": "8d15c3aa150c3b4d8cb26643c759e3726fc19bdaf4e9abe5f1c267f44e9fd36c",
+        "code_snapshot_sha256": "4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708",
+        "execution_trade_date": "20260826"
+      },
+      {
+        "account_id": "model_top20",
+        "artifact_sha256": "d64083f5ccd37591f982a8ac112eceba6f7ce3929a7ecd2bfd689940af8a86ac",
+        "code_snapshot_sha256": "4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708",
+        "execution_trade_date": "20260826"
+      }
+    ],
+    "expected_running_release": {
+      "code_snapshot_sha256": "4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708",
+      "git_head": "210af4dab33c85b38c05b28f56c176b7970c41db",
+      "image": "shaiwei:scheduler-4e5244b6b02739dd",
+      "image_id": "sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76",
+      "lock_authority": "legacy-bind-flock-v0"
+    },
+    "guard_protocol": {
+      "path": "config/r2d_scheduler_release_guard_r1_v1.yaml",
+      "sha256": "74cdcd2422a841c59bf5fa7772d94ce5504e0c0afa5c764afd0948ce74411c96"
+    },
+    "legacy_noop_boundary": {
+      "detail": "20260826",
+      "health_status": "noop",
+      "require_target_daily_rows": 0,
+      "require_target_paper_rows": 0,
+      "require_target_shadow_rows": 0,
+      "updated_on_target_date_not_before_utc8": "16:00:00"
+    },
+    "parent_release_scope_sha256": "4145d6018a1cb38f48432677dce1e68558cdaf48ad5c3e81d12f7067eac58292",
+    "phase_a_repeat_authorized": false,
+    "predecessor_fixture": {
+      "evidence_tree_sha256": "36b9cc9cd59a9e4d8b16b718667bf304f7d099fe73f0e280a4ce5a452b00dee6",
+      "receipt_sha256": "9bd08aecd49de220a51985b0b82e2821f093d02b1ea7d5c6f940c3aac2fa9fe3",
+      "release_scope_sha256": "8887bbdf31f1f05fe0a7feffca80a5b96605f407182eb4d3275c5346c2369a22",
+      "report_sha256": "6e5a9ec20f8d81d9b995f74e4882d08cadbaaf858fa742f5e42787fcf21b208b"
+    },
+    "recovery_protocol": {
+      "path": "config/r2d_scheduler_legacy_cutoff_recovery_v1.yaml",
+      "sha256": "d61cfa3fdb950ac185053bcb05c6cb93537cba1d2245cd6db661ae8d93304c33"
+    },
+    "same_scope_repeat_authorized": false,
+    "start_window": {
+      "date": "20260827",
+      "expires_at_utc8": "19:00:00",
+      "not_before_utc8": "16:05:00",
+      "operation": "START_CURRENT_ONCE"
+    },
+    "strategy_effectiveness_claim_authorized": false
+  }
+}

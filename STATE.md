@@ -2,6 +2,17 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-26 · R2D-R1发布工程完成并生成精确启动scope
+
+- 终态`GO_RELEASE_READY_NOT_EXECUTION_APPROVAL`。恢复控制器以`noop / prior-day + 目标日daily/shadow/
+  paper全状态0行`替换结构性不可能的`waiting_source`门；恢复协议禁止重复Phase A，旧协议仍原样兼容。
+- 实现`106a843`已先推送，组件SHA=`8c4660c2...20e5`；专项28、全仓1,925 PASS，Ruff/diff-check
+  PASS。Docker build/fixture/promote/start/restart、业务、ledger、secret、网络均为0。
+- 精确scope=`bb74c299...119a`，动作
+  `R2D_R1_START_CURRENT_20260827_ONCE_AFTER_LEGACY_NOOP_BOUNDARY`，只允许20260827 16:05—19:00
+  全部门通过后启动一次同一候选；用户未逐字批准前停止，窗口或身份漂移即失效。见
+  `docs/R2D_R1_RELEASE_READY_20260826.md`。
+
 ## 2026-08-26 · R2D-R1旧生产19:30时钟证据恢复协议冻结
 
 - 20260826旧生产自然周期已完整PASS：daily 5批/15,649行、raw `.BJ=0`，shadow S1—S9 PASS/

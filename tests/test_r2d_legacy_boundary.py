@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
 
 import pytest
 
 from shaiwei import daily_early_release_guard as base
+from shaiwei import r2d_release_guard as guard
 from shaiwei.r2d_legacy_boundary import (
     LegacyNoopBoundary,
     target_write_counts,
@@ -115,3 +118,34 @@ def test_validate_noop_boundary_rejects_ambiguous_evidence(health, counts, messa
             health=health,
             counts=counts,
         )
+
+
+def test_tracked_recovery_guard_and_scope_are_exactly_bound() -> None:
+    protocol = guard.load_protocol(guard.RECOVERY_PROTOCOL_PATH)
+    release_path = (
+        guard.PROJECT_ROOT / "config" / "r2d_scheduler_release_scope_r1_v1.json"
+    )
+    release = json.loads(release_path.read_text(encoding="utf-8"))
+    scope = release["scope"]
+    canonical = json.dumps(scope, sort_keys=True, separators=(",", ":")).encode()
+
+    assert release["schema_version"] == "r2d-scheduler-release-r1-scope-v1"
+    assert release["release_scope_sha256"] == hashlib.sha256(canonical).hexdigest()
+    assert release["release_scope_sha256"] == (
+        "bb74c299a4ce5d76dc0cafd337b4d6529d6b433de72c012bcc6c54531297119a"
+    )
+    assert scope["action"] == (
+        "R2D_R1_START_CURRENT_20260827_ONCE_AFTER_LEGACY_NOOP_BOUNDARY"
+    )
+    assert scope["candidate"] == protocol.candidate.model_dump()
+    assert scope["expected_running_release"] == (
+        protocol.expected_running_release.model_dump()
+    )
+    assert scope["expected_latest_forward"] == [
+        item.model_dump() for item in protocol.expected_latest_forward
+    ]
+    assert scope["phase_a_repeat_authorized"] is False
+    assert scope["start_window"]["date"] == protocol.target_trade_date
+    assert scope["guard_protocol"]["sha256"] == hashlib.sha256(
+        guard.RECOVERY_PROTOCOL_PATH.read_bytes()
+    ).hexdigest()
