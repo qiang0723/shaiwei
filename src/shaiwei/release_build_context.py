@@ -41,13 +41,15 @@ class ControllerIdentity(BaseModel):
 
     @model_validator(mode="after")
     def validate_paths(self) -> "ControllerIdentity":
-        expected = {
+        legacy = {
             "src/shaiwei/release_build_context.py",
             "src/shaiwei/release_guard.py",
             "src/shaiwei/daily_early_release_guard.py",
             "src/shaiwei/r2d_release_guard.py",
         }
-        if set(self.component_paths) != expected or len(self.component_paths) != len(expected):
+        recovery = legacy | {"src/shaiwei/r2d_legacy_boundary.py"}
+        actual = set(self.component_paths)
+        if actual not in (legacy, recovery) or len(self.component_paths) != len(actual):
             raise ValueError("R2D controller component inventory differs")
         return self
 

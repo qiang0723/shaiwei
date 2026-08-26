@@ -82,6 +82,46 @@ def protocol(**updates):
     return guard.GuardProtocol.model_validate(protocol_document(**updates))
 
 
+def recovery_protocol_document(**updates):
+    document = protocol_document(
+        schema_version="r2d-scheduler-release-guard-r1-v1",
+        guard_id="r2d-scheduler-release-guard-20260827",
+        target_trade_date="20260827",
+        expected_latest_forward=[
+            {
+                "account_id": account,
+                "execution_trade_date": "20260826",
+                "code_snapshot_sha256": "2" * 64,
+                "artifact_sha256": artifact * 64,
+            }
+            for account, artifact in (("model_baseline", "3"), ("model_top20", "4"))
+        ],
+        controller_identity={
+            "candidate_base_head": "1" * 40,
+            "controller_source_head": "f" * 40,
+            "component_paths": [
+                "src/shaiwei/release_build_context.py",
+                "src/shaiwei/release_guard.py",
+                "src/shaiwei/daily_early_release_guard.py",
+                "src/shaiwei/r2d_release_guard.py",
+                "src/shaiwei/r2d_legacy_boundary.py",
+            ],
+            "component_sha256": "a" * 64,
+        },
+        legacy_noop_boundary={
+            "mode": "PRIOR_DAY_NOOP",
+            "status": "noop",
+            "detail_trade_date": "20260826",
+            "updated_on_target_date_not_before": "16:00:00",
+            "require_target_daily_rows": 0,
+            "require_target_shadow_rows": 0,
+            "require_target_paper_rows": 0,
+        },
+    )
+    document.update(updates)
+    return document
+
+
 class FakeEnvironment:
     def __init__(self):
         self.protocol = protocol()
@@ -114,6 +154,7 @@ class FakeEnvironment:
             "detail": "20260826",
             "updated_at": "2026-08-26T08:01:00+00:00",
         }
+        self.target_counts = {"daily": 0, "shadow": 0, "paper": 0}
         self.prepare_calls = 0
         self.start_calls = 0
         self.rollback_calls = 0
@@ -157,6 +198,9 @@ class FakeEnvironment:
 
     def scheduler_health(self):
         return self.health
+
+    def target_write_counts(self, _target_trade_date):
+        return self.target_counts
 
     def controller_evidence(self, _identity):
         return {
@@ -279,6 +323,64 @@ def test_prepared_start_enforces_named_lock_runtime(monkeypatch):
     assert env.start_calls == 1
     assert env.running.lock_authority == "docker-named-volume-v1"
     assert len(env.running.mount_destinations) == 4
+
+
+def test_recovery_start_accepts_fresh_prior_day_noop_and_zero_target_rows(monkeypatch):
+    env = FakeEnvironment()
+    env.protocol = guard.GuardProtocol.model_validate(recovery_protocol_document())
+    env.forwards = {
+        item.account_id: item.model_dump() for item in env.protocol.expected_latest_forward
+    }
+    env.ready["available_new_trade_dates"] = ["20260827"]
+    env.health = {
+        "status": "noop",
+        "detail": "20260826",
+        "updated_at": "2026-08-27T08:01:00+00:00",
+    }
+    env.current = deepcopy(env.candidate)
+    env.previous = deepcopy(env.old)
+    monkeypatch.setattr(guard, "_validate_fixture", lambda _protocol: None)
+
+    with pytest.raises(base.GuardError, match="cannot repeat Phase A"):
+        guard.prepare_guard(env.protocol, now=local(25, 20), execute=False, environment=env)
+    result = guard.start_guard(
+        env.protocol,
+        now=local(27, 16, 5),
+        execute=False,
+        environment=env,
+    )
+    assert result["status"] == "READY_TO_START"
+    assert result["legacy_noop_boundary"]["target_write_counts"] == {
+        "daily": 0,
+        "shadow": 0,
+        "paper": 0,
+    }
+
+
+def test_recovery_start_rejects_any_target_date_attempt(monkeypatch):
+    env = FakeEnvironment()
+    env.protocol = guard.GuardProtocol.model_validate(recovery_protocol_document())
+    env.forwards = {
+        item.account_id: item.model_dump() for item in env.protocol.expected_latest_forward
+    }
+    env.ready["available_new_trade_dates"] = ["20260827"]
+    env.health = {
+        "status": "noop",
+        "detail": "20260826",
+        "updated_at": "2026-08-27T08:01:00+00:00",
+    }
+    env.target_counts["paper"] = 1
+    env.current = deepcopy(env.candidate)
+    env.previous = deepcopy(env.old)
+    monkeypatch.setattr(guard, "_validate_fixture", lambda _protocol: None)
+
+    with pytest.raises(base.GuardError, match="already written the target date"):
+        guard.start_guard(
+            env.protocol,
+            now=local(27, 16, 5),
+            execute=False,
+            environment=env,
+        )
 
 
 @pytest.mark.parametrize("failure", ("start_error", "broken_candidate_mount"))

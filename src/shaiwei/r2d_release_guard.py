@@ -23,10 +23,18 @@ from shaiwei.release_build_context import (
     validate_controller_evidence,
 )
 from shaiwei.release_guard import validate_controlled_git_state
+from shaiwei.r2d_legacy_boundary import (
+    LegacyNoopBoundary,
+    target_write_counts,
+    validate_noop_boundary,
+)
 from shaiwei.storage.runtime_mount_contract import LOCK_AUTHORITY
 
 
 PROTOCOL_PATH = PROJECT_ROOT / "config" / "r2d_scheduler_release_guard_v1.yaml"
+RECOVERY_PROTOCOL_PATH = (
+    PROJECT_ROOT / "config" / "r2d_scheduler_release_guard_r1_v1.yaml"
+)
 
 
 class FixtureEvidence(base.FrozenModel):
@@ -41,7 +49,10 @@ class FixtureEvidence(base.FrozenModel):
 
 
 class GuardProtocol(base.FrozenModel):
-    schema_version: Literal["r2d-scheduler-release-guard-v1"]
+    schema_version: Literal[
+        "r2d-scheduler-release-guard-v1",
+        "r2d-scheduler-release-guard-r1-v1",
+    ]
     guard_id: str = Field(pattern=r"^r2d-scheduler-release-guard-[0-9]{8}$")
     timezone: Literal["Asia/Shanghai"]
     prepare_date: str = Field(pattern=r"^[0-9]{8}$")
@@ -54,6 +65,7 @@ class GuardProtocol(base.FrozenModel):
     expected_legacy_mounts_before_prepare: tuple[str, ...]
     predecessor_fixture: FixtureEvidence
     controller_identity: ControllerIdentity
+    legacy_noop_boundary: LegacyNoopBoundary | None = None
 
     @model_validator(mode="after")
     def validate_protocol(self) -> "GuardProtocol":
@@ -76,6 +88,9 @@ class GuardProtocol(base.FrozenModel):
             "/workspace/logs",
         }:
             raise ValueError("R2D legacy pre-prepare mounts differ from the frozen contract")
+        is_recovery = self.schema_version == "r2d-scheduler-release-guard-r1-v1"
+        if is_recovery != (self.legacy_noop_boundary is not None):
+            raise ValueError("R2D recovery schema and legacy noop boundary must agree")
         return self
 
 
@@ -95,6 +110,9 @@ class R2DEnvironment(base.EarlyGuardEnvironment):
 
     def controller_evidence(self, identity: ControllerIdentity) -> dict[str, object]:
         return collect_controller_evidence(PROJECT_ROOT, self._run, identity)
+
+    def target_write_counts(self, target_trade_date: str) -> dict[str, int]:
+        return target_write_counts(target_trade_date)
 
 
 def load_protocol(path: Path = PROTOCOL_PATH) -> GuardProtocol:
@@ -213,6 +231,23 @@ def _validate_waiting_source(
     return {"status": "waiting_source", "detail": protocol.target_trade_date, "updated_at": updated.isoformat()}
 
 
+def _validate_legacy_boundary(
+    protocol: GuardProtocol,
+    environment: R2DEnvironment,
+) -> tuple[str, dict[str, object]]:
+    boundary = protocol.legacy_noop_boundary
+    if boundary is None:
+        return "legacy_waiting_source", _validate_waiting_source(protocol, environment)
+    evidence = validate_noop_boundary(
+        boundary,
+        target_trade_date=protocol.target_trade_date,
+        timezone=protocol.timezone,
+        health=environment.scheduler_health(),
+        counts=environment.target_write_counts(protocol.target_trade_date),
+    )
+    return "legacy_noop_boundary", evidence
+
+
 def _legacy_running(
     protocol: GuardProtocol,
     environment: R2DEnvironment,
@@ -231,6 +266,8 @@ def prepare_guard(
     execute: bool,
     environment: R2DEnvironment | None = None,
 ) -> dict[str, object]:
+    if protocol.legacy_noop_boundary is not None:
+        raise base.GuardError("R2D recovery protocol cannot repeat Phase A")
     env = environment or R2DEnvironment()
     checked_at = _validate_window(
         date_text=protocol.prepare_date,
@@ -316,15 +353,15 @@ def start_guard(
         raise base.GuardError("R2D start requires the exact prepared transition state")
     base._validate_forwards(protocol, env)
     readiness = base._validate_readiness(protocol, env)
-    waiting = _validate_waiting_source(protocol, env)
+    boundary_key, boundary_evidence = _validate_legacy_boundary(protocol, env)
     evidence: dict[str, object] = {
         "status": "READY_TO_START",
         "checked_at": checked_at,
         "readiness": readiness,
-        "legacy_waiting_source": waiting,
         "controller": controller,
         "mutation_invoked": False,
     }
+    evidence[boundary_key] = boundary_evidence
     if not execute:
         return evidence
     executed = base._execute_action(protocol, env, "RESUME_START")
@@ -334,6 +371,7 @@ def start_guard(
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--phase", choices=("prepare", "start"), required=True)
+    parser.add_argument("--protocol-version", choices=("v1", "r1"), default="v1")
     parser.add_argument("--execute", action="store_true")
     return parser.parse_args(argv)
 
@@ -341,7 +379,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
-        protocol = load_protocol()
+        path = PROTOCOL_PATH if args.protocol_version == "v1" else RECOVERY_PROTOCOL_PATH
+        protocol = load_protocol(path)
         runner = prepare_guard if args.phase == "prepare" else start_guard
         document = runner(
             protocol,
