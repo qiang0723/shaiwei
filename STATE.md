@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-26 · R2D-R1旧生产19:30时钟证据恢复协议冻结
+
+- 20260826旧生产自然周期已完整PASS：daily 5批/15,649行、raw `.BJ=0`，shadow S1—S9 PASS/
+  S10 NOT_APPLICABLE，Top30/Top20及开始/完成飞书均PASS；候选未启动，旧生产身份不变。
+- 原R2D Phase B窗口16:05—19:00要求旧容器形成`waiting_source / 20260826`，但旧镜像实际
+  `ready_hour/minute=19:30`，该证据在窗口内结构性不可能出现。原scope于19:00过期、mutation=0，
+  永久不得重用或补造；这不是数据、锁或候选失败。
+- R1唯一变量预注册为20260827用`当日16:00后新鲜noop / 20260826 + 目标日三类业务账本0行 +
+  readiness仅[20260827]`证明旧writer未进入目标日；Phase A、候选、fixture、身份、四挂载和首日门
+  全不变。当前只授权源码/测试/config/docs，启动仍须实现推送后新精确scope和用户批准。见
+  `docs/R2D_SCHEDULER_LEGACY_CUTOFF_RECOVERY_PROTOCOL_20260826.md`。
+
 ## 2026-08-25 · R2D Phase A no-start提升完成
 
 - 用户精确批准scope `4145d601...8292`；20:45只读预检`READY_TO_PREPARE`，20:45唯一执行返回

@@ -1,0 +1,93 @@
+schema_version: shaiwei-r2d-legacy-cutoff-recovery-v1
+recovery_id: r2d-r1-legacy-1930-cutoff-evidence-recovery
+timezone: Asia/Shanghai
+parent_release_scope_sha256: 4145d6018a1cb38f48432677dce1e68558cdaf48ad5c3e81d12f7067eac58292
+
+known_result:
+  phase_a_consumed: true
+  phase_a_status: PREPARED
+  phase_b_mutation_invoked: false
+  original_target_trade_date: '20260826'
+  original_start_window:
+    not_before: '16:05:00'
+    expires_at: '19:00:00'
+  legacy_ready_time:
+    hour: 19
+    minute: 30
+  original_waiting_source_evidence_possible_inside_window: false
+  original_scope_reusable: false
+
+preserved_identity:
+  candidate:
+    image: shaiwei:scheduler-88e3f471565ba461
+    image_id: sha256:b7565001835936e1235d24de3c567f0d13869d48f30596ac7172df7b849baa72
+    code_snapshot_sha256: 88e3f471565ba461fb660f41a97a2dd4ac633585c4f74efadd9a3b264e2abec0
+    git_head: 55f98e7085bf7f1a573c9105606c842a9655b63c
+    lock_authority: docker-named-volume-v1
+  running_legacy:
+    image: shaiwei:scheduler-4e5244b6b02739dd
+    image_id: sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76
+    code_snapshot_sha256: 4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708
+    git_head: 210af4dab33c85b38c05b28f56c176b7970c41db
+    lock_authority: legacy-bind-flock-v0
+  release_state:
+    current_must_equal_candidate: true
+    previous_must_equal_running_legacy: true
+    running_container_must_equal_legacy_and_be_healthy: true
+  predecessor_fixture_scope_sha256: 8887bbdf31f1f05fe0a7feffca80a5b96605f407182eb4d3275c5346c2369a22
+
+completed_natural_boundary:
+  trade_date: '20260826'
+  daily:
+    status: PASS
+    data_snapshot_sha256: 1cf3088249e386c1a79456803eac2dda3ae0026b009b8adb4dd2cf65abdfd615
+  shadow:
+    status: PASS
+    code_snapshot_sha256: 4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708
+    signal_sha256: c6b44522786ba1b721c3cc18d74e75d2ff6a6a5076e6781d78339b4cd866786b
+  paper:
+    model_baseline_artifact_sha256: 8d15c3aa150c3b4d8cb26643c759e3726fc19bdaf4e9abe5f1c267f44e9fd36c
+    model_top20_artifact_sha256: d64083f5ccd37591f982a8ac112eceba6f7ce3929a7ecd2bfd689940af8a86ac
+  raw_batch_count: 5
+  raw_row_count: 15649
+  raw_bj_rows: 0
+  sentinels: S1-S9_PASS_S10_NOT_APPLICABLE
+  notifications: START_AND_COMPLETE_PASS
+
+successor:
+  target_trade_date: '20260827'
+  start_window:
+    not_before: '16:05:00'
+    expires_at: '19:00:00'
+  legacy_boundary_evidence:
+    status: noop
+    detail: '20260826'
+    updated_on_target_date_not_before: '16:00:00'
+    require_target_daily_rows: 0
+    require_target_shadow_rows: 0
+    require_target_paper_rows: 0
+  readiness:
+    mode: CROSS_SNAPSHOT_WITH_NEW_DATA
+    available_new_trade_dates:
+      - '20260827'
+  phase_a_must_not_repeat: true
+  start_current_once: true
+  same_scope_repeat: false
+
+authority:
+  source_test_config_docs_only: true
+  build_candidate: false
+  rerun_fixture: false
+  promote_or_prepare: false
+  start_current: false
+  read_secret: false
+  external_network: false
+  manual_daily_or_backfill: false
+  strategy_model_signal_gate_web_change: false
+  production_business_run: false
+
+release_rule:
+  exact_guard_and_scope_must_be_generated_after_implementation_push: true
+  exact_scope_requires_new_user_approval: true
+  failure_before_mutation: true
+  first_natural_cycle_required_before_r2_1r1: true
