@@ -496,3 +496,42 @@ def test_tracked_r2d_protocol_and_release_scope_are_exactly_bound():
     assert scope["guard_protocol"]["sha256"] == hashlib.sha256(
         guard.PROTOCOL_PATH.read_bytes()
     ).hexdigest()
+
+
+def test_tracked_r2_protocol_and_release_scope_are_exactly_bound():
+    frozen = guard.load_protocol(guard.R2_PROTOCOL_PATH)
+    release_path = (
+        guard.PROJECT_ROOT / "config" / "r2d_scheduler_release_scope_r2_v1.json"
+    )
+    release = json.loads(release_path.read_text(encoding="utf-8"))
+    scope = release["scope"]
+    canonical = json.dumps(scope, sort_keys=True, separators=(",", ":")).encode()
+
+    assert release["schema_version"] == "r2d-scheduler-release-r2-scope-v1"
+    assert release["release_scope_sha256"] == hashlib.sha256(canonical).hexdigest()
+    assert release["release_scope_sha256"] == (
+        "a2e66d95dc13d3ea71d9068a880d9074300955c82a553fa867c985bfa2b729d5"
+    )
+    assert scope["action"] == (
+        "R2D_R2_START_CURRENT_20260828_ONCE_AFTER_CADENCE_MARGIN"
+    )
+    assert scope["candidate"] == frozen.candidate.model_dump()
+    assert scope["expected_running_release"] == (
+        frozen.expected_running_release.model_dump()
+    )
+    assert scope["expected_latest_forward"] == [
+        item.model_dump() for item in frozen.expected_latest_forward
+    ]
+    assert scope["guard_protocol"]["sha256"] == hashlib.sha256(
+        guard.R2_PROTOCOL_PATH.read_bytes()
+    ).hexdigest()
+    assert scope["completed_natural_boundary"]["trade_date"] == "20260827"
+    assert scope["completed_natural_boundary"]["raw_batches"]["bj_rows"] == 0
+    assert scope["phase_a_repeat_authorized"] is False
+    assert scope["same_scope_repeat_authorized"] is False
+    assert scope["start_window"] == {
+        "date": "20260828",
+        "expires_at_utc8": "19:00:00",
+        "not_before_utc8": "16:40:00",
+        "operation": "START_CURRENT_ONCE",
+    }

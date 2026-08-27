@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-27 · R2D-R2 发布工程就绪，等待精确执行授权
+
+- 20260827 旧生产自然周期完整 PASS：daily 5批/15,648行、真实批次 `.BJ=0`、S1—S9 PASS/
+  S10 NOT_APPLICABLE、shadow及Top30/Top20双账户PASS、飞书9/9 PASS、零人工修数；旧 scheduler、
+  候选和release current/previous身份未漂移。
+- R2入口提交`7740dd7`已先推送；独立config绑定双账户最新产物、R2C-R1 fixture、旧生产和
+  controller组件`a2cb5d9e...0bdd`。唯一变化为20260828启动检查后移至16:40—19:00。
+- 精确scope=`a2e66d95dc13d3ea71d9068a880d9074300955c82a553fa867c985bfa2b729d5`，动作
+  `R2D_R2_START_CURRENT_20260828_ONCE_AFTER_CADENCE_MARGIN`。当前只到
+  `GO_RELEASE_READY_NOT_EXECUTION_APPROVAL`；未build、未重复fixture/Phase A、未start/restart、未读密钥、
+  未访问外网。用户逐字批准scope前停止，成功/失败均不得重跑。见`docs/R2D_R2_RELEASE_READY_20260827.md`。
+
 ## 2026-08-27 · R2D-R1 预检失败关闭并冻结 R2D-R2 恢复方向
 
 - 16:05:07唯一只读预检因旧 scheduler 健康证据时间为15:58:45、早于冻结的16:00下限而

@@ -1,0 +1,70 @@
+schema_version: r2d-scheduler-release-guard-r2-v1
+guard_id: r2d-scheduler-release-guard-20260828
+timezone: Asia/Shanghai
+prepare_date: '20260825'
+prepare_window:
+  not_before: '20:45:00'
+  expires_at: '23:30:00'
+target_trade_date: '20260828'
+start_window:
+  not_before: '16:40:00'
+  expires_at: '19:00:00'
+
+candidate:
+  image: shaiwei:scheduler-88e3f471565ba461
+  image_id: sha256:b7565001835936e1235d24de3c567f0d13869d48f30596ac7172df7b849baa72
+  code_snapshot_sha256: 88e3f471565ba461fb660f41a97a2dd4ac633585c4f74efadd9a3b264e2abec0
+  git_head: 55f98e7085bf7f1a573c9105606c842a9655b63c
+  lock_authority: docker-named-volume-v1
+
+expected_running_release:
+  image: shaiwei:scheduler-4e5244b6b02739dd
+  image_id: sha256:722f63de15932cb2698e82db7c0140f02921f27f126e1c0235ca62e0a1213b76
+  code_snapshot_sha256: 4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708
+  git_head: 210af4dab33c85b38c05b28f56c176b7970c41db
+  lock_authority: legacy-bind-flock-v0
+
+expected_latest_forward:
+  - account_id: model_baseline
+    execution_trade_date: '20260827'
+    code_snapshot_sha256: 4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708
+    artifact_sha256: 8179107a363fe6da675107ef3d607e6f5da21e2bf7f19e5abe60b98b22298d29
+  - account_id: model_top20
+    execution_trade_date: '20260827'
+    code_snapshot_sha256: 4e5244b6b02739dd209a9b01ea715c43ed9a874a7014156e20cf364f06a82708
+    artifact_sha256: d4559607db7edec1037fdb6627308e2413219d1066d839423eb56d8383d59fc1
+
+expected_legacy_mounts_before_prepare:
+  - /workspace/data
+  - /workspace/ledger
+  - /workspace/logs
+
+predecessor_fixture:
+  release_scope_sha256: 8887bbdf31f1f05fe0a7feffca80a5b96605f407182eb4d3275c5346c2369a22
+  report_path: .release/runtime-lock-fixture-r2c/8887bbdf31f1f05f/report.json
+  report_sha256: 6e5a9ec20f8d81d9b995f74e4882d08cadbaaf858fa742f5e42787fcf21b208b
+  tree_path: .release/runtime-lock-fixture-r2c/8887bbdf31f1f05f/tree.json
+  tree_file_sha256: 8119713085742c0e37b2660669b98cd0ebeabbae61c71b306ecb909672f8e233
+  tree_content_sha256: 36b9cc9cd59a9e4d8b16b718667bf304f7d099fe73f0e280a4ce5a452b00dee6
+  receipt_path: .release/runtime-lock-fixture-r2c-scopes/8887bbdf31f1f05fe0a7feffca80a5b96605f407182eb4d3275c5346c2369a22.fixture-receipt.json
+  receipt_sha256: 9bd08aecd49de220a51985b0b82e2821f093d02b1ea7d5c6f940c3aac2fa9fe3
+
+controller_identity:
+  candidate_base_head: 55f98e7085bf7f1a573c9105606c842a9655b63c
+  controller_source_head: 7740dd7e46458f512f276f8ba5a96ed04e5f5a9a
+  component_paths:
+    - src/shaiwei/release_build_context.py
+    - src/shaiwei/release_guard.py
+    - src/shaiwei/daily_early_release_guard.py
+    - src/shaiwei/r2d_release_guard.py
+    - src/shaiwei/r2d_legacy_boundary.py
+  component_sha256: a2cb5d9efcaad9ac8a8127269ac228d595e484166498823b3f2b318d36ad0bdd
+
+legacy_noop_boundary:
+  mode: PRIOR_DAY_NOOP
+  status: noop
+  detail_trade_date: '20260827'
+  updated_on_target_date_not_before: '16:00:00'
+  require_target_daily_rows: 0
+  require_target_shadow_rows: 0
+  require_target_paper_rows: 0
