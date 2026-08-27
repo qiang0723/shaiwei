@@ -254,6 +254,33 @@ def test_protocol_rejects_incomplete_or_ambiguous_release():
         guard.GuardProtocol.model_validate(document)
 
 
+def test_r2_protocol_is_recovery_only_with_delayed_window():
+    document = recovery_protocol_document(
+        schema_version="r2d-scheduler-release-guard-r2-v1",
+        guard_id="r2d-scheduler-release-guard-20260828",
+        target_trade_date="20260828",
+        start_window={"not_before": "16:40:00", "expires_at": "19:00:00"},
+        legacy_noop_boundary={
+            "mode": "PRIOR_DAY_NOOP",
+            "status": "noop",
+            "detail_trade_date": "20260827",
+            "updated_on_target_date_not_before": "16:00:00",
+            "require_target_daily_rows": 0,
+            "require_target_shadow_rows": 0,
+            "require_target_paper_rows": 0,
+        },
+    )
+    frozen = guard.GuardProtocol.model_validate(document)
+
+    assert frozen.start_window.not_before.hour == 16
+    assert frozen.start_window.not_before.minute == 40
+    assert guard.parse_args(
+        ["--phase", "start", "--protocol-version", "r2"]
+    ).protocol_version == "r2"
+    with pytest.raises(base.GuardError, match="cannot repeat Phase A"):
+        guard.prepare_guard(frozen, now=local(27, 20), execute=False)
+
+
 def test_prepare_allows_runtime_dirt_and_preserves_container(monkeypatch):
     env = FakeEnvironment()
     monkeypatch.setattr(guard, "_validate_fixture", lambda _protocol: None)

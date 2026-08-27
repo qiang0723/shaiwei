@@ -32,9 +32,8 @@ from shaiwei.storage.runtime_mount_contract import LOCK_AUTHORITY
 
 
 PROTOCOL_PATH = PROJECT_ROOT / "config" / "r2d_scheduler_release_guard_v1.yaml"
-RECOVERY_PROTOCOL_PATH = (
-    PROJECT_ROOT / "config" / "r2d_scheduler_release_guard_r1_v1.yaml"
-)
+RECOVERY_PROTOCOL_PATH = PROJECT_ROOT / "config/r2d_scheduler_release_guard_r1_v1.yaml"
+R2_PROTOCOL_PATH = PROJECT_ROOT / "config" / "r2d_scheduler_release_guard_r2_v1.yaml"
 
 
 class FixtureEvidence(base.FrozenModel):
@@ -52,6 +51,7 @@ class GuardProtocol(base.FrozenModel):
     schema_version: Literal[
         "r2d-scheduler-release-guard-v1",
         "r2d-scheduler-release-guard-r1-v1",
+        "r2d-scheduler-release-guard-r2-v1",
     ]
     guard_id: str = Field(pattern=r"^r2d-scheduler-release-guard-[0-9]{8}$")
     timezone: Literal["Asia/Shanghai"]
@@ -88,7 +88,7 @@ class GuardProtocol(base.FrozenModel):
             "/workspace/logs",
         }:
             raise ValueError("R2D legacy pre-prepare mounts differ from the frozen contract")
-        is_recovery = self.schema_version == "r2d-scheduler-release-guard-r1-v1"
+        is_recovery = self.schema_version != "r2d-scheduler-release-guard-v1"
         if is_recovery != (self.legacy_noop_boundary is not None):
             raise ValueError("R2D recovery schema and legacy noop boundary must agree")
         return self
@@ -371,7 +371,7 @@ def start_guard(
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--phase", choices=("prepare", "start"), required=True)
-    parser.add_argument("--protocol-version", choices=("v1", "r1"), default="v1")
+    parser.add_argument("--protocol-version", choices=("v1", "r1", "r2"), default="v1")
     parser.add_argument("--execute", action="store_true")
     return parser.parse_args(argv)
 
@@ -379,7 +379,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
-        path = PROTOCOL_PATH if args.protocol_version == "v1" else RECOVERY_PROTOCOL_PATH
+        paths = {"v1": PROTOCOL_PATH, "r1": RECOVERY_PROTOCOL_PATH, "r2": R2_PROTOCOL_PATH}
+        path = paths[args.protocol_version]
         protocol = load_protocol(path)
         runner = prepare_guard if args.phase == "prepare" else start_guard
         document = runner(
