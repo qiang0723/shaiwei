@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-27 · R2D-R1 预检失败关闭并冻结 R2D-R2 恢复方向
+
+- 16:05:07唯一只读预检因旧 scheduler 健康证据时间为15:58:45、早于冻结的16:00下限而
+  `BLOCKED_BEFORE_MUTATION`；scope `bb74c299...119a`永久关闭，不重试、不顺延。候选未启动，旧生产
+  原容器/镜像持续healthy，业务、密钥、外网和生产mutation均为0。
+- 旧 scheduler 于16:29:00自然刷新同一`noop / 20260826`，定位为约30分钟探测节拍与16:05自动触发
+  未对齐，不是候选、数据、锁或业务故障；后续证据不用于重开R1。
+- R2D-R2只允许把下一交易日的一次性检查后移到16:40—19:00；16:00后新鲜noop、目标日三类账本0
+  行、readiness唯一、候选/旧生产/fixture/四挂载等门全部保持。须等20260827自然周期完成后绑定最新
+  双账户产物、最终HEAD和组件哈希，另立R2 config/scope并再次获用户逐字批准。见
+  `docs/R2D_R1_EARLY_PREFLIGHT_BLOCK_20260827.md`与
+  `docs/R2D_R2_POST_CADENCE_RECOVERY_PROTOCOL_20260827.md`。
+
 ## 2026-08-26 · R2D-R1发布工程完成并生成精确启动scope
 
 - 终态`GO_RELEASE_READY_NOT_EXECUTION_APPROVAL`。恢复控制器以`noop / prior-day + 目标日daily/shadow/
