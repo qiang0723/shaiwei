@@ -1,0 +1,57 @@
+schema_version: shaiwei-r2d-r3a-health-convergence-fixture-contract-v1
+contract_id: r2d-r3a-health-convergence-fixture-v1
+frozen_at: '2026-08-29T00:00:00+08:00'
+status: FROZEN_ENGINEERING_NOT_EXECUTION_APPROVAL
+predecessor:
+  release_scope_sha256: a2e66d95dc13d3ea71d9068a880d9074300955c82a553fa867c985bfa2b729d5
+  action: R2D_R2_START_CURRENT_20260828_ONCE_AFTER_CADENCE_MARGIN
+  terminal_status: BLOCKED_RECOVERED_OLD_PRODUCTION
+  same_scope_rerun_authorized: false
+  candidate_start_pass_audit_sha256: 613b8dda062ef66fb847a7f8704327e45e1d56527be04c83dcb42bfcc3cc0080
+  rollback_pass_audit_sha256: 329caa377dce59342370fe15ef327013fc11e62ff86d66cc8703c356eea2a75b
+root_cause:
+  class: DOCKER_HEALTH_METADATA_CONVERGENCE_RACE
+  internal_healthcheck_passed_before_docker_health_metadata: true
+  first_inner_error_was_lost_by_legacy_wrapper: true
+  candidate_or_strategy_failure: false
+fixture:
+  action: R2D_R3A_DOCKER_HEALTH_CONVERGENCE_FIXTURE_ONCE
+  candidate_build_count: 1
+  suite_invocation_count: 1
+  same_scope_rerun_authorized: false
+  isolated_compose_project_required: true
+  project_dotenv_forbidden: true
+  implicit_image_pull_forbidden: true
+  external_network_authorized: false
+  env_or_secret_read_authorized: false
+  real_business_data_or_ledger_authorized: false
+  production_release_state_or_audit_write_authorized: false
+  stable_lock_volume_reuse_authorized: true
+  stable_lock_volume_create_delete_authorized: false
+  required_cases:
+    - candidate_image_labels
+    - docker_health_starting_observed
+    - shared_release_contract_converged
+    - guard_success_path_without_rollback
+    - production_release_evidence_unchanged
+  required_mount_destinations:
+    - /run/shaiwei-locks
+    - /workspace/data
+    - /workspace/ledger
+    - /workspace/logs
+engineering:
+  source_test_config_docs_change_authorized: true
+  docker_build_authorized: false
+  docker_fixture_authorized: false
+  production_promote_start_restart_authorized: false
+  web_model_strategy_gate_change_authorized: false
+  hand_run_or_backfill_authorized: false
+  production_authorization: none
+successor:
+  exact_new_scope_required: true
+  final_head_equals_origin_main_required: true
+  final_code_snapshot_required: true
+  exact_user_approval_required: true
+  dockerfile_frozen_dependency_network_only_during_build: true
+  fixture_network_mode: none
+  production_start_requires_later_natural_trade_day_scope: true

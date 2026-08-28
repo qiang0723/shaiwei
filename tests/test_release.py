@@ -347,6 +347,39 @@ def test_wait_scheduler_contract_retries_until_docker_health_metadata_converges(
     assert contract == {"container_id": "scheduler-id", "health": "healthy"}
     assert calls == 2
 
+def test_container_contract_accepts_explicit_isolated_container_id(monkeypatch):
+    expected = {
+        "image_id": "sha256:fixed",
+        "code_snapshot_sha256": "a" * 64,
+        "git_head": "b" * 40,
+    }
+    mounts = [
+        {"Destination": "/workspace/data", "RW": True, "Type": "bind"},
+        {"Destination": "/workspace/ledger", "RW": True, "Type": "bind"},
+        {"Destination": "/workspace/logs", "RW": True, "Type": "bind"},
+    ]
+
+    def fake_run(argv, *, check=True):
+        if argv[:3] == ["docker", "inspect", "--format"]:
+            assert argv[-1] == "isolated-id"
+            return SimpleNamespace(
+                stdout=f"sha256:fixed\thealthy\ttrue\t{json.dumps(mounts)}\n"
+            )
+        assert argv[2] == "isolated-id"
+        return SimpleNamespace(
+            stdout=json.dumps(
+                {"code_snapshot_sha256": "a" * 64, "git_head": "b" * 40}
+            )
+            + "\n"
+        )
+
+    monkeypatch.setattr(
+        release, "_compose_container_id", lambda: pytest.fail("production Compose was queried")
+    )
+    monkeypatch.setattr(release, "_run", fake_run)
+
+    assert release._container_contract(expected, container_id="isolated-id")["health"] == "healthy"
+
 
 def test_no_start_promote_and_rollback_swap_distinct_content_images(monkeypatch, tmp_path):
     monkeypatch.setattr(release, "STATE_PATH", tmp_path / "scheduler_state.json")

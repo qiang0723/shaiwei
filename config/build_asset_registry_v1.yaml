@@ -170,6 +170,14 @@ components:
       - tests/test_m7_moneyflow_docker_contract.py
       - tests/test_m7_moneyflow_recovery_network_engineering.py
       - tests/test_m7_moneyflow_recovery_target_projection_engineering.py
+  - id: r2d-r3a-health-fixture
+    class: FIXTURE_ONLY
+    status: CLOSED_FROZEN
+    reuse_policy: FIXTURE_ONLY
+    assets:
+      - compose.r2d-r3a-health-fixture.yaml
+    consumers:
+      - tests/test_release_health_fixture.py
   - id: ts-v5-contract
     class: COMPONENT_RELEASE
     status: CLOSED_FROZEN

@@ -358,8 +358,10 @@ def release_start_readiness(
     }
 
 
-def _container_contract(expected: dict[str, str]) -> dict[str, object]:
-    container_id = _compose_container_id()
+def _container_contract(
+    expected: dict[str, str], *, container_id: str | None = None
+) -> dict[str, object]:
+    container_id = container_id or _compose_container_id()
     result = _run(
         [
             "docker",
@@ -422,12 +424,16 @@ def _wait_scheduler_contract(
     expected: dict[str, str],
     *,
     timeout_seconds: int = 60,
+    container_id: str | None = None,
 ) -> dict[str, object]:
     deadline = time.monotonic() + timeout_seconds
     last_error = ""
     while time.monotonic() < deadline:
         try:
-            contract = _container_contract(expected)
+            if container_id is None:
+                contract = _container_contract(expected)
+            else:
+                contract = _container_contract(expected, container_id=container_id)
             container_id = str(contract["container_id"])
             health = _run(
                 [

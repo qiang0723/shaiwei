@@ -96,8 +96,8 @@ def test_registry_covers_every_tracked_build_asset_exactly_once() -> None:
     tracked_build_assets = _git_files("Dockerfile*", "compose*.yaml")
     tracked_files = _git_files("*")
 
-    assert len(tracked_build_assets) == 97
-    assert len(registry.assets) == len(set(registry.assets)) == 97
+    assert len(tracked_build_assets) == 98
+    assert len(registry.assets) == len(set(registry.assets)) == 98
     assert set(registry.assets) == tracked_build_assets
     assert {
         BuildAssetClass.GLOBAL,
@@ -135,6 +135,9 @@ def test_component_boundaries_lock_web_m7_fixture_and_archive() -> None:
         "m7-moneyflow"
     ).assets
     assert registry.component("m6-head30-500k-fixture").asset_class is BuildAssetClass.FIXTURE_ONLY
+    assert registry.component("r2d-r3a-health-fixture").asset_class is (
+        BuildAssetClass.FIXTURE_ONLY
+    )
     assert registry.component("archive-candidates").assets == (
         "Dockerfile.star200-recovery",
         "Dockerfile.web-test",

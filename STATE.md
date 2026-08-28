@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-29 · R2D-R3A健康收敛真实fixture工程完成，等待一次性build+fixture授权
+
+- 终态`GO_ENGINEERING_READY / BUILD_AND_FIXTURE_NOT_AUTHORIZED`。共享发布合同新增显式隔离容器ID入口，
+  生产默认路径和全部身份门不变；独立Compose fixture为断网、只读根、最小权限、四挂载目标与合成空目录，
+  禁止项目`.env`、隐式pull、业务数据和真实账本。
+- 五门冻结为候选标签/运行身份、真实`starting`、共享合同收敛`healthy`、守卫成功路径零rollback、生产
+  release state/audit哈希不变；claim先于fixture Docker命令，同scope失败也清理并永久不得重跑。
+- 新Compose资产已进入build registry，覆盖98/98；fixture模块363行、测试242行。专项60、全仓1,942、
+  架构13 PASS，Ruff/compileall/Compose静态解析/diff-check PASS；未build、未运行fixture、未读密钥、
+  未访问外网、未动生产，旧scheduler持续healthy。
+- 下一步只在终版提交推送后生成精确scope，绑定HEAD、代码快照、候选、组件哈希和唯一输出根；用户逐字
+  批准前停止。fixture即使PASS也须另立自然交易日start scope。见
+  `docs/R2D_R3A_HEALTH_CONVERGENCE_FIXTURE_PROTOCOL_20260829.md`与工程验收文档。
+
+
 ## 2026-08-29 · R2D-R2发布观测竞态闭环，R2D-R3仅完成工程修复
 
 - R2D-R2 scope `a2e66d95...29d5`于20260828唯一执行后永久关闭，不重跑。发布审计证明候选
