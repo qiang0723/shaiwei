@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 from datetime import date, datetime, time
-import hashlib
 import json
 from pathlib import Path
 from typing import Literal
@@ -23,6 +22,7 @@ from shaiwei.release_build_context import (
     validate_controller_evidence,
 )
 from shaiwei.release_guard import validate_controlled_git_state
+from shaiwei.r2d_fixture_evidence import FixtureEvidence, validate_fixture
 from shaiwei.r2d_legacy_boundary import (
     LegacyNoopBoundary,
     target_write_counts,
@@ -34,17 +34,6 @@ from shaiwei.storage.runtime_mount_contract import LOCK_AUTHORITY
 PROTOCOL_PATH = PROJECT_ROOT / "config" / "r2d_scheduler_release_guard_v1.yaml"
 RECOVERY_PROTOCOL_PATH = PROJECT_ROOT / "config/r2d_scheduler_release_guard_r1_v1.yaml"
 R2_PROTOCOL_PATH = PROJECT_ROOT / "config" / "r2d_scheduler_release_guard_r2_v1.yaml"
-
-
-class FixtureEvidence(base.FrozenModel):
-    release_scope_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    report_path: str = Field(pattern=r"^\.release/[A-Za-z0-9_./-]+\.json$")
-    report_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    tree_path: str = Field(pattern=r"^\.release/[A-Za-z0-9_./-]+\.json$")
-    tree_file_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    tree_content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    receipt_path: str = Field(pattern=r"^\.release/[A-Za-z0-9_./-]+\.json$")
-    receipt_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
 class GuardProtocol(base.FrozenModel):
@@ -143,12 +132,12 @@ def _validate_window(
     return local.isoformat(timespec="seconds")
 
 
-def _file_sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
+def _validate_fixture(protocol: GuardProtocol) -> None:
+    validate_fixture(
+        protocol.predecessor_fixture,
+        candidate=protocol.candidate,
+        project_root=PROJECT_ROOT,
+    )
 
 
 def _validate_controller(
@@ -162,41 +151,6 @@ def _validate_controller(
     except ControllerIdentityError as error:
         raise base.GuardError(str(error)) from error
     return evidence
-
-
-def _fixture_json(path_text: str, expected_sha256: str) -> dict[str, object]:
-    path = (PROJECT_ROOT / path_text).resolve()
-    try:
-        path.relative_to(PROJECT_ROOT.resolve())
-        actual = _file_sha256(path)
-        document = json.loads(path.read_text(encoding="utf-8"))
-    except ValueError as error:
-        raise base.GuardError("fixture evidence escapes the project") from error
-    except (OSError, json.JSONDecodeError) as error:
-        raise base.GuardError("fixture evidence is unreadable") from error
-    if actual != expected_sha256 or not isinstance(document, dict):
-        raise base.GuardError("fixture evidence hash or schema differs")
-    return document
-
-
-def _validate_fixture(protocol: GuardProtocol) -> None:
-    fixture = protocol.predecessor_fixture
-    report = _fixture_json(fixture.report_path, fixture.report_sha256)
-    tree = _fixture_json(fixture.tree_path, fixture.tree_file_sha256)
-    receipt = _fixture_json(fixture.receipt_path, fixture.receipt_sha256)
-    if (
-        report.get("scope_sha256") != fixture.release_scope_sha256
-        or report.get("verdict") != "PASS"
-        or tree.get("tree_sha256") != fixture.tree_content_sha256
-        or receipt.get("release_scope_sha256") != fixture.release_scope_sha256
-        or receipt.get("report_sha256") != fixture.report_sha256
-        or receipt.get("evidence_tree_file_sha256") != fixture.tree_file_sha256
-        or receipt.get("evidence_tree_sha256") != fixture.tree_content_sha256
-        or receipt.get("status") != "PASS"
-        or receipt.get("candidate") != protocol.candidate.image
-        or receipt.get("image_id") != protocol.candidate.image_id
-    ):
-        raise base.GuardError("fixture evidence differs from the frozen R2D boundary")
 
 
 def _verify_candidate(protocol: GuardProtocol, environment: R2DEnvironment) -> None:
@@ -368,10 +322,33 @@ def start_guard(
     return {**evidence, "status": "STARTED", "mutation_invoked": True, "execution": executed}
 
 
+def _resolve_protocol_path(
+    protocol_version: str, explicit: Path | None
+) -> Path:
+    paths = {"v1": PROTOCOL_PATH, "r1": RECOVERY_PROTOCOL_PATH, "r2": R2_PROTOCOL_PATH}
+    if explicit is None:
+        return paths[protocol_version]
+    if protocol_version != "v1":
+        raise base.GuardError("explicit protocol path cannot be combined with a legacy version alias")
+    supplied = explicit if explicit.is_absolute() else PROJECT_ROOT / explicit
+    config_root = (PROJECT_ROOT / "config").resolve()
+    resolved = supplied.resolve()
+    if (
+        supplied.is_symlink()
+        or resolved.parent != config_root
+        or not resolved.name.startswith("r2d_")
+        or resolved.suffix not in {".yaml", ".yml"}
+        or not resolved.is_file()
+    ):
+        raise base.GuardError("explicit R2D protocol path is outside the controlled config boundary")
+    return resolved
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--phase", choices=("prepare", "start"), required=True)
     parser.add_argument("--protocol-version", choices=("v1", "r1", "r2"), default="v1")
+    parser.add_argument("--protocol-path", type=Path)
     parser.add_argument("--execute", action="store_true")
     return parser.parse_args(argv)
 
@@ -379,8 +356,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
-        paths = {"v1": PROTOCOL_PATH, "r1": RECOVERY_PROTOCOL_PATH, "r2": R2_PROTOCOL_PATH}
-        path = paths[args.protocol_version]
+        path = _resolve_protocol_path(args.protocol_version, args.protocol_path)
         protocol = load_protocol(path)
         runner = prepare_guard if args.phase == "prepare" else start_guard
         document = runner(
