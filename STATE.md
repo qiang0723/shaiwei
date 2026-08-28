@@ -2,6 +2,28 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+
+## 2026-08-29 · R2D-R3B两阶段生产切换工程冻结，等待Phase A精确授权
+
+- 终态`GO_RELEASE_ENGINEERING_READY / PRODUCTION_EXECUTION_NOT_AUTHORIZED`。控制器提交
+  `3882739`已先推送：直接验证R3A六门封存证据并兼容旧R2C，新增受控`--protocol-path`，当前六组件
+  SHA=`e8e7f091...68a5b`；协议专项34、全仓1,954、架构13 PASS，Ruff/compileall/协议解析/脱敏检查全绿。
+- 两阶段身份完全相同但授权隔离：20260830 20:45—23:30仅允许`promote_no_start`；20260831
+  16:40—19:00另立scope后才可在旧生产新鲜noop、目标日三类账本0、readiness唯一、双账户及全部身份门
+  通过时`start_current`一次。Phase A批准不等于Phase B批准。
+- 候选不重建、R3A fixture不重跑；本节点未promote/start/restart、未读密钥、未访问外网、未手工跑批，
+  旧生产继续healthy。最终推送后只生成Phase A精确scope并停止。见
+  `docs/R2D_R3B_PRODUCTION_RELEASE_PROTOCOL_20260829.md`与工程验收文档。
+
+## 2026-08-29 · R2D-R3A真实fixture六门PASS，生产授权仍为none
+
+- 原scope `fb3bcefb...2708`唯一构建后因release-audit自然追加而在fixture调用前失败关闭；候选构建1次、
+  fixture 0次。恢复scope `49a322ae...27017`复用同一候选并唯一运行断网fixture，六门全部PASS。
+- report/tree文件/tree内容/receipt SHA依次为`c73cbe4f...bfb8c`、`d01fbf5a...ef02`、
+  `d1febbf3...3c07`、`f50f7088...bd40`；生产release state/audit前后不变，候选未启动，旧scheduler未受
+  fixture影响。该PASS仅证明发布路径工程可用，不代表自然交易日或策略有效。见
+  `docs/R2D_R3A_HEALTH_CONVERGENCE_FIXTURE_EXECUTION_ACCEPTANCE_20260829.md`。
+
 ## 2026-08-29 · R2D-R3A健康收敛真实fixture工程完成，等待一次性build+fixture授权
 
 - 终态`GO_ENGINEERING_READY / BUILD_AND_FIXTURE_NOT_AUTHORIZED`。共享发布合同新增显式隔离容器ID入口，
