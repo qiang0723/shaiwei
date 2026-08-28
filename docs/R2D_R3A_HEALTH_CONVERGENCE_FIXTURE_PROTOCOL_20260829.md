@@ -23,8 +23,9 @@ R2D-R2 已证明候选与旧生产的底层发布动作均能成功，但发布�
    密钥、行情、真实账本或访问外网；
 7. claim 必须先于 Docker 命令落盘，同 scope 成功或失败均不得重跑。
 
-## 3. 五项机器门
+## 3. 六项机器门
 
+- scope 冻结的生产 release state 与 audit 哈希必须与执行前真身精确一致；
 - 候选镜像标签与运行时 Git/快照/锁 authority 精确一致；
 - 真实 Docker health 至少观察一次 `starting`；
 - 共享 `release._wait_scheduler_contract` 在 60 秒内收敛到 `healthy`；

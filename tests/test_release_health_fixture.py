@@ -1,4 +1,5 @@
 from pathlib import Path
+import hashlib
 import json
 import subprocess
 
@@ -23,7 +24,29 @@ def _spec(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> fixture.FixtureSpe
         expected_head=HEAD,
         expected_snapshot=SNAPSHOT,
         scope_sha256=SCOPE,
+        expected_release_state_sha256="e" * 64,
+        expected_release_audit_sha256="f" * 64,
         output_root=prefix / SCOPE[:16],
+    )
+
+
+def _bind_production_evidence(
+    spec: fixture.FixtureSpec,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> fixture.FixtureSpec:
+    state = tmp_path / "scheduler_state.json"
+    audit = tmp_path / "scheduler_releases.jsonl"
+    state.write_text("{\"state\":\"old\"}\n", encoding="utf-8")
+    audit.write_text("{\"audit\":\"old\"}\n", encoding="utf-8")
+    monkeypatch.setattr(release, "STATE_PATH", state)
+    monkeypatch.setattr(release, "AUDIT_PATH", audit)
+    return fixture.FixtureSpec(
+        **{
+            **spec.__dict__,
+            "expected_release_state_sha256": hashlib.sha256(state.read_bytes()).hexdigest(),
+            "expected_release_audit_sha256": hashlib.sha256(audit.read_bytes()).hexdigest(),
+        }
     )
 
 
@@ -80,6 +103,8 @@ def test_fixture_compose_is_isolated_and_matches_production_health_contract() ->
         ("expected_head", "short"),
         ("expected_snapshot", "z" * 64),
         ("scope_sha256", "0" * 63),
+        ("expected_release_state_sha256", "0" * 63),
+        ("expected_release_audit_sha256", "z" * 64),
     ],
 )
 def test_spec_identity_drift_fails_before_claim(
@@ -106,13 +131,7 @@ def test_compose_command_disables_project_dotenv_and_uses_isolated_project() -> 
 def test_execute_claims_first_converges_and_never_rolls_back(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    spec = _spec(tmp_path, monkeypatch)
-    state = tmp_path / "scheduler_state.json"
-    audit = tmp_path / "scheduler_releases.jsonl"
-    state.write_text('{"state":"old"}\n', encoding="utf-8")
-    audit.write_text('{"audit":"old"}\n', encoding="utf-8")
-    monkeypatch.setattr(release, "STATE_PATH", state)
-    monkeypatch.setattr(release, "AUDIT_PATH", audit)
+    spec = _bind_production_evidence(_spec(tmp_path, monkeypatch), tmp_path, monkeypatch)
 
     def metadata(_image):
         assert (spec.output_root / "claim.json").is_file()
@@ -141,6 +160,7 @@ def test_execute_claims_first_converges_and_never_rolls_back(
     assert report["verdict"] == "PASS"
     assert report["production_identity_unchanged"] is True
     assert [row["case"] for row in report["cases"]] == [
+        "production_release_evidence_matches_scope",
         "candidate_image_labels",
         "docker_health_starting_observed",
         "shared_release_contract_converged",
@@ -161,10 +181,39 @@ def test_execute_claims_first_converges_and_never_rolls_back(
             assert ".env" not in " ".join(command)
 
 
-def test_failure_is_persisted_and_same_scope_cannot_rerun(
+def test_production_evidence_drift_fails_before_docker(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     spec = _spec(tmp_path, monkeypatch)
+    state = tmp_path / "scheduler_state.json"
+    audit = tmp_path / "scheduler_releases.jsonl"
+    state.write_text("current-state\n", encoding="utf-8")
+    audit.write_text("current-audit\n", encoding="utf-8")
+    monkeypatch.setattr(release, "STATE_PATH", state)
+    monkeypatch.setattr(release, "AUDIT_PATH", audit)
+    monkeypatch.setattr(
+        release,
+        "_image_metadata",
+        lambda _image: pytest.fail("image metadata must not be read after scope drift"),
+    )
+
+    def runner(_argv, **_kwargs):
+        pytest.fail("Docker must not run after production evidence scope drift")
+
+    client = fixture.DockerClient(runner)
+    with pytest.raises(fixture.FixtureError, match="failed closed"):
+        fixture.execute(spec, client=client)
+
+    report = json.loads((spec.output_root / "report.json").read_text(encoding="utf-8"))
+    assert report["error_type"] == "FixtureError"
+    assert report["production_identity_unchanged"] is True
+    assert client.command_count == 0
+
+
+def test_failure_is_persisted_and_same_scope_cannot_rerun(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    spec = _bind_production_evidence(_spec(tmp_path, monkeypatch), tmp_path, monkeypatch)
     monkeypatch.setattr(
         release,
         "_image_metadata",
@@ -178,6 +227,7 @@ def test_failure_is_persisted_and_same_scope_cannot_rerun(
     assert report["error_type"] == "ReleaseError"
     with pytest.raises(fixture.FixtureError, match="cannot be rerun"):
         spec.validate()
+
 
 def test_frozen_protocol_is_nonexecuting_and_complete() -> None:
     document = yaml.safe_load(
@@ -193,6 +243,7 @@ def test_frozen_protocol_is_nonexecuting_and_complete() -> None:
     assert document["fixture"]["implicit_image_pull_forbidden"] is True
     assert document["fixture"]["external_network_authorized"] is False
     assert document["fixture"]["env_or_secret_read_authorized"] is False
+    assert document["fixture"]["production_release_evidence_hashes_required"] is True
     assert document["engineering"]["docker_build_authorized"] is False
     assert document["engineering"]["docker_fixture_authorized"] is False
     assert document["engineering"]["production_authorization"] == "none"
@@ -202,13 +253,7 @@ def test_frozen_protocol_is_nonexecuting_and_complete() -> None:
 def test_compose_up_failure_still_cleans_isolated_project(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    spec = _spec(tmp_path, monkeypatch)
-    state = tmp_path / "scheduler_state.json"
-    audit = tmp_path / "scheduler_releases.jsonl"
-    state.write_text("state\n", encoding="utf-8")
-    audit.write_text("audit\n", encoding="utf-8")
-    monkeypatch.setattr(release, "STATE_PATH", state)
-    monkeypatch.setattr(release, "AUDIT_PATH", audit)
+    spec = _bind_production_evidence(_spec(tmp_path, monkeypatch), tmp_path, monkeypatch)
     monkeypatch.setattr(
         release,
         "_image_metadata",

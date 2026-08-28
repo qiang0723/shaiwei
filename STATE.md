@@ -7,9 +7,9 @@
 - 终态`GO_ENGINEERING_READY / BUILD_AND_FIXTURE_NOT_AUTHORIZED`。共享发布合同新增显式隔离容器ID入口，
   生产默认路径和全部身份门不变；独立Compose fixture为断网、只读根、最小权限、四挂载目标与合成空目录，
   禁止项目`.env`、隐式pull、业务数据和真实账本。
-- 五门冻结为候选标签/运行身份、真实`starting`、共享合同收敛`healthy`、守卫成功路径零rollback、生产
+- 六门冻结为生产 release 证据与 scope 一致、候选标签/运行身份、真实`starting`、共享合同收敛`healthy`、守卫成功路径零rollback、生产
   release state/audit哈希不变；claim先于fixture Docker命令，同scope失败也清理并永久不得重跑。
-- 新Compose资产已进入build registry，覆盖98/98；fixture模块363行、测试242行。专项60、全仓1,942、
+- 新Compose资产已进入build registry，覆盖98/98；fixture模块381行、测试287行。专项63、全仓1,945、
   架构13 PASS，Ruff/compileall/Compose静态解析/diff-check PASS；未build、未运行fixture、未读密钥、
   未访问外网、未动生产，旧scheduler持续healthy。
 - 下一步只在终版提交推送后生成精确scope，绑定HEAD、代码快照、候选、组件哈希和唯一输出根；用户逐字

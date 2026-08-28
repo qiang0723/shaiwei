@@ -39,6 +39,8 @@ class FixtureSpec:
     expected_head: str
     expected_snapshot: str
     scope_sha256: str
+    expected_release_state_sha256: str
+    expected_release_audit_sha256: str
     output_root: Path
 
     def validate(self) -> None:
@@ -48,6 +50,10 @@ class FixtureSpec:
             raise FixtureError("expected code snapshot is invalid")
         if _SHA256.fullmatch(self.scope_sha256) is None:
             raise FixtureError("scope SHA-256 is invalid")
+        if _SHA256.fullmatch(self.expected_release_state_sha256) is None:
+            raise FixtureError("expected production release state SHA-256 is invalid")
+        if _SHA256.fullmatch(self.expected_release_audit_sha256) is None:
+            raise FixtureError("expected production release audit SHA-256 is invalid")
         if self.image != f"shaiwei:scheduler-{self.expected_snapshot[:16]}":
             raise FixtureError("candidate tag differs from the content-addressed snapshot")
         resolved = self.output_root.resolve(strict=False)
@@ -246,6 +252,8 @@ def execute(spec: FixtureSpec, *, client: DockerClient | None = None) -> dict[st
         "claimed_at": datetime.now(timezone.utc).isoformat(),
         "expected_head": spec.expected_head,
         "expected_snapshot": spec.expected_snapshot,
+        "expected_release_state_sha256": spec.expected_release_state_sha256,
+        "expected_release_audit_sha256": spec.expected_release_audit_sha256,
         "image": spec.image,
         "scope_sha256": spec.scope_sha256,
     }
@@ -261,11 +269,19 @@ def execute(spec: FixtureSpec, *, client: DockerClient | None = None) -> dict[st
         "release_audit": release.AUDIT_PATH,
     }
     before = {name: _sha256(path) for name, path in production_paths.items()}
+    expected_before = {
+        "release_state": spec.expected_release_state_sha256,
+        "release_audit": spec.expected_release_audit_sha256,
+    }
     candidate: dict[str, object] = {}
     cases: list[dict[str, str]] = []
     failure = ""
     compose_invoked = False
     try:
+        if before != expected_before:
+            raise FixtureError("production release evidence differs from the frozen scope")
+        cases.append({"case": "production_release_evidence_matches_scope", "status": "PASS"})
+
         metadata = release._image_metadata(spec.image)
         if (
             metadata.get("git_head") != spec.expected_head
@@ -352,6 +368,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--expected-head", required=True)
     parser.add_argument("--expected-snapshot", required=True)
     parser.add_argument("--scope-sha256", required=True)
+    parser.add_argument("--expected-release-state-sha256", required=True)
+    parser.add_argument("--expected-release-audit-sha256", required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     args = parser.parse_args(argv)
     report = execute(FixtureSpec(**vars(args)))

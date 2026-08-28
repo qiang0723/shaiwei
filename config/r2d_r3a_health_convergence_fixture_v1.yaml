@@ -26,9 +26,11 @@ fixture:
   env_or_secret_read_authorized: false
   real_business_data_or_ledger_authorized: false
   production_release_state_or_audit_write_authorized: false
+  production_release_evidence_hashes_required: true
   stable_lock_volume_reuse_authorized: true
   stable_lock_volume_create_delete_authorized: false
   required_cases:
+    - production_release_evidence_matches_scope
     - candidate_image_labels
     - docker_health_starting_observed
     - shared_release_contract_converged
