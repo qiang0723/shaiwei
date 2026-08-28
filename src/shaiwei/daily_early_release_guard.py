@@ -286,9 +286,13 @@ def _execute_action(
             restored = _restore_previous(protocol, environment)
         except (release.ReleaseError, GuardError) as restore_error:
             raise GuardError(
-                f"{action} failed and previous release restoration also failed: {restore_error}"
+                f"{action} failed ({type(error).__name__}: {error}) and previous release "
+                f"restoration also failed ({type(restore_error).__name__}: {restore_error})"
             ) from error
-        raise GuardError(f"{action} failed; previous release restored: {restored['status']}") from error
+        raise GuardError(
+            f"{action} failed ({type(error).__name__}: {error}); previous release restored: "
+            f"{restored['status']}"
+        ) from error
     return {
         "mutation": mutation,
         "container_id": running.container_id,

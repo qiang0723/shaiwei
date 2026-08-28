@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-08-29 · R2D-R2发布观测竞态闭环，R2D-R3仅完成工程修复
+
+- R2D-R2 scope `a2e66d95...29d5`于20260828唯一执行后永久关闭，不重跑。发布审计证明候选
+  `START_PASS`、旧生产`START_PASS`和`ROLLBACK_PASS`均成功；最终BLOCKED来自上层立即读取
+  Docker health元数据的收敛竞态，不是镜像、锁、数据、模型或策略失败。
+- 候选只留下5条时间线并止于`DAILY_COLLECTION STARTED`，不得计为候选自然周期；旧生产随后自然完成
+  20260828 daily及Top30/Top20双账户PASS，当前release current仍为旧生产且scheduler healthy。
+- `release._container_contract`已补强为Docker health=`healthy`与容器内healthcheck双门，原60秒等待、
+  镜像/快照/Git/只读根/四挂载/锁authority全部保留；守卫错误同时保留首错和恢复错。专项54、
+  全仓1,930、架构13 PASS，Ruff/diff-check PASS。
+- 当前仅为`R2D_R3_ENGINEERING_ONLY`：未build、未跑daemon fixture、未promote/start/restart、未读密钥、
+  未访问外网。下一节点必须以新提交/快照另立一次候选build和同Compose真实health收敛彩排scope；彩排
+  全绿后仍须再立新的自然交易日一次性启动scope。见
+  `docs/R2D_R3_DOCKER_HEALTH_CONVERGENCE_RCA_20260829.md`。
+
 ## 2026-08-27 · R2D-R2 发布工程就绪，等待精确执行授权
 
 - 20260827 旧生产自然周期完整 PASS：daily 5批/15,648行、真实批次 `.BJ=0`、S1—S9 PASS/

@@ -365,17 +365,21 @@ def _container_contract(expected: dict[str, str]) -> dict[str, object]:
             "docker",
             "inspect",
             "--format",
-            "{{.Image}}\t{{.HostConfig.ReadonlyRootfs}}\t{{json .Mounts}}",
+            "{{.Image}}\t"
+            "{{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}\t"
+            "{{.HostConfig.ReadonlyRootfs}}\t{{json .Mounts}}",
             container_id,
         ]
     )
     try:
-        image_id, readonly_text, mounts_text = result.stdout.strip().split("\t", 2)
+        image_id, health, readonly_text, mounts_text = result.stdout.strip().split("\t", 3)
         mounts = json.loads(mounts_text)
     except (ValueError, json.JSONDecodeError) as error:
         raise ReleaseError("scheduler targeted inspect output is invalid") from error
     if image_id != expected["image_id"]:
         raise ReleaseError("scheduler container is not running the promoted image ID")
+    if health != "healthy":
+        raise ReleaseError("scheduler Docker health metadata is not healthy")
     if readonly_text.lower() != "true":
         raise ReleaseError("scheduler root filesystem is not read-only")
     lock_required = expected.get("lock_authority") == LOCK_AUTHORITY
@@ -407,6 +411,7 @@ def _container_contract(expected: dict[str, str]) -> dict[str, object]:
         "image_id": expected["image_id"],
         "code_snapshot_sha256": str(runtime["code_snapshot_sha256"]),
         "git_head": str(runtime["git_head"]),
+        "health": health,
         "read_only_rootfs": True,
         "lock_authority": str(expected.get("lock_authority", "legacy-bind-flock-v0")),
         "mount_destinations": mount_destinations,

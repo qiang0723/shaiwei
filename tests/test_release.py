@@ -191,7 +191,7 @@ def test_container_contract_never_requests_environment(monkeypatch):
                     },
                 ]
             )
-            return SimpleNamespace(stdout=f"sha256:fixed\ttrue\t{mounts}\n")
+            return SimpleNamespace(stdout=f"sha256:fixed\thealthy\ttrue\t{mounts}\n")
         return SimpleNamespace(
             stdout=json.dumps(
                 {
@@ -208,6 +208,7 @@ def test_container_contract_never_requests_environment(monkeypatch):
     contract = release._container_contract(expected)
 
     assert contract["read_only_rootfs"] is True
+    assert contract["health"] == "healthy"
     assert contract["mount_destinations"] == [
         mount_contract.LOCK_VOLUME_DESTINATION,
         "/workspace/data",
@@ -231,7 +232,9 @@ def test_legacy_running_release_remains_observable_before_lock_volume_promotion(
 
     def fake_run(argv, *, check=True):
         if argv[:3] == ["docker", "inspect", "--format"]:
-            return SimpleNamespace(stdout=f"sha256:fixed\ttrue\t{json.dumps(mounts)}\n")
+            return SimpleNamespace(
+                stdout=f"sha256:fixed\thealthy\ttrue\t{json.dumps(mounts)}\n"
+            )
         return SimpleNamespace(
             stdout=json.dumps(
                 {"code_snapshot_sha256": "a" * 64, "git_head": "b" * 40}
@@ -280,13 +283,69 @@ def test_container_contract_rejects_lock_volume_drift(monkeypatch, mutation, mes
 
     def fake_run(argv, *, check=True):
         if argv[:3] == ["docker", "inspect", "--format"]:
-            return SimpleNamespace(stdout=f"sha256:fixed\ttrue\t{json.dumps(mounts)}\n")
+            return SimpleNamespace(
+                stdout=f"sha256:fixed\thealthy\ttrue\t{json.dumps(mounts)}\n"
+            )
         raise AssertionError("runtime identity must not be requested after mount failure")
 
     monkeypatch.setattr(release, "_compose_container_id", lambda: "scheduler-id")
     monkeypatch.setattr(release, "_run", fake_run)
     with pytest.raises(release.ReleaseError, match=message):
         release._container_contract(expected)
+
+
+def test_container_contract_rejects_docker_health_metadata_before_convergence(monkeypatch):
+    expected = {
+        "image_id": "sha256:fixed",
+        "code_snapshot_sha256": "a" * 64,
+        "git_head": "b" * 40,
+    }
+    mounts = [
+        {"Destination": "/workspace/data", "RW": True, "Type": "bind"},
+        {"Destination": "/workspace/ledger", "RW": True, "Type": "bind"},
+        {"Destination": "/workspace/logs", "RW": True, "Type": "bind"},
+    ]
+
+    def fake_run(argv, *, check=True):
+        if argv[:3] == ["docker", "inspect", "--format"]:
+            return SimpleNamespace(
+                stdout=f"sha256:fixed\tstarting\ttrue\t{json.dumps(mounts)}\n"
+            )
+        raise AssertionError("runtime identity must not be requested before Docker health converges")
+
+    monkeypatch.setattr(release, "_compose_container_id", lambda: "scheduler-id")
+    monkeypatch.setattr(release, "_run", fake_run)
+    with pytest.raises(release.ReleaseError, match="Docker health metadata"):
+        release._container_contract(expected)
+
+
+def test_wait_scheduler_contract_retries_until_docker_health_metadata_converges(monkeypatch):
+    expected = {
+        "image_id": "sha256:fixed",
+        "code_snapshot_sha256": "a" * 64,
+        "git_head": "b" * 40,
+    }
+    calls = 0
+
+    def fake_contract(_expected):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise release.ReleaseError("scheduler Docker health metadata is not healthy")
+        return {"container_id": "scheduler-id", "health": "healthy"}
+
+    monkeypatch.setattr(release, "_container_contract", fake_contract)
+    monkeypatch.setattr(
+        release,
+        "_run",
+        lambda argv, *, check=True: SimpleNamespace(returncode=0, stdout="", stderr=""),
+    )
+    monkeypatch.setattr(release.time, "sleep", lambda _seconds: None)
+
+    contract = release._wait_scheduler_contract(expected)
+
+    assert contract == {"container_id": "scheduler-id", "health": "healthy"}
+    assert calls == 2
 
 
 def test_no_start_promote_and_rollback_swap_distinct_content_images(monkeypatch, tmp_path):

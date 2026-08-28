@@ -263,8 +263,10 @@ def test_failed_promotion_and_failed_restoration_report_both_failures():
     env = FakeEnvironment()
     env.promote_error = True
     env.start_error = True
-    with pytest.raises(guard.GuardError, match="restoration also failed"):
+    with pytest.raises(guard.GuardError, match="restoration also failed") as captured:
         guard.run_guard(env.protocol, now=local(5, 16, 5), execute=True, environment=env)
+    assert "synthetic promotion failure" in str(captured.value)
+    assert "synthetic start failure" in str(captured.value)
     assert (env.promote_calls, env.start_calls, env.rollback_calls) == (1, 1, 0)
 
 
