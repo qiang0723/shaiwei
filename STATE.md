@@ -2,6 +2,19 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-09-02 · R2D-R3C过期窗口恢复协议冻结，等待当日自然闭环
+
+- 只读现场确认R3B Phase A scope `c4074e54...f795`仍为`approval_recorded=false`，Phase A/B窗口均已
+  过期且未执行；release current与运行容器仍为旧生产`4e5244b6...2708`/`722f63de...13b76`，healthy、
+  重启0、只读根和四挂载完整。候选`97d8c05e...7553`镜像与R3A六门PASS证据仍在，但候选自然日为0。
+- R3C只重新绑定自然边界：等待20260902旧生产daily/shadow/Top30/Top20自然PASS后，才机械生成绑定
+  当日双账户哈希的新Phase A config/scope；建议20:45—23:30仅promote-no-start。Phase B固定为
+  20260903 16:40—19:00另立scope、另获批准后才可start-current。旧scope永久不得复用，候选不重建、
+  fixture不重跑、未知哈希不预填。
+- 本节点只冻结协议，未promote/start/restart、未读效果/密钥、未访问外网、未手工跑批或改生产。
+  下一停止点为20260902自然闭环后的Phase A精确scope报告与逐字授权。见
+  `docs/R2D_R3C_EXPIRED_WINDOW_RECOVERY_PROTOCOL_20260902.md`。
+
 
 ## 2026-08-29 · R2D-R3B两阶段生产切换工程冻结，等待Phase A精确授权
 

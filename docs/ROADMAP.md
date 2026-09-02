@@ -4,6 +4,14 @@
 > Web，以及长期 LLM 多源因子研究。
 > 领先不是验收标准；只有可复现、扣除成本、通过预注册门槛的增量结果才算完成。
 
+## 2026-09-02 R2D-R3C过期窗口恢复协议冻结
+
+R3B Phase A/B在未批准、未执行状态下过期，旧scope永久不得复用。当前release与Docker运行真身仍为
+旧生产，候选和R3A六门PASS证据无漂移、候选自然日仍为0。R3C不重建候选、不重跑fixture，只等待
+20260902旧生产自然闭环后绑定当日双账户哈希生成新Phase A精确scope；Phase A仅promote-no-start，
+Phase B在20260903另立scope和授权后才可start。候选首个自然交易日全门通过前不关闭R2D、不进入G1。
+见`docs/R2D_R3C_EXPIRED_WINDOW_RECOVERY_PROTOCOL_20260902.md`。
+
 
 ## 2026-08-29 R2D-R3B两阶段生产切换工程冻结
 
