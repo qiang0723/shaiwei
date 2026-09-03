@@ -38,6 +38,7 @@ expected_legacy_mounts_before_prepare:
   - /workspace/data
   - /workspace/ledger
   - /workspace/logs
+  - /run/shaiwei-locks
 
 predecessor_fixture:
   format: r3a
@@ -52,7 +53,7 @@ predecessor_fixture:
 
 controller_identity:
   candidate_base_head: df44cabe44635b3c6be8e40188140fb54f5ff9a0
-  controller_source_head: 38827399b2b4c58198aa3c043f76a33a2e704408
+  controller_source_head: cffa10027320c4cbe710a3737f35b1d3e5e01962
   component_paths:
     - src/shaiwei/release_build_context.py
     - src/shaiwei/release_guard.py
@@ -60,4 +61,4 @@ controller_identity:
     - src/shaiwei/r2d_release_guard.py
     - src/shaiwei/r2d_legacy_boundary.py
     - src/shaiwei/r2d_fixture_evidence.py
-  component_sha256: e8e7f0915882a65973e5b5552f30a9c257a0a5bb6e2b7d9d04b2f6bcb3668a5b
+  component_sha256: 3605916b90f6a21d9746e9200cd04b94ba2c020a1b69d3ac9c7f596c2a5c8aad
