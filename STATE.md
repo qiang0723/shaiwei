@@ -2,6 +2,21 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-09-03 · R2D-R3D过期窗口与旧生产健康恢复协议冻结
+
+- R3C Phase A未生成config/scope、未批准、未执行并已过期，故原20260903 Phase B无效；R3B旧scope
+  继续永久关闭。release current与运行容器仍为旧生产`4e5244b6...2708`/`722f63de...13b76`，候选
+  `97d8c05e...7553`及R3A六门PASS证据不变。
+- 20260903 12:26定向只读检查发现旧容器running但Docker health=`unhealthy`、restart=0，四挂载及
+  只读根完整；五次healthcheck因心跳超过既有3600秒门退出1。旧进程于12:29无人工动作自然刷新
+  `noop / 20260902`，但该单次恢复不冒充Docker健康收敛，也不授权restart或放宽门槛。
+- R3D只重新绑定自然边界：等待20260903旧生产daily/shadow/Top30/Top20自然PASS且Docker health按
+  原门收敛后，才机械生成当日Phase A config/scope；建议20:45—23:30仅promote-no-start。Phase B
+  固定为20260904 16:40—19:00另立scope、另获批准后才可start-current。
+- 本节点未promote/start/restart、未读密钥、未手工跑批、未改账本或生产。下一停止点为20260903
+  自然闭环后的Phase A精确scope报告与逐字授权。见
+  `docs/R2D_R3D_EXPIRED_WINDOW_AND_HEALTH_RECOVERY_PROTOCOL_20260903.md`。
+
 ## 2026-09-02 · R2D-R3C过期窗口恢复协议冻结，等待当日自然闭环
 
 - 只读现场确认R3B Phase A scope `c4074e54...f795`仍为`approval_recorded=false`，Phase A/B窗口均已
