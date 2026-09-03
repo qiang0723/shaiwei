@@ -2,6 +2,20 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-09-03 · R2D-R3D-R1 Phase A只提升不启动完成
+
+- 用户逐字批准scope `a43b44cd...5d12`后，20:53—20:54在冻结窗口内唯一执行
+  `promote_no_start`；结果`PREPARED`、`mutation_invoked=true`、`started=false`，Phase A正式关闭且
+  不得重跑。release current现为候选`97d8c05e...7553`/`b64ae11...5ebe`，previous为旧生产
+  `4e5244b6...2708`/`722f63de...13b76`，audit末条`PROMOTE_PASS`。
+- 运行scheduler仍是原旧容器`7a55151d...80c4`与旧镜像，running/healthy、restart=0、只读根和三个
+  bind加`shaiwei_runtime_locks_v1`锁卷四挂载完整；候选未启动，旧容器未重启。自然账本增量及前序
+  失败/失效scope均原样保留。
+- Phase B仍未授权。唯一合法下一节点是20260904 16:40—19:00，在旧容器16:00后新鲜
+  `noop / 20260903`、目标日三类账本0、readiness唯一20260904、双账户仍绑定20260903及全部身份门
+  无漂移后，另立start config/scope并申请逐字授权。候选首个自然交易日验收前不关闭R2D、不进入G1。
+  见`docs/R2D_R3D_R1_PHASE_A_ACCEPTANCE_20260903.md`。
+
 ## 2026-09-03 · R2D-R3D过期窗口与旧生产健康恢复协议冻结
 
 - R3C Phase A未生成config/scope、未批准、未执行并已过期，故原20260903 Phase B无效；R3B旧scope

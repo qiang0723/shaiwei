@@ -4,6 +4,15 @@
 > Web，以及长期 LLM 多源因子研究。
 > 领先不是验收标准；只有可复现、扣除成本、通过预注册门槛的增量结果才算完成。
 
+## 2026-09-03 R2D-R3D-R1 Phase A完成，等待独立Phase B授权
+
+scope `a43b44cd...5d12`已在冻结窗口内唯一执行`promote_no_start`并返回`PREPARED`、`started=false`。
+release current现为候选，previous为旧生产；运行scheduler仍是原旧容器，healthy、重启0、只读根与
+四挂载不变。Phase A关闭且不重跑，Phase B/start/restart仍未授权。唯一下一节点为20260904
+16:40—19:00先验证新鲜旧生产noop、目标日零账本、唯一readiness、双账户边界及全部身份无漂移，
+再另立start scope并申请逐字批准。候选首个自然交易日全门通过前不关闭R2D、不进入G1。见
+`docs/R2D_R3D_R1_PHASE_A_ACCEPTANCE_20260903.md`。
+
 ## 2026-09-03 R2D-R3D过期窗口与旧生产健康恢复协议冻结
 
 R3C Phase A未生成scope、未批准、未执行即过期，原20260903 Phase B随之无效。旧生产在12:26曾因
