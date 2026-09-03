@@ -28,7 +28,10 @@ from shaiwei.r2d_legacy_boundary import (
     target_write_counts,
     validate_noop_boundary,
 )
-from shaiwei.storage.runtime_mount_contract import LOCK_AUTHORITY
+from shaiwei.storage.runtime_mount_contract import (
+    LOCK_AUTHORITY,
+    LOCK_VOLUME_DESTINATION,
+)
 
 
 PROTOCOL_PATH = PROJECT_ROOT / "config" / "r2d_scheduler_release_guard_v1.yaml"
@@ -71,11 +74,13 @@ class GuardProtocol(base.FrozenModel):
         accounts = [item.account_id for item in self.expected_latest_forward]
         if len(accounts) != 2 or set(accounts) != {"model_baseline", "model_top20"}:
             raise ValueError("R2D must bind exactly the Top30 and Top20 accounts")
-        if set(self.expected_legacy_mounts_before_prepare) != {
+        base_mounts = {
             "/workspace/data",
             "/workspace/ledger",
             "/workspace/logs",
-        }:
+        }
+        expected_mounts = set(self.expected_legacy_mounts_before_prepare)
+        if expected_mounts not in (base_mounts, base_mounts | {LOCK_VOLUME_DESTINATION}):
             raise ValueError("R2D legacy pre-prepare mounts differ from the frozen contract")
         is_recovery = self.schema_version != "r2d-scheduler-release-guard-v1"
         if is_recovery != (self.legacy_noop_boundary is not None):
