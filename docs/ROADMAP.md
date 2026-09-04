@@ -4,6 +4,14 @@
 > Web，以及长期 LLM 多源因子研究。
 > 领先不是验收标准；只有可复现、扣除成本、通过预注册门槛的增量结果才算完成。
 
+## 2026-09-04 R2D-R3E Phase B过期窗口恢复协议冻结
+
+R3D Phase A保持关闭；20260904 Phase B未生成scope、未授权、未执行即过期。旧生产随后自然完成
+20260904且身份/状态门PASS，release与运行容器无漂移。R3E只将start-only边界重绑到下一交易日
+20260907 16:40—19:00，并绑定20260904双账户artifact；Phase A不得重复。届时须先通过新鲜旧生产
+noop、目标日零账本、唯一readiness和全部身份门，才生成精确scope并再次申请批准。候选首个自然日
+验收前不关闭R2D、不进入G1。见`docs/R2D_R3E_PHASE_B_EXPIRED_WINDOW_RECOVERY_PROTOCOL_20260904.md`。
+
 ## 2026-09-03 R2D-R3D-R1 Phase A完成，等待独立Phase B授权
 
 scope `a43b44cd...5d12`已在冻结窗口内唯一执行`promote_no_start`并返回`PREPARED`、`started=false`。

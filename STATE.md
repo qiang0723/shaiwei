@@ -2,6 +2,18 @@
 
 > 每会话开工先读本文件；收工必更新「当前进度」与「待答点」。改判旧口径须显式作废并注明日期。
 
+## 2026-09-04 · R2D-R3E Phase B过期窗口恢复协议冻结
+
+- R3D Phase A保持唯一完成；20260904 16:40—19:00未生成Phase B scope、未授权、未执行，窗口现已
+  过期且不得补造或复用。release current/previous仍为候选/旧生产，运行scheduler仍是原旧容器，
+  healthy、restart=0、只读根和四挂载完整，audit仍止于34条`PROMOTE_PASS`。
+- 旧生产自然完成20260904 daily/shadow/Top30/Top20，状态/新鲜度/身份PASS；冻结日历确认下一交易日
+  为20260907。R3E start-only配置只重绑20260904双账户artifact和20260907 16:40—19:00窗口，禁止
+  重复Phase A。
+- 唯一合法下一节点为20260907窗口内一次只读预检：须有16:00后新鲜`noop / 20260904`、目标日三类
+  账本0、readiness唯一20260907及全部身份无漂移。通过后才生成新scope并申请逐字授权；当前无任何
+  start/restart/生产mutation授权。见`docs/R2D_R3E_PHASE_B_EXPIRED_WINDOW_RECOVERY_PROTOCOL_20260904.md`。
+
 ## 2026-09-03 · R2D-R3D-R1 Phase A只提升不启动完成
 
 - 用户逐字批准scope `a43b44cd...5d12`后，20:53—20:54在冻结窗口内唯一执行
