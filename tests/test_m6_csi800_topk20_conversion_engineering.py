@@ -3,7 +3,7 @@ from __future__ import annotations
 from copy import deepcopy
 import json
 from pathlib import Path
-import shutil
+from tempfile import TemporaryDirectory
 
 import numpy as np
 import pandas as pd
@@ -26,7 +26,6 @@ from shaiwei.research.topk_conversion.metrics import evaluate_case
 from shaiwei.research.topk_conversion.synthetic import EXPECTED_CASES, build_bundle, execute_fixture
 
 
-TEST_ROOT = PROJECT_ROOT / "data/cache/tests/m6_topk_conversion"
 TEST_RELEASE_IDENTITY = {
     "git_head": "a" * 40,
     "code_snapshot_sha256": "b" * 64,
@@ -36,10 +35,10 @@ TEST_RELEASE_IDENTITY = {
 
 @pytest.fixture
 def output_root() -> Path:
-    shutil.rmtree(TEST_ROOT, ignore_errors=True)
-    TEST_ROOT.mkdir(parents=True)
-    yield TEST_ROOT
-    shutil.rmtree(TEST_ROOT, ignore_errors=True)
+    parent = PROJECT_ROOT / ".test-tmp"
+    parent.mkdir(exist_ok=True)
+    with TemporaryDirectory(prefix="m6-topk-", dir=parent) as directory:
+        yield Path(directory)
 
 
 def _prediction(*, bse: bool = False, duplicate: bool = False) -> pd.Series:

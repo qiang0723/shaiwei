@@ -225,6 +225,8 @@ def prepare_guard(
     execute: bool,
     environment: R2DEnvironment | None = None,
 ) -> dict[str, object]:
+    if execute:
+        raise base.GuardError("legacy R2D execute retired; use r2d_authorized_start")
     if protocol.legacy_noop_boundary is not None:
         raise base.GuardError("R2D recovery protocol cannot repeat Phase A")
     env = environment or R2DEnvironment()
@@ -257,21 +259,7 @@ def prepare_guard(
         "controller": controller,
         "mutation_invoked": False,
     }
-    if not execute:
-        return evidence
-    try:
-        mutation = env.promote_no_start(candidate.image)
-    except release.ReleaseError as error:
-        raise base.GuardError(str(error)) from error
-    after_current, after_previous = base._release_state(env)
-    after_running = _legacy_running(protocol, env)
-    if (
-        base._identity(after_current, candidate) != base._expected_identity(candidate)
-        or base._identity(after_previous, old) != base._expected_identity(old)
-        or after_running.container_id != running.container_id
-    ):
-        raise base.GuardError("R2D prepare did not preserve the exact legacy container")
-    return {**evidence, "status": "PREPARED", "mutation_invoked": True, "mutation": mutation}
+    return evidence
 
 
 def start_guard(
@@ -281,6 +269,8 @@ def start_guard(
     execute: bool,
     environment: R2DEnvironment | None = None,
 ) -> dict[str, object]:
+    if execute:
+        raise base.GuardError("legacy R2D execute retired; use r2d_authorized_start")
     env = environment or R2DEnvironment()
     checked_at = _validate_window(
         date_text=protocol.target_trade_date,
@@ -321,10 +311,7 @@ def start_guard(
         "mutation_invoked": False,
     }
     evidence[boundary_key] = boundary_evidence
-    if not execute:
-        return evidence
-    executed = base._execute_action(protocol, env, "RESUME_START")
-    return {**evidence, "status": "STARTED", "mutation_invoked": True, "execution": executed}
+    return evidence
 
 
 def _resolve_protocol_path(
@@ -361,6 +348,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
+        if args.execute:
+            raise base.GuardError("legacy R2D execute retired; use r2d_authorized_start")
         path = _resolve_protocol_path(args.protocol_version, args.protocol_path)
         protocol = load_protocol(path)
         runner = prepare_guard if args.phase == "prepare" else start_guard

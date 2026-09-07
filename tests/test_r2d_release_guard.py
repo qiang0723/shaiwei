@@ -281,18 +281,15 @@ def test_r2_protocol_is_recovery_only_with_delayed_window():
         guard.prepare_guard(frozen, now=local(27, 20), execute=False)
 
 
-def test_prepare_allows_runtime_dirt_and_preserves_container(monkeypatch):
+def test_prepare_allows_runtime_dirt_without_mutation(monkeypatch):
     env = FakeEnvironment()
     monkeypatch.setattr(guard, "_validate_fixture", lambda _protocol: None)
-    result = guard.prepare_guard(env.protocol, now=local(25, 20), execute=True, environment=env)
-    assert result["status"] == "PREPARED"
-    assert (env.prepare_calls, env.start_calls) == (1, 0)
-    assert env.running.container_id == "legacy-container"
-    assert env.current == env.candidate and env.previous == env.old
-
-    repeated = guard.prepare_guard(env.protocol, now=local(25, 20), execute=True, environment=env)
+    result = guard.prepare_guard(env.protocol, now=local(25, 20), execute=False, environment=env)
+    assert result["status"] == "READY_TO_PREPARE"
+    assert (env.prepare_calls, env.start_calls) == (0, 0)
+    env.promote_no_start(env.candidate["image"])
+    repeated = guard.prepare_guard(env.protocol, now=local(25, 20), execute=False, environment=env)
     assert repeated["status"] == "ALREADY_PREPARED"
-    assert env.prepare_calls == 1
 
 
 def test_prepare_rejects_controlled_source_or_mount_drift(monkeypatch):
@@ -300,14 +297,14 @@ def test_prepare_rejects_controlled_source_or_mount_drift(monkeypatch):
     monkeypatch.setattr(guard, "_validate_fixture", lambda _protocol: None)
     env.git["controlled_changes"] = ("src/shaiwei/release.py",)
     with pytest.raises(base.GuardError, match="controlled source tree"):
-        guard.prepare_guard(env.protocol, now=local(25, 20), execute=True, environment=env)
+        guard.prepare_guard(env.protocol, now=local(25, 20), execute=False, environment=env)
     env.git["controlled_changes"] = ()
     env.running = env._running(env.old, "legacy-container")
     env.running = env.running.__class__(
         **{**env.running.__dict__, "mount_destinations": ("/workspace/data",)}
     )
     with pytest.raises(base.GuardError, match="healthy running release|mounts"):
-        guard.prepare_guard(env.protocol, now=local(25, 20), execute=True, environment=env)
+        guard.prepare_guard(env.protocol, now=local(25, 20), execute=False, environment=env)
 
 
 def test_prepare_rejects_controller_component_or_delta_drift(monkeypatch):
@@ -318,38 +315,36 @@ def test_prepare_rejects_controller_component_or_delta_drift(monkeypatch):
         "delta_paths": (),
     }
     with pytest.raises(base.GuardError, match="component identity"):
-        guard.prepare_guard(env.protocol, now=local(25, 20), execute=True, environment=env)
+        guard.prepare_guard(env.protocol, now=local(25, 20), execute=False, environment=env)
 
     env.controller_evidence = lambda _identity: {
         "component_sha256": "a" * 64,
         "delta_paths": ("src/shaiwei/pipeline/scheduler.py",),
     }
     with pytest.raises(base.GuardError, match="escapes the frozen allowlist"):
-        guard.prepare_guard(env.protocol, now=local(25, 20), execute=True, environment=env)
+        guard.prepare_guard(env.protocol, now=local(25, 20), execute=False, environment=env)
 
 
 def test_start_requires_prepared_state_and_waiting_source(monkeypatch):
     env = FakeEnvironment()
     monkeypatch.setattr(guard, "_validate_fixture", lambda _protocol: None)
     with pytest.raises(base.GuardError, match="prepared transition state"):
-        guard.start_guard(env.protocol, now=local(26, 16, 5), execute=True, environment=env)
+        guard.start_guard(env.protocol, now=local(26, 16, 5), execute=False, environment=env)
     env.promote_no_start(env.candidate["image"])
     env.health["status"] = "noop"
     with pytest.raises(base.GuardError, match="waiting_source"):
-        guard.start_guard(env.protocol, now=local(26, 16, 5), execute=True, environment=env)
+        guard.start_guard(env.protocol, now=local(26, 16, 5), execute=False, environment=env)
     assert env.start_calls == 0
 
 
-def test_prepared_start_enforces_named_lock_runtime(monkeypatch):
+def test_prepared_start_is_read_only(monkeypatch):
     env = FakeEnvironment()
     monkeypatch.setattr(guard, "_validate_fixture", lambda _protocol: None)
     env.promote_no_start(env.candidate["image"])
-    result = guard.start_guard(env.protocol, now=local(26, 16, 5), execute=True, environment=env)
-    assert result["status"] == "STARTED"
+    result = guard.start_guard(env.protocol, now=local(26, 16, 5), execute=False, environment=env)
+    assert result["status"] == "READY_TO_START"
     assert result["legacy_waiting_source"]["detail"] == "20260826"
-    assert env.start_calls == 1
-    assert env.running.lock_authority == "docker-named-volume-v1"
-    assert len(env.running.mount_destinations) == 4
+    assert env.start_calls == 0
 
 
 def test_recovery_start_accepts_fresh_prior_day_noop_and_zero_target_rows(monkeypatch):
@@ -410,17 +405,18 @@ def test_recovery_start_rejects_any_target_date_attempt(monkeypatch):
         )
 
 
-@pytest.mark.parametrize("failure", ("start_error", "broken_candidate_mount"))
-def test_failed_start_or_runtime_contract_restores_legacy_sequentially(monkeypatch, failure):
+@pytest.mark.parametrize("runner", (guard.prepare_guard, guard.start_guard))
+def test_legacy_execution_is_retired_before_io(runner):
     env = FakeEnvironment()
-    monkeypatch.setattr(guard, "_validate_fixture", lambda _protocol: None)
-    env.promote_no_start(env.candidate["image"])
-    setattr(env, failure, True)
-    with pytest.raises(base.GuardError, match="previous release restored"):
-        guard.start_guard(env.protocol, now=local(26, 16, 5), execute=True, environment=env)
-    assert (env.start_calls, env.rollback_calls) == (1, 1)
-    assert env.current == env.old
-    assert env.running.container_id == "restored-container"
+    with pytest.raises(base.GuardError, match="execute retired"):
+        runner(env.protocol, now=local(26, 16, 5), execute=True, environment=env)
+    assert (env.prepare_calls, env.start_calls, env.rollback_calls) == (0, 0, 0)
+
+
+def test_legacy_cli_execution_is_retired_before_protocol_read(monkeypatch, capsys):
+    monkeypatch.setattr(guard, "load_protocol", lambda *_: pytest.fail("unexpected read"))
+    assert guard.main(["--phase", "start", "--execute"]) == 2
+    assert "execute retired" in capsys.readouterr().out
 
 
 def _write_json(path: Path, document: dict[str, object]) -> str:

@@ -145,11 +145,15 @@ def test_batch_gate_is_exhaustive(completed: int, valid: int, expected: str) -> 
     assert batch_gate(completed, valid) == expected
 
 
-def test_scope_path_escape_or_report_tamper_fails_closed(tmp_path: Path) -> None:
+def test_scope_path_escape_or_report_tamper_fails_closed(tmp_path: Path, monkeypatch) -> None:
     scope_path = tmp_path / "scope.yaml"
     scope_path.write_text("execution_authorized: true\n", encoding="utf-8")
-    with pytest.raises(D1ControlError, match="outside the project"):
-        R3CCanaryScope.load(scope_path)
+    synthetic_root = tmp_path / "project"
+    synthetic_root.mkdir()
+    with monkeypatch.context() as isolated:
+        isolated.setattr("shaiwei.research.trend_swing.v5_r3c_canary.PROJECT_ROOT", synthetic_root)
+        with pytest.raises(D1ControlError, match="outside the project"):
+            R3CCanaryScope.load(scope_path)
 
     report = preflight()
     report["provider_calls"] = 1

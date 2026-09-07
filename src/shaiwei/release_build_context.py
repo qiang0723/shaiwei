@@ -50,7 +50,16 @@ class ControllerIdentity(BaseModel):
         recovery = legacy | {"src/shaiwei/r2d_legacy_boundary.py"}
         fixture = {"src/shaiwei/r2d_fixture_evidence.py"}
         actual = set(self.component_paths)
-        valid_inventories = (legacy, recovery, legacy | fixture, recovery | fixture)
+        secure = recovery | fixture | {
+            "src/shaiwei/release.py",
+            "src/shaiwei/storage/interprocess_lock.py",
+            "src/shaiwei/storage/lock_resources.py",
+            "src/shaiwei/release_metadata.py",
+            "src/shaiwei/r2d_execution_contract.py",
+            "src/shaiwei/r2d_metadata_environment.py",
+            "src/shaiwei/r2d_authorized_start.py",
+        }
+        valid_inventories = (legacy, recovery, legacy | fixture, recovery | fixture, secure)
         if actual not in valid_inventories or len(self.component_paths) != len(actual):
             raise ValueError("R2D controller component inventory differs")
         return self

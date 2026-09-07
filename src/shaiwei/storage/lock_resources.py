@@ -13,6 +13,7 @@ from shaiwei.config import PROJECT_ROOT
 DAILY_CYCLE = "runtime:daily-cycle"
 SHADOW_CYCLE = "runtime:shadow-cycle"
 PAPER_CYCLE = "runtime:paper-cycle"
+R2D_RELEASE_EXECUTION = "local:release:r2d-execution-v1"
 
 _EXACT_RANKS = {
     DAILY_CYCLE: 10,
@@ -38,6 +39,8 @@ class LockResourceSpec:
 
 def resource_spec(resource_id: str) -> LockResourceSpec:
     """Validate one complete logical identity and return its lock-order rank."""
+    if resource_id == R2D_RELEASE_EXECUTION:
+        return LockResourceSpec(resource_id, 5, local_only=True)
     if resource_id in _EXACT_RANKS:
         return LockResourceSpec(resource_id, _EXACT_RANKS[resource_id])
     if _TIMELINE_PATTERN.fullmatch(resource_id):

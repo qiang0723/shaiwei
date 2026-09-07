@@ -143,7 +143,10 @@ def _load_state(path: Path | None = None) -> dict[str, object] | None:
 
 
 def _image_document(image: str) -> dict[str, object]:
-    result = _run(["docker", "image", "inspect", image])
+    labels = ",".join(f'"{key}":{{{{json (index .Config.Labels "{key}")}}}}'
+                      for key in (SNAPSHOT_LABEL, REVISION_LABEL, LOCK_AUTHORITY_LABEL))
+    result = _run(["docker", "image", "inspect", "--format",
+                   '[{"Id":{{json .Id}},"Config":{"Labels":{' + labels + '}}}]', image])
     try:
         documents = json.loads(result.stdout)
     except json.JSONDecodeError as error:
@@ -162,7 +165,7 @@ def _image_metadata(image: str) -> dict[str, str]:
     image_id = str(document.get("Id", ""))
     snapshot = str(labels.get(SNAPSHOT_LABEL, ""))
     revision = str(labels.get(REVISION_LABEL, ""))
-    lock_authority = str(labels.get(LOCK_AUTHORITY_LABEL, ""))
+    lock_authority = str(labels.get(LOCK_AUTHORITY_LABEL) or "")
     if (
         not image_id.startswith("sha256:")
         or len(snapshot) != 64
@@ -328,13 +331,10 @@ def release_start_readiness(
         str(latest_daily.get("target_trade_date", "")) if latest_daily is not None else ""
     )
     if plan_loader is None:
-        from shaiwei.config import load
-        from shaiwei.pipeline.daily import _local_plan
+        from shaiwei.release_metadata import load_plan
 
-        def load_plan() -> object:
-            return _local_plan(load(), datetime.now(timezone.utc))
-
-        plan_loader = load_plan
+        def plan_loader():
+            return load_plan(datetime.now(timezone.utc))
     plan = plan_loader()
     missing = tuple(str(value) for value in getattr(plan, "missing_trade_dates", ()))
     available = sorted(
@@ -456,25 +456,27 @@ def _wait_scheduler_contract(
     raise ReleaseError(f"scheduler did not satisfy the release contract: {last_error}")
 
 
-def start_current() -> dict[str, object]:
+def start_current(*, before_mutation: Callable[[], None] | None = None,
+                  compose_project: str | None = None) -> dict[str, object]:
     state = _load_state()
     if state is None or not isinstance(state.get("current"), dict):
         raise ReleaseError("no promoted scheduler release exists")
     expected = dict(state["current"])
     readiness = release_start_readiness(str(expected["code_snapshot_sha256"]))
+    if before_mutation is not None:
+        before_mutation()
     _tag(str(expected["image"]), CURRENT_ALIAS)
-    _run(
-        [
-            "docker",
-            "compose",
-            "up",
-            "-d",
-            "--force-recreate",
-            "--no-deps",
-            "scheduler",
-        ]
-    )
-    contract = _wait_scheduler_contract(expected)
+    if before_mutation is not None:
+        before_mutation()
+    compose = ["docker", "compose", *(["-p", compose_project] if compose_project else [])]
+    _run([*compose, "up", "-d", "--force-recreate", "--no-deps", "scheduler"])
+    if compose_project:
+        container_id = _run([*compose, "ps", "-q", "scheduler"]).stdout.strip()
+        if not container_id or len(container_id.split()) != 1:
+            raise ReleaseError("started scheduler container identity is ambiguous")
+        contract = _wait_scheduler_contract(expected, container_id=container_id)
+    else:
+        contract = _wait_scheduler_contract(expected)
     evidence = {**contract, "start_readiness": readiness}
     record = _append_audit("START_PASS", evidence)
     return {**evidence, "audit_record_sha256": record["record_sha256"]}

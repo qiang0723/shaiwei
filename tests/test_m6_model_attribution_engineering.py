@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from copy import deepcopy
 import json
-import shutil
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import numpy as np
 import pandas as pd
@@ -47,15 +48,16 @@ from shaiwei.research.model_attribution.synthetic import (
 
 CALENDAR = PROJECT_ROOT / "data/qlib_bin/calendars/day.txt"
 MANIFEST = PROJECT_ROOT / "data/qlib_bin/_shaiwei_manifest.json"
-TEST_ROOT = PROJECT_ROOT / "data/research/m6_csi800_model_attribution_v1/test-work"
+TEST_ROOT = PROJECT_ROOT / ".test-tmp/unbound-attribution"  # Rebound before every test.
 
 
 @pytest.fixture(autouse=True)
-def clean_test_root():
-    shutil.rmtree(TEST_ROOT, ignore_errors=True)
-    TEST_ROOT.mkdir(parents=True, exist_ok=True)
-    yield
-    shutil.rmtree(TEST_ROOT, ignore_errors=True)
+def clean_test_root(monkeypatch):
+    parent = PROJECT_ROOT / ".test-tmp"
+    parent.mkdir(exist_ok=True)
+    with TemporaryDirectory(prefix="m6-attribution-", dir=parent) as directory:
+        monkeypatch.setitem(globals(), "TEST_ROOT", Path(directory))
+        yield
 
 
 def test_protocol_bundle_metadata_and_calendar_boundaries_are_exact() -> None:
