@@ -1,5 +1,24 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-09-09 · 20260908元数据补验通过，R2D-R3G工程冻结
+
+09:12 UTC+8单次补验完成：20260908 daily=1、shadow=1、paper=2均PASS；两账户最新PASS的
+实际产物哈希、FORWARD mode、九项身份、operator与freshness通过，代码仍为旧生产4e5244b6...2708。
+release state/audit哈希未变，audit 34条链PASS、末事件PROMOTE_PASS；本次未重放paper或核验通知，
+不把元数据PASS写成候选首日验收。独立日历SHA匹配、日期有序唯一，下一交易日20260909。
+
+R3G新配置绑定20260909 16:40—19:00及当天16:00后noop / 20260908、目标日三类尝试0、
+20260908 Top30哈希9ef872c1...0312与Top20哈希0faa96da...805d；13组件控制器及候选/R3A不变。
+实际Compose project冻结为shaiwei_init，独立日历用于生成scope前日期校验，readiness仍走权威规划器。
+配置SHA为4dfb9171c1b800057c9f059a675a66d9908f323bdf3d3e52539d59f768221db1。
+工程专项76、架构13及Ruff均PASS；受保护全仓2028 PASS、1项真实.env密钥比对未执行，
+17项既有警告。配置/文档哈希、旧R3F字节保持、凭据形状扫描PASS。尚无新scope、批准文件或生产动作。
+
+下一停止点为本工程交付。日历文档8ed84fe仍未推送，本地origin/main仍停69f0d91；需要精确Git
+网络授权后推送本次文档/配置/测试并同步引用，不能猜测或伪造已同步。之后才另批窗口内单次scope
+生成及只读预检，PASS后再申请start授权。R2D开放，后续G1、Style Attribution、W7、资金梯度顺序不变。
+详见`docs/R2D_R3G_START_ONLY_PROTOCOL_20260909.md`。
+
 ## 2026-09-08 · R3F过期，日历独立封存，自然闭环待补验
 
 R3F的20260908 16:40—19:00窗口已过期。晚间核验因旧qlib日历缺失中断，未输出自然闭环汇总，
