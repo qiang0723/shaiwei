@@ -53,7 +53,15 @@ R2D收口按代码+ADR推出剩余八组工作（见底稿§5），在当前HEAD
 未跟踪），未动代码；②compose up守卫——本步已实施；③manifest沿用目标合同——ADR 0015草案已写
 （docs/ADR_0015_SHADOW_CARRY_DAY_SUSPENDED_TARGETS_20261014.md，PROPOSED，未跟踪；下游Top20投影只按rank、Web透传score，
 null兼容），协议随裁决后冻结再实现；④备份/巡检触发器=Claude桌面端定时任务、执行体=一次性Docker或只读宿主命令——巡检本步上线；
-⑤次日补跑只读归因——待做；⑥.venv重建到稳定解释器——待做；⑦研究镜像与构建缓存——现不清理，待备份落地、冻结镜像归档后再清；
+⑤次日补跑只读归因——待做；⑥.venv重建到稳定解释器——本步完成：`brew install python@3.12`（3.12.15瓶子）在本机被内核SIGKILL（`Python.framework`
+签名声明资源目录但缺失，`codesign --verify --strict`失败；在用户终端同样exit 137，非工具沙箱），已`brew unlink`并
+`brew uninstall`，Homebrew 7连带移除其依赖openssl@3/mpdecimal/sqlite/xz，`brew missing`为空、无连带损坏，`python3`始终为
+/usr/bin（3.9.6）未被遮蔽。改用`brew install uv`+`uv python install 3.12`的独立构建3.12.15
+（~/.local/share/uv/python/cpython-3.12-macos-aarch64-none，linker-signed，可执行），`make bootstrap VENV=.venv.new`按
+requirements.lock重装，LightGBM按README走无OpenMP回退编译，新环境全量2,454 PASS后才替换：旧.venv移至仓库外
+`../.venv.codex-old-20261014`保留作回滚（一周后可删），`.venv.new`改名并修正72个脚本内路径；替换后ruff/pytest/qlib/torch导入、
+check-ledger 86、ops-patrol实跑均PASS。既有事实记录：Dockerfile基础镜像为python:3.11-slim，生产3.11、宿主3.12。
+不改代码、不改生产；⑦研究镜像与构建缓存——现不清理，待备份落地、冻结镜像归档后再清；
 ⑧STATE常设区过时内容同步与“TS家族终结”句作废——本步完成：当前阶段补2026-10-14现况段（原文保留）、P0.5与G8待答点加
 同步注记、作废记录增“TS家族研究终结”表述一条、文末错位的2026-08-09一级标题条目移回时序位置（内容未改）。
 本步交付（宿主侧只读运维工具；不改生产、不改管线/因子逻辑、不新增Docker资产）：新增`shaiwei.ops_patrol`、
@@ -4437,5 +4445,6 @@ R2D 切换并通过首自然日验收 → G1 正控 → Style Attribution v1 →
 - 2026-10-14：作废 2026-08-19 条目标题“TS-B留出期一次定音REJECT，TS家族研究终结”中“TS家族研究终结”的表述。
   ADR-0008（2026-08-25）已裁定：事件策略身份 v3–v6/TS-B/TS-C 关闭，经济假设家族 `ACTIVE_RESEARCH` 以 TP-F 形态继续
   （TP-F-0B 待开工）。原条目保留不改，以本条为准。
+- 2026-10-14：作废“本机 `.venv` 以 `~/.cache/codex-runtimes` 下的解释器为基础”的事实状态（非口径）。见同日条目⑥。
 - 2026-10-14：作废“原始数据异地备份等用户找到远程服务器后再施工”的前提。用户宣布阿里云 47.103.32.81 弃用且与本项目无关，数据全部在本地；“不写入项目外目录”的约束保留，备份须另立方案并经用户批准。
 - 2026-07-15：作废“京东方A（000725.SZ）2023-04-29 为 S5 永久更正样本”。真实定向查询显示该期间 type 5 为 0 行，默认返回仅有同一 f_ann_date 的 type 1/update_flag 0 与 1，无法构造时点区间；官方口径说明 type 5 才是调整前保留值。全市场 20221231 扫描找到 136 组公告日可分隔且数值变化的沪深配对，改用 `688502.SH/20221231`（旧 2023-02-16 type 5/update 0，新 2023-03-08 type 1/update 1）。此改判修复失效数据样本，不修改 G0-G9/C0 判据。
