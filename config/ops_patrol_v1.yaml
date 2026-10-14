@@ -1,0 +1,17 @@
+schema_version: "shaiwei-ops-patrol-v1"
+patrol_id: "ops-patrol-v1"
+status: "ACTIVE_READ_ONLY"            # 巡检只读：不写 data/ledger/logs，不碰容器、镜像、标签
+timezone: "Asia/Shanghai"
+chain_deadline_local: "23:30"         # 开放日过此时刻才要求当日日链完成；之前只核对上一开放日
+lookback_open_days: 5                 # 近 N 个开放日内的 daily/paper FAIL 行与重复 shadow FAIL 才计入
+repeated_shadow_fail_threshold: 3     # 同一信号日 FAIL 达此数且无 PASS 即 FAIL（20260929 事件为 89 次）
+ledger_backlog_warn_lines: 1500       # 未提交账本新增行超过即 WARN（约一个月自然积累）
+disk_free_warn_gb: 50
+containers:
+  scheduler: "shaiwei_init-scheduler-1"
+  web:
+    - "shaiwei-web-web-ui-1"
+    - "shaiwei-web-web-query-1"
+    - "shaiwei-web-research-control-1"
+scheduler_current_tag: "shaiwei:scheduler-current"
+accounts: ["model_baseline", "model_top20"]

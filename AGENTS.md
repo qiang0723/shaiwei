@@ -49,6 +49,9 @@
 - 服务部署和常驻任务使用 Docker；不得擅自改为裸机守护。
 - 生产 scheduler 只准运行受控提升的不可变镜像，禁止整仓挂载开发工作树；发布、回滚和挂载白名单
   必须遵守 `docs/SCHEDULER_RELEASE_ISOLATION.md`。
+- 禁止直接对生产 scheduler 执行 `docker compose up/down/restart`；只准 `make docker-scheduler-up`，其前置守卫
+  `shaiwei.scheduler_up_guard` 拒绝 `scheduler-current` 与运行容器镜像（无容器时与最后一次 `START_PASS` 镜像）
+  不一致的启动。别名漂移只能经冻结协议与逐字批准的发布路径消解，不得手工改标签（2026-10-14）。
 - `data/raw/` 只增不改，账本只允许通过 `shaiwei.ledger.append_*` 追加。
 - 北交所 `.BJ` 数据禁止进入当前股票池、日增量、模型或信号。
 - 密钥只保存在被 Git 忽略的 `.env`；提交前必须运行脱敏检查，禁止提交原始/派生业务数据、运行日志

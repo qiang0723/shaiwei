@@ -9,6 +9,7 @@
 .PHONY: docker-m6-head30-500k-release-build docker-m6-head30-500k-release-fixture docker-m6-head30-500k-release-run docker-m6-head30-500k-release-audit
 .PHONY: docker-m6-head30-500k-entrypoint-recovery-build docker-m6-head30-500k-entrypoint-recovery-fixture docker-m6-head30-500k-entrypoint-recovery-run docker-m6-head30-500k-entrypoint-recovery-audit
 .PHONY: docker-m6-head30-500k-feasibility-build docker-m6-head30-500k-feasibility-fixture
+.PHONY: ops-patrol scheduler-up-guard
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -432,6 +433,10 @@ feishu-test:      ## 使用本地 .env 向飞书发送一条签名连通性测�
 	$(PYTHON) -m shaiwei.notify --test
 network-check:    ## 脱敏验证 Tushare 直连；不写数据、账本或 Token
 	$(PYTHON) -m shaiwei.network_check
+ops-patrol:       ## 只读运维巡检：守护健康、容器、日链完成度、重复失败、账本积压；退出码 0/1/2，不写任何文件
+	$(PYTHON) -m shaiwei.ops_patrol
+scheduler-up-guard: ## docker-scheduler-up 前置守卫：current 别名须等于运行容器镜像（或无容器时等于最后一次 START_PASS 镜像）
+	$(PYTHON) -m shaiwei.scheduler_up_guard
 docker-build:     ## 构建统一 Docker 运行镜像
 	docker compose build shaiwei
 docker-network-check: ## 容器内脱敏验证 Tushare 直连
@@ -752,7 +757,7 @@ docker-early-release-guard: ## 只在冻结20260805窗口原子提升并启动�
 	$(PYTHON) -m shaiwei.daily_early_release_guard --execute
 docker-release-status: ## 校验本地发布状态与哈希链审计
 	$(PYTHON) -m shaiwei.release status
-docker-scheduler-up: ## 启动已提升的不可变 scheduler 镜像；不隐式构建
+docker-scheduler-up: scheduler-up-guard ## 启动已提升的不可变 scheduler 镜像；不隐式构建；守卫拒绝即不执行
 	docker compose up -d scheduler
 docker-scheduler-status: ## 查看守护容器与健康状态
 	docker compose ps scheduler
