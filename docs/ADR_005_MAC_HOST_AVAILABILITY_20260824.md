@@ -111,3 +111,14 @@ Docker Desktop“登录后启动”由用户在应用设置内确认；Codex 不
 **回滚。** `sudo pmset -c disablesleep 0`。
 
 **边界。** 本修订不改任何判据、代码、镜像、容器或项目配置；不替代 c。若 c 落地，本修订随之退役。
+
+### 7.1 2026-10-15 更正：b 不可行，撤回
+
+用户执行 `sudo pmset -c disablesleep 1` 后只读复核：`pmset -g` 系统级设置无 `SleepDisabled`，AC 策略无 `disablesleep` 项，
+`/Library/Preferences/com.apple.PowerManagement` 无该键——命令未产生任何可见效果。`disablesleep` 为 macOS 未入 man 页的
+**系统级**开关，不分电源；`-c` 形式被静默忽略。上文“只作用于接电状态”的前提不成立，系本人未经核实写入，予以更正。
+唯一生效形式 `-a` 会使电池模式下合盖亦不睡眠（随身携带时发热、耗尽电量），用户裁决不采用。
+
+**现行裁决（用户 2026-10-15）。** 不设置 disablesleep；过渡期纪律恢复为“**交易日 19:30–20:30 接电且开盖**”，
+巡检 `DAILY_NEXT_DAY_CATCHUP` 持续观测；**c 专用主机加速推进**，另立迁移协议。上文 b 的精确动作、验证与回滚作废。
+如需对已执行的 `-c` 命令做卫生性复原，可执行 `sudo pmset -c disablesleep 0`（无可见效果，非必要）。
