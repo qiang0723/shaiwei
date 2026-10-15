@@ -67,7 +67,16 @@ Web发布另行逐字批准，须早于新scheduler候选启动（运行中Web�
 验收自然通过——即原Phase B设计，既有`r2d_authorized_start`单次授权链已实现。用户裁决：交易日16:40–19:00窗口、当天在场逐字批准。
 ADR 0016 §11记录更正后工程（E1控制器差异白名单放行ledger/*.csv与AGENTS.md；E2 scope生成/批准转录/授权启动make目标，工具不自造
 批准）与操作序列O1–O7（候选构建、R3A健康fixture、rollback不启动+promote不启动、Web发布、T-1晚写协议、T日窗口在场批准执行、
-首自然日验收后关闭R2D）。
+首自然日验收后关闭R2D）。（11b1269已推送。）
+
+**R2D-lite 工程。** E2完成：`shaiwei.r2d_scope_prepare`（prepare：读冻结协议、git HEAD=本地origin/main、release state/audit哈希、
+运行中旧容器ID，经既有`check_binding`校验后以O_EXCL写`.release/r2d-executions/scopes/<sha>.scope.json`并输出逐字批准文本；
+record-approval：文本与`approval_text(sha)`完全一致才写批准文件，否则拒绝；工具从不自造批准）及`make r2d-scope-prepare /
+r2d-record-approval / r2d-authorized-start`。合成测试含“生成scope→转录批准→驱动既有授权启动STARTED、零回滚”端到端演练。
+E1撤回（本人预见不足）：改控制器组件`release_build_context.py`后，已过期R3F–R3K协议测试断言冻结组件哈希`f88f44a7…`等于活文件，
+6项失败；代码撤回、组件哈希复原，改为程序性约束——自O1构建候选至O7首日验收完成，暂停纯证据与AGENTS.md提交（账本在工作区累积，
+验收后补交），新增测试锁定“账本/AGENTS.md增量会被守卫拒绝”。见ADR 0016 §11.1。全量2,486通过、1跳过、0失败；架构13、Ruff、
+diff-check通过。本地提交，推送待放行。
 
 **唯一下一节点（按序）。** ①（已改判：不迁移，专用主机暂缓）；②今晚20261015为9-24后第10个交易日，
 调仓信号日，须19:30–20:30接电；③ADR 0015 PROTOCOL冻结→实现；④ADR 0016工程（readiness `IDLE_WINDOW_CUTOVER`、scope v2、

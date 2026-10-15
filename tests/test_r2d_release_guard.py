@@ -325,6 +325,40 @@ def test_prepare_rejects_controller_component_or_delta_drift(monkeypatch):
         guard.prepare_guard(env.protocol, now=local(25, 20), execute=False, environment=env)
 
 
+def test_controller_delta_rejects_ledgers_and_agents_so_evidence_commits_pause():
+    """ADR 0016 §11 E1 撤回：白名单不变，候选构建后至首日验收前须暂停账本/AGENTS.md 提交，否则守卫拒绝。"""
+    from shaiwei.release_build_context import (
+        ControllerIdentityError,
+        ControllerIdentity,
+        validate_controller_evidence,
+    )
+
+    protocol = FakeEnvironment().protocol
+    identity = ControllerIdentity.model_validate(protocol.controller_identity.model_dump())
+    allowed = (
+        "STATE.md",
+        "docs/ADR_0016_R2D_LITE_NON_TRADING_CUTOVER_20261014.md",
+        "config/r2d_scheduler_release_guard_lite_20261020_v1.yaml",
+        "tests/test_shadow.py",
+    )
+    validate_controller_evidence(
+        identity, {"component_sha256": identity.component_sha256, "delta_paths": allowed}
+    )
+    for escaped in (
+        "ledger/daily_runs.csv",
+        "AGENTS.md",
+        "src/shaiwei/pipeline/scheduler.py",
+        "config/settings.yaml",
+        "Makefile",
+        "compose.yaml",
+    ):
+        with pytest.raises(ControllerIdentityError, match="escapes the frozen allowlist"):
+            validate_controller_evidence(
+                identity,
+                {"component_sha256": identity.component_sha256, "delta_paths": (escaped,)},
+            )
+
+
 def test_start_requires_prepared_state_and_waiting_source(monkeypatch):
     env = FakeEnvironment()
     monkeypatch.setattr(guard, "_validate_fixture", lambda _protocol: None)

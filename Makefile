@@ -9,7 +9,7 @@
 .PHONY: docker-m6-head30-500k-release-build docker-m6-head30-500k-release-fixture docker-m6-head30-500k-release-run docker-m6-head30-500k-release-audit
 .PHONY: docker-m6-head30-500k-entrypoint-recovery-build docker-m6-head30-500k-entrypoint-recovery-fixture docker-m6-head30-500k-entrypoint-recovery-run docker-m6-head30-500k-entrypoint-recovery-audit
 .PHONY: docker-m6-head30-500k-feasibility-build docker-m6-head30-500k-feasibility-fixture
-.PHONY: ops-patrol scheduler-up-guard
+.PHONY: ops-patrol scheduler-up-guard r2d-scope-prepare r2d-record-approval r2d-authorized-start
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -757,6 +757,15 @@ docker-early-release-guard: ## 只在冻结20260805窗口原子提升并启动�
 	$(PYTHON) -m shaiwei.daily_early_release_guard --execute
 docker-release-status: ## 校验本地发布状态与哈希链审计
 	$(PYTHON) -m shaiwei.release status
+r2d-scope-prepare: ## R2D 单次授权 scope（只读元数据，不启动）；PROTOCOL=config/r2d_….yaml
+	@test -n "$(PROTOCOL)" || (echo "PROTOCOL is required"; exit 2)
+	$(PYTHON) -m shaiwei.r2d_scope_prepare prepare --protocol "$(PROTOCOL)"
+r2d-record-approval: ## 仅当 TEXT 与该 scope 逐字批准文本完全一致才写批准文件；SCOPE=… TEXT="…"
+	@test -n "$(SCOPE)" && test -n "$(TEXT)" || (echo "SCOPE and TEXT are required"; exit 2)
+	$(PYTHON) -m shaiwei.r2d_scope_prepare record-approval --scope "$(SCOPE)" --text "$(TEXT)"
+r2d-authorized-start: ## 单次授权启动：默认只读预检；APPROVAL=… EXECUTE=1 才执行（派发后禁止自动回滚）
+	@test -n "$(SCOPE)" || (echo "SCOPE is required"; exit 2)
+	$(PYTHON) -m shaiwei.r2d_authorized_start --scope "$(SCOPE)" $(if $(APPROVAL),--approval "$(APPROVAL)") $(if $(EXECUTE),--execute)
 docker-scheduler-up: scheduler-up-guard ## 启动已提升的不可变 scheduler 镜像；不隐式构建；守卫拒绝即不执行
 	docker compose up -d scheduler
 docker-scheduler-status: ## 查看守护容器与健康状态
