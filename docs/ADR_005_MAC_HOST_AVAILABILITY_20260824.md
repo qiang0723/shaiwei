@@ -85,3 +85,29 @@ Docker Desktop“登录后启动”由用户在应用设置内确认；Codex 不
 `docs/R2_1H0_MAC_HOST_AVAILABILITY_ACCEPTANCE_20260824.md`。
 
 本 ADR 未修改Docker Desktop、Docker容器、生产镜像、项目配置、业务账本或运行日志。
+
+## 7. 2026-10-15 修订：合盖/电池是未覆盖的失效模式，增加 AC 下禁止睡眠
+
+**证据（只读，`pmset -g log`，详见 STATE.md 2026-10-14/15 条目）。** `sleep 0` 自 08-24 生效后仍发生 6 次日链次日补跑
+（0813、0911、0916、0921、0922、1012），其中 0921/0922/1014 三次跨过下一交易日开盘。电源日志可证的两次：20261012 06:42
+`Clamshell Sleep` 且全天 `Using Batt`，16:00–19:30 数据窗口内五次 `Idle Sleep`；20261014 19:15 `Clamshell Sleep`、`Using Batt`，
+整夜仅维护性暗唤醒，调度器在暗唤醒中三次补采均 `IngestError`（无网络），飞书投递亦失败，次日 10:05 开盖后 10:18 才补跑。
+`sleep 0` 只约束 AC 下的空闲睡眠，不约束合盖触发的 Clamshell Sleep，也不约束电池模式。
+
+**裁决（用户 2026-10-15 对“b 过渡、c 根治”回复“按建议”）。**
+- b 过渡：在 AC 电源策略下禁止系统睡眠（含合盖）：`sudo pmset -c disablesleep 1`。只作用于接电状态；电池模式保持默认睡眠，
+  以免耗尽电量导致硬关机。由此宿主纪律从“接电 + 开盖”简化为“**接电**”。该命令为系统设置变更，由用户在自己的终端执行，
+  Claude 不执行。
+- c 根治：将生产 scheduler 迁至不睡眠的专用主机（Mac mini 一类或等价 Linux 主机）。另立迁移协议（含 S10 跨机一致性启用、
+  数据/账本/锁卷迁移、发布身份重建），不在本修订内施工。
+
+**精确动作与验证。**
+1. 执行前只读记录：`pmset -g custom`（AC 段）与当前 `pmset -g log` 尾部。
+2. 用户执行：`sudo pmset -c disablesleep 1`。
+3. 只读复核：`pmset -g custom` 的 AC Power 段出现 `disablesleep 1`，且 `sleep 0`、`displaysleep` 不变。
+4. 行为验证：接电状态合盖 2 分钟后 `pmset -g log` 不出现新的 `Clamshell Sleep`/`Idle Sleep` 条目，scheduler 心跳继续更新。
+5. 记入 STATE.md；巡检（`make ops-patrol`）的 `DAILY_NEXT_DAY_CATCHUP` 作为持续观测指标。
+
+**回滚。** `sudo pmset -c disablesleep 0`。
+
+**边界。** 本修订不改任何判据、代码、镜像、容器或项目配置；不替代 c。若 c 落地，本修订随之退役。
