@@ -255,9 +255,11 @@ export function assertSignal(value: unknown): asserts value is SignalData {
     const target = record(item, `信号 target[${index}]`);
     text(target.ts_code, `信号 target[${index}].ts_code`);
     integer(target.rank, `信号 target[${index}].rank`);
-    ["actual_weight", "planned_weight_delta", "score", "target_weight"].forEach((name) =>
+    ["actual_weight", "planned_weight_delta", "target_weight"].forEach((name) =>
       numberLike(target[name], `信号 target[${index}].${name}`)
     );
+    // shadow-carry-suspended-v1：沿用日信号日无行情的目标没有当日分数，后台以 null 透传
+    if (target.score !== null) numberLike(target.score, `信号 target[${index}].score`);
     if (!new Set(["ADDED", "RETAINED", "REMOVED"]).has(String(target.target_change))) {
       throw new Error("信号 target_change 未知");
     }

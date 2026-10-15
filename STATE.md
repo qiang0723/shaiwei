@@ -51,7 +51,14 @@ settings `max_carried_without_score: 3`，模型缺省0=旧合同）；新测试
 祖先）的历史版本核验HISTORICAL；其余失败关闭”，只迁生产转换器前置核验与归因协议测试两处首批消费者。ADR 0018实现单独提交
 `65f26cd`（阶段A暂存隔离下全量2,465通过），阶段A叠加后全量2,478通过、1跳过、0失败，架构13、Ruff、diff-check、脱敏通过。
 验收文档docs/SHADOW_CARRY_SUSPENDED_ACCEPTANCE_20261015.md终态`GO_ENGINEERING_ONLY`（仅后台）。两个代码提交均本地，推送待用户放行；
-阶段B Web未做，须早于新scheduler候选启动；生产仍运行旧合同。
+阶段B Web未做，须早于新scheduler候选启动；生产仍运行旧合同。（后续：用户放行，65f26cd与f205d52已推送。）
+
+**ADR 0015 阶段B（Web）。** types.ts原行改为`score: number | null`（冻结热点仍719行）；SignalsPage以`formatSignalScore`把null显示为
+“停牌沿用”、详情给完整说明；客户端校验validation/paper.ts允许score为null、非null仍须有限数值。勘误：协议§5阶段B清单漏列
+validation/paper.ts——其`numberLike(null)`会让整个信号页校验失败，比显示0更严重；本阶段一并修改，不改协议任何判定或字段。
+查询层query_signal本就原样透传，只补回归测试。本机无Node，用Dockerfile.web同一钉死node:22镜像一次性容器（源码只读挂入）验证：
+tsc通过、vitest 36项通过（新增3）；Python web查询/模块化15项、架构13、Ruff、diff-check、脱敏通过。本地提交，推送待放行；
+Web发布另行逐字批准，须早于新scheduler候选启动（运行中Web为08-23镜像，遇null会校验失败）。
 
 **唯一下一节点（按序）。** ①（已改判：不迁移，专用主机暂缓）；②今晚20261015为9-24后第10个交易日，
 调仓信号日，须19:30–20:30接电；③ADR 0015 PROTOCOL冻结→实现；④ADR 0016工程（readiness `IDLE_WINDOW_CUTOVER`、scope v2、

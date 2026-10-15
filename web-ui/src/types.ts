@@ -242,7 +242,7 @@ export interface SignalTarget {
   actual_weight: string;
   planned_weight_delta: string;
   rank: number;
-  score: number;
+  score: number | null;
   target_change: "ADDED" | "RETAINED" | "REMOVED";
   target_weight: string;
   ts_code: string;

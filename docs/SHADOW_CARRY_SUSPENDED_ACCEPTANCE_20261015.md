@@ -38,9 +38,30 @@ Top20 投影对含 `null` 的 30 只信号产出 20 只并原样保留 `null`；
 `shadow/reconciliation._target_weights` 不读 `score`；`web/query_evidence._read_signal` 对 v3 文档哈希/日期/快照/数量校验通过。
 `audit/g0.py` 只接受 `schema_version == 1` 的阶段 0 冻结信号，与前瞻 v3 无关，未改。
 
-## 4. 已知限制与后续
+## 4. 阶段 B · Web（同日追加）
+
+| 文件 | 改动 |
+|---|---|
+| `web-ui/src/types.ts` | `SignalTarget.score: number` 原行改为 `number \| null`（冻结热点，仍 719 行，未新增行） |
+| `web-ui/src/validation/paper.ts` | 客户端校验对 `score` 允许 `null`，非 null 仍须为有限数值 |
+| `web-ui/src/pages/SignalsPage.tsx` | `formatSignalScore`：`null` 显示“停牌沿用”；详情页显示完整说明；非 null 保持 6 位小数 |
+| `web-ui/src/test/signal-score.test.ts`、`validation.test.ts` | null 显示、0 分仍显示 `0.000000`、null 通过校验、畸形分数仍拒绝 |
+| `tests/test_web_query.py` | 查询层对 v3 null 分数原样透传（`web/query_signal.py` 本就 `"score": value["score"]`，无需改代码） |
+
+**协议文件清单勘误（实现时发现，如实记录）。** 协议 §5 阶段 B 只列了 `types.ts` 与 `SignalsPage.tsx`，漏列客户端校验
+`web-ui/src/validation/paper.ts`：其 `numberLike` 对 `null` 抛“数值无效”，会使整个信号页校验失败（比显示 0 更严重）。本阶段一并修改；
+不改变协议任何判定规则或合同字段。
+
+**验证。** 本机无 Node，按 `Dockerfile.web` 同一钉死镜像 `node:22-bookworm-slim@sha256:6c74…f6b3` 起一次性容器，源码只读挂入、容器内
+`npm ci --ignore-scripts`：`tsc -b` 通过；vitest 5 文件 36 项通过（新增 3 项）。Python：`test_web_query`、`test_web_modularity`
+15 项通过；`make architecture-check` 13 通过；Ruff、`git diff --check`、脱敏通过。
+
+**终态（阶段 B）：** `GO_ENGINEERING_ONLY`。Web 发布（`make docker-web-build` → `docker-web-release-promote`）另行逐字批准，
+须早于新 scheduler 候选启动。
+
+## 5. 已知限制与后续
 
 - 生产仍运行 210af4d 旧合同：沿用日目标停牌仍会整日失败，由巡检 `SHADOW_SIGNAL_MISSING` / `SHADOW_SIGNAL_REPEATED_FAIL` 报告。
-- 阶段 B（Web）未做：现网页对 `score: null` 会经 `Number(null)=0` 显示 0；v3 manifest 只会随新候选出现，故 Web 发布须早于
-  新 scheduler 候选启动（协议 §5、§8）。
+- 阶段 B（Web）代码已完成（见第 4 节），但运行中的 Web 容器仍是 08-23 发布的镜像：对 `score: null` 会校验失败。v3 manifest 只会随
+  新候选出现，故 Web 发布须早于新 scheduler 候选启动（协议 §5、§8）。
 - 本验收不授权候选构建、提升、切换或 Web 发布；这些各自另行逐字批准。

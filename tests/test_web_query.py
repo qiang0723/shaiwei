@@ -811,6 +811,23 @@ def test_signal_hash_and_bse_are_fail_closed(tmp_path: Path):
     assert signal_hash != new_hash
 
 
+def test_carried_target_without_score_passes_through_as_null(tmp_path: Path):
+    """shadow-carry-suspended-v1 阶段 B：v3 沿用日无评分目标原样透传 null，不推断、不补 0。"""
+    _fixture(tmp_path)
+    signal_path = tmp_path / "data/shadow/signals/20260724-fixture.json"
+    signal = json.loads(signal_path.read_text(encoding="utf-8"))
+    signal["orders"][0]["score"] = None
+    payload = {key: value for key, value in signal.items() if key != "signal_sha256"}
+    signal["signal_sha256"] = _hash(payload)
+    signal_path.write_text(json.dumps(signal), encoding="utf-8")
+    rows = list(csv.DictReader((tmp_path / "ledger/shadow_runs.csv").open()))
+    rows[0]["signal_sha256"] = signal["signal_sha256"]
+    _write_csv(tmp_path / "ledger/shadow_runs.csv", SHADOW_FIELDS, rows)
+    snapshot = build_snapshot(project_root=tmp_path)
+    targets = {value["rank"]: value for value in snapshot.latest_signal["targets"]}
+    assert targets[1]["score"] is None
+
+
 def test_api_is_allowlisted_sanitized_and_idempotent(tmp_path: Path):
     _fixture(tmp_path)
     client = TestClient(create_app(tmp_path))

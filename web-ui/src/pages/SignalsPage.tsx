@@ -31,6 +31,13 @@ const CHANGE_LABELS: Record<SignalTarget["target_change"], string> = {
   REMOVED: "移除"
 };
 
+// 沿用日信号日无行情（如全天停牌）的目标没有当日分数，后台为 null；不得显示为 0
+export const CARRIED_NO_SCORE_LABEL = "停牌沿用";
+
+export function formatSignalScore(score: number | null): string {
+  return score === null ? CARRIED_NO_SCORE_LABEL : formatNumber(score, 6);
+}
+
 export default function SignalsPage() {
   const { asOf } = useAsOf();
   const [change, setChange] = useState<string>("ALL");
@@ -117,7 +124,7 @@ export default function SignalsPage() {
       width: 132,
       render: (value: string) => <span className={numericTone(value)}>{formatPercent(value, { signed: true })}</span>
     },
-    { title: "模型分数", dataIndex: "score", key: "score", align: "right", width: 120, render: (value: number) => formatNumber(value, 6) },
+    { title: "模型分数", dataIndex: "score", key: "score", align: "right", width: 120, render: (value: number | null) => formatSignalScore(value) },
     {
       title: "执行证据",
       key: "execution",
@@ -243,7 +250,9 @@ export default function SignalsPage() {
               <Descriptions.Item label="目标权重">{formatPercent(selected.target_weight)}</Descriptions.Item>
               <Descriptions.Item label={`实际权重 · ${displayDate(d.actual_weight_as_of)}`}>{formatPercent(selected.actual_weight)}</Descriptions.Item>
               <Descriptions.Item label="目标权重差"><span className={numericTone(selected.planned_weight_delta)}>{formatPercent(selected.planned_weight_delta, { signed: true })}</span></Descriptions.Item>
-              <Descriptions.Item label="模型分数">{formatNumber(selected.score, 6)}</Descriptions.Item>
+              <Descriptions.Item label="模型分数">
+                {selected.score === null ? "停牌沿用（信号日无行情，无当日分数，按原权重沿用）" : formatNumber(selected.score, 6)}
+              </Descriptions.Item>
               <Descriptions.Item label="执行证据"><StatusBadge status={d.execution_evidence_status} /></Descriptions.Item>
             </Descriptions>
             <details className="technical-details drawer-technical-details">

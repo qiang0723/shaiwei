@@ -318,6 +318,54 @@ describe("P3-1 fail-closed contract", () => {
     expect(() => assertSignal(invalidSignal)).toThrow("北交所");
   });
 
+  it("accepts a carried target without score as null but still rejects a malformed score", () => {
+    const carriedSignal = {
+      actual_weight_artifact_sha256: HASH,
+      actual_weight_as_of: "2026-09-28",
+      bse_count: 0,
+      code_snapshot_sha256: HASH,
+      data_complete_at: "2026-09-29T11:37:00+00:00",
+      data_snapshot_sha256: HASH,
+      estimated_cost: null,
+      executed_trade_leg_count: null,
+      execution_evidence_status: "NOT_DUE",
+      generated_at: "2026-09-29T11:37:11+00:00",
+      metric_status: "NOT_DUE",
+      model_artifact_sha256: HASH,
+      model_spec_sha256: HASH,
+      next_execution_date: null,
+      open_gap: null,
+      planned_trade_leg_count: 0,
+      previous_signal_sha256: HASH,
+      qlib_artifact_sha256: HASH,
+      rebalance_days: 10,
+      rebalance_due: false,
+      removed_targets: [],
+      signal_date: "2026-09-29",
+      signal_sha256: HASH,
+      source_file_sha256: HASH,
+      source_ref: "data/shadow/signal.json",
+      target_count: 1,
+      targets: [
+        {
+          actual_weight: "0.0333",
+          planned_weight_delta: "0",
+          rank: 1,
+          score: null as number | null | string,
+          target_change: "RETAINED",
+          target_weight: "0.0333",
+          ts_code: "600363.SH"
+        }
+      ],
+      tradable_denominator: null,
+      tradable_numerator: null,
+      turnover: null
+    };
+    expect(() => assertSignal(carriedSignal)).not.toThrow();
+    carriedSignal.targets[0].score = "not-a-number";
+    expect(() => assertSignal(carriedSignal)).toThrow("score 数值无效");
+  });
+
   it("rejects an unmarked or inconsistent missing security name", async () => {
     const badPortfolio = {
       ...portfolio,
