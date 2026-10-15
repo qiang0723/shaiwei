@@ -37,7 +37,7 @@ def test_shadow_manifest_is_ranked_hashed_and_never_overwritten(tmp_path: Path):
     path, digest = write_signal_manifest(scores, **kwargs)
     assert path.name == f"20260715-{'c' * 12}-{'d' * 12}.json"
     document = json.loads(path.read_text())
-    assert document["schema_version"] == 2
+    assert document["schema_version"] == 3
     assert "model_artifact_sha256" in document
     assert document["rebalance_due"] is True
     assert [order["instrument"] for order in document["orders"]] == ["A", "B"]

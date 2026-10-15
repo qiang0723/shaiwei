@@ -113,9 +113,11 @@ def test_shadow_cycle_generates_once_for_one_daily_pass(monkeypatch, tmp_path: P
         lambda _settings: snapshot,
     )
     calls = []
+    bar_codes = frozenset({"600001.SH"})
+    monkeypatch.setattr(shadow_cycle, "_signal_day_bar_codes", lambda _date: bar_codes)
     monkeypatch.setattr(
         "shaiwei.shadow.generation.generate_forward_signal",
-        lambda *_args, **_kwargs: calls.append("generated") or generated,
+        lambda *_args, **kwargs: calls.append(kwargs["signal_day_bar_codes"]) or generated,
     )
 
     def append_run(**row):
@@ -140,7 +142,7 @@ def test_shadow_cycle_generates_once_for_one_daily_pass(monkeypatch, tmp_path: P
     second = shadow_cycle.run_once(settings)
     assert first.status == "PASS"
     assert second.status == "NOOP"
-    assert calls == ["generated"]
+    assert calls == [bar_codes]
 
 
 def test_shadow_cycle_cli_reports_lock_contention_as_busy(monkeypatch, capsys):

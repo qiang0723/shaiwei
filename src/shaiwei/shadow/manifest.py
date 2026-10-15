@@ -12,6 +12,25 @@ class DataClockError(RuntimeError):
     pass
 
 
+SCHEMA_VERSION = 3
+CARRY_EXPLANATION = "NO_SIGNAL_DATE_BAR"
+
+
+def _carried_without_score(
+    selected: pd.DataFrame, explained: frozenset[str], cap: int
+) -> list[str]:
+    """沿用日缺评分目标：只放行信号日无 bar 的可解释缺口，且不超过上限（shadow-carry-suspended-v1 §4）。"""
+    missing = selected.loc[selected["score"].isna(), "instrument"].astype(str).tolist()
+    unexplained = [instrument for instrument in missing if instrument not in explained]
+    if unexplained:
+        raise DataClockError(f"carried targets missing current scores: {unexplained}")
+    if len(missing) > cap:
+        raise DataClockError(
+            f"carried targets without signal-date bar exceed cap {cap}: {missing}"
+        )
+    return missing
+
+
 def _canonical_json(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
@@ -52,6 +71,8 @@ def write_signal_manifest(
     rebalance_due: bool = True,
     previous_signal_sha256: str = "",
     rebalance_days: int = 1,
+    explained_missing: frozenset[str] | None = None,
+    max_carried_without_score: int = 0,
 ) -> tuple[Path, str]:
     required = {"instrument", "score"}
     if missing := required - set(scores.columns):
@@ -69,6 +90,7 @@ def write_signal_manifest(
     if ranked["instrument"].duplicated().any():
         raise ValueError("scores contain duplicate instruments")
     ranked = ranked.sort_values(["score", "instrument"], ascending=[False, True])
+    carried_without_score: list[str] = []
     if target_instruments is None:
         selected = ranked.head(topk)
     else:
@@ -79,14 +101,15 @@ def write_signal_manifest(
             .reindex(target_instruments)
             .reset_index()
         )
-        if selected["score"].isna().any():
-            missing_targets = selected.loc[selected["score"].isna(), "instrument"].tolist()
-            raise DataClockError(f"carried targets missing current scores: {missing_targets}")
+        carried_without_score = _carried_without_score(
+            selected, explained_missing or frozenset(), max_carried_without_score
+        )
     if len(selected) < topk:
         raise DataClockError(f"only {len(selected)} valid scores for topk={topk}")
     target_weight = 1.0 / topk
+    no_score = set(carried_without_score)
     payload = {
-        "schema_version": 2,
+        "schema_version": SCHEMA_VERSION,
         "signal_date": signal_date.isoformat(),
         "data_complete_at": data_complete_at.astimezone(timezone.utc).isoformat(),
         "generated_at": generated_at.astimezone(timezone.utc).isoformat(),
@@ -102,8 +125,16 @@ def write_signal_manifest(
         "previous_signal_sha256": previous_signal_sha256,
         "rebalance_days": rebalance_days,
         "topk": topk,
+        "carried_without_score": carried_without_score,
+        "carry_explanation": CARRY_EXPLANATION if carried_without_score else None,
         "orders": [
-            {"rank": rank, "instrument": row.instrument, "score": float(row.score), "target_weight": target_weight}
+            {
+                "rank": rank,
+                "instrument": row.instrument,
+                "score": None if row.instrument in no_score else float(row.score),
+                "score_status": "CARRIED_NO_SCORE" if row.instrument in no_score else "LIVE",
+                "target_weight": target_weight,
+            }
             for rank, row in enumerate(selected.itertuples(index=False), start=1)
         ],
     }

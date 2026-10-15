@@ -77,6 +77,14 @@ def _exact_daily(trade_date: str):
     return load_latest_request("tushare.daily", public_request_params(request))
 
 
+def _signal_day_bar_codes(trade_date: str) -> frozenset[str] | None:
+    """信号日有行情 bar 的代码；读取失败返回 None，使沿用缺口保持不可解释（shadow-carry-suspended-v1 §4）。"""
+    try:
+        return frozenset(_exact_daily(trade_date)["ts_code"].astype(str))
+    except Exception:  # catalog/哈希/字段任何异常都不猜，交由旧合同失败关闭
+        return None
+
+
 @contextmanager
 def shadow_lock(path: Path | None = None) -> Iterator[None]:
     try:
@@ -294,6 +302,7 @@ def run_once(settings: Settings | None = None) -> ShadowCycleResult:
                 data_complete_at=datetime.fromisoformat(daily["finished_at"]),
                 previous_manifest_path=previous_manifest,
                 rebalance_due=rebalance_due,
+                signal_day_bar_codes=_signal_day_bar_codes(signal_date),
             )
             manifest = json.loads(generated.manifest_path.read_text(encoding="utf-8"))
             generated_at = datetime.fromisoformat(str(manifest["generated_at"]))

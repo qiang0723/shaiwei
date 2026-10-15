@@ -106,6 +106,7 @@ class ShadowPipeline(BaseModel):
     signal_deadline_minute: int = Field(ge=0, le=59)
     qlib_versions_to_keep: int = Field(ge=2, le=10)
     trial_trade_days: int = Field(ge=1, le=20)
+    max_carried_without_score: int = Field(default=0, ge=0, le=5)  # shadow-carry-suspended-v1；缺省 0=旧合同
 
 
 class PaperPortfolio(BaseModel):

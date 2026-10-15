@@ -22,6 +22,7 @@ from shaiwei.config import PROJECT_ROOT, Settings
 from shaiwei.ledger import append_experiment, portable_artifact_path, sha256_file
 from shaiwei.provenance import git_head
 from shaiwei.shadow.manifest import verify_signal_manifest, write_signal_manifest
+from shaiwei.shadow.reconciliation import ShadowReconciliationError, tushare_code
 from shaiwei.transform.qlib_forward import ForwardSnapshot
 
 
@@ -103,6 +104,21 @@ def _train_scores(
     return scores.loc[:, ["instrument", "score"]], segments, model_bytes
 
 
+def carried_without_bar(
+    carried_targets: list[str], signal_day_bar_codes: frozenset[str]
+) -> frozenset[str]:
+    """沿用目标中信号日无行情 bar 者；无法换算代码的目标不算可解释（shadow-carry-suspended-v1 §4）。"""
+    explained: set[str] = set()
+    for instrument in carried_targets:
+        try:
+            code = tushare_code(instrument)
+        except ShadowReconciliationError:
+            continue
+        if code not in signal_day_bar_codes:
+            explained.add(instrument)
+    return frozenset(explained)
+
+
 def _persist_model(output_root: Path, signal_date: date, spec_hash: str, model_bytes: bytes) -> Path:
     model_hash = hashlib.sha256(model_bytes).hexdigest()
     path = output_root / "models" / f"{signal_date:%Y%m%d}-{spec_hash[:12]}-{model_hash[:12]}.txt"
@@ -179,17 +195,21 @@ def generate_forward_signal(
     output_root: Path | None = None,
     previous_manifest_path: Path | None = None,
     rebalance_due: bool = True,
+    signal_day_bar_codes: frozenset[str] | None = None,
 ) -> GeneratedSignal:
     output_root = output_root or settings.runtime.data_root / "shadow"
     signal_dir = output_root / "signals"
     spec_hash = model_spec_sha256(settings, signal_date)
     previous_signal_sha256 = ""
     carried_targets: list[str] | None = None
+    explained_missing: frozenset[str] = frozenset()
     if previous_manifest_path is not None:
         previous_signal_sha256 = verify_signal_manifest(previous_manifest_path)
         previous = json.loads(previous_manifest_path.read_text(encoding="utf-8"))
         if not rebalance_due:
             carried_targets = [str(order["instrument"]) for order in previous["orders"]]
+            if signal_day_bar_codes is not None:
+                explained_missing = carried_without_bar(carried_targets, signal_day_bar_codes)
     manifest_path = signal_dir / (
         f"{signal_date:%Y%m%d}-{snapshot.code_snapshot_sha256[:12]}-"
         f"{snapshot.data_snapshot_sha256[:12]}.json"
@@ -232,6 +252,8 @@ def generate_forward_signal(
         rebalance_due=rebalance_due,
         previous_signal_sha256=previous_signal_sha256,
         rebalance_days=settings.backtest.rebalance_days,
+        explained_missing=explained_missing,
+        max_carried_without_score=settings.shadow_pipeline.max_carried_without_score,
     )
     # score_rows is execution evidence rather than part of the signed signal
     # payload; it remains in the append-only experiment ledger.

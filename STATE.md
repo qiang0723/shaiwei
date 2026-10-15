@@ -40,7 +40,18 @@ ADR-005 §7.1记录更正与作废；上文④及宿主纪律“简化为接电�
 `tushare.daily`无该代码、上限3、调仓日不变；阶段A后台（manifest/generation/shadow_cycle/settings，各有行数预算）与阶段B Web
 （types.ts为719行冻结热点只改原行；`Number(null)=0`会把停牌沿用静默显示为0，必须修）分提交；一次性只读验收重放20260929。
 下游只读核对：对账、paper引擎、Top20投影、query_evidence不读score；G0审计只认schema v1阶段0信号，不受影响。
-本协议本地提交，推送待用户放行；推送前不写任何实现代码。
+本协议本地提交，推送待用户放行；推送前不写任何实现代码。（后续：用户放行，6e69551于15:46推送冻结。）
+
+**ADR 0015 阶段A与ADR 0018。** 阶段A按协议实现（manifest 145→176、generation 269→291、shadow_cycle 378→387，均在预算内；
+settings `max_carried_without_score: 3`，模型缺省0=旧合同）；新测试14项；§7一次性只读验收重放PASS：20260928目标+20260929真实
+行情+合成分数，`carried_without_score=["SH600363"]`、其余29只LIVE，未运行模型、未写data/ledger/logs、未补造历史信号。
+首次叠加全量出现19项失败，全部为已关闭M6线两份冻结协议把活文件`settings.yaml`/`shadow/manifest.py`整文件哈希钉死并读工作树
+比对（两文件自7月未改，耦合从未暴露）；生产链与新功能测试全部通过。本人先按住推送并上报，用户裁决“走A”：另立ADR 0018
+（冻结推送9b7cb1a，16:04），依ADR-003先例改为“活文件未漂移照旧LIVE；漂移时按协议冻结提交（版本化权威配置固定、须为HEAD
+祖先）的历史版本核验HISTORICAL；其余失败关闭”，只迁生产转换器前置核验与归因协议测试两处首批消费者。ADR 0018实现单独提交
+`65f26cd`（阶段A暂存隔离下全量2,465通过），阶段A叠加后全量2,478通过、1跳过、0失败，架构13、Ruff、diff-check、脱敏通过。
+验收文档docs/SHADOW_CARRY_SUSPENDED_ACCEPTANCE_20261015.md终态`GO_ENGINEERING_ONLY`（仅后台）。两个代码提交均本地，推送待用户放行；
+阶段B Web未做，须早于新scheduler候选启动；生产仍运行旧合同。
 
 **唯一下一节点（按序）。** ①（已改判：不迁移，专用主机暂缓）；②今晚20261015为9-24后第10个交易日，
 调仓信号日，须19:30–20:30接电；③ADR 0015 PROTOCOL冻结→实现；④ADR 0016工程（readiness `IDLE_WINDOW_CUTOVER`、scope v2、

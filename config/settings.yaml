@@ -52,6 +52,7 @@ shadow_pipeline:
   signal_deadline_minute: 0
   qlib_versions_to_keep: 2           # G0 缓存不动；前瞻缓存保留当前+上一版便于回滚
   trial_trade_days: 3                # 连续三交易日零人工修数后完成首轮运行验收
+  max_carried_without_score: 3       # 沿用日可沿用的“信号日无 bar”目标上限（shadow-carry-suspended-v1，ADR 0015）
 paper_portfolio:
   enabled: true
   account_id: "model_baseline"
