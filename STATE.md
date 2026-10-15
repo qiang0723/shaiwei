@@ -58,7 +58,16 @@ settings `max_carried_without_score: 3`，模型缺省0=旧合同）；新测试
 validation/paper.ts——其`numberLike(null)`会让整个信号页校验失败，比显示0更严重；本阶段一并修改，不改协议任何判定或字段。
 查询层query_signal本就原样透传，只补回归测试。本机无Node，用Dockerfile.web同一钉死node:22镜像一次性容器（源码只读挂入）验证：
 tsc通过、vitest 36项通过（新增3）；Python web查询/模块化15项、架构13、Ruff、diff-check、脱敏通过。本地提交，推送待放行；
-Web发布另行逐字批准，须早于新scheduler候选启动（运行中Web为08-23镜像，遇null会校验失败）。
+Web发布另行逐字批准，须早于新scheduler候选启动（运行中Web为08-23镜像，遇null会校验失败）。（后续：ae26f23已推送。）
+
+**ADR 0016 更正（本人错误，同日发现）。** 周六切换方案未核对模拟仓验收语义：调度器每轮非WAITING_SOURCE（含NOOP）都跑
+`paper acceptance`，其要求最新FORWARD产物代码身份=当前运行代码；周六换新代码无新交易日，候选每15分钟失败、degraded、健康不过、
+派发后落入UNKNOWN_AFTER_DISPATCH。周六方案（§5.1/§5.2/§6）作废。旧生产210af4d的ready_hour为19:30、无16:00早探测，交易日
+16:00–19:30只做前一日NOOP；此窗内候选readiness为CROSS_SNAPSHOT_WITH_NEW_DATA、首轮WAITING_SOURCE、当晚以新代码产出FORWARD，
+验收自然通过——即原Phase B设计，既有`r2d_authorized_start`单次授权链已实现。用户裁决：交易日16:40–19:00窗口、当天在场逐字批准。
+ADR 0016 §11记录更正后工程（E1控制器差异白名单放行ledger/*.csv与AGENTS.md；E2 scope生成/批准转录/授权启动make目标，工具不自造
+批准）与操作序列O1–O7（候选构建、R3A健康fixture、rollback不启动+promote不启动、Web发布、T-1晚写协议、T日窗口在场批准执行、
+首自然日验收后关闭R2D）。
 
 **唯一下一节点（按序）。** ①（已改判：不迁移，专用主机暂缓）；②今晚20261015为9-24后第10个交易日，
 调仓信号日，须19:30–20:30接电；③ADR 0015 PROTOCOL冻结→实现；④ADR 0016工程（readiness `IDLE_WINDOW_CUTOVER`、scope v2、

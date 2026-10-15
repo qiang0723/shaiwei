@@ -119,3 +119,49 @@
 2. 同意把 R3N 四个未跟踪文件提交为离线证据（而非丢弃）？
 3. 切换窗口定在周六 10:00–16:00？（备选：周日同窗口）
 4. 宿主电源问题（STATE 2026-10-14 ⑤）的处置先于切换：a 纪律 / b `disablesleep` / c 专用主机？
+
+## 11. 2026-10-15 更正：周六切换不可行，改用交易日 16:40–19:00 窗口与既有单次授权链
+
+**错误。** 本 ADR §3/§5/§6 的周六空闲窗口方案未核对模拟仓验收语义。`scheduler.run_paper_cycle` 在每轮日增量非
+`WAITING_SOURCE`（含 `NOOP`）时都执行 `paper.query acceptance`，而 `paper/query.py`（约 427–430 行）要求“最新 FORWARD 产物的
+`code_snapshot_sha256` 等于当前运行代码”，否则抛错。周六启动新候选后没有新交易日，最新 FORWARD 仍由旧代码产出，候选每 15 分钟
+一轮都会失败：心跳 `degraded`、健康检查不过、`r2d_authorized_start` 派发后的 `_verify_active` 失败落入 `UNKNOWN_AFTER_DISPATCH`，
+周末持续告警。§5.1 `IDLE_WINDOW_CUTOVER`、§5.2 scope v2 与 §6 周六序列据此**作废**。现有 `release_start_readiness` 拒绝“无新交易日
+的跨代码启动”，正是为了防止这一点。
+
+**为何交易日窗口成立。** 运行中的旧生产（210af4d，07-27）`daily.ready_hour=19:30`，没有 16:00 早探测：交易日 T 的 16:00–19:30，
+旧生产只做“前一日 NOOP”空转，不写 T 的任何账本。此时 T 已进入候选的规划缺口（候选 `ready_hour=16`），`release_start_readiness`
+返回 `CROSS_SNAPSHOT_WITH_NEW_DATA`；候选启动后首轮日增量为 `WAITING_SOURCE`（模拟仓不运行），数据齐后以新代码产出 T 的 FORWARD，
+`acceptance` 随之通过。这正是原 R2D Phase B 的设计，`r2d_authorized_start`（单次 claim、`MAY_HAVE_WRITTEN` 屏障、禁止派发后
+自动回滚、逐字批准、`PRIOR_DAY_NOOP` 边界、四挂载、窗口内多次复核）已为其实现并经 09-07 Astra 修复。此前 12 个窗口全部失败的
+原因是执行层面：窗口内无人生成 scope 与批准、健康检查竞态（R3A 已修）、Astra 三项 P1（已修）。
+
+**用户裁决（2026-10-15）。** 采用交易日 16:40–19:00 窗口；最后一步启动由用户当天在窗口内在场逐字批准。
+
+**更正后的工程项（本节即其实现前冻结，实现另行提交）。**
+- E1 控制器差异白名单：`release_build_context.validate_controller_evidence` 在既有放行（组件、`STATE.md`、`docs/`、`tests/`、
+  `config/r2d_`）之外增加 `ledger/*.csv` 与 `AGENTS.md`，使候选构建后的纯证据提交不使守卫失效；`src/` 非组件文件与其他配置仍拒绝。
+  组件哈希随之变化，由新协议记录。
+- E2 scope 生成与批准记录工具（只读宿主元数据，不运行容器、不读 `.env`）：
+  `make r2d-scope-prepare PROTOCOL=config/r2d_….yaml` 读取协议、git HEAD/本地 origin/main、release state/audit 哈希、运行中旧容器
+  64 位 ID，生成 `r2d-execution-scope-v1` 信封，以 O_EXCL 写入 `.release/r2d-executions/scopes/<sha>.scope.json`，输出 scope SHA 与
+  逐字批准文本；`make r2d-record-approval SCOPE=… TEXT="…"` 仅在文本与 `approval_text(sha)` 完全一致时写出批准文件，否则拒绝
+  （工具不自造批准，只转录用户逐字回复）；`make r2d-authorized-start SCOPE=… [APPROVAL=… EXECUTE=1]` 包装既有入口。
+- 不新增 readiness 模式、不改 scope schema、不改 `r2d_authorized_start` 判定。
+
+**更正后的操作序列（每步单独逐字批准；O1–O4 避开交易日 16:00–19:30）。**
+- O1 从已推送的干净 HEAD 构建候选 C（`make docker-release-build`），含 ADR 0015 阶段 A 与当前全部修复。
+- O2 为 C 另立 R3A 健康 fixture 协议并执行一次（复用既有 fixture 机制，独立 scope），产出 `predecessor_fixture` 证据。
+- O3 发布谱系：`rollback(start=False)` 将 current 指回运行中的旧生产 722f63de（不动容器），再 `promote(C, start=False)`，得
+  current=C、previous=722f63de；从未运行的 b64ae11b 仅作历史保留。此后 `make docker-scheduler-up` 守卫会拒绝（预期）。
+- O4 Web 发布（含 ADR 0015 阶段 B），须早于 O6。
+- O5 目标交易日 T 的前一晚（T-1 日链完成后）：写 `config/r2d_scheduler_release_guard_lite_<T>_v1.yaml`（schema r2，
+  `PRIOR_DAY_NOOP` 边界，`start_window` 16:40–19:00，绑定 T-1 双账户 FORWARD 产物哈希、C、fixture、控制器身份），提交推送。
+- O6 T 日 16:40 起（用户在场，宿主接电开盖）：核验旧生产 noop 边界 → 生成 scope → 无 `--execute` 预检 `READY_TO_START` →
+  给出 scope SHA 与逐字批准文本 → 用户逐字回复 → 记录批准 → `--execute`；之后盯健康收敛与 `START_PASS`。19:00 前任何门失败即停，
+  不顺延、不重试同一 scope。
+- O7 首自然日验收（T 当晚）：daily/shadow/对账/两账户 PASS、`acceptance` PASS、`paper verify` 重放、飞书留痕、巡检 PASS；次日记 STATE，
+  ROADMAP 表行改 `R2D_CLOSED`，G1 正控开工。
+
+**本节对上文的作废范围。** §5.1、§5.2、§6、§8“切换门”中与周六相关部分、§10 第 3 问的答案“周六 10:00–16:00”。§4 影响边界、
+§5.4 控制器基准（并入 E1）、§5.5 对 ADR 0011/0012 的作废、§7 失败关闭仍有效。
