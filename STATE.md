@@ -35,6 +35,13 @@ ADR-005 §7.1记录更正与作废；上文④及宿主纪律“简化为接电�
 （交易日19:30–20:30接电开盖，R2D-lite周六窗口与首日同），合盖/电池导致的次日补跑与`on_time=false`照常接受并记录。
 见ADR-005 §7.2。
 
+**ADR 0015 协议。** `docs/SHADOW_CARRY_SUSPENDED_PROTOCOL_20261015.md`（`shadow-carry-suspended-v1`，
+`FROZEN_BEFORE_IMPLEMENTATION`）绑定ADR 0015接受提交71c9545与文件SHA。冻结manifest v3字段、§4判定伪代码、可解释=信号日
+`tushare.daily`无该代码、上限3、调仓日不变；阶段A后台（manifest/generation/shadow_cycle/settings，各有行数预算）与阶段B Web
+（types.ts为719行冻结热点只改原行；`Number(null)=0`会把停牌沿用静默显示为0，必须修）分提交；一次性只读验收重放20260929。
+下游只读核对：对账、paper引擎、Top20投影、query_evidence不读score；G0审计只认schema v1阶段0信号，不受影响。
+本协议本地提交，推送待用户放行；推送前不写任何实现代码。
+
 **唯一下一节点（按序）。** ①（已改判：不迁移，专用主机暂缓）；②今晚20261015为9-24后第10个交易日，
 调仓信号日，须19:30–20:30接电；③ADR 0015 PROTOCOL冻结→实现；④ADR 0016工程（readiness `IDLE_WINDOW_CUTOVER`、scope v2、
 协议配置、控制器基准）；⑤ADR 0017工程（target NONE）。生产动作（候选构建/提升/切换）每步仍逐字批准。
