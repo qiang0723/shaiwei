@@ -1,0 +1,12 @@
+schema_version: "closed-lane-frozen-input-authority-v1"
+authority_id: "adr-0018-v1"
+document: "docs/ADR_0018_CLOSED_LANE_FROZEN_INPUT_HISTORICAL_IDENTITY_20261015.md"
+# 只增条目、不改旧条目。protocol_sha256 须等于冻结协议当前文件哈希；freeze_commit 为该协议首次提交，
+# 须是 HEAD 祖先。活文件漂移时，冻结输入按该提交里的历史版本核验（ADR 0018 §4）。
+entries:
+  - protocol_path: "config/m6_csi800_production_head30_v1.yaml"
+    protocol_sha256: "16d2b92116864da01f6a734d3a4f17a5ac2f02d522dd17ef1048890eda8815fa"
+    freeze_commit: "bf0aafad509a47e47d1523fbd3e32c5063a6dbfa"
+  - protocol_path: "config/m6_csi800_model_attribution_v1.yaml"
+    protocol_sha256: "6c170d991df1ef75f18208837301b545fe50518c028a65c814d425fc36d7a22a"
+    freeze_commit: "262d941baa97c4aae4ddf57ed2950529d307dca3"

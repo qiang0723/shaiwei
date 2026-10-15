@@ -9,10 +9,12 @@ from typing import Any
 import yaml
 
 from shaiwei.config import PROJECT_ROOT
+from shaiwei.frozen_input_identity import FrozenInputIdentityError, verify_frozen_input
 from shaiwei.ledger import sha256_file
 
 
-PROTOCOL_PATH = PROJECT_ROOT / "config/m6_csi800_production_head30_v1.yaml"
+PROTOCOL_RELATIVE = "config/m6_csi800_production_head30_v1.yaml"
+PROTOCOL_PATH = PROJECT_ROOT / PROTOCOL_RELATIVE
 ADDENDUM_PATH = PROJECT_ROOT / "config/m6_csi800_production_head30_hash_addendum_v1.yaml"
 APPROVAL_ACTION = "M6_PRODUCTION_HEAD30_G0_EFFECT_ONCE_WITH_REPLAY_AND_INDEPENDENT_AUDIT"
 
@@ -79,8 +81,10 @@ def _validate_predecessors(document: dict[str, Any], addendum: dict[str, Any]) -
         path = (PROJECT_ROOT / relative).resolve()
         if PROJECT_ROOT.resolve() not in path.parents or not path.is_file():
             raise ProtocolError(f"production-converter predecessor path is invalid: {name}")
-        if sha256_file(path) != expected:
-            raise ProtocolError(f"production-converter predecessor hash differs: {name}")
+        try:  # ADR 0018：活文件漂移时按协议冻结提交的历史版本核验
+            verify_frozen_input(relative, expected, protocol_path=PROTOCOL_RELATIVE)
+        except FrozenInputIdentityError as error:
+            raise ProtocolError(f"production-converter predecessor hash differs: {name}") from error
 
 
 def _validate_authority(document: dict[str, Any]) -> None:

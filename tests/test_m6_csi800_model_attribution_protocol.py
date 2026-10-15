@@ -5,6 +5,8 @@ from pathlib import Path
 
 import yaml
 
+from shaiwei.frozen_input_identity import verify_frozen_input
+
 
 ROOT = Path(__file__).parents[1]
 PROTOCOL = ROOT / "config/m6_csi800_model_attribution_v1.yaml"
@@ -39,7 +41,12 @@ def test_frozen_inputs_and_legacy_boundary_are_exact() -> None:
     document = _document()
     inputs = document["frozen_inputs"]
 
-    assert _sha256(ROOT / inputs["settings"]["path"]) == inputs["settings"]["sha256"]
+    # ADR 0018：settings.yaml 为活文件，漂移后按本协议冻结提交的历史版本核验
+    assert verify_frozen_input(
+        inputs["settings"]["path"],
+        inputs["settings"]["sha256"],
+        protocol_path="config/m6_csi800_model_attribution_v1.yaml",
+    ) in {"LIVE", "HISTORICAL"}
     assert inputs["qlib_provider"]["manifest_sha256"] == (
         "62cae2f46b57020db202bee1748f072e7859e209663046747f76aaa008f605a9"
     )
