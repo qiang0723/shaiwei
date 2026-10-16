@@ -82,6 +82,13 @@ diff-check通过。本地提交，推送待放行。
 trade_cal，9-24后第10个开放日为**20261016**；20261015信号`rebalance_due=false`符合规则。另记：10-15晚宿主全程电池、日增量20:38
 才在短暂唤醒中开始，信号`on_time=false`。R2D-lite切换日经用户确定为**20261019（周一）16:40–19:00**。
 
+**R2D-lite O1（10-16 10:40–10:50，用户批准）。** 从已推送干净HEAD f6d3b70构建候选：`shaiwei:scheduler-8b5b88779e29c5f3`，
+镜像`sha256:ce1a1351…a447`，代码快照`8b5b8877…f0f3`，锁权威`docker-named-volume-v1`，审计追加BUILD_PASS（`cc1e4a8e…`，第35条）。
+生产未动：容器7a55151d、0重启、healthy；state仍current=b64ae11b/previous=722f63de。构建开始时宿主显示电池放电（用户称已插电，
+实测未供电），构建未受影响。自本条起暂停账本与AGENTS.md提交至O7（ADR 0016 §11.1），STATE-only提交照常。
+O2 scope已写`.release/r2d_lite_r3a_health_fixture_scope_f6d3b70.json`（sha `854b75c9…70a1`，绑定候选身份、构建后state
+`c879228f…`/audit `9d27bb65…`、旧容器、断网、六门），待用户逐字批准后单次执行。
+
 **唯一下一节点（按序）。** ①（已改判：不迁移，专用主机暂缓）；②（已更正为20261016）今晚20261015为9-24后第10个交易日，
 调仓信号日，须19:30–20:30接电；③ADR 0015 PROTOCOL冻结→实现；④ADR 0016工程（readiness `IDLE_WINDOW_CUTOVER`、scope v2、
 协议配置、控制器基准）；⑤ADR 0017工程（target NONE）。生产动作（候选构建/提升/切换）每步仍逐字批准。
