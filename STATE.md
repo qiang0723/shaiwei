@@ -89,6 +89,12 @@ trade_cal，9-24后第10个开放日为**20261016**；20261015信号`rebalance_d
 O2 scope已写`.release/r2d_lite_r3a_health_fixture_scope_f6d3b70.json`（sha `854b75c9…70a1`，绑定候选身份、构建后state
 `c879228f…`/audit `9d27bb65…`、旧容器、断网、六门），待用户逐字批准后单次执行。
 
+**R2D-lite O2（10-18 周日 21:27，用户逐字批准）。** 执行前复核scope哈希、state/audit哈希、输出根不存在均精确；单次执行
+`release_health_fixture`（隔离Compose项目、断网、fixture自有data/ledger/logs、外部生产锁卷）：六门全PASS，25秒收敛healthy，
+只读根、四挂载，`production_identity_unchanged=true`，fixture容器已拆除。证据：report `fd5db400…79d3`、tree文件`6ec1016b…64a1`/
+内容`509a9a9f…3d49`、receipt `717e6902…00fd`，经`r2d_fixture_evidence.validate_fixture`对候选身份校验PASS，供O5协议
+`predecessor_fixture`引用。另：10-16调仓信号`rebalance_due=true`、`on_time=true`，两账户PASS。
+
 **唯一下一节点（按序）。** ①（已改判：不迁移，专用主机暂缓）；②（已更正为20261016）今晚20261015为9-24后第10个交易日，
 调仓信号日，须19:30–20:30接电；③ADR 0015 PROTOCOL冻结→实现；④ADR 0016工程（readiness `IDLE_WINDOW_CUTOVER`、scope v2、
 协议配置、控制器基准）；⑤ADR 0017工程（target NONE）。生产动作（候选构建/提升/切换）每步仍逐字批准。
