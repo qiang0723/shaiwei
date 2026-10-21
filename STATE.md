@@ -106,6 +106,14 @@ O2 scope已写`.release/r2d_lite_r3a_health_fixture_scope_f6d3b70.json`（sha `8
 b64ae11b退出发布状态，仅作历史镜像保留。`make docker-scheduler-up`守卫REFUSE（current≠运行镜像，预期）。新目标切换日待定，
 拟20261022（周四）16:40–19:00；O4（Web发布）与O5（协议，绑定10-21产物）待10-21日链完成后准备并逐项批准。
 
+**R2D-lite O5（10-21 22:55起）。** 10-21链因宿主睡眠至22:44才开跑，22:44–22:54完成（信号`on_time=true`，对账与两账户PASS）。
+生成`config/r2d_scheduler_release_guard_lite_20261022_v1.yaml`（schema r2，guard_id 20261022，start_window 16:40–19:00，
+prepare_date 20261021；候选ce1a1351/f6d3b70；运行中旧生产722f63de；两账户10-21 FORWARD产物`118d2bf6…`/`6aa15295…`；
+`predecessor_fixture`=O2证据；控制器13组件、`f88f44a7…`未变、candidate_base_head f6d3b70；PRIOR_DAY_NOOP边界detail 20261021、
+16:00后、目标日0/0/0）。经守卫加载器、`_validate_fixture`、授权启动绑定规则与账本实时FORWARD身份比对全部通过；新增
+`tests/test_r2d_lite_20261022_protocol.py`。全量2,488通过、1跳过、0失败；架构13、Ruff、diff-check、脱敏通过。协议须推送后
+O4 Web构建才能开始（Web候选绑定构建时HEAD）；推送待用户放行。
+
 **唯一下一节点（按序）。** ①（已改判：不迁移，专用主机暂缓）；②（已更正为20261016）今晚20261015为9-24后第10个交易日，
 调仓信号日，须19:30–20:30接电；③ADR 0015 PROTOCOL冻结→实现；④ADR 0016工程（readiness `IDLE_WINDOW_CUTOVER`、scope v2、
 协议配置、控制器基准）；⑤ADR 0017工程（target NONE）。生产动作（候选构建/提升/切换）每步仍逐字批准。
