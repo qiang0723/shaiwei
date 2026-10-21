@@ -95,6 +95,17 @@ O2 scope已写`.release/r2d_lite_r3a_health_fixture_scope_f6d3b70.json`（sha `8
 内容`509a9a9f…3d49`、receipt `717e6902…00fd`，经`r2d_fixture_evidence.validate_fixture`对候选身份校验PASS，供O5协议
 `predecessor_fixture`引用。另：10-16调仓信号`rebalance_due=true`、`on_time=true`，两账户PASS。
 
+**10-19窗口错过（如实记录）。** O3批准请求10-18发出后无回复，O3–O6均未执行，20261019切换窗口过期；未执行任何生产动作，生产照常
+（10-19链准时PASS；10-20链23:55补跑、`on_time=false`，宿主睡眠）。桌面定时提醒在应用关闭/宿主睡眠时不触发（10-16提醒延至
+10-17 01:05、10-19提醒延至17:28），不可作为关键时点唯一手段。
+
+**R2D-lite O3（10-21 周三 15:22–15:23，用户逐字批准，16:00前完成）。** 起点核对current=b64ae11b/previous=722f63de；
+`release rollback --no-start`→current=722f63de（运行中旧生产），审计ROLLBACK_PASS `ee888e7a…`；
+`release promote --image shaiwei:scheduler-8b5b88779e29c5f3 --no-start`→current=新候选`ce1a1351…`、previous=`722f63de…`，
+审计PROMOTE_PASS `929b0783…`；`release status` PASS，审计链37条。生产容器7a55151d前后完全一致、0重启；未启动、未重建任何容器。
+b64ae11b退出发布状态，仅作历史镜像保留。`make docker-scheduler-up`守卫REFUSE（current≠运行镜像，预期）。新目标切换日待定，
+拟20261022（周四）16:40–19:00；O4（Web发布）与O5（协议，绑定10-21产物）待10-21日链完成后准备并逐项批准。
+
 **唯一下一节点（按序）。** ①（已改判：不迁移，专用主机暂缓）；②（已更正为20261016）今晚20261015为9-24后第10个交易日，
 调仓信号日，须19:30–20:30接电；③ADR 0015 PROTOCOL冻结→实现；④ADR 0016工程（readiness `IDLE_WINDOW_CUTOVER`、scope v2、
 协议配置、控制器基准）；⑤ADR 0017工程（target NONE）。生产动作（候选构建/提升/切换）每步仍逐字批准。
