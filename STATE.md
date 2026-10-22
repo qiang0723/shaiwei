@@ -27,6 +27,13 @@ None；变化时仅当当前容器/镜像/快照/revision在哈希链校验通�
 `_validate_audit_chain`复用。start/verify严格检查不变。新测试7项（含只读断言：真实审计链有效且含`98d1f84c`的START_PASS）；
 全量2,497通过、1跳过、0失败；架构13、Ruff、diff-check、脱敏通过。实现本地提交，推送待用户10-23上午放行，随后重建Web候选并发布。
 
+**Web后继发布完成（10-22 18:09–18:12，用户提前放行并逐字批准O4重做）。** 推送`6b0c3ea`（ADR 0019实现）与`eff5e58`
+（巡检日链截止23:30→18:30）。将从未部署、已过期的Web候选`95b1db8f`（绑定旧scheduler 7a55151d、代码4cfbe66）指针归档到
+`.release/web_component_candidates/`（自校验哈希通过、确认非已部署候选，证据保留）；自HEAD eff5e58重建候选`7d6e7fc7…`；
+后继发布（部署→回滚演练→再部署）PASS，按ADR 0019以10-22 START_PASS `5a96ba26…`将scheduler基线从`183b8c6c`重设为`98d1f84c`
+并写入Web审计与状态（第3代）。`web_release status` PASS；scheduler全程未变；Web三容器healthy、HTTP 200，信号接口提供20261022
+v3信号。ADR 0015阶段B由此进入运行中Web，此前记录的协议顺序偏离已消解。巡检定时任务改为工作日18:45（cron`45 18 * * 1-5`）。
+
 ## 2026-10-15 · 20261014日链次日补跑；三份ADR与宿主电源修订获接受
 
 **夜间事件。** 10-14 19:15宿主合盖且未接电（`Clamshell Sleep`、`Using Batt`），16:00–19:30数据窗口前已入睡；调度器在
