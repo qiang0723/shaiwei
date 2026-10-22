@@ -21,6 +21,12 @@ g1-v1不变），待另立结果前冻结协议。待办：①Web发布门修复
 18:30（另议）；③旧候选b64ae11b与旧生产722f63de镜像作为历史保留，回滚锚为722f63de（previous）——注意722f63de不认named-volume
 锁合同，ADR 0009禁止其与已迁移写入者同时运行，任何回滚须另立协议。
 
+**ADR 0019（Web发布门重设基线）。** 冻结推送`6640e95`后实现：`web_release_runtime.scheduler_rebaseline`——scheduler身份未变返回
+None；变化时仅当当前容器/镜像/快照/revision在哈希链校验通过的scheduler发布审计中有`START_PASS`才重设基线并返回证据，否则失败
+关闭；`_deployed_baseline`改用之并把证据写入Web审计开始事件与新Web状态；`release.py`（控制器组件）不改，经私有
+`_validate_audit_chain`复用。start/verify严格检查不变。新测试7项（含只读断言：真实审计链有效且含`98d1f84c`的START_PASS）；
+全量2,497通过、1跳过、0失败；架构13、Ruff、diff-check、脱敏通过。实现本地提交，推送待用户10-23上午放行，随后重建Web候选并发布。
+
 ## 2026-10-15 · 20261014日链次日补跑；三份ADR与宿主电源修订获接受
 
 **夜间事件。** 10-14 19:15宿主合盖且未接电（`Clamshell Sleep`、`Using Batt`），16:00–19:30数据窗口前已入睡；调度器在

@@ -31,6 +31,37 @@ _EXPECTED_NETWORK_SUFFIXES = {
 }
 
 
+def scheduler_rebaseline(
+    previous: Mapping[str, object] | None,
+    current: Mapping[str, str],
+    records: list[Mapping[str, object]],
+) -> dict[str, str] | None:
+    """ADR 0019：scheduler 身份变化须有哈希链审计中的 START_PASS 背书，否则失败关闭；未变化返回 None。"""
+    if previous == current:
+        return None
+    matches = [
+        record
+        for record in records
+        if record.get("event") == "START_PASS"
+        and isinstance(record.get("details"), Mapping)
+        and record["details"].get("container_id") == current.get("container_id")
+        and record["details"].get("image_id") == current.get("image_id")
+        and record["details"].get("code_snapshot_sha256") == current.get("snapshot")
+        and record["details"].get("git_head") == current.get("revision")
+    ]
+    if not matches:
+        raise WebReleaseError(
+            "scheduler identity differs from previous Web release state and lacks a START_PASS release record"
+        )
+    latest = matches[-1]
+    return {
+        "from_container_id": str((previous or {}).get("container_id", "")),
+        "to_container_id": str(current.get("container_id", "")),
+        "start_pass_record_sha256": str(latest.get("record_sha256", "")),
+        "start_pass_recorded_at": str(latest.get("recorded_at", "")),
+    }
+
+
 def _run(argv: list[str], *, root: Path) -> subprocess.CompletedProcess[str]:
     result = subprocess.run(argv, cwd=root, capture_output=True, text=True)
     if result.returncode:

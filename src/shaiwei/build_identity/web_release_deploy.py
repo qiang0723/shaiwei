@@ -23,6 +23,7 @@ from shaiwei.build_identity.web_release_runtime import (
     WEB_SERVICES,
     container_identity,
     scheduler_identity,
+    scheduler_rebaseline,
     validate_container_contract,
     verify_read_only_http,
     wait_and_verify_runtime,
@@ -182,18 +183,29 @@ def _legacy_images(root: Path, config: WebReleaseConfig) -> tuple[dict[str, dict
     return images, container_ids
 
 
+def _scheduler_release_records() -> list[dict[str, object]]:
+    # 读取并逐条校验 scheduler 发布审计哈希链（失败即抛错）；release.py 属 R2D 控制器组件，故复用而不修改。
+    from shaiwei.release import _validate_audit_chain
+
+    return _validate_audit_chain()
+
+
 def _deployed_baseline(
     root: Path,
     config: WebReleaseConfig,
     state: Mapping[str, object],
-) -> tuple[dict[str, dict[str, str]], dict[str, str]]:
+) -> tuple[dict[str, dict[str, str]], dict[str, str], dict[str, str] | None]:
     images = release_images(state)
     identities = wait_and_verify_runtime(root, config, _service_image_ids(images), timeout_seconds=15)
     verify_read_only_http(config, critical=False)
-    if scheduler_identity(root) != state.get("scheduler_identity"):
-        raise WebReleaseError("scheduler identity differs from previous Web release state")
+    previous = state.get("scheduler_identity")
+    rebaseline = scheduler_rebaseline(
+        previous if isinstance(previous, Mapping) else None,
+        scheduler_identity(root),
+        _scheduler_release_records(),
+    )
     containers = {service: str(identity["container_id"]) for service, identity in identities.items()}
-    return images, containers
+    return images, containers, rebaseline
 
 
 def promote_with_rollback_drill(*, root: Path | None = None) -> dict[str, object]:
@@ -205,12 +217,13 @@ def promote_with_rollback_drill(*, root: Path | None = None) -> dict[str, object
         raise WebReleaseError("scheduler changed after Web candidate build")
     state_path, audit_path = project_root / config.state_path, project_root / config.audit_path
     previous_state = load_release_state(state_path, required=False)
+    rebaseline: dict[str, str] | None = None
     if previous_state is None:
         previous_images, previous_containers = _legacy_images(project_root, config)
         generation = 1
         start_event = "MIGRATION_STARTED"
     else:
-        previous_images, previous_containers = _deployed_baseline(
+        previous_images, previous_containers, rebaseline = _deployed_baseline(
             project_root,
             config,
             previous_state,
@@ -231,6 +244,7 @@ def promote_with_rollback_drill(*, root: Path | None = None) -> dict[str, object
                 role: row["image_id"] for role, row in previous_images.items()
             },
             "release_generation": generation,
+            "scheduler_rebaseline": rebaseline,
         },
     )
     candidate_started = True
@@ -266,6 +280,7 @@ def promote_with_rollback_drill(*, root: Path | None = None) -> dict[str, object
             ),
             "previous_container_ids": previous_containers,
             "scheduler_identity": scheduler_after,
+            "scheduler_rebaseline": rebaseline,
             "final_container_ids": {key: value["container_id"] for key, value in final.items()},
             "rollback_drill_passed": True,
             "release_generation": generation,
