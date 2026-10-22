@@ -1,5 +1,26 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-10-22 · R2D关闭：新候选接管生产并通过首个自然交易日验收
+
+**O6（17:10–17:12，用户在场逐字批准）。** 17:10窗口内核验旧生产边界`noop/20261021`（17:00更新、晚于16:00、目标日0/0/0）；
+`make r2d-scope-prepare`生成scope `196dbae6…f2a3`（HEAD 1641640=origin/main、旧容器7a55151d）；无`--execute`预检`READY_TO_START`
+（readiness `CROSS_SNAPSHOT_WITH_NEW_DATA ['20261022']`、FORWARD核验、四挂载、心跳607秒）。用户逐字回复后`make r2d-record-approval`
+转录、`make r2d-authorized-start … EXECUTE=1`：claim 17:11:46 → `MAY_HAVE_WRITTEN`屏障17:11:57 → 回执`STARTED` 17:12:24，
+新容器`98d1f84c`，镜像`ce1a1351`（快照8b5b8877、f6d3b70），healthy、0重启、只读根、四挂载（含`shaiwei_runtime_locks_v1`），
+审计START_PASS `5a96ba26…`（锁权威docker-named-volume-v1），自动回滚禁止。
+
+**O7（首个自然交易日20261022）全门PASS。** 新代码16:00早探测生效：17:12 readiness READY→采集15,672行→影子信号（`on_time=true`）→
+10-21→10-22对账→两账户执行、verify、acceptance，17:24整轮完成（旧代码常态19:35后才开跑）。时间线`timeline_20261022.jsonl`
+24事件、哈希链连续，CYCLE 714秒PASS；两账户与信号产物代码快照均为`8b5b8877`（新代码）；manifest `schema_version=3`、
+`carried_without_score=[]`；飞书开始/完成9条全部投递；宿主独立`paper.query verify`两账户各63执行日重放PASS；巡检首次全绿PASS、
+`SCHEDULER_TAG_ALIGNED`；`make docker-scheduler-up`守卫转为ALLOW。按ADR 0009/0016判据，**R2D关闭**（自08-25起，经R2D-R1至R3N
+与R2D-lite）。生产锁权威由bind-mount flock切换为named-volume逻辑锁；ADR 0015沿用日停牌合同随之进入生产。
+
+**解除与后续。** ADR 0016 §11.1账本暂停自本条解除，本提交补交10-16起积压账本。主线进入**G1正控**（Astra两层A/B、五路线、两噪声，
+g1-v1不变），待另立结果前冻结协议。待办：①Web发布门修复ADR与Web后继发布（用户定10-23上午）；②巡检/备份时点可随链路提前至约
+18:30（另议）；③旧候选b64ae11b与旧生产722f63de镜像作为历史保留，回滚锚为722f63de（previous）——注意722f63de不认named-volume
+锁合同，ADR 0009禁止其与已迁移写入者同时运行，任何回滚须另立协议。
+
 ## 2026-10-15 · 20261014日链次日补跑；三份ADR与宿主电源修订获接受
 
 **夜间事件。** 10-14 19:15宿主合盖且未接电（`Clamshell Sleep`、`Using Batt`），16:00–19:30数据窗口前已入睡；调度器在
