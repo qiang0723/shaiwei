@@ -72,7 +72,7 @@ def _git(args):
     return "0 0"
 
 
-def _run(paths, *, now_local="2026-10-13T23:45", docker=None, calendar=_calendar, config=None, health_age=60):
+def _run(paths, *, now_local="2026-10-13T18:45", docker=None, calendar=_calendar, config=None, health_age=60):
     now_utc = datetime.fromisoformat(now_local + ":00+08:00").astimezone(timezone.utc)
     # 心跳时间跟随测试时钟；巡检会把“来自未来”的心跳判为 STALE，所以不能用真实 now 写夹具。
     paths.health.write_text(
@@ -92,7 +92,7 @@ def _run(paths, *, now_local="2026-10-13T23:45", docker=None, calendar=_calendar
 def test_real_config_loads_and_rejects_unknown_fields(tmp_path: Path):
     config = load_config()
     assert config.status == "ACTIVE_READ_ONLY"
-    assert config.chain_deadline_local.hour == 23
+    assert (config.chain_deadline_local.hour, config.chain_deadline_local.minute) == (18, 30)
     bad = tmp_path / "bad.yaml"
     bad.write_text(Path(ops_patrol.CONFIG_PATH).read_text(encoding="utf-8") + "\nextra_field: 1\n")
     with pytest.raises(Exception):
@@ -111,7 +111,7 @@ def test_all_green_after_deadline_targets_today(tmp_path: Path):
 
 
 def test_before_deadline_checks_previous_open_day(tmp_path: Path):
-    report = _run(_ledgers(tmp_path), now_local="2026-10-13T22:00")
+    report = _run(_ledgers(tmp_path), now_local="2026-10-13T18:00")
     assert report["expected_trade_date"] == "20261012"
     assert report["status"] == "PASS"
 
