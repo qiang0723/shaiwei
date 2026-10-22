@@ -112,7 +112,17 @@ prepare_date 20261021；候选ce1a1351/f6d3b70；运行中旧生产722f63de；�
 `predecessor_fixture`=O2证据；控制器13组件、`f88f44a7…`未变、candidate_base_head f6d3b70；PRIOR_DAY_NOOP边界detail 20261021、
 16:00后、目标日0/0/0）。经守卫加载器、`_validate_fixture`、授权启动绑定规则与账本实时FORWARD身份比对全部通过；新增
 `tests/test_r2d_lite_20261022_protocol.py`。全量2,488通过、1跳过、0失败；架构13、Ruff、diff-check、脱敏通过。协议须推送后
-O4 Web构建才能开始（Web候选绑定构建时HEAD）；推送待用户放行。
+O4 Web构建才能开始（Web候选绑定构建时HEAD）；推送待用户放行。（4cfbe66已推送。）
+
+**R2D-lite O4（10-22 11:02–11:03，用户逐字批准）：部分完成，提升失败关闭。** prepare-successor PASS（归档已部署候选指针
+`9c7ac1a8…`）；build PASS（新Web候选`95b1db8f…`，自HEAD 4cfbe66）；promote在部署前失败关闭：`_deployed_baseline`要求当前
+scheduler容器等于上次Web发布（08-23）记录的容器`183b8c6c`，而08-28 R2D-R2启动+回滚已合法重建为`7a55151d`（同镜像722f63de，
+有START_PASS审计），故该门自08-28起即不可通过——Web发布门对“scheduler合法更换”的设计缺口，与本次改动无关。未部署、未写Web
+状态/审计；Web三容器与scheduler均未动，HTTP 200。**用户裁决：今日照常O6；Web于O7后修门再发。** 此为对`shadow-carry-suspended-v1`
+§8第4步“Web发布须早于新scheduler候选启动”的**顺序偏离**，经用户裁决接受：旧Web（08-23）对v3 manifest的LIVE订单照常展示；仅在
+沿用日出现停牌沿用目标（score=null）时，信号页客户端校验会明确报错（非静默显示0），不影响生产。待办：①另立ADR修Web发布门——认可
+scheduler发布审计中有START_PASS记录的合法容器更换，并以此重设基线；②据新门重建Web候选（`95b1db8f`的scheduler基线为7a55151d，
+O6后作废）并发布；③在此之前`make docker-web-up`可能拒绝（候选指针已归档），运行中的Web容器不受影响。
 
 **唯一下一节点（按序）。** ①（已改判：不迁移，专用主机暂缓）；②（已更正为20261016）今晚20261015为9-24后第10个交易日，
 调仓信号日，须19:30–20:30接电；③ADR 0015 PROTOCOL冻结→实现；④ADR 0016工程（readiness `IDLE_WINDOW_CUTOVER`、scope v2、
