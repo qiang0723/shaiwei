@@ -22,6 +22,12 @@ logs/notifications，`FEISHU_*` 经插值注入不用 env_file），登记为 `o
 验证：全量 2,510 通过、1 跳过、1 失败——失败项为注册表资产计数（全量开跑时新 compose 文件尚未纳入 git 跟踪，测试按 git 跟踪文件
 计数），暂存后复跑该文件 32 通过；巡检与服务 23 通过；架构 13 通过；Ruff 与 `git diff --check` 通过。用户“推送并构建镜像”。
 
+已推送 8522b88（e08881c..8522b88）；`make ops-patrol-build` 产出 **`shaiwei:ops-patrol-29da973aa92f`**（镜像 53c85e6b，0.83 GB，镜像内
+快照 = 工作树快照）。镜像自检（断网、无生产挂载、user 10001、只读根）：导入后 RSS 148 MB（mem_limit 768m 充裕）；无 latest.json 时
+healthcheck 退出 1（符合预期）；镜像内巡检测试 4 败——测试把临时目录所在文件系统当磁盘，镜像 /tmp 为 256 MB tmpfs 触发 DISK_FREE
+WARN，tmpfs 声明 60 GB 后 23 全过，属测试依赖真实磁盘的缺陷，非代码缺陷。后续本地提交：测试以 autouse 夹具固定磁盘余量并新增低磁盘
+WARN 用例，宿主 24 通过、镜像内（256 MB tmpfs + 挂载新测试文件）24 通过；只改 tests/，`src/`/`config/` 与已构建镜像一致，不重建镜像。
+
 未做（各需用户批准）：推送；`make ops-patrol-build` 构建镜像；镜像内 dry-run；**逐字批准**后 `make ops-patrol-up` 与一条演练消息；
 部署提交填 `containers.patrol`。会话中一次把 `make ops-patrol-up`（本意验证缺 IMAGE 时守卫拒绝）混进命令，被自动模式分类器整体拦截，
 未执行任何启动；此后只做文本修改。

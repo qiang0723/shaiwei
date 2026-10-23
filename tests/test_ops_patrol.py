@@ -15,6 +15,13 @@ SCHEDULER_IMAGE = "sha256:" + "7" * 64
 CANDIDATE_IMAGE = "sha256:" + "b" * 64
 
 
+@pytest.fixture(autouse=True)
+def _ample_disk(monkeypatch):
+    # 磁盘检查读的是 tmp_path 所在文件系统；容器 tmpfs 只有几百 MB，不能让测试结论取决于跑测试的机器。
+    usage = type("Usage", (), {"total": 1_000e9, "used": 600e9, "free": 400e9})
+    monkeypatch.setattr(ops_patrol.shutil, "disk_usage", lambda _path: usage)
+
+
 def _calendar() -> pd.DataFrame:
     days = OPEN_DAYS + ["20261010", "20261011"]
     return pd.DataFrame({"cal_date": days, "is_open": ["1"] * len(OPEN_DAYS) + ["0", "0"]})
@@ -235,3 +242,12 @@ def test_patrol_container_is_inspected_only_once_configured(tmp_path: Path):
     )
     _run(_ledgers(tmp_path), docker=docker, config=config)
     assert "shaiwei-ops-patrol-ops-patrol-1" in seen
+
+
+def test_low_disk_is_warn(tmp_path: Path, monkeypatch):
+    usage = type("Usage", (), {"total": 1_000e9, "used": 970e9, "free": 30e9})
+    monkeypatch.setattr(ops_patrol.shutil, "disk_usage", lambda _path: usage)
+    report = _run(_ledgers(tmp_path), mode="container")
+    hit = [f for f in report["attention"] if f["code"] == "DISK_FREE"]
+    assert hit and hit[0]["detail"] == {"free_gb": 30.0, "warn_gb": 50}
+    assert report["status"] == "WARN"
