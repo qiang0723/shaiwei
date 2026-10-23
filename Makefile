@@ -10,6 +10,7 @@
 .PHONY: docker-m6-head30-500k-entrypoint-recovery-build docker-m6-head30-500k-entrypoint-recovery-fixture docker-m6-head30-500k-entrypoint-recovery-run docker-m6-head30-500k-entrypoint-recovery-audit
 .PHONY: docker-m6-head30-500k-feasibility-build docker-m6-head30-500k-feasibility-fixture
 .PHONY: ops-patrol scheduler-up-guard r2d-scope-prepare r2d-record-approval r2d-authorized-start
+.PHONY: ops-patrol-build ops-patrol-dry-run ops-patrol-up ops-patrol-drill ops-patrol-status ops-patrol-down
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -435,6 +436,33 @@ network-check:    ## 脱敏验证 Tushare 直连；不写数据、账本或 Toke
 	$(PYTHON) -m shaiwei.network_check
 ops-patrol:       ## 只读运维巡检：守护健康、容器、日链完成度、重复失败、账本积压；退出码 0/1/2，不写任何文件
 	$(PYTHON) -m shaiwei.ops_patrol
+OPS_PATROL_COMPOSE := docker compose -p shaiwei-ops-patrol -f compose.ops-patrol.yaml
+OPS_PATROL_SNAPSHOT := from shaiwei.provenance import code_snapshot_sha256; print(code_snapshot_sha256())
+ops-patrol-build: ## 以已推送 HEAD 构建巡检镜像 shaiwei:ops-patrol-<代码快照12位>；只构建不启动（ADR 0020）
+	@test -z "$$(git status --porcelain --untracked-files=no)" || (echo "tracked worktree is dirty"; exit 2)
+	@test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/main)" || (echo "HEAD differs from origin/main"; exit 2)
+	docker build -f Dockerfile --build-arg SHAIWEI_RELEASE_GIT_HEAD="$$(git rev-parse HEAD)" -t shaiwei:ops-patrol-build .
+	@image_snapshot="$$(docker run --rm --network none shaiwei:ops-patrol-build python -c '$(OPS_PATROL_SNAPSHOT)')"; \
+	  test "$$image_snapshot" = "$$($(PYTHON) -c '$(OPS_PATROL_SNAPSHOT)')" || (echo "image snapshot differs from worktree"; exit 2); \
+	  tag="shaiwei:ops-patrol-$$(printf %s "$$image_snapshot" | cut -c1-12)"; \
+	  docker tag shaiwei:ops-patrol-build "$$tag" && docker rmi shaiwei:ops-patrol-build >/dev/null && echo "$$tag"
+ops-patrol-dry-run: ## 巡检镜像+生产只读挂载巡检一轮并打印计划消息；不发送、不写文件；IMAGE=… 必填
+	@test -n "$(IMAGE)" || (echo "IMAGE=shaiwei:ops-patrol-<snapshot12> is required"; exit 2)
+	@mkdir -p logs/ops-patrol
+	SHAIWEI_OPS_PATROL_IMAGE="$(IMAGE)" $(OPS_PATROL_COMPOSE) run --rm --no-deps ops-patrol python -m shaiwei.ops_patrol_service --dry-run
+ops-patrol-up: ## 用户逐字批准后启动常驻巡检容器；IMAGE=… 必填，不隐式构建
+	@test -n "$(IMAGE)" || (echo "IMAGE=shaiwei:ops-patrol-<snapshot12> is required"; exit 2)
+	@docker image inspect "$(IMAGE)" >/dev/null || (echo "image not found: $(IMAGE)"; exit 2)
+	@mkdir -p logs/ops-patrol
+	SHAIWEI_OPS_PATROL_IMAGE="$(IMAGE)" $(OPS_PATROL_COMPOSE) up -d --no-build
+ops-patrol-drill: ## 部署验收：一次性容器只发一条“演练”飞书消息，不巡检、不改状态；IMAGE=… 必填
+	@test -n "$(IMAGE)" || (echo "IMAGE=shaiwei:ops-patrol-<snapshot12> is required"; exit 2)
+	SHAIWEI_OPS_PATROL_IMAGE="$(IMAGE)" $(OPS_PATROL_COMPOSE) run --rm --no-deps ops-patrol python -m shaiwei.ops_patrol_service --drill
+ops-patrol-status: ## 巡检容器状态与最近一轮结论
+	@SHAIWEI_OPS_PATROL_IMAGE=status $(OPS_PATROL_COMPOSE) ps
+	@$(PYTHON) -c "import json,pathlib; p=pathlib.Path('logs/ops-patrol/latest.json'); r=json.loads(p.read_text()) if p.is_file() else {}; print(r.get('generated_at'), r.get('status'), r.get('expected_trade_date'), r.get('service', {}))"
+ops-patrol-down: ## 回滚：停止并移除巡检容器；不影响 scheduler、Web、账本
+	SHAIWEI_OPS_PATROL_IMAGE=down $(OPS_PATROL_COMPOSE) down
 scheduler-up-guard: ## docker-scheduler-up 前置守卫：current 别名须等于运行容器镜像（或无容器时等于最后一次 START_PASS 镜像）
 	$(PYTHON) -m shaiwei.scheduler_up_guard
 docker-build:     ## 构建统一 Docker 运行镜像

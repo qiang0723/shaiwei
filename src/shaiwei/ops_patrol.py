@@ -1,4 +1,7 @@
-"""只读运维巡检：核对守护健康、容器状态、日链完成度、重复失败与账本积压；不写任何文件。"""
+"""只读运维巡检：核对守护健康、容器状态、Web、日链完成度、重复失败与账本积压；不写任何文件。
+
+host 模式（宿主 make ops-patrol）做全部检查；container 模式（巡检容器，ADR 0020）不调用 docker/git。
+"""
 
 from __future__ import annotations
 
@@ -12,18 +15,18 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, time, timezone
 from pathlib import Path
 from typing import Callable, Iterable, Literal
+from urllib.error import HTTPError
+from urllib.request import ProxyHandler, Request, build_opener
 from zoneinfo import ZoneInfo
 
 import pandas as pd
-import yaml
-from pydantic import BaseModel, ConfigDict, Field
 
 from shaiwei.config import PROJECT_ROOT, load
 from shaiwei.ingest.catalog import load_latest_api
 from shaiwei.ledger import DAILY_RUNS, PAPER_RUNS, SHADOW_RECONCILIATIONS, SHADOW_RUNS
+from shaiwei.ops_patrol_config import CONFIG_PATH, Mode, PatrolConfig, load_config
 from shaiwei.pipeline.scheduler import HEALTH_PATH
 
-CONFIG_PATH = PROJECT_ROOT / "config" / "ops_patrol_v1.yaml"
 Severity = Literal["INFO", "WARN", "FAIL"]
 _RANK = {"INFO": 0, "WARN": 1, "FAIL": 2}
 _STATUS = {"INFO": "PASS", "WARN": "WARN", "FAIL": "FAIL"}
@@ -32,34 +35,7 @@ _CONTAINER_FORMAT = (
     "|{{.RestartCount}}|{{.Image}}"
 )
 Query = Callable[[list[str]], str]
-
-
-class FrozenModel(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-
-class Containers(FrozenModel):
-    scheduler: str
-    web: tuple[str, ...]
-
-
-class PatrolConfig(FrozenModel):
-    schema_version: Literal["shaiwei-ops-patrol-v1"]
-    patrol_id: Literal["ops-patrol-v1"]
-    status: Literal["ACTIVE_READ_ONLY"]
-    timezone: Literal["Asia/Shanghai"]
-    chain_deadline_local: time
-    lookback_open_days: int = Field(ge=1, le=30)
-    repeated_shadow_fail_threshold: int = Field(ge=2, le=50)
-    ledger_backlog_warn_lines: int = Field(ge=100)
-    disk_free_warn_gb: int = Field(ge=1)
-    containers: Containers
-    scheduler_current_tag: str
-    accounts: tuple[str, ...] = Field(min_length=1)
-
-
-def load_config(path: Path = CONFIG_PATH) -> PatrolConfig:
-    return PatrolConfig.model_validate(yaml.safe_load(path.read_text(encoding="utf-8")))
+HOST_ONLY_CHECKS = ("containers", "scheduler_tag", "ledger_backlog", "git_sync")
 
 
 @dataclass(frozen=True)
@@ -115,6 +91,17 @@ def git_query(args: list[str]) -> str:
         ["git", *args], check=True, capture_output=True, text=True, timeout=30, cwd=PROJECT_ROOT
     )
     return result.stdout.strip()
+
+
+_DIRECT = build_opener(ProxyHandler({}))  # 本机探针不得走系统代理
+
+
+def http_status(url: str, timeout: float) -> int:
+    try:
+        with _DIRECT.open(Request(url, method="HEAD"), timeout=timeout) as response:
+            return int(response.status)
+    except HTTPError as error:
+        return int(error.code)
 
 
 def open_days(calendar: pd.DataFrame) -> list[str]:
@@ -189,6 +176,19 @@ def check_tag_drift(docker: Query, tag: str, scheduler: dict[str, str] | None) -
     if running and tag_image != running:
         return [Finding("SCHEDULER_TAG_DRIFT", "WARN", detail)]
     return [Finding("SCHEDULER_TAG_ALIGNED", "INFO", detail)]
+
+
+def check_web(probe: Callable[[str], int], base: str, paths: Iterable[str]) -> list[Finding]:
+    findings: list[Finding] = []
+    for path in paths:
+        try:
+            code = probe(base.rstrip("/") + path)
+        except (OSError, ValueError) as error:  # URLError 与超时都是 OSError
+            findings.append(Finding("WEB_UNREACHABLE", "FAIL", {"path": path, "error_type": type(error).__name__}))
+            continue
+        ok = 200 <= code < 300
+        findings.append(Finding("WEB_OK" if ok else "WEB_UNHEALTHY", "INFO" if ok else "FAIL", {"path": path, "http_status": code}))
+    return findings
 
 
 def _local_day(timestamp: str, tz: ZoneInfo) -> str:
@@ -284,19 +284,24 @@ def run_patrol(
     config: PatrolConfig,
     paths: PatrolPaths,
     now_utc: datetime,
-    docker: Query,
-    git: Query,
+    docker: Query | None,
+    git: Query | None,
     calendar_loader: Callable[[], pd.DataFrame],
     stale_seconds: int,
+    web_probe: Callable[[str], int],
+    mode: Mode = "host",
 ) -> dict[str, object]:
     tz = ZoneInfo(config.timezone)
     now_local = now_utc.astimezone(tz)
     findings = check_health(paths.health, now_utc, stale_seconds)
-    container_findings, seen = check_containers(
-        docker, [config.containers.scheduler, *config.containers.web]
-    )
-    findings += container_findings
-    findings += check_tag_drift(docker, config.scheduler_current_tag, seen.get(config.containers.scheduler))
+    if mode == "host":
+        assert docker is not None and git is not None
+        names = [config.containers.scheduler, *config.containers.web]
+        container_findings, seen = check_containers(docker, names + ([config.containers.patrol] if config.containers.patrol else []))
+        findings += container_findings
+        findings += check_tag_drift(docker, config.scheduler_current_tag, seen.get(config.containers.scheduler))
+    base = config.web_probe.host_base if mode == "host" else config.web_probe.container_base
+    findings += check_web(web_probe, base, config.web_probe.paths)
     expected: str | None = None
     try:
         days = open_days(calendar_loader())
@@ -311,13 +316,16 @@ def run_patrol(
         findings += check_failures(
             rows, days, expected, config.repeated_shadow_fail_threshold, config.lookback_open_days
         )
-    findings += check_ledger_backlog(git, config.ledger_backlog_warn_lines)
-    findings += check_git_sync(git)
+    if mode == "host":
+        findings += check_ledger_backlog(git, config.ledger_backlog_warn_lines)
+        findings += check_git_sync(git)
     findings += check_disk(paths.project_root, config.disk_free_warn_gb)
     worst = max((f.severity for f in findings), key=_RANK.__getitem__, default="INFO")
     return {
         "schema_version": config.schema_version,
         "patrol_id": config.patrol_id,
+        "mode": mode,
+        "skipped_host_checks": list(HOST_ONLY_CHECKS) if mode == "container" else [],
         "generated_at": now_utc.isoformat(),
         "now_local": now_local.isoformat(timespec="minutes"),
         "expected_trade_date": expected,
@@ -334,14 +342,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--config", type=Path, default=CONFIG_PATH)
     args = parser.parse_args(argv)
     settings = load()
+    config = load_config(args.config)
     report = run_patrol(
-        config=load_config(args.config),
+        config=config,
         paths=PatrolPaths(),
         now_utc=datetime.now(timezone.utc),
         docker=docker_query,
         git=git_query,
         calendar_loader=lambda: load_latest_api("tushare.trade_cal"),
         stale_seconds=settings.daily.health_stale_seconds,
+        web_probe=lambda url: http_status(url, config.web_probe.timeout_seconds),
     )
     print(json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2))
     return int(report["exit_code"])

@@ -72,7 +72,26 @@ def _git(args):
     return "0 0"
 
 
-def _run(paths, *, now_local="2026-10-13T18:45", docker=None, calendar=_calendar, config=None, health_age=60):
+def _web(status=200, *, down=()):
+    def probe(url):
+        if any(url.endswith(path) for path in down):
+            raise OSError("connection refused")
+        return status
+
+    return probe
+
+
+def _run(
+    paths,
+    *,
+    now_local="2026-10-13T18:45",
+    docker=None,
+    calendar=_calendar,
+    config=None,
+    health_age=60,
+    web=None,
+    mode="host",
+):
     now_utc = datetime.fromisoformat(now_local + ":00+08:00").astimezone(timezone.utc)
     # 心跳时间跟随测试时钟；巡检会把“来自未来”的心跳判为 STALE，所以不能用真实 now 写夹具。
     paths.health.write_text(
@@ -82,10 +101,12 @@ def _run(paths, *, now_local="2026-10-13T18:45", docker=None, calendar=_calendar
         config=config or load_config(),
         paths=paths,
         now_utc=now_utc,
-        docker=docker or _docker(),
-        git=_git,
+        docker=(docker or _docker()) if mode == "host" else None,
+        git=_git if mode == "host" else None,
         calendar_loader=calendar,
         stale_seconds=3600,
+        web_probe=web or _web(),
+        mode=mode,
     )
 
 
@@ -106,7 +127,8 @@ def test_all_green_after_deadline_targets_today(tmp_path: Path):
     assert report["exit_code"] == 0
     assert report["attention"] == []
     codes = {f["code"] for f in report["findings"]}
-    assert {"HEALTH_OK", "CONTAINER_OK", "SCHEDULER_TAG_ALIGNED", "DAILY_OK", "SHADOW_SIGNAL_OK", "PAPER_OK"} <= codes
+    assert {"HEALTH_OK", "CONTAINER_OK", "SCHEDULER_TAG_ALIGNED", "WEB_OK", "DAILY_OK", "SHADOW_SIGNAL_OK", "PAPER_OK"} <= codes
+    assert report["mode"] == "host" and report["skipped_host_checks"] == []
     assert "net_asset" not in json.dumps(report)
 
 
@@ -172,3 +194,44 @@ def test_unreadable_calendar_is_fail_without_crash(tmp_path: Path):
     assert "CALENDAR_UNREADABLE" in {f["code"] for f in report["attention"]}
     assert report["expected_trade_date"] is None
     assert report["status"] == "FAIL"
+
+
+def test_container_mode_never_calls_docker_or_git_and_lists_skipped_checks(tmp_path: Path):
+    calls = []
+
+    def probe(url):
+        calls.append(url)
+        return 200
+
+    report = _run(_ledgers(tmp_path), mode="container", web=probe)
+    assert report["status"] == "PASS"
+    assert report["skipped_host_checks"] == ["containers", "scheduler_tag", "ledger_backlog", "git_sync"]
+    codes = {f["code"] for f in report["findings"]}
+    assert not codes & {"CONTAINER_OK", "SCHEDULER_TAG_ALIGNED", "LEDGER_UNCOMMITTED_LINES", "GIT_SYNC"}
+    assert calls == ["http://host.docker.internal:8080/healthz", "http://host.docker.internal:8080/api/v1/system/runs"]
+
+
+def test_web_probe_failures_are_fail(tmp_path: Path):
+    report = _run(_ledgers(tmp_path), web=_web(down=("/api/v1/system/runs",)))
+    hit = [f for f in report["attention"] if f["code"] == "WEB_UNREACHABLE"]
+    assert hit and hit[0]["detail"] == {"path": "/api/v1/system/runs", "error_type": "OSError"}
+    assert report["status"] == "FAIL"
+    report = _run(_ledgers(tmp_path), web=_web(503))
+    assert {f["code"] for f in report["attention"]} == {"WEB_UNHEALTHY"}
+
+
+def test_patrol_container_is_inspected_only_once_configured(tmp_path: Path):
+    seen = []
+
+    def docker(args):
+        seen.append(args[-1])
+        return _docker()(args)
+
+    _run(_ledgers(tmp_path), docker=docker)
+    assert "shaiwei-ops-patrol-ops-patrol-1" not in seen
+    config = load_config()
+    config = config.model_copy(
+        update={"containers": config.containers.model_copy(update={"patrol": "shaiwei-ops-patrol-ops-patrol-1"})}
+    )
+    _run(_ledgers(tmp_path), docker=docker, config=config)
+    assert "shaiwei-ops-patrol-ops-patrol-1" in seen

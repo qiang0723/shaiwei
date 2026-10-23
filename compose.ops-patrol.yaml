@@ -1,0 +1,78 @@
+name: shaiwei-ops-patrol
+
+# 巡检 harness（ADR 0020）：只读巡检 scheduler 心跳、Web、日链账本，按状态机去重后发飞书。
+# 无 Docker socket、无工作树、无 .git、无模拟仓数据；只注入 FEISHU_*（不用 env_file）；
+# 只写 logs/ops-patrol 与 logs/notifications。镜像由 make ops-patrol-build 从已推送 HEAD 构建。
+services:
+  ops-patrol:
+    image: ${SHAIWEI_OPS_PATROL_IMAGE:?use make ops-patrol-up IMAGE=shaiwei:ops-patrol-<snapshot12>}
+    init: true
+    user: "10001:10001"
+    working_dir: /workspace
+    command: ["python", "-m", "shaiwei.ops_patrol_service"]
+    environment:
+      TZ: Asia/Shanghai
+      HOME: /tmp
+      SHAIWEI_DATA_ROOT: /workspace/data
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      ALL_PROXY: ""
+      http_proxy: ""
+      https_proxy: ""
+      all_proxy: ""
+      NO_PROXY: "host.docker.internal,localhost,127.0.0.1"
+      no_proxy: "host.docker.internal,localhost,127.0.0.1"
+      FEISHU_ALERTS_ENABLED: ${FEISHU_ALERTS_ENABLED:-false}
+      FEISHU_WEBHOOK_URL: ${FEISHU_WEBHOOK_URL:-}
+      FEISHU_SIGNING_SECRET: ${FEISHU_SIGNING_SECRET:-}
+      FEISHU_TIMEOUT_SECONDS: ${FEISHU_TIMEOUT_SECONDS:-10}
+      FEISHU_MAX_ATTEMPTS: ${FEISHU_MAX_ATTEMPTS:-3}
+      FEISHU_RETRY_BASE_SECONDS: ${FEISHU_RETRY_BASE_SECONDS:-1.0}
+      FEISHU_HEARTBEAT_SECONDS: ${FEISHU_HEARTBEAT_SECONDS:-1800}
+    volumes:
+      - type: bind
+        source: ./ledger
+        target: /workspace/ledger
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/raw/source=tushare/api=trade_cal
+        target: /workspace/data/raw/source=tushare/api=trade_cal
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./logs/scheduler
+        target: /workspace/logs/scheduler
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./logs/ops-patrol
+        target: /workspace/logs/ops-patrol
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./logs/notifications
+        target: /workspace/logs/notifications
+        bind:
+          create_host_path: false
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 768m
+    cpus: 0.25
+    restart: unless-stopped
+    stop_grace_period: 10s
+    healthcheck:
+      test: ["CMD", "python", "-m", "shaiwei.ops_patrol_service", "--healthcheck"]
+      interval: 5m
+      start_interval: 15s
+      start_period: 3m
+      timeout: 20s
+      retries: 2

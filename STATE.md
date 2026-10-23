@@ -1,5 +1,31 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-10-24 · 巡检 harness 工程完成（ADR 0020），部署待用户批准
+
+G1 协议已于 e08881c 推送（上一条“推送待用户放行”已兑现）。用户问“哪里适合改成 agent/harness”，本人建议先做巡检 harness：
+桌面定时巡检只在 Claude 应用打开且 Mac 醒着时触发，本周两次未按时；scheduler 报不了“自己死了/卡住/到点没跑完”。用户“先做巡检
+harness”。起草 `docs/ADR_0020_OPS_PATROL_HARNESS_20261024.md`，用户对四点均选推荐项（独立巡检容器、变化告警+每日结论、桌面任务保留
+作宿主组补充、只注入 `FEISHU_*`），ADR **ACCEPTED**。明确边界：巡检与日链同机，**解决不了 Mac 睡眠**，只让“没收到日结论”成为信号。
+
+实测依据：一次性容器经 `host.docker.internal:8080` 可达 Web（`/healthz` 只证明 web-ui，`HEAD /api/v1/system/runs` 经代理证明
+web-query）；容器内磁盘视图与宿主一致；10-22/10-23 最长调度周期 714 s，远低于心跳陈旧阈 3600 s；scheduler 轮询 900 s，故唤醒后
+心跳最多陈旧一个轮询——据此设 20 分钟唤醒宽限，否则每次开盖都会先报一条假“心跳陈旧”。
+
+工程：`ops_patrol.py` 增 host/container 两模式（container 不调用 docker/git，报告列 `skipped_host_checks`）与 Web HTTP 探针（直连、
+不走系统代理）；配置 schema 拆为 `ops_patrol_config.py`（容器健康检查不导入 pandas；主模块 361 行 ≤400）；新增
+`ops_patrol_service.py`（墙钟到期巡检、唤醒判定与宽限、签名只取稳定字段的去重状态机、每预期交易日一条日结论并吸收当轮问题、
+每日 8 条上限与抑制计数、投递失败下轮重试、dry-run/drill/healthcheck）；`compose.ops-patrol.yaml`（user 10001、只读根、
+cap_drop ALL、无 socket/工作树/.git/模拟仓数据，只读挂 ledger/交易日历/scheduler 心跳，读写仅 logs/ops-patrol 与
+logs/notifications，`FEISHU_*` 经插值注入不用 env_file），登记为 `ops-patrol-local` 组件（资产 98→99）；Makefile 增
+`ops-patrol-build/dry-run/up/drill/status/down`。`containers.patrol` 保持 null 至部署提交。宿主上以 container 模式对真实生产
+文件 dry-run 一轮：PASS、预期交易日 20261023、计划消息“巡检日结论 20261023：PASS”、未写任何文件。
+验证：全量 2,510 通过、1 跳过、1 失败——失败项为注册表资产计数（全量开跑时新 compose 文件尚未纳入 git 跟踪，测试按 git 跟踪文件
+计数），暂存后复跑该文件 32 通过；巡检与服务 23 通过；架构 13 通过；Ruff 与 `git diff --check` 通过。用户“推送并构建镜像”。
+
+未做（各需用户批准）：推送；`make ops-patrol-build` 构建镜像；镜像内 dry-run；**逐字批准**后 `make ops-patrol-up` 与一条演练消息；
+部署提交填 `containers.patrol`。会话中一次把 `make ops-patrol-up`（本意验证缺 IMAGE 时守卫拒绝）混进命令，被自动模式分类器整体拦截，
+未执行任何启动；此后只做文本修改。
+
 ## 2026-10-24 · G1正控协议冻结（主线第二站开工）
 
 开工体检：10-22、10-23两日链分别于17:12、16:58开跑并PASS（新代码16:00早探测），巡检PASS。用户要求开始G1正控，本人起草

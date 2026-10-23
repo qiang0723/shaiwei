@@ -1,6 +1,6 @@
 schema_version: "shaiwei-ops-patrol-v1"
 patrol_id: "ops-patrol-v1"
-status: "ACTIVE_READ_ONLY"            # 巡检只读：不写 data/ledger/logs，不碰容器、镜像、标签
+status: "ACTIVE_READ_ONLY"            # 巡检只读：不写 data/ledger，不碰容器、镜像、标签；巡检容器只写 logs/ops-patrol 与飞书投递记录（ADR 0020）
 timezone: "Asia/Shanghai"
 chain_deadline_local: "18:30"         # 开放日过此时刻才要求当日日链完成；之前只核对上一开放日（R2D 后新代码 16:00 起探测，常态 17:30 前跑完；2026-10-23 由 23:30 提前）
 lookback_open_days: 5                 # 近 N 个开放日内的 daily/paper FAIL 行与重复 shadow FAIL 才计入
@@ -13,5 +13,18 @@ containers:
     - "shaiwei-web-web-ui-1"
     - "shaiwei-web-web-query-1"
     - "shaiwei-web-research-control-1"
+  patrol: null                        # 巡检容器部署后填 "shaiwei-ops-patrol-ops-patrol-1"，由宿主巡检看守巡检
 scheduler_current_tag: "shaiwei:scheduler-current"
 accounts: ["model_baseline", "model_top20"]
+web_probe:                            # 两模式都用 HTTP 探针；/healthz 只证明 web-ui，/api/v1/system/runs 经 UI 代理证明 web-query
+  host_base: "http://127.0.0.1:8080"
+  container_base: "http://host.docker.internal:8080"
+  paths: ["/healthz", "/api/v1/system/runs"]
+  timeout_seconds: 5
+service:                              # 巡检容器循环与告警状态机（ADR 0020 §4.2–4.3）
+  interval_minutes: 10                # 巡检间隔
+  wake_check_seconds: 60              # 每 60 s 比对墙钟；Mac 唤醒后 ≤1 分钟补巡
+  resume_gap_intervals: 3             # 距上一轮超过 3 个间隔即判定主机刚唤醒
+  resume_grace_minutes: 20            # 唤醒后 20 分钟只巡检不告警（> scheduler 轮询 900 s）
+  daily_message_cap: 8                # 每个本地自然日最多发送条数，超限只计数
+  latest_stale_minutes: 30            # 巡检容器自身健康：latest.json 超过此时长未刷新即 unhealthy
