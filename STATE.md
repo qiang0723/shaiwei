@@ -1,5 +1,17 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-10-25 · G1 正控正式执行进行中（scope dc6a2c0e…，单次 93 次评估）
+
+17f5ae7 已推送（5830c09..17f5ae7）；`make docker-g1-calibration-build` → `shaiwei:g1-calibration-deeb45ddbb54`（镜像 98987dec…，快照
+deeb45dd… = 工作树）。`scope-prepare` → scope `dc6a2c0e6214f7891d374d2c5a37cbc33458fba77c0a1e232be7cca2e4c9ebad`、执行 ID
+`g1cal-17f5ae756cdb-20261024T153149Z`：数据快照 55ff7309…、qlib_bin 指纹 6b3cd533…、噪声种子 30/30、93 次评估、试跑预计 8.36 h、
+账本基线 experiments 916 行（= 协议结果盲基线）/标定家族 0/标定账本 0/factor_admissions 0a61018a…。用户逐字批准：“批准 G1 正控正式执行：
+以 scope dc6a2c0e6214f7891d374d2c5a37cbc33458fba77c0a1e232be7cca2e4c9ebad 对镜像 shaiwei:g1-calibration-deeb45ddbb54 仅执行一次
+g1-positive-control-v1 全部 93 次评估（N1/N2 各 30 种子）；NOT_FOR_ADMISSION，不写正式准入账本，不授权其他生产或研究动作。”已转录。
+首次 `docker-g1-calibration-run` 在 compose 插值阶段失败（未启用的 pilot 服务必填变量无值），**未起容器、未认领、批准未消耗**；
+c267683 给 make 目标补占位变量（镜像与 scope 不变），按各目标实际环境逐一校验后重启。2026-10-25 00:34 交流电下启动，容器内全部前置
+复核通过并排他认领（claim.json）。
+
 ## 2026-10-24 · G1 正控第 4 步工程完成（合成测试），正式执行待推送、构建与逐字批准
 
 用户“推送，开始第4步工程”：4519301..5830c09 已推送（a85592b..5830c09）。新增 `scope.py`（精确 scope：已推送 HEAD、镜像标签/ID、
