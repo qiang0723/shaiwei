@@ -10,6 +10,15 @@ components:
       - Dockerfile.web-test
     consumers:
       - docs/BUILD_IDENTITY_COVERAGE_AUDIT_20260821.md
+  - id: g1-calibration
+    class: COMPONENT_RELEASE
+    status: ACTIVE_LOCAL_READ_ONLY
+    reuse_policy: NEW_RELEASE_REQUIRED
+    assets:
+      - compose.g1-calibration.yaml
+    consumers:
+      - Makefile
+      - tests/test_g1_calibration_docker_contract.py
   - id: global-production
     class: GLOBAL
     status: ACTIVE_GLOBAL

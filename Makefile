@@ -11,6 +11,7 @@
 .PHONY: docker-m6-head30-500k-feasibility-build docker-m6-head30-500k-feasibility-fixture
 .PHONY: ops-patrol scheduler-up-guard r2d-scope-prepare r2d-record-approval r2d-authorized-start
 .PHONY: ops-patrol-build ops-patrol-dry-run ops-patrol-up ops-patrol-drill ops-patrol-status ops-patrol-down
+.PHONY: docker-g1-calibration-build docker-g1-calibration-pilot
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -437,13 +438,13 @@ network-check:    ## 脱敏验证 Tushare 直连；不写数据、账本或 Toke
 ops-patrol:       ## 只读运维巡检：守护健康、容器、日链完成度、重复失败、账本积压；退出码 0/1/2，不写任何文件
 	$(PYTHON) -m shaiwei.ops_patrol
 OPS_PATROL_COMPOSE := docker compose -p shaiwei-ops-patrol -f compose.ops-patrol.yaml
-OPS_PATROL_SNAPSHOT := from shaiwei.provenance import code_snapshot_sha256; print(code_snapshot_sha256())
+CODE_SNAPSHOT_PY := from shaiwei.provenance import code_snapshot_sha256; print(code_snapshot_sha256())
 ops-patrol-build: ## 以已推送 HEAD 构建巡检镜像 shaiwei:ops-patrol-<代码快照12位>；只构建不启动（ADR 0020）
 	@test -z "$$(git status --porcelain --untracked-files=no)" || (echo "tracked worktree is dirty"; exit 2)
 	@test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/main)" || (echo "HEAD differs from origin/main"; exit 2)
 	docker build -f Dockerfile --build-arg SHAIWEI_RELEASE_GIT_HEAD="$$(git rev-parse HEAD)" -t shaiwei:ops-patrol-build .
-	@image_snapshot="$$(docker run --rm --network none shaiwei:ops-patrol-build python -c '$(OPS_PATROL_SNAPSHOT)')"; \
-	  test "$$image_snapshot" = "$$($(PYTHON) -c '$(OPS_PATROL_SNAPSHOT)')" || (echo "image snapshot differs from worktree"; exit 2); \
+	@image_snapshot="$$(docker run --rm --network none shaiwei:ops-patrol-build python -c '$(CODE_SNAPSHOT_PY)')"; \
+	  test "$$image_snapshot" = "$$($(PYTHON) -c '$(CODE_SNAPSHOT_PY)')" || (echo "image snapshot differs from worktree"; exit 2); \
 	  tag="shaiwei:ops-patrol-$$(printf %s "$$image_snapshot" | cut -c1-12)"; \
 	  docker tag shaiwei:ops-patrol-build "$$tag" && docker rmi shaiwei:ops-patrol-build >/dev/null && echo "$$tag"
 ops-patrol-dry-run: ## 巡检镜像+生产只读挂载巡检一轮并打印计划消息；不发送、不写文件；IMAGE=… 必填
@@ -463,6 +464,20 @@ ops-patrol-status: ## 巡检容器状态与最近一轮结论
 	@$(PYTHON) -c "import json,pathlib; p=pathlib.Path('logs/ops-patrol/latest.json'); r=json.loads(p.read_text()) if p.is_file() else {}; print(r.get('generated_at'), r.get('status'), r.get('expected_trade_date'), r.get('service', {}))"
 ops-patrol-down: ## 回滚：停止并移除巡检容器；不影响 scheduler、Web、账本
 	SHAIWEI_OPS_PATROL_IMAGE=down $(OPS_PATROL_COMPOSE) down
+G1_CALIBRATION_COMPOSE := docker compose -p shaiwei-g1-calibration -f compose.g1-calibration.yaml
+docker-g1-calibration-build: ## G1 正控断网镜像 shaiwei:g1-calibration-<代码快照12位>：须已提交、工作树干净；只构建不运行
+	@test -z "$$(git status --porcelain --untracked-files=no)" || (echo "tracked worktree is dirty"; exit 2)
+	docker build -f Dockerfile --build-arg SHAIWEI_RELEASE_GIT_HEAD="$$(git rev-parse HEAD)" -t shaiwei:g1-calibration-build .
+	@image_snapshot="$$(docker run --rm --network none shaiwei:g1-calibration-build python -c '$(CODE_SNAPSHOT_PY)')"; \
+	  test "$$image_snapshot" = "$$($(PYTHON) -c '$(CODE_SNAPSHOT_PY)')" || (echo "image snapshot differs from worktree"; exit 2); \
+	  tag="shaiwei:g1-calibration-$$(printf %s "$$image_snapshot" | cut -c1-12)"; \
+	  docker tag shaiwei:g1-calibration-build "$$tag" && docker rmi shaiwei:g1-calibration-build >/dev/null && echo "$$tag"
+docker-g1-calibration-pilot: ## 第 3 步计时试跑（协议外种子 0、不记账、不判定、只出耗时）；IMAGE=… 必填
+	@test -n "$(IMAGE)" || (echo "IMAGE=shaiwei:g1-calibration-<snapshot12> is required"; exit 2)
+	@mkdir -p data/research/g1-calibration-v1
+	@output="data/research/g1-calibration-v1/pilot-$$(date -u +%Y%m%dT%H%M%SZ)/timing.json"; \
+	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_G1_CALIBRATION_IMAGE="$(IMAGE)" SHAIWEI_G1_PILOT_OUTPUT="$$output" \
+	  $(G1_CALIBRATION_COMPOSE) --profile pilot run --rm --no-deps g1-calibration-pilot && echo "$$output"
 scheduler-up-guard: ## docker-scheduler-up 前置守卫：current 别名须等于运行容器镜像（或无容器时等于最后一次 START_PASS 镜像）
 	$(PYTHON) -m shaiwei.scheduler_up_guard
 docker-build:     ## 构建统一 Docker 运行镜像

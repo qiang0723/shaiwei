@@ -1,0 +1,78 @@
+name: shaiwei-g1-calibration
+
+# g1-positive-control-v1（docs/G1_POSITIVE_CONTROL_PROTOCOL_20261024.md）。断网、只读根、无密钥、无 env_file；
+# 只读挂 qlib_bin、原始数据、账本与 AlphaGen vendor；唯一可写目录是标定数据目录。MLflow/qlib 本地状态进 tmpfs 即弃。
+# 镜像由 make docker-g1-calibration-build 从已提交 HEAD 构建，标签含代码快照前 12 位。
+x-g1-calibration: &g1-calibration
+  image: ${SHAIWEI_G1_CALIBRATION_IMAGE:?use make docker-g1-calibration-pilot IMAGE=shaiwei:g1-calibration-<snapshot12>}
+  pull_policy: never
+  init: true
+  restart: "no"
+  user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+  working_dir: /workspace
+  read_only: true
+  network_mode: none
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=4g,mode=1777
+    - /workspace/logs:rw,noexec,nosuid,size=1g,mode=1777
+    - /workspace/mlruns:rw,noexec,nosuid,size=1g,mode=1777
+  shm_size: 2g  # joblib/qlib 并行内存映射；Docker 默认 64m 不够
+  pids_limit: 256
+  mem_limit: 12g
+  cpus: 6.0
+  environment:
+    HOME: /tmp
+    TZ: Asia/Shanghai
+    SHAIWEI_DATA_ROOT: /workspace/data
+    MPLCONFIGDIR: /tmp/matplotlib
+    PYTHONPYCACHEPREFIX: /tmp/pycache
+    OMP_NUM_THREADS: "6"
+    OPENBLAS_NUM_THREADS: "6"
+    MKL_NUM_THREADS: "6"
+    NUMEXPR_NUM_THREADS: "6"
+  volumes:
+    - type: bind
+      source: ./data/qlib_bin
+      target: /workspace/data/qlib_bin
+      read_only: true
+      bind:
+        create_host_path: false
+    - type: bind
+      source: ./data/raw
+      target: /workspace/data/raw
+      read_only: true
+      bind:
+        create_host_path: false
+    - type: bind
+      source: ./ledger
+      target: /workspace/ledger
+      read_only: true
+      bind:
+        create_host_path: false
+    - type: bind
+      source: ./vendor/alphagen
+      target: /workspace/vendor/alphagen
+      read_only: true
+      bind:
+        create_host_path: false
+    - type: bind
+      source: ./data/research/g1-calibration-v1
+      target: /workspace/data/research/g1-calibration-v1
+      read_only: false
+      bind:
+        create_host_path: false
+
+services:
+  g1-calibration-pilot:
+    <<: *g1-calibration
+    profiles: [pilot]
+    command:
+      - python
+      - -m
+      - shaiwei.research.g1_calibration.pilot
+      - --pilot
+      - --output
+      - ${SHAIWEI_G1_PILOT_OUTPUT:?use make docker-g1-calibration-pilot}
