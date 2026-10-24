@@ -7,7 +7,10 @@ import yaml
 ROOT = Path(__file__).parents[1]
 COMPOSE = ROOT / "compose.g1-calibration.yaml"
 WRITABLE = "./data/research/g1-calibration-v1"
-READ_ONLY = {"./data/qlib_bin", "./data/raw", "./ledger", "./vendor/alphagen"}
+READ_ONLY = {
+    "./data/qlib_bin", "./data/raw", "./ledger", "./vendor/alphagen",
+    "./docs/G1_POSITIVE_CONTROL_PROTOCOL_20261024.md",
+}
 
 
 def _services() -> dict:
