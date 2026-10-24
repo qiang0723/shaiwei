@@ -1,6 +1,6 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
-## 2026-10-24 · 巡检 harness 工程完成（ADR 0020），部署待用户批准
+## 2026-10-24 · 巡检 harness 上线（ADR 0020）：常驻巡检容器接管告警，首轮日结论与演练均送达
 
 G1 协议已于 e08881c 推送（上一条“推送待用户放行”已兑现）。用户问“哪里适合改成 agent/harness”，本人建议先做巡检 harness：
 桌面定时巡检只在 Claude 应用打开且 Mac 醒着时触发，本周两次未按时；scheduler 报不了“自己死了/卡住/到点没跑完”。用户“先做巡检
@@ -28,9 +28,19 @@ healthcheck 退出 1（符合预期）；镜像内巡检测试 4 败——测试
 WARN，tmpfs 声明 60 GB 后 23 全过，属测试依赖真实磁盘的缺陷，非代码缺陷。后续本地提交：测试以 autouse 夹具固定磁盘余量并新增低磁盘
 WARN 用例，宿主 24 通过、镜像内（256 MB tmpfs + 挂载新测试文件）24 通过；只改 tests/，`src/`/`config/` 与已构建镜像一致，不重建镜像。
 
-未做（各需用户批准）：推送；`make ops-patrol-build` 构建镜像；镜像内 dry-run；**逐字批准**后 `make ops-patrol-up` 与一条演练消息；
-部署提交填 `containers.patrol`。会话中一次把 `make ops-patrol-up`（本意验证缺 IMAGE 时守卫拒绝）混进命令，被自动模式分类器整体拦截，
-未执行任何启动；此后只做文本修改。
+用户“推送，再部署”：e2a9e0d 已推送（8522b88..e2a9e0d）。按 ADR §8 启动须逐字批准，用户逐字批准：“批准 ADR 0020 巡检部署：以镜像
+shaiwei:ops-patrol-29da973aa92f 依次执行一次 make ops-patrol-dry-run（只读、不发送）、一次 make ops-patrol-up 启动常驻巡检容器、一次
+make ops-patrol-drill 发一条演练消息，部署后提交并推送 containers.patrol 配置；不影响 scheduler、Web 与账本，不授权其他生产动作。”
+执行（各一次）：①dry-run（生产只读挂载）PASS、预期交易日 20261023、计划 1 条日结论、`logs/ops-patrol/` 无任何写入；②09:21:07
+`ops-patrol-up`，容器 `shaiwei-ops-patrol-ops-patrol-1` user 10001、只读根、仅 logs/ops-patrol 与 logs/notifications 可写，09:21:16
+首轮巡检 PASS，“巡检日结论 20261023：PASS”飞书 attempt 1 送达，随后 healthy、restarts=0；③drill 送达 1 条“巡检演练（非故障）”，
+状态文件未变（sent_today=1、事件 1 行）；④`containers.patrol` 填为该容器名（相应测试改为显式构造未配置/已配置两种配置，24 通过），
+宿主 `make ops-patrol` PASS 且含巡检容器 CONTAINER_OK 与两条 WEB_OK。scheduler、Web、账本未触碰。
+
+运维口径（自本条起）：告警主责为巡检容器；桌面任务 `shaiwei-nightly-patrol` 降为宿主组补充（tag 漂移、账本积压、origin 同步），
+观察 10 个开放日（至约 11-06）后按 ADR §9 复审去留。回滚 = `make ops-patrol-down`。**每个开放日 18:30 后应收到一条日结论；
+没收到即说明 Mac 睡着或巡检停了。** 会话中曾一次把 `make ops-patrol-up`（本意验证缺 IMAGE 时守卫拒绝）混进命令，被自动模式分类器
+整体拦截、未执行；正式启动只在逐字批准后发生。
 
 ## 2026-10-24 · G1正控协议冻结（主线第二站开工）
 

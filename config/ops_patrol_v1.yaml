@@ -13,7 +13,7 @@ containers:
     - "shaiwei-web-web-ui-1"
     - "shaiwei-web-web-query-1"
     - "shaiwei-web-research-control-1"
-  patrol: null                        # 巡检容器部署后填 "shaiwei-ops-patrol-ops-patrol-1"，由宿主巡检看守巡检
+  patrol: "shaiwei-ops-patrol-ops-patrol-1"  # 2026-10-24 部署（ADR 0020）；宿主巡检由此看守巡检容器
 scheduler_current_tag: "shaiwei:scheduler-current"
 accounts: ["model_baseline", "model_top20"]
 web_probe:                            # 两模式都用 HTTP 探针；/healthz 只证明 web-ui，/api/v1/system/runs 经 UI 代理证明 web-query

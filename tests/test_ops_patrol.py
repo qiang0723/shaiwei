@@ -234,12 +234,11 @@ def test_patrol_container_is_inspected_only_once_configured(tmp_path: Path):
         seen.append(args[-1])
         return _docker()(args)
 
-    _run(_ledgers(tmp_path), docker=docker)
-    assert "shaiwei-ops-patrol-ops-patrol-1" not in seen
     config = load_config()
-    config = config.model_copy(
-        update={"containers": config.containers.model_copy(update={"patrol": "shaiwei-ops-patrol-ops-patrol-1"})}
-    )
+    assert config.containers.patrol == "shaiwei-ops-patrol-ops-patrol-1"
+    unset = config.model_copy(update={"containers": config.containers.model_copy(update={"patrol": None})})
+    _run(_ledgers(tmp_path), docker=docker, config=unset)
+    assert "shaiwei-ops-patrol-ops-patrol-1" not in seen
     _run(_ledgers(tmp_path), docker=docker, config=config)
     assert "shaiwei-ops-patrol-ops-patrol-1" in seen
 
