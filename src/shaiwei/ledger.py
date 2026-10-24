@@ -37,6 +37,7 @@ TS_V5_LLM_ATTEMPTS = LEDGER_DIR / "ts_v5_llm_attempts.csv"
 TS_V5_LLM_TRANSPORTS = LEDGER_DIR / "ts_v5_llm_transports.csv"
 G8_FUND_EVIDENCE = LEDGER_DIR / "g8_fund_evidence.csv"
 G8_MANAGER_EVIDENCE = LEDGER_DIR / "g8_manager_evidence.csv"
+G1_CALIBRATION_RUNS = LEDGER_DIR / "g1_calibration_runs.csv"  # g1-positive-control-v1，NOT_FOR_ADMISSION
 
 
 def portable_artifact_path(path: str | Path) -> str:
@@ -201,7 +202,7 @@ def append_ingest_batch(source_api: str, params: dict, row_count: int,
     })
     return batch_id
 
-def append_experiment(**kw) -> str:
+def append_experiment(*, path: Path | None = None, **kw) -> str:
     kw.setdefault("experiment_id", uuid.uuid4().hex[:12])
     kw.setdefault("parent_experiment_id", "")
     kw.setdefault("ts", datetime.now(timezone.utc).isoformat())
@@ -210,7 +211,7 @@ def append_experiment(**kw) -> str:
             kw[field] = json.dumps(kw[field], ensure_ascii=False, sort_keys=True)
     if isinstance(kw.get("admitted"), bool):
         kw["admitted"] = str(kw["admitted"]).lower()
-    _append(EXPERIMENTS, kw)
+    _append(path or EXPERIMENTS, kw)
     return kw["experiment_id"]
 
 
@@ -392,3 +393,8 @@ def append_g8_manager_evidence(*, path: Path | None = None, **kw: object) -> boo
     """Append one sanitized manager-source identity without NAV or fee values."""
     kw.setdefault("operator", "g8-manager-crosscheck")
     return _append_idempotent(path or G8_MANAGER_EVIDENCE, kw, key="evidence_id")
+
+
+def append_g1_calibration_run(*, path: Path | None = None, **kw: object) -> bool:
+    """Append one NOT_FOR_ADMISSION calibration decision; it never touches factor_admissions."""
+    return _append_idempotent(path or G1_CALIBRATION_RUNS, kw, key="run_id")

@@ -1,5 +1,26 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-10-24 · G1 正控第 2 步工程完成（合成测试），计时试跑待单独授权
+
+用户“开始G1工程”，按冻结协议 `g1-positive-control-v1` §10 第 2 步实现，**只有合成测试，未读取任何真实数据或标定结果**。
+新包 `src/shaiwei/research/g1_calibration/`（protocol/controls/signals/evidence/judge/writer/summary/runner/pilot，均 ≤203 行）。
+判定原样调用 `g1.py` 的门、完整性绑定与 N/方差机械统计，组合证据逐项沿用 `g1_pipeline.evaluate_candidate`；两个热点文件一行未改，
+两条等价性测试在同一合成输入上跑真实函数并要求逐位相等。R1 每种子二分标定 `a`（利用中性化线性，再用真实路径复算并校验线性与
+±0.002 容差，不符即失败关闭）；R2 同信号纯因子 Top30；R3/R4 走真实候选表达式路径，R5 以五层 Ref(·,50) 通过白名单并单建 260 日
+回看数据集；N1 用 PIT 支撑（当日有收盘价）的独立正态；N2 打乱 R3 原值。隔离：证据顶层 `admission_scope` 使正式裁判校验即拒；
+写入口拒写 factor_admissions/logs/g1/因子库/正式 G1 目录；新建 `ledger/g1_calibration_runs.csv`（仅表头，已入追加门清单）；
+`ledger.append_experiment` 增可选 `path`（向后兼容，`append_experiment_once` 的敏感词过滤会误拒 `expression_tokens`）。判定绑定
+本格试验集合哈希，同绑定复跑逐字节复用。汇总：R1 检出、Clopper–Pearson（k=0,n=60 上界 0.0487）、四终态，证据缺失即 INCOMPLETE。
+结果前的解释与选择全部写入 `docs/G1_POSITIVE_CONTROL_ENGINEERING_20261024.md`（每种子标定 a、诊断 DSR 只替换 N、N1 PIT 支撑、R5 构造、
+Jaccard 用分数 Top30 等），并记一条**结果前观察**：`g1-v1` 共享中性化只保留未来标签非空行，候选支撑天然排除 t+1/t+11 开盘缺失股，
+基线不排除——作用于历史 29 次裁决，本标定不修正，若终态 PERMISSIVE 此为第一嫌疑。
+验证：G1 标定合成测试 11 通过（含两条等价性、隔离、正式裁判拒收、四终态与 INCOMPLETE、端到端 17 单元与逐字节复跑、试跑无指标）；
+全量 2,524 通过、1 跳过、1 失败——失败项为新账本的“父提交→HEAD”复核（提交后检查，新账本未入 HEAD 前必然失败），提交前门
+“HEAD→index→工作树”与表头-only 检查已通过；本地提交后复跑账本追加门 88 全过。Ruff、架构检查 13 通过。本地提交，推送待用户放行。
+
+下一步（各需单独授权）：第 3 步计时试跑——需新建断网 Docker 镜像/compose（构建资产登记）并只读 `data/qlib_bin`，只用协议外种子 0、
+只输出耗时；第 4 步正式执行入口（读取 release scope）、精确 scope、逐字批准、单次 93 次评估、独立审计、验收文档。
+
 ## 2026-10-24 · 巡检 harness 上线（ADR 0020）：常驻巡检容器接管告警，首轮日结论与演练均送达
 
 G1 协议已于 e08881c 推送（上一条“推送待用户放行”已兑现）。用户问“哪里适合改成 agent/harness”，本人建议先做巡检 harness：

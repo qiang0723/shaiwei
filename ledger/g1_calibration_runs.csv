@@ -1,0 +1,1 @@
+run_id,evaluated_at,protocol_id,protocol_config_sha256,admission_scope,execution_id,route,strength,seed,cell_family,experiment_id,code_snapshot_sha256,data_snapshot_sha256,evidence_sha256,experiment_ledger_sha256,trial_count,valid_trial_sharpes,layer_a_pass,layer_b_pass,main_pass,failed_main_gates,report_path,report_sha256

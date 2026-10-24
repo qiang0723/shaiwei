@@ -1,0 +1,104 @@
+"""计时试跑与上下文载入（协议 §10 第 3 步）：只用协议外种子，不写任何账本、不判定、不输出指标值。"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import time
+from dataclasses import asdict
+from pathlib import Path
+
+from shaiwei.config import Settings, load
+from shaiwei.research.g1_calibration import controls
+from shaiwei.research.g1_calibration.evidence import build_portfolio_evidence
+from shaiwei.research.g1_calibration.protocol import ProtocolIdentity, load_protocol
+from shaiwei.research.g1_calibration.signals import RunContext, Unit, build_signal, plan_cells
+
+
+def build_r5_stock_data(settings: Settings) -> object:
+    import torch
+    from alphagen_qlib.stock_data import StockData
+
+    from shaiwei.benchmark.alphagen_cpu import stock_data_effective_start
+
+    start = min(settings.g1_admission.discovery_start, *(p.start for p in settings.evaluation.stress_periods))
+    end = max(*(w.test_end for w in settings.evaluation.g0_windows), *(p.end for p in settings.evaluation.stress_periods))
+    effective_start = stock_data_effective_start(start, controls.R5_BACKTRACK_DAYS)
+    return StockData(
+        settings.baseline.instrument, effective_start.isoformat(), end.isoformat(),
+        max_backtrack_days=controls.R5_BACKTRACK_DAYS, max_future_days=settings.backtest.rebalance_days + 1,
+        device=torch.device("cpu"),
+    )
+
+
+def load_context(settings: Settings, protocol: ProtocolIdentity, timings: dict[str, float]) -> RunContext:
+    from shaiwei.ledger import ingest_snapshot_sha256
+    from shaiwei.provenance import code_snapshot_sha256
+    from shaiwei.research.g1_pipeline import build_baseline_windows, load_research_data
+
+    controls.verify_route_expressions(protocol.config)
+    started = time.monotonic()
+    research = load_research_data(settings)
+    timings["load_research_data"] = round(time.monotonic() - started, 3)
+    started = time.monotonic()
+    r5 = build_r5_stock_data(settings)
+    timings["build_r5_stock_data"] = round(time.monotonic() - started, 3)
+    started = time.monotonic()
+    baselines = build_baseline_windows(settings, research.labels)
+    timings["build_baseline_windows"] = round(time.monotonic() - started, 3)
+    return RunContext(settings, protocol, research, r5, baselines, code_snapshot_sha256(), ingest_snapshot_sha256())
+
+
+PILOT_UNITS = (Unit("R1", 0.04, 0), Unit("N1", None, 0))  # 协议外种子：试跑不预览任何正式评估
+
+
+def pilot(ctx: RunContext, timings: dict[str, float]) -> dict[str, object]:
+    """只计时：构造信号与组合证据后即丢弃，不落盘证据、不记账、不判定、不输出任何指标值。"""
+    per_unit = {}
+    for unit in PILOT_UNITS:
+        started = time.monotonic()
+        signal = build_signal(ctx, unit)
+        built = time.monotonic()
+        build_portfolio_evidence(
+            ctx.settings, factor=signal.residual, factor_daily_ic=signal.daily_ic, labels=ctx.research.labels,
+            baselines=ctx.baselines, mode="blend", backtest=ctx.backtest,
+        )
+        per_unit[unit.route] = {"signal_seconds": round(built - started, 3), "evidence_seconds": round(time.monotonic() - built, 3)}
+        ctx.cache.clear()
+    fixed = sum(timings.values())
+    evidence = max(item["evidence_seconds"] for item in per_unit.values())
+    projections = {}
+    for noise in (30, 20, 10):
+        cells = plan_cells(ctx.protocol, noise)
+        evaluations = sum(len(cell) for cell in cells)
+        r1_signals = len(cells[0]) * len(ctx.protocol.config.calibration.target_mean_rank_ic)
+        seconds = fixed + evaluations * evidence + r1_signals * per_unit["R1"]["signal_seconds"] + 2 * noise * per_unit["N1"]["signal_seconds"]
+        projections[str(noise)] = {"evaluations": evaluations, "projected_hours": round(seconds / 3600, 2)}
+    return {
+        "schema_version": 1, "protocol_id": ctx.protocol.config.protocol_id, "pilot_units": [asdict(unit) for unit in PILOT_UNITS],
+        "fixed_seconds": timings, "per_unit_seconds": per_unit, "projections": projections,
+        "budget_max_hours": ctx.protocol.config.budget.max_hours, "result_blind": "no metric, gate or IC value is recorded",
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--pilot", action="store_true", required=True, help="计时试跑；正式执行另由 release scope 授权")
+    parser.add_argument("--output", type=Path, required=True, help="试跑耗时报告路径（须在标定数据目录下）")
+    args = parser.parse_args(argv)
+    settings = load()
+    protocol = load_protocol(settings)
+    expected_root = (settings.runtime.data_root / "research" / "g1-calibration-v1").resolve()
+    if not args.output.resolve().is_relative_to(expected_root) or args.output.exists():
+        raise SystemExit(f"pilot output must be a new file under {expected_root}")
+    timings: dict[str, float] = {}
+    report = pilot(load_context(settings, protocol, timings), timings)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(json.dumps(report["projections"], sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
