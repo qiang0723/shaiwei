@@ -32,6 +32,9 @@ _EXPECTED_ROUTE_PARAMETERS = {
 }
 R5_BACKTRACK_DAYS = 260  # 250 日回看 + 余量；研究主数据只预热 100 日，R5 单独建数据集
 PIT_SUPPORT_EXPRESSION = "close"  # N1 的截面支撑：当日有收盘价，不借用未来标签是否存在
+# 线性校验容差：真实设计（31 个行业哑变量 + 对数市值）上分开求最小二乘的数值差实测最大 3.7e-7（2026-10-24 诊断，
+# 未涉及任何门或结果）；结构性非线性会差到 1e-1 量级，1e-5 足以区分。最终评估只用真实路径残差，且须落在目标容差内。
+LINEARITY_ATOL = 1e-5
 
 
 class CalibrationError(RuntimeError):
@@ -169,7 +172,7 @@ def verify_blend(
     """用真实中性化路径复算：线性假设不成立或发现期 RankIC 越出容差即失败关闭，不进入评估。"""
     b = math.sqrt(1.0 - calibration.a * calibration.a)
     predicted = (calibration.a * label_residual + b * noise_residual).reindex(residual.index)
-    if predicted.isna().any() or float((predicted - residual).abs().max()) > 1e-8:
+    if predicted.isna().any() or float((predicted - residual).abs().max()) > LINEARITY_ATOL:
         raise CalibrationError("neutralization is not linear on the blend support")
     start, end = discovery
     window = daily_ic.loc[(daily_ic.index >= pd.Timestamp(start)) & (daily_ic.index <= pd.Timestamp(end))]

@@ -6,6 +6,7 @@ import argparse
 import json
 import time
 from dataclasses import asdict
+from typing import Callable, TypeVar
 from pathlib import Path
 
 from shaiwei.config import Settings, load
@@ -13,6 +14,8 @@ from shaiwei.research.g1_calibration import controls
 from shaiwei.research.g1_calibration.evidence import build_portfolio_evidence
 from shaiwei.research.g1_calibration.protocol import ProtocolIdentity, load_protocol
 from shaiwei.research.g1_calibration.signals import RunContext, Unit, build_signal, plan_cells
+
+T = TypeVar("T")
 
 
 def build_r5_stock_data(settings: Settings) -> object:
@@ -31,21 +34,24 @@ def build_r5_stock_data(settings: Settings) -> object:
     )
 
 
+def _timed(timings: dict[str, float], stage: str, build: Callable[[], T]) -> T:
+    """逐阶段即时打印耗时（只含阶段名与秒数）：中途失败也不丢已测得的时间。"""
+    started = time.monotonic()
+    value = build()
+    timings[stage] = round(time.monotonic() - started, 3)
+    print(json.dumps({"stage": stage, "seconds": timings[stage]}), flush=True)
+    return value
+
+
 def load_context(settings: Settings, protocol: ProtocolIdentity, timings: dict[str, float]) -> RunContext:
     from shaiwei.ledger import ingest_snapshot_sha256
     from shaiwei.provenance import code_snapshot_sha256
     from shaiwei.research.g1_pipeline import build_baseline_windows, load_research_data
 
     controls.verify_route_expressions(protocol.config)
-    started = time.monotonic()
-    research = load_research_data(settings)
-    timings["load_research_data"] = round(time.monotonic() - started, 3)
-    started = time.monotonic()
-    r5 = build_r5_stock_data(settings)
-    timings["build_r5_stock_data"] = round(time.monotonic() - started, 3)
-    started = time.monotonic()
-    baselines = build_baseline_windows(settings, research.labels)
-    timings["build_baseline_windows"] = round(time.monotonic() - started, 3)
+    research = _timed(timings, "load_research_data", lambda: load_research_data(settings))
+    r5 = _timed(timings, "build_r5_stock_data", lambda: build_r5_stock_data(settings))
+    baselines = _timed(timings, "build_baseline_windows", lambda: build_baseline_windows(settings, research.labels))
     return RunContext(settings, protocol, research, r5, baselines, code_snapshot_sha256(), ingest_snapshot_sha256())
 
 
@@ -64,6 +70,7 @@ def pilot(ctx: RunContext, timings: dict[str, float]) -> dict[str, object]:
             baselines=ctx.baselines, mode="blend", backtest=ctx.backtest,
         )
         per_unit[unit.route] = {"signal_seconds": round(built - started, 3), "evidence_seconds": round(time.monotonic() - built, 3)}
+        print(json.dumps({"stage": f"pilot_unit_{unit.route}", **per_unit[unit.route]}), flush=True)
         ctx.cache.clear()
     fixed = sum(timings.values())
     evidence = max(item["evidence_seconds"] for item in per_unit.values())
