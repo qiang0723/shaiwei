@@ -465,6 +465,8 @@ ops-patrol-status: ## 巡检容器状态与最近一轮结论
 ops-patrol-down: ## 回滚：停止并移除巡检容器；不影响 scheduler、Web、账本
 	SHAIWEI_OPS_PATROL_IMAGE=down $(OPS_PATROL_COMPOSE) down
 G1_CALIBRATION_COMPOSE := docker compose -p shaiwei-g1-calibration -f compose.g1-calibration.yaml
+# compose 对整个文件插值：未启用服务的必填变量也须有值，故先给占位，再由各目标覆盖本服务的真实值。
+G1_CALIBRATION_UNUSED := SHAIWEI_G1_PILOT_OUTPUT=unused SHAIWEI_G1_SCOPE=unused SHAIWEI_G1_EXECUTION=unused
 docker-g1-calibration-build: ## G1 正控断网镜像 shaiwei:g1-calibration-<代码快照12位>：须已提交、工作树干净；只构建不运行
 	@test -z "$$(git status --porcelain --untracked-files=no)" || (echo "tracked worktree is dirty"; exit 2)
 	docker build -f Dockerfile --build-arg SHAIWEI_RELEASE_GIT_HEAD="$$(git rev-parse HEAD)" -t shaiwei:g1-calibration-build .
@@ -476,7 +478,7 @@ docker-g1-calibration-pilot: ## 第 3 步计时试跑（协议外种子 0、不�
 	@test -n "$(IMAGE)" || (echo "IMAGE=shaiwei:g1-calibration-<snapshot12> is required"; exit 2)
 	@mkdir -p data/research/g1-calibration-v1
 	@output="data/research/g1-calibration-v1/pilot-$$(date -u +%Y%m%dT%H%M%SZ)/timing.json"; \
-	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_G1_CALIBRATION_IMAGE="$(IMAGE)" SHAIWEI_G1_PILOT_OUTPUT="$$output" \
+	  $(G1_CALIBRATION_UNUSED) SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_G1_CALIBRATION_IMAGE="$(IMAGE)" SHAIWEI_G1_PILOT_OUTPUT="$$output" \
 	  $(G1_CALIBRATION_COMPOSE) --profile pilot run --rm --no-deps g1-calibration-pilot && echo "$$output"
 g1-calibration-scope-prepare: ## 第 4 步：为已推送镜像生成精确 scope 并打印逐字批准文本；IMAGE=… PILOT=…/timing.json；不运行评估
 	@test -n "$(IMAGE)" -a -n "$(PILOT)" || (echo "IMAGE=… PILOT=data/research/g1-calibration-v1/pilot-…/timing.json are required"; exit 2)
@@ -488,13 +490,13 @@ docker-g1-calibration-run: ## 已逐字批准后唯一一次正式执行（容�
 	@test -n "$(SCOPE)" || (echo "SCOPE=… is required"; exit 2)
 	@image="$$($(PYTHON) -m shaiwei.research.g1_calibration.scope check-image --scope "$(SCOPE)")" || exit 2; \
 	  mkdir -p logs/g1-calibration data/research/g1-calibration-v1; \
-	  SHAIWEI_G1_CALIBRATION_IMAGE="$$image" SHAIWEI_G1_SCOPE="$(SCOPE)" \
+	  $(G1_CALIBRATION_UNUSED) SHAIWEI_G1_CALIBRATION_IMAGE="$$image" SHAIWEI_G1_SCOPE="$(SCOPE)" \
 	  $(G1_CALIBRATION_COMPOSE) --profile run run --rm --no-deps g1-calibration-run
 docker-g1-calibration-audit: ## 独立审计：从证据重判并复算汇总，被审对象只读；SCOPE=… EXECUTION=…
 	@test -n "$(SCOPE)" -a -n "$(EXECUTION)" || (echo "SCOPE=… EXECUTION=… are required"; exit 2)
 	@image="$$($(PYTHON) -m shaiwei.research.g1_calibration.scope check-image --scope "$(SCOPE)")" || exit 2; \
 	  mkdir -p logs/g1-calibration-audit; \
-	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_G1_CALIBRATION_IMAGE="$$image" SHAIWEI_G1_EXECUTION="$(EXECUTION)" \
+	  $(G1_CALIBRATION_UNUSED) SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_G1_CALIBRATION_IMAGE="$$image" SHAIWEI_G1_EXECUTION="$(EXECUTION)" \
 	  $(G1_CALIBRATION_COMPOSE) --profile audit run --rm --no-deps g1-calibration-audit
 scheduler-up-guard: ## docker-scheduler-up 前置守卫：current 别名须等于运行容器镜像（或无容器时等于最后一次 START_PASS 镜像）
 	$(PYTHON) -m shaiwei.scheduler_up_guard
