@@ -7,7 +7,6 @@
 
 from __future__ import annotations
 
-import csv
 import hashlib
 import json
 import math
@@ -31,14 +30,11 @@ from shaiwei.ledger import (
     portable_artifact_path,
     sha256_file,
 )
+from shaiwei.research.g1_calibration.ledger_view import IsolationError, complete_rows
 from shaiwei.research.g1_calibration.protocol import ADMISSION_SCOPE, ProtocolIdentity
 from shaiwei.research.g1_pipeline import _write_json_once
 
 DATA_DIRNAME = "g1-calibration-v1"
-
-
-class IsolationError(RuntimeError):
-    pass
 
 
 @dataclass(frozen=True)
@@ -126,8 +122,7 @@ def experiment_id(protocol: ProtocolIdentity, family: str, seed: int | None, cod
 
 
 def _existing_row(path: Path, key: str, value: str) -> dict[str, str] | None:
-    with path.open(newline="", encoding="utf-8") as handle:
-        rows = [row for row in csv.DictReader(handle) if row[key] == value]
+    rows = [row for row in complete_rows(path) if row[key] == value]
     if len(rows) > 1:
         raise IsolationError(f"duplicate {key} in {path.name}: {value}")
     return rows[0] if rows else None

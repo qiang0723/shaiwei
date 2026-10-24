@@ -1,5 +1,20 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-10-24 · G1 正控第 4 步工程完成（合成测试），正式执行待推送、构建与逐字批准
+
+用户“推送，开始第4步工程”：4519301..5830c09 已推送（a85592b..5830c09）。新增 `scope.py`（精确 scope：已推送 HEAD、镜像标签/ID、
+镜像内快照=工作树、数据快照、qlib_bin 逐文件内容指纹、协议哈希、账本基线〔标定家族行=0、标定账本行=0、factor_admissions 哈希〕、
+试跑耗时哈希与按冻结削减顺序选定的噪声种子；`record-approval` 只转录逐字文本）、`execute.py`（容器内复核批准与全部绑定 → 排他认领
+MAY_HAVE_WRITTEN → 单次执行；删认领也因标定家族行非零被拒）、`audit.py`（不加载 qlib/torch，只读重判、复算汇总与上界并逐字比对，
+唯一输出 `logs/g1-calibration-audit/`）、`ledger_view.py`（读总账只取完整前缀，读者无锁不读半行）。compose 拆为 pilot/run/audit：
+run 以 root（能力全丢）挂 scheduler 命名卷锁，只开放两份账本与标定数据/报告目录写入；audit 被审对象全部只读。Makefile 增
+`g1-calibration-scope-prepare / record-approval`、`docker-g1-calibration-run / audit`。设计写入工程说明 §4。
+验证：第 4 步合成测试 5 通过（逐字批准仅转录、篡改 scope 拒绝、削减顺序、七类漂移拒绝、一次性执行与重跑拒绝、审计复算同一终态并抓到报告与正式准入账本篡改）、容器合同 3 通过；全量 2,533 通过、1 跳过、0 失败；架构 13 通过；Ruff 通过。本地提交，推送待用户放行。
+
+下一步：推送本步提交 → 从已推送 HEAD `make docker-g1-calibration-build` → `make g1-calibration-scope-prepare IMAGE=… PILOT=…` 生成 scope 与
+逐字批准文本 → 用户逐字批准 → `make g1-calibration-record-approval` → 选 Mac 插电、可连续约 8.5 小时且避开交易日 16:00–18:30 的时段
+`make docker-g1-calibration-run SCOPE=…` → `make docker-g1-calibration-audit` → 验收文档。
+
 ## 2026-10-24 · G1 正控第 3 步计时试跑（结果盲）
 
 用户“推送，开始第3步计时试跑”：a85592b 已推送（21c2223..a85592b）。新建 `compose.g1-calibration.yaml`（断网、只读根、无密钥/

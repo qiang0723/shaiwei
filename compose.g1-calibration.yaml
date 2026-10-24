@@ -1,14 +1,13 @@
 name: shaiwei-g1-calibration
 
-# g1-positive-control-v1（docs/G1_POSITIVE_CONTROL_PROTOCOL_20261024.md）。断网、只读根、无密钥、无 env_file；
-# 只读挂 qlib_bin、原始数据、账本、AlphaGen vendor 与冻结协议文档（镜像不含 docs/，加载器要核其哈希）；唯一可写目录是标定数据目录。MLflow/qlib 本地状态进 tmpfs 即弃。
-# 镜像由 make docker-g1-calibration-build 从已提交 HEAD 构建，标签含代码快照前 12 位。
-x-g1-calibration: &g1-calibration
-  image: ${SHAIWEI_G1_CALIBRATION_IMAGE:?use make docker-g1-calibration-pilot IMAGE=shaiwei:g1-calibration-<snapshot12>}
+# g1-positive-control-v1（docs/G1_POSITIVE_CONTROL_PROTOCOL_20261024.md）。全部服务断网、只读根、无密钥、无 env_file；
+# 只读挂 qlib_bin、原始数据、账本、AlphaGen vendor 与冻结协议文档（镜像不含 docs/，加载器要核其哈希）；
+# MLflow/qlib 本地状态进 tmpfs 即弃。镜像由 make docker-g1-calibration-build 构建，标签含代码快照前 12 位。
+x-runtime: &runtime
+  image: ${SHAIWEI_G1_CALIBRATION_IMAGE:?use the docker-g1-calibration-* make targets}
   pull_policy: never
   init: true
   restart: "no"
-  user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
   working_dir: /workspace
   read_only: true
   network_mode: none
@@ -23,7 +22,7 @@ x-g1-calibration: &g1-calibration
   pids_limit: 256
   mem_limit: 12g
   cpus: 6.0
-  environment:
+  environment: &environment
     HOME: /tmp
     TZ: Asia/Shanghai
     SHAIWEI_DATA_ROOT: /workspace/data
@@ -33,48 +32,60 @@ x-g1-calibration: &g1-calibration
     OPENBLAS_NUM_THREADS: "6"
     MKL_NUM_THREADS: "6"
     NUMEXPR_NUM_THREADS: "6"
-  volumes:
-    - type: bind
-      source: ./data/qlib_bin
-      target: /workspace/data/qlib_bin
-      read_only: true
-      bind:
-        create_host_path: false
-    - type: bind
-      source: ./data/raw
-      target: /workspace/data/raw
-      read_only: true
-      bind:
-        create_host_path: false
-    - type: bind
-      source: ./ledger
-      target: /workspace/ledger
-      read_only: true
-      bind:
-        create_host_path: false
-    - type: bind
-      source: ./vendor/alphagen
-      target: /workspace/vendor/alphagen
-      read_only: true
-      bind:
-        create_host_path: false
-    - type: bind
-      source: ./docs/G1_POSITIVE_CONTROL_PROTOCOL_20261024.md
-      target: /workspace/docs/G1_POSITIVE_CONTROL_PROTOCOL_20261024.md
-      read_only: true
-      bind:
-        create_host_path: false
-    - type: bind
-      source: ./data/research/g1-calibration-v1
-      target: /workspace/data/research/g1-calibration-v1
-      read_only: false
-      bind:
-        create_host_path: false
+
+x-qlib: &qlib-ro
+  type: bind
+  source: ./data/qlib_bin
+  target: /workspace/data/qlib_bin
+  read_only: true
+  bind: {create_host_path: false}
+x-raw: &raw-ro
+  type: bind
+  source: ./data/raw
+  target: /workspace/data/raw
+  read_only: true
+  bind: {create_host_path: false}
+x-ledger: &ledger-ro
+  type: bind
+  source: ./ledger
+  target: /workspace/ledger
+  read_only: true
+  bind: {create_host_path: false}
+x-vendor: &vendor-ro
+  type: bind
+  source: ./vendor/alphagen
+  target: /workspace/vendor/alphagen
+  read_only: true
+  bind: {create_host_path: false}
+x-protocol: &protocol-ro
+  type: bind
+  source: ./docs/G1_POSITIVE_CONTROL_PROTOCOL_20261024.md
+  target: /workspace/docs/G1_POSITIVE_CONTROL_PROTOCOL_20261024.md
+  read_only: true
+  bind: {create_host_path: false}
+x-control: &control-ro
+  type: bind
+  source: ./data/control/g1-calibration-v1
+  target: /workspace/data/control/g1-calibration-v1
+  read_only: true
+  bind: {create_host_path: false}
 
 services:
   g1-calibration-pilot:
-    <<: *g1-calibration
+    <<: *runtime
     profiles: [pilot]
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    volumes:
+      - *qlib-ro
+      - *raw-ro
+      - *ledger-ro
+      - *vendor-ro
+      - *protocol-ro
+      - type: bind
+        source: ./data/research/g1-calibration-v1
+        target: /workspace/data/research/g1-calibration-v1
+        read_only: false
+        bind: {create_host_path: false}
     command:
       - python
       - -m
@@ -82,3 +93,88 @@ services:
       - --pilot
       - --output
       - ${SHAIWEI_G1_PILOT_OUTPUT:?use make docker-g1-calibration-pilot}
+
+  # 正式执行：须与 scheduler 共用命名卷锁才能追加 experiments.csv（锁文件属 root，故以 root 运行，能力全部丢弃）。
+  g1-calibration-run:
+    <<: *runtime
+    profiles: [run]
+    user: "0:0"
+    environment:
+      <<: *environment
+      SHAIWEI_LOCK_AUTHORITY: docker-named-volume-v1
+      SHAIWEI_LOCK_ROOT: /run/shaiwei-locks
+    volumes:
+      - *qlib-ro
+      - *raw-ro
+      - *ledger-ro
+      - *vendor-ro
+      - *protocol-ro
+      - *control-ro
+      - type: bind
+        source: ./ledger/experiments.csv
+        target: /workspace/ledger/experiments.csv
+        read_only: false
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./ledger/g1_calibration_runs.csv
+        target: /workspace/ledger/g1_calibration_runs.csv
+        read_only: false
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./data/research/g1-calibration-v1
+        target: /workspace/data/research/g1-calibration-v1
+        read_only: false
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./logs/g1-calibration
+        target: /workspace/logs/g1-calibration
+        read_only: false
+        bind: {create_host_path: false}
+      - type: volume
+        source: runtime-locks
+        target: /run/shaiwei-locks
+        volume: {nocopy: true}
+    command:
+      - python
+      - -m
+      - shaiwei.research.g1_calibration.execute
+      - --scope
+      - ${SHAIWEI_G1_SCOPE:?use make docker-g1-calibration-run}
+
+  # 独立审计：被审对象全部只读，唯一可写为审计输出目录；不需要 qlib_bin 与 vendor。
+  g1-calibration-audit:
+    <<: *runtime
+    profiles: [audit]
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    mem_limit: 4g
+    cpus: 2.0
+    volumes:
+      - *ledger-ro
+      - *protocol-ro
+      - *control-ro
+      - type: bind
+        source: ./data/research/g1-calibration-v1
+        target: /workspace/data/research/g1-calibration-v1
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./logs/g1-calibration
+        target: /workspace/logs/g1-calibration
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./logs/g1-calibration-audit
+        target: /workspace/logs/g1-calibration-audit
+        read_only: false
+        bind: {create_host_path: false}
+    command:
+      - python
+      - -m
+      - shaiwei.research.g1_calibration.audit
+      - --execution-id
+      - ${SHAIWEI_G1_EXECUTION:?use make docker-g1-calibration-audit}
+
+volumes:
+  runtime-locks:
+    external: true
+    name: shaiwei_runtime_locks_v1

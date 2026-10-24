@@ -11,7 +11,7 @@
 .PHONY: docker-m6-head30-500k-feasibility-build docker-m6-head30-500k-feasibility-fixture
 .PHONY: ops-patrol scheduler-up-guard r2d-scope-prepare r2d-record-approval r2d-authorized-start
 .PHONY: ops-patrol-build ops-patrol-dry-run ops-patrol-up ops-patrol-drill ops-patrol-status ops-patrol-down
-.PHONY: docker-g1-calibration-build docker-g1-calibration-pilot
+.PHONY: docker-g1-calibration-build docker-g1-calibration-pilot g1-calibration-scope-prepare g1-calibration-record-approval docker-g1-calibration-run docker-g1-calibration-audit
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -478,6 +478,24 @@ docker-g1-calibration-pilot: ## 第 3 步计时试跑（协议外种子 0、不�
 	@output="data/research/g1-calibration-v1/pilot-$$(date -u +%Y%m%dT%H%M%SZ)/timing.json"; \
 	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_G1_CALIBRATION_IMAGE="$(IMAGE)" SHAIWEI_G1_PILOT_OUTPUT="$$output" \
 	  $(G1_CALIBRATION_COMPOSE) --profile pilot run --rm --no-deps g1-calibration-pilot && echo "$$output"
+g1-calibration-scope-prepare: ## 第 4 步：为已推送镜像生成精确 scope 并打印逐字批准文本；IMAGE=… PILOT=…/timing.json；不运行评估
+	@test -n "$(IMAGE)" -a -n "$(PILOT)" || (echo "IMAGE=… PILOT=data/research/g1-calibration-v1/pilot-…/timing.json are required"; exit 2)
+	$(PYTHON) -m shaiwei.research.g1_calibration.scope prepare --image "$(IMAGE)" --pilot-timing "$(PILOT)"
+g1-calibration-record-approval: ## 仅当 TEXT 与该 scope 的逐字批准文本完全一致才写批准文件；SCOPE=… TEXT="…"
+	@test -n "$(SCOPE)" -a -n "$(TEXT)" || (echo "SCOPE=… TEXT=… are required"; exit 2)
+	$(PYTHON) -m shaiwei.research.g1_calibration.scope record-approval --scope "$(SCOPE)" --text "$(TEXT)"
+docker-g1-calibration-run: ## 已逐字批准后唯一一次正式执行（容器内复核 scope 并排他认领）；SCOPE=…
+	@test -n "$(SCOPE)" || (echo "SCOPE=… is required"; exit 2)
+	@image="$$($(PYTHON) -m shaiwei.research.g1_calibration.scope check-image --scope "$(SCOPE)")" || exit 2; \
+	  mkdir -p logs/g1-calibration data/research/g1-calibration-v1; \
+	  SHAIWEI_G1_CALIBRATION_IMAGE="$$image" SHAIWEI_G1_SCOPE="$(SCOPE)" \
+	  $(G1_CALIBRATION_COMPOSE) --profile run run --rm --no-deps g1-calibration-run
+docker-g1-calibration-audit: ## 独立审计：从证据重判并复算汇总，被审对象只读；SCOPE=… EXECUTION=…
+	@test -n "$(SCOPE)" -a -n "$(EXECUTION)" || (echo "SCOPE=… EXECUTION=… are required"; exit 2)
+	@image="$$($(PYTHON) -m shaiwei.research.g1_calibration.scope check-image --scope "$(SCOPE)")" || exit 2; \
+	  mkdir -p logs/g1-calibration-audit; \
+	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_G1_CALIBRATION_IMAGE="$$image" SHAIWEI_G1_EXECUTION="$(EXECUTION)" \
+	  $(G1_CALIBRATION_COMPOSE) --profile audit run --rm --no-deps g1-calibration-audit
 scheduler-up-guard: ## docker-scheduler-up 前置守卫：current 别名须等于运行容器镜像（或无容器时等于最后一次 START_PASS 镜像）
 	$(PYTHON) -m shaiwei.scheduler_up_guard
 docker-build:     ## 构建统一 Docker 运行镜像
