@@ -1,0 +1,69 @@
+schema_version: "g1-positive-control-v2"
+protocol_id: "g1-positive-control-v2"
+status: "FROZEN_BEFORE_RESULTS"
+frozen_on: "2026-10-25"
+document: "docs/G1_POSITIVE_CONTROL_V2_PROTOCOL_20261025.md"
+family: "g1-calibration-v2"
+judge:
+  spec_version: "g1-v2"
+  spec_config: "config/g1_v2_spec.yaml"
+  spec_config_sha256: "8ecce43fb191761c367e61323833738a8ce9c5f9e8f592d3b2d47830d48ab77c"
+result_blind_baseline:
+  head_before_freeze: "5f064c141ae28cd8356d26fd8c15f04d6ce4d399"
+  experiments_rows: 1009
+  v1_calibration_rows: 93
+  v2_calibration_rows: 0
+  calibration_runs_rows: 93
+  factor_admission_decisions: 29
+  factor_admission_admitted: 0
+  g1_reports: 6
+layers:
+  A_signal: ["rolling_window_sign", "rank_ic_retention", "hac_t"]
+  B_transmission: ["incremental_icir_t", "excess_noninferiority", "cost_2x", "slippage_2x", "turnover", "stress_drawdown", "valid_trial_increment_irs", "deflated_increment_ir"]
+  report_only: ["pit_and_shift", "complexity", "economic_rationale", "library_correlation"]
+calibration:
+  discovery_start: "2016-01-01"
+  discovery_end: "2018-12-31"
+  target_mean_rank_ic: [0.02, 0.04, 0.06]
+  tolerance: 0.002
+  label: "Ref($open,-11)/Ref($open,-1)-1"
+  rng: "numpy.random.default_rng"
+  neutralization: "pit_support"
+routes:
+  R1: {construction: "label_noise_blend", blend: "baseline_90_factor_10", future_information: true, pit_and_shift_exempt: true, role: "primary", seeds: [201, 202, 203, 204, 205]}
+  R2: {construction: "label_noise_blend", blend: "factor_only_top30", future_information: true, pit_and_shift_exempt: true, role: "diagnostic", seeds_from: "R1"}
+  R3: {construction: "short_term_reversal", lookback_trade_days: 20, sign: -1, future_information: false, role: "report_only"}
+  R4: {construction: "short_term_volatility", lookback_trade_days: 20, sign: -1, future_information: false, role: "report_only"}
+  R5: {construction: "momentum_12_1", lookback_trade_days: 250, skip_recent_trade_days: 20, sign: 1, future_information: false, role: "report_only"}
+  N1: {construction: "iid_standard_normal", role: "negative_control", seeds: {start: 6001, count: 30}}
+  N2: {construction: "cross_section_shuffle_of_R3", role: "negative_control", seeds: {start: 7001, count: 30}}
+  N3: {construction: "baseline_copy_plus_noise", baseline_weight: 0.7071067811865476, direction: 1, role: "negative_control_increment", judged_gates: ["incremental_icir_t", "valid_trial_increment_irs", "deflated_increment_ir"], seeds: {start: 8001, count: 30}}
+dsr:
+  main_family_scope: "route_strength_cell"
+  diagnostic_trial_counts: [166, 196]
+detection:
+  route: "R1"
+  min_passing_seeds: 4
+  seeds_per_strength: 5
+interpretation:
+  calibrated_max_strength: 0.04
+  terminal_states: ["G1_CALIBRATED", "G1_BORDERLINE", "G1_UNDERPOWERED", "G1_PERMISSIVE"]
+  any_negative_control_pass_is: "G1_PERMISSIVE"
+false_pass_bound:
+  method: "clopper_pearson_one_sided"
+  confidence: 0.95
+budget:
+  max_hours: 12
+  reduction_order: [{N1: 20, N2: 20}, {N1: 10, N2: 10}]
+  never_reduce: ["R1", "N3"]
+development_set:
+  source_execution: "g1cal-17f5ae756cdb-20261024T153149Z"
+  allowed: "computability checks and distributions of the new statistics only; no threshold, option or rule change"
+isolation:
+  admission_scope: "NOT_FOR_ADMISSION"
+  ledger: "ledger/g1_calibration_runs.csv"
+  reports_dir: "logs/g1-calibration-v2"
+  forbidden_writes: ["ledger/factor_admissions.csv"]
+  data_read_only: ["data/qlib_bin"]
+  network: false
+  secrets: false

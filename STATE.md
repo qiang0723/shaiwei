@@ -1,5 +1,18 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-10-25 · g1-v2 规格与重标定协议冻结（结果前、实现前）
+
+用户“推送，开始起草g1-v2协议”：5f064c1 已推送。起草 `docs/G1_V2_RECALIBRATION_PROTOCOL_DRAFT_20261025.md`，先核 GATES.md G1 冻结原文：
+④“组合净 ICIR/净超额有增量”与“DSR≥0.95 且 NW(10) t≥3.0”——阈值数字不可动，只能重新解释原文未规定的执行方式；07-16 先例的原则是
+“不放宽”，本次把它定义为可检验条件：新种子阴性对照零通过 + 新增 N3“基线复制”对照。用户对 D1–D4 均选建议项：①净 ICIR 改为逐日配对
+RankIC 差 NW(10) t≥3.0，净超额改为逐日配对差非劣 t>−2.0；②DSR≥0.95 作用在逐日配对增量序列（试验方差取同家族 `selection_increment_ir`，
+N 仍按家族全部尝试）；③中性化改 PIT 支撑，修正支撑前视；④v1 的 93 份面板可作开发集，只查可计算与分布、不得调任何东西。
+冻结：`docs/G1_SPEC_V2.md` + `config/g1_v2_spec.yaml`（SHA `8ecce43f…`，阈值数字与 g1-v1 逐项相同）、`docs/G1_POSITIVE_CONTROL_V2_PROTOCOL_20261025.md`
++ `config/g1_positive_control_v2.yaml`（家族 `g1-calibration-v2`；种子全部更新且与 v1 不相交：R1/R2 201–205、N1 6001–6030、N2 7001–7030、
+N3 8001–8030；终态规则同 v1，N3 增量放行也判 PERMISSIVE）。结果盲：冻结前 HEAD 5f064c1、实验总账 1009 行（v1 标定 93、v2 标定 0）、
+准入 29 条 0 准入、g1-v2 从未计算。**g1-v1 与 29 份旧裁决原样保留；g1-v2 仅在其标定为 `G1_CALIBRATED` 且用户确认启用后才可裁决真实候选，
+GATES.md 届时再追加执行解释段。** 全量 2,533 通过。本地提交，推送（冻结）待用户放行；推送前不写实现。
+
 ## 2026-10-25 · G1 正控正式执行完成：终态 `G1_UNDERPOWERED`（独立审计 PASS）
 
 17f5ae7 已推送（5830c09..17f5ae7）；`make docker-g1-calibration-build` → `shaiwei:g1-calibration-deeb45ddbb54`（镜像 98987dec…，快照

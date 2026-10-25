@@ -1,0 +1,47 @@
+schema_version: "g1-v2"
+spec_version: "g1-v2"
+status: "FROZEN_BEFORE_IMPLEMENTATION"
+frozen_on: "2026-10-25"
+document: "docs/G1_SPEC_V2.md"
+supersedes_for_new_decisions: "g1-v1"   # g1-v1 代码/配置/账本/29 份旧报告原样保留，不重算覆盖
+# 阈值数字与 g1-v1（config/settings.yaml:g1_admission）逐项相同；只有 ④ 与 DSR 的作用对象、中性化支撑改变（用户 2026-10-25 裁决 D1–D3）。
+thresholds:
+  dsr_probability_threshold: 0.95
+  hac_t_threshold: 3.0
+  hac_lags: 10
+  min_observations: 252
+  min_valid_trial_increment_irs: 2
+  max_expression_tokens: 20
+  max_ast_nodes: 80
+  min_economic_rationale_chars: 20
+  max_library_abs_correlation: 0.5
+  min_positive_windows: 4
+  min_rank_ic_retention: 0.5
+  max_stress_drawdown: 0.2
+  max_turnover_ratio: 1.1
+  factor_blend_weight: 0.1
+  slippage_stress_extra_each_side: 0.001
+  incremental_icir_t_threshold: 3.0        # ④ 净 ICIR：逐日配对 RankIC 差的 NW(10) t ≥ 3.0（沿用 G1 的 t 门槛）
+  excess_noninferiority_t_threshold: -2.0  # ④ 净超额：逐日配对净超额差的 NW(10) t 须严格大于 −2.0（不显著为负）
+discovery:
+  start: "2016-01-01"
+  end: "2018-12-31"
+neutralization: "pit_support"   # D3：残差只用当日 PIT 支撑（因子、行业、市值非空），标签只用于计算 IC
+gates:
+  - pit_and_shift
+  - complexity
+  - economic_rationale
+  - library_correlation
+  - rolling_window_sign
+  - rank_ic_retention
+  - stress_drawdown
+  - turnover
+  - incremental_icir_t
+  - excess_noninferiority
+  - cost_2x
+  - slippage_2x
+  - valid_trial_increment_irs
+  - deflated_increment_ir
+  - hac_t
+ledger_fields:
+  selection_metric: "selection_increment_ir"   # 逐日配对 RankIC 差的未年化信息比（均值/样本标准差）；N 仍按同家族全部尝试计
