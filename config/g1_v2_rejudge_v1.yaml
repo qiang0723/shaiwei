@@ -1,6 +1,7 @@
+# VOIDED 2026-10-25 before any result: superseded by config/g1_v2_rejudge_v2.yaml (see the v1 document header).
 schema_version: g1-v2-rejudge-v1
 protocol_id: g1-v2-rejudge-v1
-status: FROZEN_BEFORE_RESULTS
+status: VOIDED_BEFORE_RESULTS
 frozen_on: '2026-10-25'
 document: docs/G1_V2_HISTORICAL_REJUDGE_PROTOCOL_20261025.md
 judge:

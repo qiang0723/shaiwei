@@ -1,0 +1,381 @@
+schema_version: g1-v2-rejudge-v2
+protocol_id: g1-v2-rejudge-v2
+status: FROZEN_BEFORE_RESULTS
+frozen_on: '2026-10-25'
+document: docs/G1_V2_HISTORICAL_REJUDGE_PROTOCOL_V2_20261025.md
+supersedes:
+  protocol_id: g1-v2-rejudge-v1
+  config: config/g1_v2_rejudge_v1.yaml
+  voided_before_results: true
+judge:
+  spec_version: g1-v2
+  spec_config: config/g1_v2_spec.yaml
+  spec_config_sha256: 8ecce43fb191761c367e61323833738a8ce9c5f9e8f592d3b2d47830d48ab77c
+result_blind_baseline:
+  head_before_freeze: 82faf8bfa96eb1a5e720ecacf8ec4aa11fb83f29
+  experiments_rows: 1132
+  factor_admissions_v1_decisions: 29
+  factor_admissions_v1_admitted: 0
+  factor_admissions_v1_sha256: 0a61018ab3e8f8b0a0c5fe66623cb6a6f4f009e2aba341181a4348cfaafa12cc
+  factor_admissions_v2_exists: false
+  g1_v2_statistics_on_candidates: 0
+  family_n_before:
+    stage1-gp-preflight-v1: 166
+    p1-moneyflow-v1: 18
+    f1-csi800-fundamental-v1: 6
+    f2-csi800-fundamental-dynamics-v1: 6
+decisions:
+  ledger: new:ledger/factor_admissions_v2.csv
+  reports_dir: logs/g1-v2
+  gp_placeholder_rationale: rejudge_and_report_reject
+  unit: distinct_factor_definition_latest_v1_generation
+  p1_reconstruction: original_tools_p1_moneyflow_code_and_raw_panel_with_reproduction_gate
+  multiple_testing_families: as_declared_by_v1_evidence
+  pass_meaning: ledger_only_library_insertion_requires_separate_protocol
+multiple_testing_families:
+  stage1-gp-preflight-v1:
+  - stage1-gp-preflight-v1
+  p1-moneyflow-v1:
+  - p1-moneyflow-v1
+  f1-csi800-fundamental-v1:
+  - f1-csi800-fundamental-v1
+  f2-csi800-fundamental-dynamics-v1:
+  - f1-csi800-fundamental-v1
+  - f2-csi800-fundamental-dynamics-v1
+family_order:
+- stage1-gp-preflight-v1
+- p1-moneyflow-v1
+- f1-csi800-fundamental-v1
+- f2-csi800-fundamental-dynamics-v1
+p1_source:
+  tool_commit: 70469850b0f71c5ba41e1647cbb7637d74ab77e3
+  tool_files:
+    tools/p1_moneyflow/__init__.py: 25dc3bcf87981858f20430758612a6efca28be35a8e5c0bc1e8e03a06f66396c
+    tools/p1_moneyflow/backfill.py: 4020164fe81128780983bf49932123f00ecc46c2786e801ca85ecddf2c0c3961
+    tools/p1_moneyflow/candidate.py: 445a6fd9eccc48275d52186bb9918cf6a812292b8c66ffbfc3058c25612bef67
+    tools/p1_moneyflow/contract.py: 52ab4fdbe02e797f48a40da9abd61ab646c153bce02d3004f5f4e5a57fcc2620
+    tools/p1_moneyflow/experiment.py: 8b2a4a1417c5e5514da6db66405b18fb8ffa3031f6926828ed3a3961e603afbf
+    tools/p1_moneyflow/feature_builder.py: 6f535e12f4abaad30a9a088d731d8ddb16d4ecbc25f3b532d47ef3fd66e86f02
+    tools/p1_moneyflow/features.py: d9f9e6700dcc11084395912abb7890069bc110c8f2de5558c4cd4eee3debc8f9
+    tools/p1_moneyflow/full_audit.py: 7705231cb56b5cefebc25c950705b08f382a32eb800a5f9be20d43543e666b79
+    tools/p1_moneyflow/quarantine.py: 461343027d651e52da53dc759143e739c7ef1cf84aa81f20ddad5644e161de77
+    tools/p1_moneyflow/refresh_failures.py: a9f12d0144a5f88ef7ee063569269ddec3f6d265053d7367e264470a2ebbb5dc
+    tools/p1_moneyflow/residual_builder.py: a50c5c9ee3784776d39d20633f75bdd273dee07c0ad70df4a16900f5d780b2e3
+  raw_candidates_path: data/research/moneyflow/features/p1-moneyflow-raw-candidates-v1-4b6ab336e11cdee7.parquet
+  raw_candidates_sha256: 4b6ab336e11cdee7c755e845d5d73569fa95ea1a673401229737bfdd818d93a1
+reproduction_gate:
+  max_abs_daily_difference: 1.0e-06
+  on_failure: NOT_REEVALUATED
+  retry_after_failure: false
+attempts_per_unit: 1
+families:
+  stage1-gp-preflight-v1:
+  - candidate_experiment_id: 9972e570ae21
+    v1_decision_id: 29e9906aff70
+    formula: Mean(open_,40)
+    v1_evidence_path: data/research/g1/stage1-gp-preflight-v1/9972e570ae21/g1_evidence.json
+    v1_evidence_sha256: e17dc5b9325634e5aed7ac51a3f9374989f7cbd036bc9b866198916180c81c59
+    rationale_chars: 15
+    reproduction_target:
+      kind: factor_panel
+      path: data/research/g1/stage1-gp-preflight-v1/9972e570ae21/factor_panel.parquet
+      sha256: bcbdf17b5a633c042b12806d85cf0196b483fb62e42eac44bafa06e8ff75e5d7
+    v1_code_sha256: 88b1be05473d6ed8afa308a5e0ce5050848ad93a82e61686a68a7cdc3e4cb611
+    v1_family_trial_count: 82
+    supersedes: []
+  - candidate_experiment_id: 7da47d7b3fac
+    v1_decision_id: 1abc29f93abf
+    formula: Add(Ref(high,20),WMA(high,20))
+    v1_evidence_path: data/research/g1/stage1-gp-preflight-v1/7da47d7b3fac/g1_evidence.json
+    v1_evidence_sha256: 197fdebed328c38e38283b712f34340ef39907d1b74c4c603a0b6c4ee9d21234
+    rationale_chars: 15
+    reproduction_target:
+      kind: factor_panel
+      path: data/research/g1/stage1-gp-preflight-v1/7da47d7b3fac/factor_panel.parquet
+      sha256: 9576d8044a423c29fe29800d396b971c098bea908fde94504d012dc08875be27
+    v1_code_sha256: 88b1be05473d6ed8afa308a5e0ce5050848ad93a82e61686a68a7cdc3e4cb611
+    v1_family_trial_count: 82
+    supersedes: []
+  - candidate_experiment_id: a4bdd797c134
+    v1_decision_id: 549a4f57234b
+    formula: Mad(Sum(Sum(low,20),50),30)
+    v1_evidence_path: data/research/g1/stage1-gp-preflight-v1/a4bdd797c134/g1_evidence.json
+    v1_evidence_sha256: fcd72e2cf09beaab589108fb0cec49b91133a71ee34657cd310d8d0a15755fb1
+    rationale_chars: 15
+    reproduction_target:
+      kind: factor_panel
+      path: data/research/g1/stage1-gp-preflight-v1/a4bdd797c134/factor_panel.parquet
+      sha256: a6f3f30f6f847091880d638f4f7e8af8745c3ecedc5be26df055a9467a5bd10c
+    v1_code_sha256: e03da3ac79a70d0d98e71c0424cf9eb1534b415124608ab89c6b4021871460d7
+    v1_family_trial_count: 166
+    supersedes:
+    - candidate_experiment_id: 508fb7131868
+      v1_decision_id: 5eb7947a9ecd
+      v1_code_sha256: 01c218a788f9eb9463e35e31de3e2fd17fab96451e3bdbd0bc5c31d12abafd0e
+  - candidate_experiment_id: b3a54f79cf6f
+    v1_decision_id: 669c50f2b7f4
+    formula: Mean(Greater(close,Constant(0.01)),50)
+    v1_evidence_path: data/research/g1/stage1-gp-preflight-v1/b3a54f79cf6f/g1_evidence.json
+    v1_evidence_sha256: 1afd82d8d61d0b0881cfebb79157782c323b7ad900db659b74a138ea3613bdfb
+    rationale_chars: 15
+    reproduction_target:
+      kind: factor_panel
+      path: data/research/g1/stage1-gp-preflight-v1/b3a54f79cf6f/factor_panel.parquet
+      sha256: 95467ebc6e134871850117e0e2e0b17b05930c3542b1378bc6526354353d2b75
+    v1_code_sha256: e03da3ac79a70d0d98e71c0424cf9eb1534b415124608ab89c6b4021871460d7
+    v1_family_trial_count: 166
+    supersedes:
+    - candidate_experiment_id: 591c7294789c
+      v1_decision_id: c8ea9596280e
+      v1_code_sha256: 01c218a788f9eb9463e35e31de3e2fd17fab96451e3bdbd0bc5c31d12abafd0e
+  p1-moneyflow-v1:
+  - candidate_experiment_id: 4c8474467c0c
+    v1_decision_id: a0630691c04b
+    formula: net_mf_amount / (daily.amount / 10)
+    v1_evidence_path: data/research/moneyflow/experiments/p1-moneyflow-v1/4c8474467c0c/g1_evidence.json
+    v1_evidence_sha256: f690916adc6f6765605ecff9cb666f25969cc67acba7b27a3e81804634f0f277
+    rationale_chars: 37
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/moneyflow/experiments/p1-moneyflow-daily-ic-v1-ff1d7274b61c3ed1.parquet
+      sha256: ff1d7274b61c3ed10c6f4c45c6eef310aa6e13a3c803a5b9ba05fac5cef8d82a
+    v1_code_sha256: 8f8f7a09c21f3c097d1487cb719370854bd785c81096f9f96fc737c3a37cc045
+    v1_family_trial_count: 18
+    supersedes:
+    - candidate_experiment_id: 386edd16e6c5
+      v1_decision_id: 67418039e56d
+      v1_code_sha256: 90f77f4c7819ed4d4ad12c3df30061bd3023c880a7c3925bcd7c603328530943
+  - candidate_experiment_id: 904586eaffae
+    v1_decision_id: 3cd4b30fc182
+    formula: (buy_lg_amount + buy_elg_amount - sell_lg_amount - sell_elg_amount) / (daily.amount / 10)
+    v1_evidence_path: data/research/moneyflow/experiments/p1-moneyflow-v1/904586eaffae/g1_evidence.json
+    v1_evidence_sha256: 4b3671ad9d165230368acd98d277a5692dc331217f33f9abca4d13a7b15432cb
+    rationale_chars: 32
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/moneyflow/experiments/p1-moneyflow-daily-ic-v1-ff1d7274b61c3ed1.parquet
+      sha256: ff1d7274b61c3ed10c6f4c45c6eef310aa6e13a3c803a5b9ba05fac5cef8d82a
+    v1_code_sha256: 8f8f7a09c21f3c097d1487cb719370854bd785c81096f9f96fc737c3a37cc045
+    v1_family_trial_count: 18
+    supersedes:
+    - candidate_experiment_id: c1484e369234
+      v1_decision_id: 6ad18313407c
+      v1_code_sha256: 90f77f4c7819ed4d4ad12c3df30061bd3023c880a7c3925bcd7c603328530943
+  - candidate_experiment_id: 6bb55f1184f4
+    v1_decision_id: 7ef5cb9446ad
+    formula: sum(net_mf_amount, 5) / sum(daily.amount / 10, 5)
+    v1_evidence_path: data/research/moneyflow/experiments/p1-moneyflow-v1/6bb55f1184f4/g1_evidence.json
+    v1_evidence_sha256: ac73f60f06d9deb72df676fb25917b3b812a7e5920e878bfcc5626e3ac7931e0
+    rationale_chars: 34
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/moneyflow/experiments/p1-moneyflow-daily-ic-v1-ff1d7274b61c3ed1.parquet
+      sha256: ff1d7274b61c3ed10c6f4c45c6eef310aa6e13a3c803a5b9ba05fac5cef8d82a
+    v1_code_sha256: 8f8f7a09c21f3c097d1487cb719370854bd785c81096f9f96fc737c3a37cc045
+    v1_family_trial_count: 18
+    supersedes:
+    - candidate_experiment_id: 5b08f942f905
+      v1_decision_id: 0de2d8b408cb
+      v1_code_sha256: 90f77f4c7819ed4d4ad12c3df30061bd3023c880a7c3925bcd7c603328530943
+  - candidate_experiment_id: 38e80ffd7e1c
+    v1_decision_id: 1853210f3504
+    formula: sum(net_mf_amount, 20) / sum(daily.amount / 10, 20)
+    v1_evidence_path: data/research/moneyflow/experiments/p1-moneyflow-v1/38e80ffd7e1c/g1_evidence.json
+    v1_evidence_sha256: ccfaf1c35a629b3d1bbac23e46e62823381c04bacf5ecc9bf9bca8b6fa24b4b2
+    rationale_chars: 36
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/moneyflow/experiments/p1-moneyflow-daily-ic-v1-ff1d7274b61c3ed1.parquet
+      sha256: ff1d7274b61c3ed10c6f4c45c6eef310aa6e13a3c803a5b9ba05fac5cef8d82a
+    v1_code_sha256: 8f8f7a09c21f3c097d1487cb719370854bd785c81096f9f96fc737c3a37cc045
+    v1_family_trial_count: 18
+    supersedes:
+    - candidate_experiment_id: 25a43f7363ed
+      v1_decision_id: c16105b2a3e5
+      v1_code_sha256: 90f77f4c7819ed4d4ad12c3df30061bd3023c880a7c3925bcd7c603328530943
+  - candidate_experiment_id: bfc45a8d768e
+    v1_decision_id: 154f502241e4
+    formula: mf_net_intensity_5d - mf_net_intensity_20d
+    v1_evidence_path: data/research/moneyflow/experiments/p1-moneyflow-v1/bfc45a8d768e/g1_evidence.json
+    v1_evidence_sha256: f581ac40ec9be5cf260b65e831d0d1edff15da6e2d82561c73e6388eec3ef54e
+    rationale_chars: 33
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/moneyflow/experiments/p1-moneyflow-daily-ic-v1-ff1d7274b61c3ed1.parquet
+      sha256: ff1d7274b61c3ed10c6f4c45c6eef310aa6e13a3c803a5b9ba05fac5cef8d82a
+    v1_code_sha256: 8f8f7a09c21f3c097d1487cb719370854bd785c81096f9f96fc737c3a37cc045
+    v1_family_trial_count: 18
+    supersedes:
+    - candidate_experiment_id: 78b03345e746
+      v1_decision_id: c69dc9b1a253
+      v1_code_sha256: 90f77f4c7819ed4d4ad12c3df30061bd3023c880a7c3925bcd7c603328530943
+  - candidate_experiment_id: e2da18f2ea02
+    v1_decision_id: d9ab7fa00637
+    formula: mean(sign(net_mf_amount), 10)
+    v1_evidence_path: data/research/moneyflow/experiments/p1-moneyflow-v1/e2da18f2ea02/g1_evidence.json
+    v1_evidence_sha256: 71bb5384381e216afa6210ed8cd6753cf8a2699ab684292153240b029ae97862
+    rationale_chars: 35
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/moneyflow/experiments/p1-moneyflow-daily-ic-v1-ff1d7274b61c3ed1.parquet
+      sha256: ff1d7274b61c3ed10c6f4c45c6eef310aa6e13a3c803a5b9ba05fac5cef8d82a
+    v1_code_sha256: 8f8f7a09c21f3c097d1487cb719370854bd785c81096f9f96fc737c3a37cc045
+    v1_family_trial_count: 18
+    supersedes:
+    - candidate_experiment_id: 2ad9f14a78b5
+      v1_decision_id: 20ea761eabb7
+      v1_code_sha256: 90f77f4c7819ed4d4ad12c3df30061bd3023c880a7c3925bcd7c603328530943
+  f1-csi800-fundamental-v1:
+  - candidate_experiment_id: 716d512a4b4f
+    v1_decision_id: 2ea4e2217e87
+    formula: n_income_attr_p / total_assets
+    v1_evidence_path: data/research/f1_csi800_fundamental_effect_v1/716d512a4b4f/g1_evidence.json
+    v1_evidence_sha256: 4181b33cd306645513079ecd571c7b3fd8e7c19f1663b1cf87a96b5c1ebb4654
+    rationale_chars: 25
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/f1_csi800_fundamental_effect_v1/f1-fundamental-daily-ic-v1-bde1233ce82951f5.parquet
+      sha256: bde1233ce82951f5a8a6f2cfdf80410428d12dccf2e9a374e25370210becb148
+    v1_code_sha256: 9de6916f61974736aa8bc28da60748798396d809f256cec77a4f46d830f1eb28
+    v1_family_trial_count: 6
+    supersedes: []
+  - candidate_experiment_id: 231a81518952
+    v1_decision_id: 91add478aa86
+    formula: operate_profit / total_revenue
+    v1_evidence_path: data/research/f1_csi800_fundamental_effect_v1/231a81518952/g1_evidence.json
+    v1_evidence_sha256: 77509bc4cea88d62fc21e64b74724f365bc5bf067cebcd6a861bc1f1d53388a3
+    rationale_chars: 26
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/f1_csi800_fundamental_effect_v1/f1-fundamental-daily-ic-v1-bde1233ce82951f5.parquet
+      sha256: bde1233ce82951f5a8a6f2cfdf80410428d12dccf2e9a374e25370210becb148
+    v1_code_sha256: 9de6916f61974736aa8bc28da60748798396d809f256cec77a4f46d830f1eb28
+    v1_family_trial_count: 6
+    supersedes: []
+  - candidate_experiment_id: aebf3650d192
+    v1_decision_id: 45ff8a8f9f0f
+    formula: n_cashflow_act / total_assets
+    v1_evidence_path: data/research/f1_csi800_fundamental_effect_v1/aebf3650d192/g1_evidence.json
+    v1_evidence_sha256: 4f77023fb7bd9af43e0ab49ac8f7d6acfaa2e72f65e728d1fbd357d8ea3b9be2
+    rationale_chars: 28
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/f1_csi800_fundamental_effect_v1/f1-fundamental-daily-ic-v1-bde1233ce82951f5.parquet
+      sha256: bde1233ce82951f5a8a6f2cfdf80410428d12dccf2e9a374e25370210becb148
+    v1_code_sha256: 9de6916f61974736aa8bc28da60748798396d809f256cec77a4f46d830f1eb28
+    v1_family_trial_count: 6
+    supersedes: []
+  - candidate_experiment_id: 0d36a9a20a6f
+    v1_decision_id: 4c42cd475d4a
+    formula: total_liab / total_assets
+    v1_evidence_path: data/research/f1_csi800_fundamental_effect_v1/0d36a9a20a6f/g1_evidence.json
+    v1_evidence_sha256: b6441ddb78de47185525bca484490c8be034f4fa50b54f9eb6cf6f3f25fca1c7
+    rationale_chars: 30
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/f1_csi800_fundamental_effect_v1/f1-fundamental-daily-ic-v1-bde1233ce82951f5.parquet
+      sha256: bde1233ce82951f5a8a6f2cfdf80410428d12dccf2e9a374e25370210becb148
+    v1_code_sha256: 9de6916f61974736aa8bc28da60748798396d809f256cec77a4f46d830f1eb28
+    v1_family_trial_count: 6
+    supersedes: []
+  - candidate_experiment_id: 07d237523435
+    v1_decision_id: 01c312607956
+    formula: money_cap / total_assets
+    v1_evidence_path: data/research/f1_csi800_fundamental_effect_v1/07d237523435/g1_evidence.json
+    v1_evidence_sha256: 23a56838c18d1d96a526f962234c9e39bdf3a90c5543ccfadf4d08339360c7ab
+    rationale_chars: 27
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/f1_csi800_fundamental_effect_v1/f1-fundamental-daily-ic-v1-bde1233ce82951f5.parquet
+      sha256: bde1233ce82951f5a8a6f2cfdf80410428d12dccf2e9a374e25370210becb148
+    v1_code_sha256: 9de6916f61974736aa8bc28da60748798396d809f256cec77a4f46d830f1eb28
+    v1_family_trial_count: 6
+    supersedes: []
+  - candidate_experiment_id: f26400516f62
+    v1_decision_id: 7d87353137ef
+    formula: (n_income_attr_p - n_cashflow_act) / total_assets
+    v1_evidence_path: data/research/f1_csi800_fundamental_effect_v1/f26400516f62/g1_evidence.json
+    v1_evidence_sha256: eef85ff7816a7ee27931539b05732f72156151042ad1920756b52a5017914f7a
+    rationale_chars: 28
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/f1_csi800_fundamental_effect_v1/f1-fundamental-daily-ic-v1-bde1233ce82951f5.parquet
+      sha256: bde1233ce82951f5a8a6f2cfdf80410428d12dccf2e9a374e25370210becb148
+    v1_code_sha256: 9de6916f61974736aa8bc28da60748798396d809f256cec77a4f46d830f1eb28
+    v1_family_trial_count: 6
+    supersedes: []
+  f2-csi800-fundamental-dynamics-v1:
+  - candidate_experiment_id: d8f99390f85f
+    v1_decision_id: 0f83ba0b538d
+    formula: total_assets_t / total_assets_t_minus_1 - 1
+    v1_evidence_path: data/research/f2_csi800_fundamental_effect_v1/d8f99390f85f/g1_evidence.json
+    v1_evidence_sha256: 57677f0db3cec7ca50380f502bf153f66c263ff3214bc4241ab94636e0e222b7
+    rationale_chars: 40
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/f2_csi800_fundamental_effect_v1/f2-fundamental-dynamics-daily-ic-v1-1fb46e7e58cc8d4a.parquet
+      sha256: 1fb46e7e58cc8d4aff6c96b29339ef23859324d5be8b079c2f3552fa5b90e45d
+    v1_code_sha256: 93febdba7727953f6700da2e6f976a600cc504ac840883c1f236f95692ea3cc6
+    v1_family_trial_count: 12
+    supersedes: []
+  - candidate_experiment_id: b33ce05fc3ce
+    v1_decision_id: e3efb98b1c42
+    formula: total_revenue_t / total_revenue_t_minus_1 - 1
+    v1_evidence_path: data/research/f2_csi800_fundamental_effect_v1/b33ce05fc3ce/g1_evidence.json
+    v1_evidence_sha256: f8f26f05bf8e2ad489b40260d83eb083157baff283c41b22b380649e4c184481
+    rationale_chars: 31
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/f2_csi800_fundamental_effect_v1/f2-fundamental-dynamics-daily-ic-v1-1fb46e7e58cc8d4a.parquet
+      sha256: 1fb46e7e58cc8d4aff6c96b29339ef23859324d5be8b079c2f3552fa5b90e45d
+    v1_code_sha256: 93febdba7727953f6700da2e6f976a600cc504ac840883c1f236f95692ea3cc6
+    v1_family_trial_count: 12
+    supersedes: []
+  - candidate_experiment_id: 3b6be5a9a119
+    v1_decision_id: fc9569fe30b3
+    formula: (operate_profit_t - operate_profit_t_minus_1) / average_total_assets
+    v1_evidence_path: data/research/f2_csi800_fundamental_effect_v1/3b6be5a9a119/g1_evidence.json
+    v1_evidence_sha256: 557692fe0c85d1cb8d9f8a5a5a2004e4a439b2962b7b72026d952eccac7b12af
+    rationale_chars: 39
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/f2_csi800_fundamental_effect_v1/f2-fundamental-dynamics-daily-ic-v1-1fb46e7e58cc8d4a.parquet
+      sha256: 1fb46e7e58cc8d4aff6c96b29339ef23859324d5be8b079c2f3552fa5b90e45d
+    v1_code_sha256: 93febdba7727953f6700da2e6f976a600cc504ac840883c1f236f95692ea3cc6
+    v1_family_trial_count: 12
+    supersedes: []
+  - candidate_experiment_id: d085d85ddbb6
+    v1_decision_id: b00b91b083de
+    formula: (n_income_attr_p_t - n_income_attr_p_t_minus_1) / average_total_assets
+    v1_evidence_path: data/research/f2_csi800_fundamental_effect_v1/d085d85ddbb6/g1_evidence.json
+    v1_evidence_sha256: f5101448800e598d2bf363778a43fa66570bdbe45869b7f48a9ca45816efee63
+    rationale_chars: 39
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/f2_csi800_fundamental_effect_v1/f2-fundamental-dynamics-daily-ic-v1-1fb46e7e58cc8d4a.parquet
+      sha256: 1fb46e7e58cc8d4aff6c96b29339ef23859324d5be8b079c2f3552fa5b90e45d
+    v1_code_sha256: 93febdba7727953f6700da2e6f976a600cc504ac840883c1f236f95692ea3cc6
+    v1_family_trial_count: 12
+    supersedes: []
+  - candidate_experiment_id: b26bec617328
+    v1_decision_id: 46169be901de
+    formula: (n_cashflow_act_t - n_cashflow_act_t_minus_1) / average_total_assets
+    v1_evidence_path: data/research/f2_csi800_fundamental_effect_v1/b26bec617328/g1_evidence.json
+    v1_evidence_sha256: afcd098662b50f9aeb60a2600e35dfcc86d75982ebb35eccf59d880ddefe8847
+    rationale_chars: 30
+    reproduction_target:
+      kind: daily_ic
+      path: data/research/f2_csi800_fundamental_effect_v1/f2-fundamental-dynamics-daily-ic-v1-1fb46e7e58cc8d4a.parquet
+      sha256: 1fb46e7e58cc8d4aff6c96b29339ef23859324d5be8b079c2f3552fa5b90e45d
+    v1_code_sha256: 93febdba7727953f6700da2e6f976a600cc504ac840883c1f236f95692ea3cc6
+    v1_family_trial_count: 12
+    supersedes: []
+isolation:
+  forbidden_writes:
+  - ledger/factor_admissions.csv
+  - logs/g1
+  network: false
+  secrets: false
+  data_read_only:
+  - data/qlib_bin
+  - data/raw

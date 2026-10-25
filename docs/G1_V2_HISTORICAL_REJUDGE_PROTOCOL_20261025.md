@@ -2,6 +2,7 @@
 
 - 协议 ID：`g1-v2-rejudge-v1`；机器配置：`config/g1_v2_rejudge_v1.yaml`（逐候选身份、复现目标与哈希）
 - 状态：`FROZEN_BEFORE_RESULTS`；冻结：2026-10-25（实现之前）
+- **作废（2026-10-25，结果前）**：工程开工后发现三处事实错误——①把 29 条 v1 裁决当作 29 个候选，实际只有 21 个不同因子定义（GP 4、P1 6 被两代各判一次）；②P1 构造代码并未丢失，在 `tools/p1_moneyflow/`（提交 7046985，哈希与第 3 代 `code_sha256` 一致），当初只搜了 `src/`；③F2 的 v1 证据声明多重检验家族为 F1+F2，本文却只按 F2 计 N。未计算任何 g1-v2 重判统计量。经用户裁决由 `docs/G1_V2_HISTORICAL_REJUDGE_PROTOCOL_V2_20261025.md` 取代；以下原文保留。
 - 依据：`docs/G1_V2_HISTORICAL_REJUDGE_PROTOCOL_DRAFT_20261025.md`（用户对 D1–D4 均选建议项；D5 按建议先完成本重判再起 TP-F-0B）
 - 被测裁判：`g1-v2`（`config/g1_v2_spec.yaml` SHA `8ecce43f…`，2026-10-25 启用）
 - 不改 g1-v1、29 份旧裁决与 `ledger/factor_admissions.csv`；不改 g1-v2 任何阈值；本协议提交推送前不写任何实现
