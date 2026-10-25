@@ -19,6 +19,15 @@ components:
     consumers:
       - Makefile
       - tests/test_g1_calibration_docker_contract.py
+  - id: g1-v2-rejudge
+    class: COMPONENT_RELEASE
+    status: ACTIVE_LOCAL_READ_ONLY
+    reuse_policy: NEW_RELEASE_REQUIRED
+    assets:
+      - compose.g1-v2-rejudge.yaml
+    consumers:
+      - Makefile
+      - tests/test_g1_v2_rejudge_docker_contract.py
   - id: global-production
     class: GLOBAL
     status: ACTIVE_GLOBAL

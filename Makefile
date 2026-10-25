@@ -12,6 +12,7 @@
 .PHONY: ops-patrol scheduler-up-guard r2d-scope-prepare r2d-record-approval r2d-authorized-start
 .PHONY: ops-patrol-build ops-patrol-dry-run ops-patrol-up ops-patrol-drill ops-patrol-status ops-patrol-down
 .PHONY: docker-g1-calibration-build docker-g1-calibration-pilot g1-calibration-scope-prepare g1-calibration-record-approval docker-g1-calibration-run docker-g1-calibration-audit docker-g1-calibration-devset
+.PHONY: docker-g1-v2-rejudge-precheck g1-v2-rejudge-scope-prepare g1-v2-rejudge-record-approval docker-g1-v2-rejudge-run docker-g1-v2-rejudge-audit
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -514,6 +515,32 @@ docker-g1-calibration-devset: ## g1-v2 开发集检查（协议 v2 §5）：只�
 	@output="logs/g1-calibration-v2/dev-set/devset-$$(date -u +%Y%m%dT%H%M%SZ).json"; \
 	  $(G1_CALIBRATION_UNUSED) SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_G1_CALIBRATION_IMAGE="$(IMAGE)" SHAIWEI_G1_DEVSET_OUTPUT="$$output" \
 	  $(G1_CALIBRATION_COMPOSE) --profile devset run --rm --no-deps g1-calibration-devset && echo "$$output"
+G1_REJUDGE_COMPOSE := docker compose -p shaiwei-g1-v2-rejudge -f compose.g1-v2-rejudge.yaml
+G1_REJUDGE_RELEASE := $(PYTHON) -m shaiwei.research.g1_v2_rejudge.release
+docker-g1-v2-rejudge-precheck: ## 重判复现预检（只算复现差值，不算任何 g1-v2 统计量）；IMAGE=… 必填
+	@test -n "$(IMAGE)" || (echo "IMAGE=shaiwei:g1-calibration-<snapshot12> is required"; exit 2)
+	@mkdir -p logs/g1-v2/precheck
+	@output="logs/g1-v2/precheck/reproduction-$$(date -u +%Y%m%dT%H%M%SZ).json"; \
+	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_G1_REJUDGE_IMAGE="$(IMAGE)" SHAIWEI_G1_REJUDGE_PRECHECK_OUTPUT="$$output" \
+	  $(G1_REJUDGE_COMPOSE) --profile precheck run --rm --no-deps g1-v2-rejudge-precheck && echo "$$output"
+g1-v2-rejudge-scope-prepare: ## 重判精确 scope 与逐字批准文本；IMAGE=… PRECHECK=logs/g1-v2/precheck/…json；不运行评估
+	@test -n "$(IMAGE)" -a -n "$(PRECHECK)" || (echo "IMAGE=… PRECHECK=… are required"; exit 2)
+	$(G1_REJUDGE_RELEASE) prepare --image "$(IMAGE)" --precheck "$(PRECHECK)"
+g1-v2-rejudge-record-approval: ## 仅当 TEXT 与该 scope 的逐字批准文本完全一致才写批准文件；SCOPE=… TEXT="…"
+	@test -n "$(SCOPE)" -a -n "$(TEXT)" || (echo "SCOPE=… TEXT=… are required"; exit 2)
+	$(G1_REJUDGE_RELEASE) record-approval --scope "$(SCOPE)" --text "$(TEXT)"
+docker-g1-v2-rejudge-run: ## 已逐字批准后唯一一次重判（容器内复核 scope 并排他认领）；SCOPE=…
+	@test -n "$(SCOPE)" || (echo "SCOPE=… is required"; exit 2)
+	@image="$$($(G1_REJUDGE_RELEASE) check-image --scope "$(SCOPE)")" || exit 2; \
+	  mkdir -p logs/g1-v2 data/research/g1-v2-rejudge; \
+	  SHAIWEI_G1_REJUDGE_IMAGE="$$image" SHAIWEI_G1_REJUDGE_SCOPE="$(SCOPE)" \
+	  $(G1_REJUDGE_COMPOSE) --profile run run --rm --no-deps g1-v2-rejudge-run
+docker-g1-v2-rejudge-audit: ## 重判独立审计（被审对象只读）；SCOPE=… EXECUTION=…
+	@test -n "$(SCOPE)" -a -n "$(EXECUTION)" || (echo "SCOPE=… EXECUTION=… are required"; exit 2)
+	@image="$$($(G1_REJUDGE_RELEASE) check-image --scope "$(SCOPE)")" || exit 2; \
+	  mkdir -p logs/g1-v2-audit; \
+	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_G1_REJUDGE_IMAGE="$$image" SHAIWEI_G1_REJUDGE_EXECUTION="$(EXECUTION)" \
+	  $(G1_REJUDGE_COMPOSE) --profile audit run --rm --no-deps g1-v2-rejudge-audit
 scheduler-up-guard: ## docker-scheduler-up 前置守卫：current 别名须等于运行容器镜像（或无容器时等于最后一次 START_PASS 镜像）
 	$(PYTHON) -m shaiwei.scheduler_up_guard
 docker-build:     ## 构建统一 Docker 运行镜像

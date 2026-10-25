@@ -1,5 +1,16 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-10-25 · 重判工程完成（协议 v2 §5 第 2 步）；复现预检待授权
+
+用户“推送，继续重判工程”：abd0e5a 已推送。新增 `src/shaiwei/research/g1_v2_rejudge/`（protocol/sources/evaluate/judge/release/audit，均 <300 行，
+审计与判定不载入 qlib/torch）、新账本 `ledger/factor_admissions_v2.csv`（仅表头，纳入 append-only 测试）、`compose.g1-v2-rejudge.yaml`
+（precheck/run/audit 三服务，断网只读；登记组件 `g1-v2-rejudge`，资产 100→101）与五个 make 目标。解释选择、容器写入点与预检风险见
+`docs/G1_V2_REJUDGE_ENGINEERING_20261025.md`。**架构登记**：P1 按冻结协议复用 `tools/p1_moneyflow` 原代码，`sources.py` 的三条 `src→tools`
+导入登记为 `A1_1A_DEFERRED_FROZEN_IDENTITY_CONFLICT` 依赖债（同 M4-1 先例，退出条件为版本化后继协议或归档 ADR），推送前请用户过目。
+合成测试 13 项（端到端：P1 复现不过整家族 `NOT_REEVALUATED` 不记账；F2 的 N 按 F1+F2；GP 第②项 REJECT；一次性认领；审计 PASS 且捕获篡改）。
+工程中发现共用中性化对空因子抛裸 `ValueError`，重判在调用前拦为证据错误（标定模块未改）。未运行预检、未计算任何 g1-v2 重判统计量。
+下一步各自单独授权：推送 → 第 3 步复现预检（新镜像，只读，只算复现差）→ 第 4 步 scope/逐字批准/单次执行/审计。
+
 ## 2026-10-25 · 重判协议 v1 结果前作废，v2 冻结（21 个定义）
 
 用户“推送，开始重判工程”：82faf8b 已推送。工程开工核对（子代理读 P1 规格与 git 历史）发现冻结协议三处事实错误：①29 条 v1 裁决只对应

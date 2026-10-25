@@ -50,6 +50,27 @@ dependency_debt:
       decision: A1_1A_DEFERRED_FROZEN_IDENTITY_CONFLICT
       decision_document: docs/A1_STAR50_EXECUTION_MIGRATION_DECISION_20260807.md
       exit_trigger: only after a versioned M4/P2 successor or explicit historical-replay archive ADR is approved
+    - path: src/shaiwei/research/g1_v2_rejudge/sources.py
+      import: tools.p1_moneyflow.experiment
+      first_registered: "2026-10-25"
+      boundary: frozen g1-v2-rejudge-v2 P1 reconstruction must reuse the hash-bound original tools/p1_moneyflow code (tool_commit 7046985)
+      decision: A1_1A_DEFERRED_FROZEN_IDENTITY_CONFLICT
+      decision_document: docs/G1_V2_REJUDGE_ENGINEERING_20261025.md
+      exit_trigger: only after a versioned g1-v2-rejudge successor or explicit P1 historical-reconstruction archive ADR is approved
+    - path: src/shaiwei/research/g1_v2_rejudge/sources.py
+      import: tools.p1_moneyflow.features
+      first_registered: "2026-10-25"
+      boundary: frozen g1-v2-rejudge-v2 P1 reconstruction must reuse the hash-bound original tools/p1_moneyflow code (tool_commit 7046985)
+      decision: A1_1A_DEFERRED_FROZEN_IDENTITY_CONFLICT
+      decision_document: docs/G1_V2_REJUDGE_ENGINEERING_20261025.md
+      exit_trigger: only after a versioned g1-v2-rejudge successor or explicit P1 historical-reconstruction archive ADR is approved
+    - path: src/shaiwei/research/g1_v2_rejudge/sources.py
+      import: tools.p1_moneyflow.residual_builder
+      first_registered: "2026-10-25"
+      boundary: frozen g1-v2-rejudge-v2 P1 reconstruction must reuse the hash-bound original tools/p1_moneyflow code (tool_commit 7046985)
+      decision: A1_1A_DEFERRED_FROZEN_IDENTITY_CONFLICT
+      decision_document: docs/G1_V2_REJUDGE_ENGINEERING_20261025.md
+      exit_trigger: only after a versioned g1-v2-rejudge successor or explicit P1 historical-reconstruction archive ADR is approved
 
 deletion_gates:
   - static_and_dynamic_entrypoint_reachability_checked

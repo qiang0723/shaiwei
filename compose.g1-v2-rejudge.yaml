@@ -1,0 +1,109 @@
+name: shaiwei-g1-v2-rejudge
+
+# g1-v2-rejudge-v2（docs/G1_V2_HISTORICAL_REJUDGE_PROTOCOL_V2_20261025.md）。全部服务断网、只读根、无密钥、无 env_file。
+# 只读挂 qlib_bin、原始数据、账本、研究产物（v1 证据/面板/IC、F 特征、P1 原始面板与预测缓存）、AlphaGen vendor、
+# P1 原代码 tools/p1_moneyflow 与冻结协议文档；镜像复用 shaiwei:g1-calibration-<快照12位>（同一代码快照）。
+x-runtime: &runtime
+  image: ${SHAIWEI_G1_REJUDGE_IMAGE:?use the g1-v2-rejudge make targets}
+  pull_policy: never
+  init: true
+  restart: "no"
+  working_dir: /workspace
+  read_only: true
+  network_mode: none
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=4g,mode=1777
+    - /workspace/logs:rw,noexec,nosuid,size=1g,mode=1777
+    - /workspace/mlruns:rw,noexec,nosuid,size=1g,mode=1777
+  shm_size: 2g
+  pids_limit: 256
+  mem_limit: 12g
+  cpus: 6.0
+  environment: &environment
+    HOME: /tmp
+    TZ: Asia/Shanghai
+    SHAIWEI_DATA_ROOT: /workspace/data
+    MPLCONFIGDIR: /tmp/matplotlib
+    PYTHONPYCACHEPREFIX: /tmp/pycache
+    OMP_NUM_THREADS: "6"
+    OPENBLAS_NUM_THREADS: "6"
+    MKL_NUM_THREADS: "6"
+    NUMEXPR_NUM_THREADS: "6"
+
+x-qlib: &qlib-ro {type: bind, source: ./data/qlib_bin, target: /workspace/data/qlib_bin, read_only: true, bind: {create_host_path: false}}
+x-raw: &raw-ro {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
+x-research: &research-ro {type: bind, source: ./data/research, target: /workspace/data/research, read_only: true, bind: {create_host_path: false}}
+x-ledger: &ledger-ro {type: bind, source: ./ledger, target: /workspace/ledger, read_only: true, bind: {create_host_path: false}}
+x-vendor: &vendor-ro {type: bind, source: ./vendor/alphagen, target: /workspace/vendor/alphagen, read_only: true, bind: {create_host_path: false}}
+x-tools-init: &tools-init-ro {type: bind, source: ./tools/__init__.py, target: /workspace/tools/__init__.py, read_only: true, bind: {create_host_path: false}}
+x-tools-p1: &tools-p1-ro {type: bind, source: ./tools/p1_moneyflow, target: /workspace/tools/p1_moneyflow, read_only: true, bind: {create_host_path: false}}
+x-protocol: &protocol-ro {type: bind, source: ./docs/G1_V2_HISTORICAL_REJUDGE_PROTOCOL_V2_20261025.md, target: /workspace/docs/G1_V2_HISTORICAL_REJUDGE_PROTOCOL_V2_20261025.md, read_only: true, bind: {create_host_path: false}}
+x-control: &control-ro {type: bind, source: ./data/control/g1-v2-rejudge, target: /workspace/data/control/g1-v2-rejudge, read_only: true, bind: {create_host_path: false}}
+
+services:
+  # 复现预检：只算复现差值，不算任何 g1-v2 统计量；唯一可写为预检输出目录。
+  g1-v2-rejudge-precheck:
+    <<: *runtime
+    profiles: [precheck]
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    volumes:
+      - *qlib-ro
+      - *raw-ro
+      - *research-ro
+      - *ledger-ro
+      - *vendor-ro
+      - *tools-init-ro
+      - *tools-p1-ro
+      - *protocol-ro
+      - {type: bind, source: ./logs/g1-v2/precheck, target: /workspace/logs/g1-v2/precheck, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.g1_v2_rejudge.release, precheck, --output, "${SHAIWEI_G1_REJUDGE_PRECHECK_OUTPUT:-unused}"]
+
+  # 正式执行：与 scheduler 共用命名卷锁才能追加账本（锁文件属 root，故以 root 运行，能力全部丢弃）。
+  g1-v2-rejudge-run:
+    <<: *runtime
+    profiles: [run]
+    user: "0:0"
+    environment:
+      <<: *environment
+      SHAIWEI_LOCK_AUTHORITY: docker-named-volume-v1
+      SHAIWEI_LOCK_ROOT: /run/shaiwei-locks
+    volumes:
+      - *qlib-ro
+      - *raw-ro
+      - *research-ro
+      - *ledger-ro
+      - *vendor-ro
+      - *tools-init-ro
+      - *tools-p1-ro
+      - *protocol-ro
+      - *control-ro
+      - {type: bind, source: ./ledger/experiments.csv, target: /workspace/ledger/experiments.csv, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./ledger/factor_admissions_v2.csv, target: /workspace/ledger/factor_admissions_v2.csv, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/g1-v2-rejudge, target: /workspace/data/research/g1-v2-rejudge, read_only: false, bind: {create_host_path: false}}
+      - {type: bind, source: ./logs/g1-v2, target: /workspace/logs/g1-v2, read_only: false, bind: {create_host_path: false}}
+      - {type: volume, source: runtime-locks, target: /run/shaiwei-locks, volume: {nocopy: true}}
+    command: [python, -m, shaiwei.research.g1_v2_rejudge.release, execute, --scope, "${SHAIWEI_G1_REJUDGE_SCOPE:-unused}"]
+
+  # 独立审计：被审对象全部只读，唯一可写为审计输出目录；不需要 qlib_bin、vendor 与 P1 原代码。
+  g1-v2-rejudge-audit:
+    <<: *runtime
+    profiles: [audit]
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    mem_limit: 4g
+    cpus: 2.0
+    volumes:
+      - *ledger-ro
+      - *protocol-ro
+      - *control-ro
+      - {type: bind, source: ./data/research/g1-v2-rejudge, target: /workspace/data/research/g1-v2-rejudge, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./logs/g1-v2, target: /workspace/logs/g1-v2, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./logs/g1-v2-audit, target: /workspace/logs/g1-v2-audit, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.g1_v2_rejudge.audit, --execution-id, "${SHAIWEI_G1_REJUDGE_EXECUTION:-unused}"]
+
+volumes:
+  runtime-locks:
+    external: true
+    name: shaiwei_runtime_locks_v1
