@@ -1,6 +1,6 @@
 # 历史候选 g1-v2 重判与因子线恢复 · 协议草案（未冻结）
 
-- 状态：**DRAFT**，待用户裁决 §5 的设计点；裁决前不写实现、不在任何历史候选上计算任何 g1-v2 统计量
+- 状态：**已裁决（2026-10-25）**：D1–D4 均选建议项，D5 按建议；冻结文本见 `docs/G1_V2_HISTORICAL_REJUDGE_PROTOCOL_20261025.md` 与 `config/g1_v2_rejudge_v1.yaml`
 - 上位：`docs/G1_SPEC_V2.md`（2026-10-25 启用）、`docs/GATES.md`“G1 执行解释 v2”、`docs/G1_POSITIVE_CONTROL_V2_ACCEPTANCE_20261025.md`
 - 不改 g1-v1 与 29 份旧裁决（`ledger/factor_admissions.csv` 原样保留），不改 g1-v2 任何阈值
 
