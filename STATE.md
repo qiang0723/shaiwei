@@ -1,5 +1,13 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-10-25 · 重判复现预检：21/21 PASS（逐键差 0，键集合一致）
+
+用户“推送，构建镜像并开始复现预检”：b56ce00 已推送；镜像 `shaiwei:g1-calibration-910b366c3cf6`（快照与推送后工作树一致）。预检容器断网只读，
+22:52–23:01（9 min）。报告 `logs/g1-v2/precheck/reproduction-20261025T145205Z.json`（sha256 `6113be69597a329d08730e406f2eb0b076b0b118be88815d58e9b4ef823bbf6b`，
+`scope: reproduction only; no g1-v2 statistic computed`）。四家族 21 个定义全部复现通过，最大绝对差均为 0、缺键/多键均 0：GP 4 个（因子面板逐键
+1.71M–1.86M）、P1 6 个（日频 IC 1988–2406 日，原代码 + 原始面板；采集总账增长确未进入连接结果）、F1 6 个（2426 日）、F2 5 个（2244 日）。
+预检未修正任何重建代码。下一步（须授权）：第 4 步以该镜像与预检报告生成精确 scope 与逐字批准文本 → 用户逐字批准 → 单次执行 → 独立审计。
+
 ## 2026-10-25 · 重判工程完成（协议 v2 §5 第 2 步）；复现预检待授权
 
 用户“推送，继续重判工程”：abd0e5a 已推送。新增 `src/shaiwei/research/g1_v2_rejudge/`（protocol/sources/evaluate/judge/release/audit，均 <300 行，
