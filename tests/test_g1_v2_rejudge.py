@@ -134,7 +134,7 @@ def _ledgers(tmp_path: Path) -> tuple[Path, Path]:
                 result_json={"selection_sharpe": 0.1 * (position + 1)}, admitted=False, reject_reason="synthetic v1 attempt",
             )
     admissions = tmp_path / "factor_admissions_v2.csv"
-    admissions.write_bytes(FACTOR_ADMISSIONS_V2.read_bytes())
+    admissions.write_text(FACTOR_ADMISSIONS_V2.read_text(encoding="utf-8").splitlines()[0] + "\n", encoding="utf-8")  # 只取表头：真实 v2 账本已有正式行
     return experiments, admissions
 
 
