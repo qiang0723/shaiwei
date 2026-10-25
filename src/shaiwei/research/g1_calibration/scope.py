@@ -20,9 +20,13 @@ from pydantic import BaseModel, ConfigDict, Field
 from shaiwei.config import PROJECT_ROOT, Settings, load
 from shaiwei.ledger import EXPERIMENTS, FACTOR_ADMISSIONS, G1_CALIBRATION_RUNS, sha256_file
 from shaiwei.research.g1_calibration.ledger_view import IsolationError, complete_rows
-from shaiwei.research.g1_calibration.protocol import ProtocolError, ProtocolIdentity, load_protocol
+from shaiwei.research.g1_calibration.protocol import CONFIG_PATH, ProtocolError, ProtocolIdentity, load_protocol
 
 CONTROL_ROOT = PROJECT_ROOT / "data" / "control" / "g1-calibration-v1"
+
+
+def control_root(protocol: ProtocolIdentity) -> Path:
+    return PROJECT_ROOT / "data" / "control" / protocol.config.family
 SNAPSHOT_PY = "from shaiwei.provenance import code_snapshot_sha256; print(code_snapshot_sha256())"
 _HEX40, _HEX64 = r"^[0-9a-f]{40}$", r"^[0-9a-f]{64}$"
 
@@ -44,7 +48,7 @@ class LedgerBaseline(_Frozen):
 
 class ReleaseScope(_Frozen):
     schema_version: Literal["g1-calibration-release-scope-v1"]
-    protocol_id: Literal["g1-positive-control-v1"]
+    protocol_id: Literal["g1-positive-control-v1", "g1-positive-control-v2"]
     protocol_config_sha256: str = Field(pattern=_HEX64)
     protocol_document_sha256: str = Field(pattern=_HEX64)
     execution_id: str = Field(pattern=r"^g1cal-[0-9a-f]{12}-\d{8}T\d{6}Z$")
@@ -83,7 +87,7 @@ def scope_hash(scope: ReleaseScope) -> str:
 def approval_text(envelope: ScopeEnvelope) -> str:
     scope = envelope.scope
     return (
-        f"批准 G1 正控正式执行：以 scope {envelope.scope_sha256} 对镜像 {scope.image} 仅执行一次 g1-positive-control-v1 "
+        f"批准 G1 正控正式执行：以 scope {envelope.scope_sha256} 对镜像 {scope.image} 仅执行一次 {scope.protocol_id} "
         f"全部 {scope.evaluations} 次评估（N1/N2 各 {scope.noise_seeds_per_control} 种子）；NOT_FOR_ADMISSION，"
         "不写正式准入账本，不授权其他生产或研究动作。"
     )
@@ -102,10 +106,11 @@ def ledger_baseline(protocol: ProtocolIdentity, *, experiments: Path = EXPERIMEN
     rows = complete_rows(experiments)
     family = f"{protocol.config.family}/"
     calibration = sum(json.loads(row["params_json"]).get("g1_research_family", "").startswith(family) for row in rows)
+    protocol_runs = [row for row in complete_rows(runs) if row["protocol_id"] == protocol.config.protocol_id]
     return {
         "experiments_rows": len(rows),
         "calibration_family_rows": calibration,
-        "calibration_runs_rows": len(complete_rows(runs)),
+        "calibration_runs_rows": len(protocol_runs),
         "factor_admissions_sha256": sha256_file(admissions),
     }
 
@@ -130,7 +135,7 @@ def _write_once(path: Path, document: dict[str, object]) -> None:
         handle.write(json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
 
 
-def prepare(settings: Settings, *, image: str, pilot_timing: Path) -> dict[str, str]:
+def prepare(settings: Settings, *, image: str, pilot_timing: Path, protocol_path: Path = CONFIG_PATH) -> dict[str, str]:
     if _run(["git", "status", "--porcelain", "--untracked-files=no"]):
         raise ScopeError("tracked worktree is dirty")
     head = _run(["git", "rev-parse", "HEAD"])
@@ -143,8 +148,10 @@ def prepare(settings: Settings, *, image: str, pilot_timing: Path) -> dict[str, 
 
     if image_snapshot != code_snapshot_sha256() or not image.endswith(image_snapshot[:12]):
         raise ScopeError("image code snapshot differs from the pushed worktree")
-    protocol = load_protocol(settings)
+    protocol = load_protocol(settings, protocol_path)
     timing = json.loads(pilot_timing.read_text(encoding="utf-8"))
+    if timing.get("protocol_id") != protocol.config.protocol_id:
+        raise ScopeError("pilot timing was measured for a different protocol")
     seeds = choose_noise_seeds(protocol, timing["projections"])
     scope = ReleaseScope(
         schema_version="g1-calibration-release-scope-v1",
@@ -168,7 +175,7 @@ def prepare(settings: Settings, *, image: str, pilot_timing: Path) -> dict[str, 
         prepared_at=datetime.now(timezone.utc).isoformat(),
     )
     envelope = ScopeEnvelope(scope_sha256=scope_hash(scope), scope=scope)
-    _write_once(CONTROL_ROOT / "scopes" / f"{envelope.scope_sha256}.scope.json", envelope.model_dump(mode="json"))
+    _write_once(control_root(protocol) / "scopes" / f"{envelope.scope_sha256}.scope.json", envelope.model_dump(mode="json"))
     return {"status": "SCOPE_PREPARED_NOT_APPROVED", "scope_sha256": envelope.scope_sha256, "approval_text": approval_text(envelope)}
 
 
@@ -236,6 +243,7 @@ def check_image(scope_sha: str, root: Path = CONTROL_ROOT) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--protocol", type=Path, default=CONFIG_PATH, help="冻结的正控协议配置（默认 v1）")
     commands = parser.add_subparsers(dest="command", required=True)
     prep = commands.add_parser("prepare")
     prep.add_argument("--image", required=True)
@@ -247,12 +255,14 @@ def main(argv: list[str] | None = None) -> int:
     check.add_argument("--scope", required=True)
     args = parser.parse_args(argv)
     try:
+        settings = load()
+        root = control_root(load_protocol(settings, args.protocol))
         if args.command == "prepare":
-            result: object = prepare(load(), image=args.image, pilot_timing=args.pilot_timing)
+            result: object = prepare(settings, image=args.image, pilot_timing=args.pilot_timing, protocol_path=args.protocol)
         elif args.command == "record-approval":
-            result = record_approval(args.scope, args.text)
+            result = record_approval(args.scope, args.text, root)
         else:
-            print(check_image(args.scope))
+            print(check_image(args.scope, root))
             return 0
     except (ScopeError, ProtocolError, IsolationError, subprocess.CalledProcessError) as error:
         raise SystemExit(f"{type(error).__name__}: {error}") from error

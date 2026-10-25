@@ -54,17 +54,22 @@ def output_roots(
     runs: Path = G1_CALIBRATION_RUNS,
     data_root: Path | None = None,
     reports_root: Path | None = None,
+    protocol: ProtocolIdentity | None = None,
 ) -> OutputRoots:
+    """默认目录随协议：数据 `data/research/<家族>`，报告取协议 isolation.reports_dir；未给协议时为 v1 目录。"""
     research = settings.runtime.data_root / "research"
     forbidden = (
         FACTOR_ADMISSIONS.resolve(),
         (PROJECT_ROOT / "logs" / "g1").resolve(),
+        (PROJECT_ROOT / "logs" / "g1-v2").resolve(),
         (research / "factor_library").resolve(),
         (research / "g1").resolve(),
     )
+    default_data = research / (protocol.config.family if protocol else DATA_DIRNAME)
+    default_reports = PROJECT_ROOT / (protocol.config.isolation.reports_dir if protocol else "logs/g1-calibration")
     roots = OutputRoots(
-        data=(data_root or research / DATA_DIRNAME) / execution_id,
-        reports=(reports_root or PROJECT_ROOT / "logs" / "g1-calibration") / execution_id,
+        data=(data_root or default_data) / execution_id,
+        reports=(reports_root or default_reports) / execution_id,
         experiments=experiments,
         runs=runs,
         forbidden=forbidden,
@@ -149,11 +154,14 @@ def record_experiment(
             and existing["data_snapshot_sha256"] == data_hash
             and json.loads(existing["params_json"]) == params
         )
-        previous = json.loads(existing["result_json"]).get("selection_sharpe")
-        current = result.get("selection_sharpe")
-        if not same or (previous is None) != (current is None) or (
-            previous is not None and not math.isclose(float(previous), float(current), rel_tol=1e-12, abs_tol=1e-15)  # type: ignore[arg-type]
-        ):
+        stored = json.loads(existing["result_json"])
+        for metric in ("selection_sharpe", "selection_increment_ir"):
+            previous, current = stored.get(metric), result.get(metric)
+            if (previous is None) != (current is None) or (
+                previous is not None and not math.isclose(float(previous), float(current), rel_tol=1e-12, abs_tol=1e-15)  # type: ignore[arg-type]
+            ):
+                same = False
+        if not same:
             raise IsolationError(f"existing calibration experiment differs: {experiment}")
         return
     # 与 g1_pipeline 相同走 append_experiment：g1-v1 复杂度绑定要求 params_json.expression_tokens，

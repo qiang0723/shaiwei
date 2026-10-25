@@ -43,6 +43,11 @@ class PortfolioEvidence:
     metrics: dict[str, float]
     daily_net_excess: list[float]
     diagnostics: dict[str, object]
+    # g1-v2 逐日配对所需（v1 证据不使用）：同日对齐由 g1_v2.paired_differences 完成。
+    candidate_score_ic: pd.Series
+    baseline_score_ic: pd.Series
+    candidate_daily_excess: pd.Series
+    baseline_daily_excess: pd.Series
 
 
 def _between(series: pd.Series, start: object, end: object) -> pd.Series:
@@ -133,11 +138,12 @@ def build_portfolio_evidence(
     baseline_ic_series = pd.concat(baseline_ic).sort_index()
     candidate_ic_series = pd.concat(candidate_ic_parts).sort_index()
     candidate_return_series = pd.concat(candidate_returns).sort_index()
+    baseline_return_series = pd.concat(baseline_returns).sort_index()
     metrics = {
         "selection_sharpe": periodic_sharpe(candidate_return_series.tolist(), minimum=threshold.min_observations),
         "baseline_net_icir": icir(baseline_ic_series),
         "candidate_net_icir": icir(candidate_ic_series),
-        "baseline_net_excess": _compound(pd.concat(baseline_returns).sort_index()),
+        "baseline_net_excess": _compound(baseline_return_series),
         "candidate_net_excess": _compound(candidate_return_series),
         "cost_2x_net_excess": _compound(pd.concat(cost_2x_returns).sort_index()),
         "slippage_2x_net_excess": _compound(pd.concat(slippage_2x_returns).sort_index()),
@@ -181,4 +187,20 @@ def build_portfolio_evidence(
         metrics=metrics,
         daily_net_excess=[float(value) for value in candidate_return_series],
         diagnostics=diagnostics,
+        candidate_score_ic=candidate_ic_series,
+        baseline_score_ic=baseline_ic_series,
+        candidate_daily_excess=candidate_return_series,
+        baseline_daily_excess=baseline_return_series,
     )
+
+
+def build_increment_series(
+    settings: Settings, *, factor: pd.Series, baselines: list[BaselineWindow], direction: float = 1.0
+) -> tuple[pd.Series, pd.Series]:
+    """N3 增量对照：不回测，只算 90/10 混合分数与基线分数的逐日 RankIC；方向按构造固定（基线无发现期分数）。"""
+    candidate, baseline = [], []
+    for window in baselines:
+        blended = augment_signal(window.predictions, direction * factor, factor_weight=settings.g1_admission.factor_blend_weight)
+        candidate.append(daily_rank_ic(blended, window.labels))
+        baseline.append(window.daily_ic)
+    return pd.concat(candidate).sort_index(), pd.concat(baseline).sort_index()

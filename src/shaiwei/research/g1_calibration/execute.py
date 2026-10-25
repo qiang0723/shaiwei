@@ -15,10 +15,10 @@ from typing import Callable
 from shaiwei.config import Settings, load
 from shaiwei.ledger import FACTOR_ADMISSIONS
 from shaiwei.research.g1_calibration.ledger_view import IsolationError
-from shaiwei.research.g1_calibration.protocol import ProtocolError, ProtocolIdentity, load_protocol
+from shaiwei.research.g1_calibration.protocol import CONFIG_PATH, ProtocolError, ProtocolIdentity, load_protocol
 from shaiwei.research.g1_calibration.scope import (
-    CONTROL_ROOT,
     ScopeError,
+    control_root,
     directory_fingerprint,
     ledger_baseline,
     load_approved,
@@ -57,7 +57,8 @@ def execute(
     scope_sha: str,
     *,
     settings: Settings | None = None,
-    control_root: Path = CONTROL_ROOT,
+    protocol_path: Path = CONFIG_PATH,
+    control: Path | None = None,
     roots: OutputRoots | None = None,
     facts: Facts = live_facts,
     context_loader: ContextLoader | None = None,
@@ -66,9 +67,11 @@ def execute(
     from shaiwei.research.g1_calibration.runner import run_calibration
 
     settings = settings or load()
-    protocol = load_protocol(settings)
-    envelope = load_approved(scope_sha, control_root)
-    roots = roots or output_roots(settings, envelope.scope.execution_id)
+    protocol = load_protocol(settings, protocol_path)
+    envelope = load_approved(scope_sha, control or control_root(protocol))
+    if envelope.scope.protocol_id != protocol.config.protocol_id:
+        raise ScopeError("approved scope belongs to a different protocol")
+    roots = roots or output_roots(settings, envelope.scope.execution_id, protocol=protocol)
     if roots.data.name != envelope.scope.execution_id or roots.reports.name != envelope.scope.execution_id:
         raise ScopeError("output roots are not bound to the approved execution id")
     live = facts(settings)
@@ -100,9 +103,10 @@ def execute(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--scope", required=True, help="已逐字批准的 scope SHA-256")
+    parser.add_argument("--protocol", type=Path, default=CONFIG_PATH, help="冻结的正控协议配置（默认 v1）")
     args = parser.parse_args(argv)
     try:
-        result = execute(args.scope)
+        result = execute(args.scope, protocol_path=args.protocol)
     except (ScopeError, ProtocolError, IsolationError) as error:
         raise SystemExit(f"{type(error).__name__}: {error}") from error
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))

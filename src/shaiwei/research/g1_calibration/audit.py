@@ -14,13 +14,18 @@ import pyarrow.parquet as pq
 
 from shaiwei.config import PROJECT_ROOT, Settings, load
 from shaiwei.ledger import EXPERIMENTS, FACTOR_ADMISSIONS, G1_CALIBRATION_RUNS, sha256_file
-from shaiwei.research.g1_calibration.judge import judge
+from shaiwei.research.g1_calibration.judge import INCREMENT_SCHEMA, judge
 from shaiwei.research.g1_calibration.ledger_view import complete_rows
-from shaiwei.research.g1_calibration.protocol import ADMISSION_SCOPE, ProtocolIdentity, load_protocol
-from shaiwei.research.g1_calibration.scope import CONTROL_ROOT, load_approved
+from shaiwei.research.g1_calibration.protocol import ADMISSION_SCOPE, CONFIG_PATH, ProtocolIdentity, load_protocol
+from shaiwei.research.g1_calibration.scope import CONTROL_ROOT, control_root, load_approved
 from shaiwei.research.g1_calibration.summary import UnitOutcome, summarize
 
 AUDIT_ROOT = PROJECT_ROOT / "logs" / "g1-calibration-audit"
+
+
+def audit_root(protocol: ProtocolIdentity) -> Path:
+    """v1 → logs/g1-calibration-audit；v2 → logs/g1-calibration-v2-audit（与被审报告目录分开，审计不写被审对象）。"""
+    return PROJECT_ROOT / f"{protocol.config.isolation.reports_dir}-audit"
 
 
 def _path(value: str) -> Path:
@@ -90,9 +95,13 @@ def audit(
             findings.append(f"{unit['experiment_id']}: cell trial set changed after judgment")
         if row is not None and row["main_pass"] != str(verdict.main).lower():
             findings.append(f"{unit['experiment_id']}: calibration ledger main_pass differs")
-        tests = json.loads(_path(json.loads(evidence_path.read_text(encoding="utf-8"))["integrity"]["test_report_path"]).read_text(encoding="utf-8"))
-        if pq.read_schema(_path(tests["factor_panel_path"])).metadata.get(b"admission_scope") != ADMISSION_SCOPE.encode():
-            findings.append(f"{unit['experiment_id']}: factor panel lacks the NOT_FOR_ADMISSION marker")
+        stored = json.loads(evidence_path.read_text(encoding="utf-8"))
+        if stored.get("admission_scope") != ADMISSION_SCOPE:
+            findings.append(f"{unit['experiment_id']}: evidence lacks the NOT_FOR_ADMISSION marker")
+        if stored.get("schema_version") != INCREMENT_SCHEMA:  # N3 增量证据不落面板
+            tests = json.loads(_path(stored["integrity"]["test_report_path"]).read_text(encoding="utf-8"))
+            if pq.read_schema(_path(tests["factor_panel_path"])).metadata.get(b"admission_scope") != ADMISSION_SCOPE.encode():
+                findings.append(f"{unit['experiment_id']}: factor panel lacks the NOT_FOR_ADMISSION marker")
         outcomes.append(UnitOutcome(**base, status="JUDGED", main=verdict.main, layer_a=verdict.layer_a,
                                     layer_b=verdict.layer_b, failed_main=verdict.failed_main))
     if len(run_rows) != sum(unit["status"] == "JUDGED" for unit in document["units"]):
@@ -110,16 +119,19 @@ def audit(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--execution-id", required=True)
+    parser.add_argument("--protocol", type=Path, default=CONFIG_PATH, help="冻结的正控协议配置（默认 v1）")
     args = parser.parse_args(argv)
     settings = load()
+    protocol = load_protocol(settings, args.protocol)
     result = audit(
         args.execution_id,
         settings=settings,
-        protocol=load_protocol(settings),
-        data_dir=settings.runtime.data_root / "research" / "g1-calibration-v1" / args.execution_id,
-        reports_dir=PROJECT_ROOT / "logs" / "g1-calibration" / args.execution_id,
+        protocol=protocol,
+        data_dir=settings.runtime.data_root / "research" / protocol.config.family / args.execution_id,
+        reports_dir=PROJECT_ROOT / protocol.config.isolation.reports_dir / args.execution_id,
+        control_root=control_root(protocol),
     )
-    target = AUDIT_ROOT / args.execution_id / "audit.json"
+    target = audit_root(protocol) / args.execution_id / "audit.json"
     target.parent.mkdir(parents=True, exist_ok=True)
     with os.fdopen(os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644), "w", encoding="utf-8") as handle:
         handle.write(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n")

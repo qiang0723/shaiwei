@@ -73,6 +73,31 @@ def neutralize(raw: pd.Series, research: ResearchData, *, min_cross_section: int
     return residual.sort_index(), daily_ic.sort_index()
 
 
+def neutralize_pit(raw: pd.Series, research: ResearchData, *, min_cross_section: int) -> tuple[pd.Series, pd.Series]:
+    """g1-v2 口径：残差只用当日 PIT 支撑（不与标签合并），标签只在计算 IC 时使用。"""
+    from shaiwei.research.g1_v2 import neutralized_pit
+
+    observations = (
+        raw.rename("factor")
+        .reset_index()
+        .rename(columns={"datetime": "trade_date"})
+        .merge(research.exposures, on=["trade_date", "instrument"])
+    )
+    residual = neutralized_pit(observations, min_cross_section=min_cross_section)
+    residual.index = residual.index.set_names(["datetime", "instrument"])
+    daily_ic = daily_rank_ic(residual, research.labels)
+    if daily_ic.empty:
+        raise CalibrationError("control factor has no valid neutralized daily RankIC")
+    return residual.sort_index(), daily_ic.sort_index()
+
+
+def baseline_copy(predictions: pd.Series, seed: int, weight: float) -> pd.Series:
+    """N3：f = w·z(基线分数) + √(1−w²)·z(噪声)，只在基线有 OOS 分数的日期存在。"""
+    z_base = cross_section_z(predictions)
+    z_noise = cross_section_z(seeded_normal(z_base.index, seed))
+    return blend(z_base, z_noise, weight)
+
+
 def cross_section_z(values: pd.Series) -> pd.Series:
     clean = values.replace([np.inf, -np.inf], np.nan).dropna().sort_index()
     grouped = clean.groupby(level="datetime")

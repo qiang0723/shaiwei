@@ -75,6 +75,22 @@ def summarize(protocol: ProtocolIdentity, outcomes: list[UnitOutcome], *, planne
         if judged_negatives
         else None
     )
+    increment_control = None
+    if "N3" in config.routes:  # v2：N3 只按三个增量门判定，“放行”即任一种子三门全过
+        n3 = [o for o in outcomes if o.route == "N3"]
+        judged_n3 = [o for o in n3 if o.status == "JUDGED"]
+        planned_n3 = len(config.routes["N3"].seed_values())
+        if len(n3) != planned_n3 or len(judged_n3) != len(n3):
+            incomplete.append(f"N3 increment control: {len(judged_n3)}/{planned_n3} judged")
+        released = sum(o.main for o in judged_n3)
+        increment_control = {
+            "planned_seeds": planned_n3, "judged": len(judged_n3), "released": released,
+            "judged_gates": list(config.routes["N3"].judged_gates or ()),
+            "false_release_upper_bound": (
+                clopper_pearson_upper(released, len(judged_n3), config.false_pass_bound.confidence) if judged_n3 else None
+            ),
+        }
+        false_passes += released
     if incomplete:
         state = None
     elif false_passes:
@@ -114,6 +130,7 @@ def summarize(protocol: ProtocolIdentity, outcomes: list[UnitOutcome], *, planne
             "method": config.false_pass_bound.method,
             "dependence_caveat": DEPENDENCE_CAVEAT,
         },
+        **({"increment_control": increment_control} if increment_control is not None else {}),
         "cells": cells,
         "interpretation_boundary": "终态只关于 g1-v1 在本数据、本窗口下的检出能力；R2–R5 只解释、不改变终态。",
     }

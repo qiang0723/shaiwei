@@ -112,9 +112,9 @@ def executed(tmp_path_factory, monkeypatch_module, settings, protocol, research,
     control = tmp_path / "control"
     envelope = _install(_scope(reduced, baseline=baseline), control)
     record_approval(envelope.scope_sha256, approval_text(envelope), control)
-    monkeypatch_module.setattr(execute_module, "load_protocol", lambda _settings: reduced)
+    monkeypatch_module.setattr(execute_module, "load_protocol", lambda *_args: reduced)
     kwargs = dict(
-        settings=settings, control_root=control, roots=roots, facts=lambda _settings: FACTS, admissions=admissions,
+        settings=settings, control=control, roots=roots, facts=lambda _settings: FACTS, admissions=admissions,
         context_loader=lambda s, p, timings: _context(s, p, research, baselines),
     )
     result = execute_module.execute(envelope.scope_sha256, **kwargs)
@@ -167,3 +167,15 @@ def test_independent_audit_recomputes_everything_and_catches_tampering(executed,
     finally:
         report.write_bytes(original)
     assert _audit(executed, settings)["status"] == "PASS"
+
+
+def test_devset_reports_v2_statistics_on_v1_outputs_without_decisions(executed, settings, baselines):  # noqa: F811
+    from shaiwei.research.g1_calibration.devset import SCOPE_NOTE, devset
+    from shaiwei.research.g1_calibration.protocol import CONFIG_PATH_V2, load_protocol
+
+    report = devset(settings, load_protocol(settings, CONFIG_PATH_V2), baselines=baselines, v1_reports_dir=executed["roots"].reports)
+    assert report["scope"] == SCOPE_NOTE and len(report["units"]) == 17
+    assert all("increment_t" in unit and "excess_t" in unit for unit in report["units"])
+    assert set(report["cells"]) == {unit["cell_family"] for unit in report["units"]}
+    text = json.dumps(report)
+    assert '"passed"' not in text and "terminal_state" not in text

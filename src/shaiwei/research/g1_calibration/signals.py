@@ -24,6 +24,7 @@ RATIONALE = {
     "R5": "公开对照：剔除最近 20 日的 12 个月动量，A 股文献记录为不存在，预期不通过，只报告。",
     "N1": "阴性对照：每日截面独立标准正态噪声，不含任何信息，用于估计门的误放率。",
     "N2": "阴性对照：R3 因子值在每日截面内随机打乱，保留分布与时间结构、切断股票对应关系。",
+    "N3": "增量阴性对照：基线分数与独立噪声等权合成，只含基线已有信息，检验增量门是否误把它当增量。",
 }
 
 
@@ -64,6 +65,11 @@ class RunContext:
     def min_cross_section(self) -> int:
         return self.settings.alphagen_benchmark.min_cross_section
 
+    def neutralize(self, raw: pd.Series) -> tuple[pd.Series, pd.Series]:
+        """v1 沿用 g1-v1 中性化（标签非空才进支撑）；v2 用 PIT 支撑（g1-v2 规格 D3）。"""
+        method = controls.neutralize_pit if self.protocol.version == "v2" else controls.neutralize
+        return method(raw, self.research, min_cross_section=self.min_cross_section)
+
     @property
     def discovery(self) -> tuple[object, object]:
         calibration = self.protocol.config.calibration
@@ -83,6 +89,8 @@ def plan_cells(protocol: ProtocolIdentity, noise_seeds: int) -> list[list[Unit]]
     cells.extend([[Unit("R3")], [Unit("R4")], [Unit("R5")]])
     for route in ("N1", "N2"):
         cells.append([Unit(route, None, seed) for seed in config.routes[route].seed_values()[:noise_seeds]])
+    if "N3" in config.routes:  # v2：基线复制对照从不削减
+        cells.append([Unit("N3", None, seed) for seed in config.routes["N3"].seed_values()])
     return cells
 
 
@@ -110,7 +118,7 @@ def _expression_signal(ctx: RunContext, route: str) -> ControlSignal:
         expression = controls.ROUTE_EXPRESSIONS[route]
         stock_data = ctx.r5_stock_data if route == "R5" else ctx.research.stock_data
         raw = ctx.expression_values(expression, stock_data)
-        residual, daily_ic = controls.neutralize(raw, ctx.research, min_cross_section=ctx.min_cross_section)
+        residual, daily_ic = ctx.neutralize(raw)
         audit = _audit(ctx, expression)
         return ControlSignal(
             residual, daily_ic, expression, audit.expression_tokens, audit.ast_nodes,  # type: ignore[attr-defined]
@@ -124,10 +132,10 @@ def _blend_signal(ctx: RunContext, strength: float, seed: int) -> ControlSignal:
     def build() -> ControlSignal:
         z_label = _cached(ctx, "z_label", lambda: controls.cross_section_z(ctx.research.labels))
         label_residual = _cached(
-            ctx, "label_residual", lambda: controls.neutralize(z_label, ctx.research, min_cross_section=ctx.min_cross_section)[0]
+            ctx, "label_residual", lambda: ctx.neutralize(z_label)[0]
         )
         z_noise = controls.cross_section_z(controls.seeded_normal(z_label.index, seed))  # type: ignore[union-attr]
-        noise_residual, _ = controls.neutralize(z_noise, ctx.research, min_cross_section=ctx.min_cross_section)
+        noise_residual, _ = ctx.neutralize(z_noise)
         tolerance = ctx.protocol.config.calibration.tolerance
         calibration = controls.calibrate_blend(
             target=strength,
@@ -138,7 +146,7 @@ def _blend_signal(ctx: RunContext, strength: float, seed: int) -> ControlSignal:
             discovery=ctx.discovery,  # type: ignore[arg-type]
         )
         raw = controls.blend(z_label, z_noise, calibration.a)  # type: ignore[arg-type]
-        residual, daily_ic = controls.neutralize(raw, ctx.research, min_cross_section=ctx.min_cross_section)
+        residual, daily_ic = ctx.neutralize(raw)
         achieved = controls.verify_blend(
             calibration=calibration, residual=residual, daily_ic=daily_ic, label_residual=label_residual,  # type: ignore[arg-type]
             noise_residual=noise_residual, discovery=ctx.discovery, tolerance=tolerance,  # type: ignore[arg-type]
@@ -162,14 +170,20 @@ def build_signal(ctx: RunContext, unit: Unit) -> ControlSignal:
             ctx, "pit_support", lambda: ctx.expression_values(controls.PIT_SUPPORT_EXPRESSION, ctx.research.stock_data).index
         )
         raw = controls.seeded_normal(support, int(unit.seed))  # type: ignore[arg-type]
-        residual, daily_ic = controls.neutralize(raw, ctx.research, min_cross_section=ctx.min_cross_section)
+        residual, daily_ic = ctx.neutralize(raw)
         return _formula_signal("Normal(seed)", residual, daily_ic, pit=True, shift=True)
     if unit.route == "N2":
         r3 = _expression_signal(ctx, "R3")
         r3_raw = _cached(ctx, "r3_raw", lambda: ctx.expression_values(controls.ROUTE_EXPRESSIONS["R3"], ctx.research.stock_data))
         raw = controls.shuffle_within_dates(r3_raw, int(unit.seed))  # type: ignore[arg-type]
-        residual, daily_ic = controls.neutralize(raw, ctx.research, min_cross_section=ctx.min_cross_section)
+        residual, daily_ic = ctx.neutralize(raw)
         return _formula_signal(f"Shuffle({r3.formula},seed)", residual, daily_ic, pit=r3.pit, shift=r3.shift)
+    if unit.route == "N3":
+        weight = float(ctx.protocol.config.routes["N3"].baseline_weight)  # type: ignore[arg-type]
+        predictions = pd.concat([baseline.predictions for baseline in ctx.baselines]).sort_index()
+        raw = controls.baseline_copy(predictions, int(unit.seed), weight)  # type: ignore[arg-type]
+        residual, daily_ic = ctx.neutralize(raw)
+        return _formula_signal("Copy(z(baseline),z(Normal(seed)),w)", residual, daily_ic, pit=True, shift=True, baseline_weight=weight)
     raise ProtocolError(f"unknown route: {unit.route}")
 
 

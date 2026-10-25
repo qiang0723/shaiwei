@@ -15,10 +15,10 @@ from pathlib import Path
 import pandas as pd
 
 from shaiwei.research.factor_portfolio import FactorPortfolioError
-from shaiwei.research.g1 import G1Error, _spec_sha256
+from shaiwei.research.g1 import G1Error, _spec_sha256, periodic_sharpe
 from shaiwei.research.g1_calibration import controls
-from shaiwei.research.g1_calibration.evidence import build_portfolio_evidence
-from shaiwei.research.g1_calibration.judge import DIAGNOSTIC_DSR_RULE, judge
+from shaiwei.research.g1_calibration.evidence import build_increment_series, build_portfolio_evidence
+from shaiwei.research.g1_calibration.judge import DIAGNOSTIC_DSR_RULE, INCREMENT_SCHEMA, judge
 from shaiwei.research.g1_calibration.protocol import ADMISSION_SCOPE, cell_family
 from shaiwei.research.g1_calibration.signals import RATIONALE, RunContext, Unit, build_signal, plan_cells
 from shaiwei.research.g1_calibration.summary import UnitOutcome, summarize
@@ -40,8 +40,66 @@ def _slug(ctx: RunContext, family: str) -> str:
     return family.removeprefix(f"{ctx.protocol.config.family}/")
 
 
+def _judge_spec_sha(ctx: RunContext) -> str:
+    if ctx.protocol.version == "v2":
+        return ctx.protocol.config.judge.spec_config_sha256  # type: ignore[union-attr]
+    return _spec_sha256(ctx.settings)
+
+
+def _dated(series: pd.Series) -> dict[str, float]:
+    return {pd.Timestamp(day).date().isoformat(): float(value) for day, value in series.items()}
+
+
+def _increment_ir(ctx: RunContext, candidate: dict[str, float], baseline: dict[str, float]) -> float:
+    from shaiwei.research.g1_v2 import paired_differences
+
+    return periodic_sharpe(paired_differences(candidate, baseline), minimum=ctx.settings.g1_admission.min_observations)
+
+
+def evaluate_increment_unit(ctx: RunContext, roots: OutputRoots, unit: Unit) -> tuple[str, Path | None, dict[str, object], str]:
+    """N3：只算混合分数与基线分数的逐日 RankIC，按三个增量门判定；不回测、不写面板。"""
+    config = ctx.protocol.config
+    family = cell_family(config, unit.route, unit.strength)
+    experiment = experiment_id(ctx.protocol, family, unit.seed, ctx.code_hash, ctx.data_hash)
+    route = config.routes[unit.route]
+    params: dict[str, object] = {
+        "g1_research_family": family, "protocol_id": config.protocol_id, "route": unit.route,
+        "construction": route.construction, "strength": None, "mode": "increment_only", "direction": route.direction,
+        "judged_gates": list(route.judged_gates or ()),
+    }
+    discovery = f"{config.calibration.discovery_start}~{config.calibration.discovery_end}"
+    try:
+        signal = build_signal(ctx, unit)
+        candidate_ic, baseline_ic = build_increment_series(
+            ctx.settings, factor=signal.residual, baselines=ctx.baselines, direction=float(route.direction or 1)
+        )
+        candidate, baseline = _dated(candidate_ic), _dated(baseline_ic)
+        increment_ir = _increment_ir(ctx, candidate, baseline)
+    except EVIDENCE_ERRORS as error:
+        record_experiment(
+            roots, experiment=experiment, seed=unit.seed, code_hash=ctx.code_hash, data_hash=ctx.data_hash,
+            formula=f"{unit.route} evidence error", params=params,
+            result={"error_type": type(error).__name__, "error": str(error)[:300]}, discovery=discovery,
+        )
+        return experiment, None, {}, type(error).__name__
+    params.update(construction_detail=signal.construction)
+    evidence = {
+        "admission_scope": ADMISSION_SCOPE, "schema_version": INCREMENT_SCHEMA, "candidate_experiment_id": experiment,
+        "research_family": family, "code_snapshot_sha256": ctx.code_hash, "data_snapshot_sha256": ctx.data_hash,
+        "candidate_score_rank_ic": candidate, "baseline_score_rank_ic": baseline,
+    }
+    evidence_path = write_json_once(roots.data / _slug(ctx, family) / experiment / "increment_evidence.json", evidence, root=roots.data, roots=roots)
+    record_experiment(
+        roots, experiment=experiment, seed=unit.seed, code_hash=ctx.code_hash, data_hash=ctx.data_hash,
+        formula=signal.formula, params=params, result={"selection_increment_ir": increment_ir}, discovery=discovery,
+    )
+    return experiment, evidence_path, {}, ""
+
+
 def evaluate_unit(ctx: RunContext, roots: OutputRoots, unit: Unit) -> tuple[str, Path | None, dict[str, object], str]:
     """返回 (实验 ID, 证据路径或 None, 诊断, 错误类型)；任何已知证据错误都如实记账并计入 N。"""
+    if unit.route == "N3":
+        return evaluate_increment_unit(ctx, roots, unit)
     config, settings = ctx.protocol.config, ctx.settings
     family = cell_family(config, unit.route, unit.strength)
     experiment = experiment_id(ctx.protocol, family, unit.seed, ctx.code_hash, ctx.data_hash)
@@ -59,6 +117,16 @@ def evaluate_unit(ctx: RunContext, roots: OutputRoots, unit: Unit) -> tuple[str,
             settings, factor=signal.residual, factor_daily_ic=signal.daily_ic, labels=ctx.research.labels,
             baselines=ctx.baselines, mode=mode, backtest=ctx.backtest,
         )
+        paired: dict[str, object] = {}
+        if ctx.protocol.version == "v2":  # g1-v2 证据 schema 2：逐日配对序列；不足 252 个配对日即证据错误
+            paired = {
+                "neutralization": "pit_support",
+                "candidate_score_rank_ic": _dated(portfolio.candidate_score_ic),
+                "baseline_score_rank_ic": _dated(portfolio.baseline_score_ic),
+                "candidate_daily_net_excess": _dated(portfolio.candidate_daily_excess),
+                "baseline_daily_net_excess": _dated(portfolio.baseline_daily_excess),
+            }
+            increment_ir = _increment_ir(ctx, paired["candidate_score_rank_ic"], paired["baseline_score_rank_ic"])  # type: ignore[arg-type]
     except EVIDENCE_ERRORS as error:
         record_experiment(
             roots, experiment=experiment, seed=unit.seed, code_hash=ctx.code_hash, data_hash=ctx.data_hash,
@@ -83,7 +151,7 @@ def evaluate_unit(ctx: RunContext, roots: OutputRoots, unit: Unit) -> tuple[str,
     test_ref, test_sha = artifact(test_path)
     metrics = portfolio.metrics
     evidence = {
-        "admission_scope": ADMISSION_SCOPE, "schema_version": 1, "candidate_experiment_id": experiment,
+        "admission_scope": ADMISSION_SCOPE, "schema_version": 2 if paired else 1, "candidate_experiment_id": experiment,
         "research_family": family, "code_snapshot_sha256": ctx.code_hash, "data_snapshot_sha256": ctx.data_hash,
         "economic_rationale": RATIONALE[unit.route],
         "complexity": {"expression_tokens": signal.tokens, "ast_nodes": signal.nodes},
@@ -100,13 +168,15 @@ def evaluate_unit(ctx: RunContext, roots: OutputRoots, unit: Unit) -> tuple[str,
             **{key: value for key, value in metrics.items() if key != "selection_sharpe"},
             "daily_net_excess_returns": portfolio.daily_net_excess,
         },
+        **paired,
     }
     evidence_path = write_json_once(directory / "g1_evidence.json", evidence, root=roots.data, roots=roots)
+    result = {**metrics, "factor_test_report_path": test_ref, "factor_test_report_sha256": test_sha}
+    if paired:
+        result["selection_increment_ir"] = increment_ir
     record_experiment(
         roots, experiment=experiment, seed=unit.seed, code_hash=ctx.code_hash, data_hash=ctx.data_hash,
-        formula=signal.formula, params=params,
-        result={**metrics, "factor_test_report_path": test_ref, "factor_test_report_sha256": test_sha},
-        discovery=discovery,
+        formula=signal.formula, params=params, result=result, discovery=discovery,
     )
     return experiment, evidence_path, portfolio.diagnostics, ""
 
@@ -116,7 +186,7 @@ def judge_cell(ctx: RunContext, roots: OutputRoots, unit: Unit, experiment: str,
     family = cell_family(config, unit.route, unit.strength)
     verdict = judge(ctx.settings, ctx.protocol, evidence_path, experiments_path=roots.experiments)
     evidence_ref, evidence_sha = artifact(evidence_path)
-    spec_sha = _spec_sha256(ctx.settings)
+    spec_sha = _judge_spec_sha(ctx)
     report = {
         "schema_version": 1, "admission_scope": ADMISSION_SCOPE, "protocol_id": config.protocol_id,
         "protocol_config_sha256": ctx.protocol.config_sha256, "protocol_document_sha256": ctx.protocol.document_sha256,
@@ -129,6 +199,7 @@ def judge_cell(ctx: RunContext, roots: OutputRoots, unit: Unit, experiment: str,
         "layers": {"A_signal": verdict.layer_a, "B_transmission": verdict.layer_b, "main": verdict.main},
         "failed_main_gates": list(verdict.failed_main),
         "pit_and_shift_exempt": unit.route in {"R1", "R2"},
+        "judged_gates": list(config.routes[unit.route].judged_gates or verdict.gates),
         "gates": verdict.gates, "statistics": verdict.statistics,
         "diagnostic_dsr": {"rule": DIAGNOSTIC_DSR_RULE, "values": verdict.diagnostic_dsr},
         "diagnostics": diagnostics,
