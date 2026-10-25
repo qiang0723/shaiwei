@@ -5,6 +5,7 @@
   `docs/G1_V2_RECALIBRATION_PROTOCOL_DRAFT_20261025.md` D1–D4 的裁决（均选建议项）
 - `g1-v1`（`docs/G1_SPEC.md`、`config/settings.yaml:g1_admission`、`src/shaiwei/research/g1.py`）**原样保留**，其 29 份历史裁决不重算、不覆盖
 - **g1-v2 只有在 `g1-positive-control-v2` 终态为 `G1_CALIBRATED` 之后才可用于任何真实候选**；在此之前不得裁决任何真实因子
+- **启用（2026-10-25）**：`g1-positive-control-v2` 终态 `G1_CALIBRATED`、独立审计 PASS，用户确认启用；GATES.md 已追加“G1 执行解释 v2”
 - `docs/GATES.md` 的 G1 执行解释段只在 g1-v2 标定为 `G1_CALIBRATED` 且用户确认启用后才追加；在此之前 GATES.md 不改
 
 ## 1. 与 G1 冻结文字的对应
