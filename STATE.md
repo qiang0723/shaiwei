@@ -1,5 +1,15 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-10-29 · TP-F-1 趋势回踩联合状态正式小批协议冻结（结果前、实现前）
+
+TP-F-0B `GO_FORMAL_PROTOCOL` 授权起草。RF-1 同规格、裁判改为已启用的 g1-v2。用户 D1–D4 均选建议项：候选须满足 TP-F-0B 联合状态签名（实现
+`signature.py` 哈希绑定，不满足即拒并计预算）；Top1/Top2 按 g1-v2 发现期 `selection_increment_ir` 机械选择，方向取发现期 RankIC 符号只冻结一次；
+DSR 家族 N 计全部完成响应（≤8，含失败与重复）；`deepseek-v4-pro`（不可用即 BLOCKED 不换模型）≤8 响应、≤3 合格候选、单批 $1、总 $2（第二批只用于
+BLOCKED 后恢复协议）。去重：规范 AST 对 RF-0B 封存/Alpha158/三本 LLM 账本/R3–R5，语义对 TS v5 与 D1-v2 已有联合状态式；暴露、增量 IC、组合增量由
+g1-v2 门执行。效果只读 g1-v2 区间，缺失沿用既有管线不填充，只写 v2 准入与总账。冻结 `docs/TP_F_1_FORMAL_SMALL_BATCH_PROTOCOL_20261029.md` +
+`config/tp_f_1_formal_small_batch_v1.yaml`（sha256 `ec38b15a679a144cb74be565fbfe53de8ba355e36e6289519d8944d89d46a809`）。执行三门：R2-1R1 锁存并经用户看过
+报告 + 精确 scope 逐字授权 + 冻结 release。TP-F 公式 0。本地提交，推送待放行；推送前不写实现。
+
 ## 2026-10-29 · R2-1R1 连续区段自然前瞻检查点协议冻结（实现前）
 
 用户“两个一起起草，先R2-1R1”。起草只读 paper_runs 身份/时间列与 shadow_runs `rebalance_due`（未读净值/收益）：08-03—10-28 开市 57 日、

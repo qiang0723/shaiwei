@@ -1,0 +1,141 @@
+schema_version: tp-f-1-formal-small-batch-protocol-v1
+protocol_id: tp-f-1-trend-pullback-joint-state-001
+prepared_on: "2026-10-29"
+status: RESULT_BLIND_FORMAL_PROTOCOL_FROZEN_PENDING_R2_1R1_LATCH_USER_BATCH_AUTHORIZATION_AND_RELEASE
+document: docs/TP_F_1_FORMAL_SMALL_BATCH_PROTOCOL_20261029.md
+strategy_family: TP-F
+production_authorization: none
+
+user_decisions_2026_10_29:
+  d1_mechanism_constraint: hard_joint_state_signature_required
+  d2_selection_metric: g1_v2_discovery_selection_increment_ir
+  d3_family_n: all_completed_responses_including_failures_and_duplicates
+  d4_budget: single_batch_1_usd_total_2_usd_second_batch_only_for_blocked_recovery
+
+objective:
+  mechanism: csi800_trend_pullback_quality_joint_state_cross_sectional_score
+  primary_question: >-
+    whether the joint state of trend quality and pullback quality provides stable, non-duplicate,
+    cost-adjusted incremental information beyond Alpha158 and the core industry/size exposures for
+    PIT CSI800 members under the fixed t+1 open to t+11 open label
+  falsification_first: true
+  downstream_decision: g1_v2_judge_decides_pass_or_reject
+  direct_production_or_mainline_change: forbidden
+
+authority_chain:
+  tp_f_0a: {path: docs/TP_F_0A_TREND_PULLBACK_FACTOR_PREPARATION_20260820.md, sha256: 7264c8f3aacb98f39ae37464f026bb0dd457310cc0ee839938d970325df3ec38}
+  tp_f_0b_protocol: {path: config/tp_f_0b_data_identity_preflight_v1.yaml, sha256: b5bc05f51e5701208320c96e2551e192deade69e60f6eb5fd33debcd10cee87a}
+  tp_f_0b_addendum_a1: {path: config/tp_f_0b_data_identity_preflight_addendum_a1.yaml, sha256: 00457fd99f55fd3ae6fd31152867f7e87684ecd63676fbe725878344e81af80b}
+  tp_f_0b_acceptance: {path: docs/TP_F_0B_ACCEPTANCE_20261029.md, sha256: fa7ac324220529a112198d96aa60e3bccfaf41f76d829c16b1e45d42e5a0a639, verdict: GO_FORMAL_PROTOCOL}
+  tp_f_0b_evidence:
+    execution_id: tpf0b-49824fdfc7ef-20261029T035449Z
+    profile_sha256: aa541a3c4b26951edcefc3d066bcd2dde532d7ae5a0eb83124a0bf36a00fe100
+    identity_registry_sha256: 7ba180186d972a8411759cd5c8683522ad731edfb400551c151aaced43195289
+    audit_sha256: 60fb711c27bbe59099437d116468a50bd0b6b4c5bb64b4361092ccafbcacf4f2
+  shape_reference: {path: config/rf_1_formal_single_mechanism_v1.yaml, sha256: 357975f23a039672bd46d4ba4f77bbf528797f1749980271a7170223ac37afdc}
+  judge: {spec: config/g1_v2_spec.yaml, spec_sha256: 8ecce43fb191761c367e61323833738a8ce9c5f9e8f592d3b2d47830d48ab77c, document_sha256: a8f193ebf41ac94badba74a02317ee069d8c96e294fba9c36afc74988fe81ebc}
+  execution_requires_all_of:
+    - r2_1r1_checkpoint_latched_and_report_seen_by_user
+    - explicit_user_exact_scope_batch_authorization
+    - frozen_execution_release_before_any_llm_call
+  r2_1r1_protocol: {path: config/r2_1r1_continuous_segment_checkpoint_v1.yaml, sha256: d7c483470ac25757c8d3111cfc3e64e0ff6da1c67f1ce3c3ae71f619beea76a4}
+
+result_blind_baseline:
+  head_before_freeze: 8ba0b81
+  tp_f_formulas_existing: 0
+  not_parameter_sources: [ts_effect_values, g1_v2_rejudge_results, tp_f_0b_counts_except_missing_value_handling_text]
+
+batch_contract:
+  provider: deepseek
+  model: deepseek-v4-pro
+  model_unavailable: BLOCKED_no_substitution
+  completed_responses_maximum: 8
+  qualified_candidates_maximum: 3
+  single_batch_hard_ceiling_usd: 1.00
+  total_tp_f_ceiling_usd: 2.00
+  second_batch_only_under_recovery_protocol_after_blocked: true
+  transport_retries_per_attempt_maximum: 2
+  duplicate_or_failed_responses_count_toward_budget: true
+  no_backfill_or_substitution: true
+  serial_calls_only: true
+  prompt_frozen_and_hash_bound_in_release: true
+  prompt_contains_effect_information: false
+
+candidate_contract:
+  grammar: {source: src/shaiwei/research/alphagen_expression.py, sha256: 5bc20c3b520366d48fea36a815c59d25dbffc600372a859fca8b63dddc33ab37}
+  allowed_features: [$open, $close, $high, $low, $volume, $vwap]
+  maximum_window_days_per_operator: 50
+  maximum_required_backtrack_trade_days: 100
+  maximum_expression_tokens: 20
+  maximum_ast_nodes: 80
+  canonical_expression_required: true
+  economic_rationale_minimum_chars: 20
+  placeholder_rationale_forbidden: true
+  joint_state_signature_required:
+    rule: tp_f_0b_identity_registry_joint_state_signature
+    implementation: {path: src/shaiwei/research/tp_f_0b/signature.py, sha256: a7b0b459f9291baa75baf8571df3c1eb1f1d49dbfac6ce94284476bad6cc3c25}
+    known_limitation: moving_average_crossovers_and_affine_close_location_variants_are_not_components
+  identity_rejection:
+    canonical_ast_equal_to_any: [rf_0b_sealed_registry, tp_f_0b_alpha158, tp_f_0b_attempt_ledgers_d1_v2_m1_m3, g1_route_references_R3_R4_R5]
+    semantic_equivalent_to_any: [ts_v5_semantic_signatures, tp_f_0b_d1_v2_joint_state_expression]
+  rejected_candidates_count_toward_budget: true
+
+dedup_five_layers:
+  - {layer: canonical_ast, executed_at: candidate_contract}
+  - {layer: semantic_mechanism_blind_review, executed_at: formal_batch_as_frozen_in_rf_1}
+  - {layer: exposure, executed_at: g1_v2_library_correlation_gate}
+  - {layer: incremental_ic, executed_at: g1_v2_incremental_icir_t_gate}
+  - {layer: portfolio_increment, executed_at: g1_v2_excess_noninferiority_cost_2x_slippage_2x_gates}
+
+discovery_selection:
+  universe_id: csi800-pit-v1
+  period: {start: "20160101", end: "20181231"}
+  label_clock: t_plus_1_open_entry_t_plus_11_open_exit
+  minimum_valid_daily_ic_observations: 252
+  warmup_before_qlib_calendar_start: nan_dropped_by_pit_support_no_fill
+  evaluated: all_qualified_candidates
+  selection: mechanical_top1_top2_by_g1_v2_discovery_selection_increment_ir
+  direction_frozen_once_at_selection: sign_of_discovery_rank_ic
+  no_parameter_grid: true
+
+effect_stage:
+  judge: g1_v2_all_15_gates
+  attempted_candidates: top1_then_top2_only
+  read_span: [discovery_2016_2018, W1_W6_2019_2024, stress_2017, stress_2024_01_02, stress_2026h1]
+  read_beyond_g1_v2_span: forbidden
+  missing_values: existing_g1_v2_pipeline_no_fill
+  known_missing_counts_from_tp_f_0b: {exit_day_open_missing_member_days: 8246, sw_l1_none_member_days: 15375, warmup_before_qlib_calendar_member_days: 79200}
+  family_n: all_completed_responses_including_failures_and_duplicates
+  trial_variance_from: discovery_increment_irs_of_all_qualified_candidates
+  fewer_than_two_valid_trial_irs: valid_trial_increment_irs_gate_fails_as_recorded
+  ledgers_written: [factor_admissions_v2, experiments]
+  factor_library_or_v1_admissions_write: forbidden
+
+attempt_accounting:
+  llm_generation_attempts_counted_including_failures: true
+  discovery_evaluations_are_design_search_not_effect_trials: true
+  budget_exhaustion_or_insufficient_qualified_candidates_closes_tp_f: true
+
+result_firewall:
+  forbidden:
+    - read_outside_g1_v2_span
+    - production_or_mainline_model_change
+    - paper_or_scheduler_change
+    - web_change
+
+execution_control:
+  external_network_only_deepseek_https_in_llm_lane: true
+  secret_read_scoped_to_deepseek_key_in_llm_container_only: true
+  other_containers_network_none: true
+  source_mounts_read_only: true
+  output_write_once: true
+  same_scope_rerun: forbidden
+  audit_per_batch: independent
+  implementation_before_push: forbidden
+
+verdicts:
+  top1_or_top2_g1_v2_pass: GO_SEPARATE_ADMISSION_OR_PAPER_PROTOCOL_PROPOSAL_ONLY
+  both_reject_or_insufficient_candidates_or_budget_exhausted: REJECT_TP_F_AND_CLOSE
+  contract_or_execution_failure: BLOCKED_TP_F_1
+  strategy_effective: NOT_EVALUATED_until_g1_v2
+  production_authorization: none
