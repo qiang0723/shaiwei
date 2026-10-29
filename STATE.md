@@ -1,5 +1,14 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-10-29 · R2-1R1 连续区段自然前瞻检查点协议冻结（实现前）
+
+用户“两个一起起草，先R2-1R1”。起草只读 paper_runs 身份/时间列与 shadow_runs `rebalance_due`（未读净值/收益）：08-03—10-28 开市 57 日、
+live-dual 45、缺口 12 日 9 段，最长区段 08-17—09-10 为 19 日/1 次调仓；两账户策略 SHA 全程不变；10-22 起 R2D 新生产代码快照 `8b5b8877`。
+D1–D3 用户均选建议项：缺口、策略身份变化或生产代码快照变化均重置（一个区段一个 release）；首个达 20 日/2 次调仓的区段锁存并一次性出 write-once
+描述报告；离线只读 CLI、Web 不改。冻结 `docs/R2_1R1_CONTINUOUS_SEGMENT_CHECKPOINT_PROTOCOL_20261029.md` + `config/r2_1r1_continuous_segment_checkpoint_v1.yaml`
+（sha256 `d7c483470ac25757c8d3111cfc3e64e0ff6da1c67f1ce3c3ae71f619beea76a4`）。当前区段 10-22 起 5 日/0 次调仓，锚点 10-21；计划最早到期约 11-18
+（检查点期间发布 scheduler 会重置）。v1 保持 `BLOCKED_EVIDENCE`；v1 网页日历 10-30 到期仅披露。本地提交，推送待放行；推送前不写实现。
+
 ## 2026-10-29 · TP-F-0B 预检完成：`GO_FORMAL_PROTOCOL`（独立审计 PASS）
 
 用户“生成scope和逐字批准文本”后逐字批准（全文见验收文档）：scope `3c60743ca983b8a40ad0bdd39e679ef25c73c5f3fa7c601aa9402fa1f5ad149e`，镜像

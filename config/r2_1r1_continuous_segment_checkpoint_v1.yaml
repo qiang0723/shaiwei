@@ -1,0 +1,136 @@
+schema_version: 1
+protocol_id: r2-1r1-continuous-segment-checkpoint-v1
+frozen_at: 2026-10-29T14:30:00+08:00
+status: FROZEN_DESCRIPTIVE_ONLY
+document: docs/R2_1R1_CONTINUOUS_SEGMENT_CHECKPOINT_PROTOCOL_20261029.md
+
+predecessor:
+  protocol_id: r2-1-forward-checkpoint-v1
+  config: {path: config/r2_1_forward_checkpoint_v1.yaml, sha256: 4b78cad26baed27fefdec2b290c7df5d2cb5e5042adb9334e678f3a15ac0a29f}
+  document: {path: docs/R2_1_FORWARD_CHECKPOINT_PROTOCOL_20260809.md, sha256: 0c2a05c15d7a585836119a07c6394c0ea779e9648807917190e9fd3b171196c1}
+  blocked_audit: {path: docs/R2_1_FORWARD_CHECKPOINT_BLOCKED_EVIDENCE_AUDIT_20260824.md, sha256: ca59fa9d45df42abe04cac48cc9a07737834b504f6e0f8cdcff54bb3359e5d75}
+  terminal_state_preserved: BLOCKED_EVIDENCE
+  rewrite_backfill_or_rename_allowed: false
+
+user_decisions_2026_10_29:
+  d1_segment_reset: B_evidence_gap_or_policy_identity_change_or_production_code_snapshot_change
+  d2_latch: latch_first_segment_reaching_gate_with_single_write_once_report
+  d3_evaluator: offline_read_only_cli_web_unchanged
+
+authority:
+  strategy_effect_gate: NOT_DEFINED
+  production_switch_authorized: false
+  new_research_attempt_count: 0
+  current_partial_results_already_known: true
+  drafting_read_columns_only: [account_id, started_at, signal_trade_date, execution_trade_date, status, signal_sha256, reconciliation_sha256, data_snapshot_sha256, code_snapshot_sha256, policy_sha256, freshness_status, operator, rebalance_due]
+  segment_rule_depends_on_returns: false
+
+accounts:
+  control: {account_id: model_baseline, execution_policy_version: paper-v1, policy_sha256: eaa341b5a3eee94347c7a8453a3e52f1986e3707abfbb6bb69a6d9298c320cc8}
+  comparison: {account_id: model_top20, execution_policy_version: paper-top20-v1, policy_sha256: d11d773bd79719641dc1bbc35976d4899fddb730d0f3673094cb6f20cc7840c8}
+  initial_capital_rmb_each: 500000
+  benchmark: 000906.SH
+
+calendar:
+  source_api: tushare.trade_cal
+  exchange: SSE
+  batches: latest_ingest_ledger_batch_per_params_key
+  coverage_known_at_freeze_through: '20261130'
+  as_of_beyond_coverage: BLOCKED_EVIDENCE_CALENDAR_NOT_COVERING_AS_OF
+
+history_start_execution_date: '20260803'
+
+live_dual_day_predicates:
+  - both_rows_status_PASS
+  - both_artifacts_mode_FORWARD
+  - both_operators_equal_docker_scheduler
+  - both_started_at_local_date_equal_execution_trade_date
+  - account_ids_and_policy_sha256_match_frozen_accounts
+  - signal_trade_date_execution_trade_date_signal_sha256_reconciliation_sha256_match
+  - data_snapshot_sha256_and_code_snapshot_sha256_match_between_accounts
+  - exactly_one_PASS_row_per_account_per_official_open_day
+  - replay_accounting_freshness_and_bse_zero_pass_for_both_accounts
+
+segment:
+  definition: maximal run of consecutive official SSE open days ending at as_of in which every day is live_dual
+  reset_on:
+    - official_open_day_not_live_dual
+    - account_policy_sha256_change
+    - code_snapshot_sha256_differs_from_previous_live_dual_day
+  code_change_day_starts_new_segment_if_live_dual: true
+  gap_is_blocking: false
+  disclose_all_gaps_and_reset_count: true
+
+rebalance_cycle_predicate:
+  - matched_shadow_signal_rebalance_due_true
+  - day_is_live_dual_inside_segment
+  - order_and_fill_counts_reported_even_when_zero
+
+anchor:
+  rule: last_common_PASS_state_of_both_accounts_before_segment_first_day
+  anchor_is_observation: false
+  anchor_stratum_always_disclosed: true
+
+gate:
+  minimum_segment_live_dual_days: 20
+  minimum_segment_rebalance_cycles: 2
+  latch_on_first_reach: true
+  descriptive_report: single_write_once
+  later_gaps_revoke_latch: false
+
+terminal_states:
+  NOT_DUE: current_segment_below_gate
+  BLOCKED_EVIDENCE: contract_failure_identity_calendar_replay_or_accounting
+  OBSERVED_WITH_EXECUTION_WARN: gate_reached_with_nonfatal_execution_or_notification_warning
+  CHECKPOINT_OBSERVED: gate_reached
+
+progress_outputs_counts_only: [segment_first_day, segment_live_dual_days, segment_rebalance_cycles, segment_code_snapshot, gap_days, reset_count, next_official_open_day, latch_status]
+descriptive_outputs_at_latch_only:
+  per_account: [anchored_portfolio_nav, anchored_benchmark_nav, anchored_net_excess, maximum_drawdown, cumulative_turnover, checkpoint_fees, latest_and_mean_cash_ratio, latest_position_count]
+  paired: [top20_minus_top30_anchored_portfolio_nav, top20_minus_top30_anchored_net_excess, rebalance_order_fill_and_rejection_comparison, execution_coverage_and_freshness_comparison]
+  formulae_same_as_predecessor: true
+
+prohibited_outputs:
+  - winner_or_loser_label
+  - strategy_effective_or_ineffective
+  - production_switch_recommendation
+  - annualized_return
+  - annualized_volatility
+  - sharpe_ratio
+  - information_ratio
+  - p_value_or_significance_claim
+  - pooling_controlled_catchup_or_prior_segments_with_latched_segment
+  - silently_dropping_missing_trade_dates
+  - changing_model_topk_rebalance_cost_or_capital
+  - nav_or_return_values_before_latch
+
+known_facts_at_freeze:
+  as_of_execution_date: '20261028'
+  official_open_days: 57
+  live_dual_days: 45
+  gap_days: ['20260813', '20260814', '20260911', '20260916', '20260921', '20260922', '20260929', '20260930', '20261008', '20261012', '20261014', '20261020']
+  gap_runs: 9
+  longest_prior_segment: {first: '20260817', last: '20260910', live_dual_days: 19, rebalance_cycles: 1}
+  production_code_snapshot_change: {from: 4e5244b6, to: 8b5b8877, first_day: '20261022', reason: R2D_new_production_including_ADR_0015}
+  current_segment: {first_day: '20261022', live_dual_days: 5, rebalance_cycles: 0, anchor_execution_date: '20261021'}
+  natural_rebalance_execution_dates: ['20260814', '20260828', '20260911', '20260928', '20261019']
+  planning_only: {next_rebalances: ['20261102', '20261116'], earliest_due: '20261118'}
+
+evaluator:
+  form: offline_read_only_cli_and_make_target
+  web_changes: none
+  predecessor_web_page: remains_BLOCKED_EVIDENCE_and_gains_OFFICIAL_CALENDAR_COVERAGE_EXPIRED_after_20261030_disclosure_only
+  writes: progress_none_report_write_once_at_latch
+  descriptive_report_run_requires_user_go_ahead: true
+
+downstream:
+  satisfies: r2_1_forward_checkpoint_gate_of_rf_1_and_tp_f_formal_batches
+  latched_states_satisfying: [CHECKPOINT_OBSERVED, OBSERVED_WITH_EXECUTION_WARN]
+  user_must_see_report_before_formal_batch: true
+  formal_batch_still_requires: [per_batch_user_authorization, frozen_release]
+
+execution_control:
+  implementation_before_push: forbidden
+  production_scheduler_account_signal_or_web_change: false
+  ledger_or_artifact_mutation: false
+  rule_change_after_freeze: explicit_supersession_only
