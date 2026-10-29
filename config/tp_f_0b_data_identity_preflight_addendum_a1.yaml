@@ -1,0 +1,46 @@
+schema_version: tp-f-0b-data-identity-preflight-addendum-a1-v1
+addendum_id: tp-f-0b-addendum-a1-raw-coverage-basis
+prepared_on: "2026-10-29"
+status: RESULT_BLIND_ADDENDUM_FROZEN_BEFORE_GATE_IMPLEMENTATION_AND_BEFORE_ANY_REAL_PROFILE
+document: docs/TP_F_0B_DATA_IDENTITY_PREFLIGHT_ADDENDUM_A1_20261029.md
+production_authorization: none
+
+parent_protocol:
+  path: config/tp_f_0b_data_identity_preflight_v1.yaml
+  sha256: b5bc05f51e5701208320c96e2551e192deade69e60f6eb5fd33debcd10cee87a
+  document_path: docs/TP_F_0B_DATA_IDENTITY_PREFLIGHT_PROTOCOL_20261027.md
+  document_sha256: a3ebc0c9cf44871b4b7ecc770896c57f4b9e150e95bc7f58aa1f0afca577caec
+  original_text_preserved: true
+
+user_ruling_2026_10_29: exclude_two_layer_confirmed_suspension_days_from_raw_coverage_denominator
+
+single_change:
+  gates_affected: [raw_open_coverage_minimum, raw_prev_close_join_minimum]
+  superseded_basis: all_pit_csi800_member_days_as_in_rf_0c
+  new_basis: member_days_not_confirmed_suspended_by_rf_0c_two_layer_rule
+  denominator: member_day_count - NO_BAR_SUSPENDED
+  numerator_open: member days with a bar and no OPEN_MISSING_OR_NONPOSITIVE class
+  numerator_prev_close: member days with a bar and no PRE_CLOSE_MISSING_OR_NONPOSITIVE class
+  no_bar_unexplained_days_stay_in_denominator: true
+  thresholds_unchanged: {raw_open_coverage_minimum: 0.99, raw_prev_close_join_minimum: 0.99}
+  all_member_day_ratios: report_only
+  other_gates_period_signature_and_verdict_rules_unchanged: true
+
+reason:
+  d3_period_extended_to: "20160104"
+  rf_0c_basis_period: {start: "20190102", end: "20251231", suspended_share_of_member_days: 0.0013}
+  pre_existing_evidence:
+    path: data/research/trend_swing/ts-v3-data-gate-r3/profile_report.json
+    sha256: 633346e7df4f1e0fc091273c7aa98a9eb826d38859dcac50c89be31ba3359e98
+    span: {start: "20160104", end: "20260811"}
+    eligible_member_days: 2060710
+    confirmed_nontrading_days: 31766
+    unexplained_missing_days: 0
+    all_member_day_bar_share_upper_bound: 0.98459
+  reading: the all-member-day basis over the D3 span measures market suspensions, not field completeness; completeness stays bound by the unclassified-missing gate
+  disclosure: the change is motivated by pre-existing TS v3 data-gate evidence that the literal basis cannot reach 0.99; no TP-F-0B profile, candidate value, distribution or outcome has been computed
+
+result_blind:
+  tp_f_0b_real_profile_runs: 0
+  tp_f_formulas_existing: 0
+  change_after_real_profile: forbidden
