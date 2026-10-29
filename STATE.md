@@ -1,5 +1,13 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-10-29 · TP-F-1 镜像与镜像内 fixture 通过（修复一处已发布运行时的锁问题后）
+
+用户“推送，构建镜像并跑镜像内fixture”：bc84eff 已推送。首个镜像 `shaiwei:tp-f-1-8cbcf23158fd` 内 fixture 失败——已发布运行时按设计拒绝给非正式
+账本路径加锁（`released runtime lacks Docker lock authority`），fixture 的合成生成写临时账本触发；宿主无此约束故测试未暴露。修复 fa6c837：生成的账本
+追加入口可注入（默认仍为 `shaiwei.ledger`），fixture 注入逐列对表头的记录器；新增宿主回归测试在模拟已发布运行时下跑 fixture，并核实旧写法在同条件下必失败。
+全量 2,612 通过/1 跳过。重建镜像 `shaiwei:tp-f-1-df3cf863c40e`（id `sha256:12f02191…`），镜像内断网 fixture PASS（报告
+`logs/tp-f-1/fixture/fixture-20261029T152624Z.json`，sha `94b66bef…`）；旧镜像 8cbcf231 作废。fa6c837 本地，推送待放行。LLM 调用 0。
+
 ## 2026-10-29 · TP-F-1 工程完成（合成测试），执行三门未满足
 
 补遗 A1 之后分三段提交：12761b9（合同/候选合同/冻结提示词 `config/tp_f_1_prompt_v1.yaml`/盲评）、230d868（串行生成：复用审计过的 DeepSeek 传输层，
