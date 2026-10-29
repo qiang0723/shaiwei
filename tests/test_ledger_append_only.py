@@ -54,6 +54,8 @@ LEDGERS = [
     "ledger/ts_v5_r3c_llm_transports.csv",
     "ledger/ts_v5_r3f_llm_attempts.csv",
     "ledger/ts_v5_r3f_llm_transports.csv",
+    "ledger/tp_f_1_llm_attempts.csv",
+    "ledger/tp_f_1_llm_transports.csv",
 ]
 
 
