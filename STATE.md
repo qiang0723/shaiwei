@@ -9,6 +9,13 @@
 全成员日比例只报告。冻结 `docs/TP_F_0B_DATA_IDENTITY_PREFLIGHT_ADDENDUM_A1_20261029.md` + `config/tp_f_0b_data_identity_preflight_addendum_a1.yaml`；
 原协议原文保留，旧口径以本条作废。TP-F-0B 真实画像 0 次、TP-F 公式 0。
 
+**工程（序列第②步）完成**，说明见 `docs/TP_F_0B_ENGINEERING_20261029.md`：新包 `src/shaiwei/research/tp_f_0b/`（复用 RF-0C 分类器、
+`recovery_store`、RF-0B 注册表规则与生产涨跌停函数，不复制）+ `compose.tp-f-0b.yaml`（断网、只读、宿主 UID、不写账本）+ make 目标 + 构建资产
+组件 `tp-f-0b`（102 项）。18 例全合成 fixture 走真实的库→面板→分类路径，全过；削弱机器时失败关闭。封存注册表按 RF-0B 原规则逐字节复现。
+实现口径（均在任何真实普查/画像前确定）：申万 L1 沿用 TS v3 同一 PIT 机器；qlib 门按字面“有 bar 成员日六特征全非缺失”；联合状态签名按冻结原文
+字面实现（均线交叉类不算分量，列为已知局限）；裁决优先级 REJECT_DUPLICATE > BLOCKED_DATA > GO。合成 210 万行压测：分类约 5 秒、峰值约 2.1 GB。
+下一步（各需单独授权）：推送 → 构建镜像并在镜像内跑 fixture → 精确 scope + 逐字批准 → 唯一画像 + 独立审计。
+
 ## 2026-10-27 · TP-F-0B 结果盲数据与身份预检协议冻结（结果前、实现前）
 
 开工体检：10-26、10-27 日链 PASS（10-27 影子信号生成），scheduler/Web/巡检 healthy。用户“推送，开始起草TP-F-0B协议”：5cba74b 已推送。

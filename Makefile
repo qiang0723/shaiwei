@@ -13,6 +13,7 @@
 .PHONY: ops-patrol-build ops-patrol-dry-run ops-patrol-up ops-patrol-drill ops-patrol-status ops-patrol-down
 .PHONY: docker-g1-calibration-build docker-g1-calibration-pilot g1-calibration-scope-prepare g1-calibration-record-approval docker-g1-calibration-run docker-g1-calibration-audit docker-g1-calibration-devset
 .PHONY: docker-g1-v2-rejudge-precheck g1-v2-rejudge-scope-prepare g1-v2-rejudge-record-approval docker-g1-v2-rejudge-run docker-g1-v2-rejudge-audit
+.PHONY: docker-tp-f-0b-build docker-tp-f-0b-fixture tp-f-0b-scope-prepare tp-f-0b-record-approval docker-tp-f-0b-profile docker-tp-f-0b-audit
 VENV ?= .venv
 PYTHON_BASE ?= python3
 PYTHON := $(VENV)/bin/python
@@ -541,6 +542,39 @@ docker-g1-v2-rejudge-audit: ## 重判独立审计（被审对象只读）；SCOP
 	  mkdir -p logs/g1-v2-audit; \
 	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_G1_REJUDGE_IMAGE="$$image" SHAIWEI_G1_REJUDGE_EXECUTION="$(EXECUTION)" \
 	  $(G1_REJUDGE_COMPOSE) --profile audit run --rm --no-deps g1-v2-rejudge-audit
+TPF0B_COMPOSE := docker compose -p shaiwei-tp-f-0b -f compose.tp-f-0b.yaml
+TPF0B_RELEASE := $(PYTHON) -m shaiwei.research.tp_f_0b.release
+docker-tp-f-0b-build: ## TP-F-0B 断网镜像 shaiwei:tp-f-0b-<代码快照12位>：须已提交、工作树干净；只构建不运行
+	@test -z "$$(git status --porcelain --untracked-files=no)" || (echo "tracked worktree is dirty"; exit 2)
+	docker build -f Dockerfile --build-arg SHAIWEI_RELEASE_GIT_HEAD="$$(git rev-parse HEAD)" -t shaiwei:tp-f-0b-build .
+	@image_snapshot="$$(docker run --rm --network none shaiwei:tp-f-0b-build python -c '$(CODE_SNAPSHOT_PY)')"; \
+	  test "$$image_snapshot" = "$$($(PYTHON) -c '$(CODE_SNAPSHOT_PY)')" || (echo "image snapshot differs from worktree"; exit 2); \
+	  tag="shaiwei:tp-f-0b-$$(printf %s "$$image_snapshot" | cut -c1-12)"; \
+	  docker tag shaiwei:tp-f-0b-build "$$tag" && docker rmi shaiwei:tp-f-0b-build >/dev/null && echo "$$tag"
+docker-tp-f-0b-fixture: ## 镜像内断网跑 18 个全合成对抗 fixture 并写报告（不挂真实数据）；IMAGE=… 必填
+	@test -n "$(IMAGE)" || (echo "IMAGE=shaiwei:tp-f-0b-<snapshot12> is required"; exit 2)
+	@mkdir -p logs/tp-f-0b/fixture
+	@output="logs/tp-f-0b/fixture/fixture-$$(date -u +%Y%m%dT%H%M%SZ).json"; \
+	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_TP_F_0B_IMAGE="$(IMAGE)" SHAIWEI_TP_F_0B_FIXTURE_OUTPUT="$$output" \
+	  $(TPF0B_COMPOSE) --profile fixture run --rm --no-deps tp-f-0b-fixture && echo "$$output"
+tp-f-0b-scope-prepare: ## TP-F-0B 精确 scope 与逐字批准文本（宿主重哈希全部输入）；IMAGE=… FIXTURE=logs/tp-f-0b/fixture/…json；不读画像
+	@test -n "$(IMAGE)" -a -n "$(FIXTURE)" || (echo "IMAGE=… FIXTURE=… are required"; exit 2)
+	$(TPF0B_RELEASE) prepare --image "$(IMAGE)" --fixture "$(FIXTURE)"
+tp-f-0b-record-approval: ## 仅当 TEXT 与该 scope 的逐字批准文本完全一致才写批准文件；SCOPE=… TEXT="…"
+	@test -n "$(SCOPE)" -a -n "$(TEXT)" || (echo "SCOPE=… TEXT=… are required"; exit 2)
+	$(TPF0B_RELEASE) record-approval --scope "$(SCOPE)" --text "$(TEXT)"
+docker-tp-f-0b-profile: ## 已逐字批准后唯一一次画像（容器内复核 scope 并排他认领）；SCOPE=…
+	@test -n "$(SCOPE)" || (echo "SCOPE=… is required"; exit 2)
+	@image="$$($(TPF0B_RELEASE) check-image --scope "$(SCOPE)")" || exit 2; \
+	  mkdir -p data/research/tp-f/tp-f-0b-data-identity-preflight-v1; \
+	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_TP_F_0B_IMAGE="$$image" SHAIWEI_TP_F_0B_SCOPE="$(SCOPE)" \
+	  $(TPF0B_COMPOSE) --profile run run --rm --no-deps tp-f-0b-profile
+docker-tp-f-0b-audit: ## TP-F-0B 独立审计（被审画像只读重算）；SCOPE=…
+	@test -n "$(SCOPE)" || (echo "SCOPE=… is required"; exit 2)
+	@image="$$($(TPF0B_RELEASE) check-image --scope "$(SCOPE)")" || exit 2; \
+	  mkdir -p data/research/tp-f/tp-f-0b-audit; \
+	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_TP_F_0B_IMAGE="$$image" SHAIWEI_TP_F_0B_SCOPE="$(SCOPE)" \
+	  $(TPF0B_COMPOSE) --profile audit run --rm --no-deps tp-f-0b-audit
 scheduler-up-guard: ## docker-scheduler-up 前置守卫：current 别名须等于运行容器镜像（或无容器时等于最后一次 START_PASS 镜像）
 	$(PYTHON) -m shaiwei.scheduler_up_guard
 docker-build:     ## 构建统一 Docker 运行镜像

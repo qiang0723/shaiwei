@@ -1,0 +1,87 @@
+name: shaiwei-tp-f-0b
+
+# TP-F-0B 结果盲数据与身份预检（docs/TP_F_0B_DATA_IDENTITY_PREFLIGHT_PROTOCOL_20261027.md + 补遗 A1）。全部服务断网、只读根、无密钥、
+# 无 env_file、宿主 UID；不写账本、不碰 scheduler 锁。镜像 shaiwei:tp-f-0b-<代码快照12位>（主 Dockerfile 构建）。
+x-runtime: &runtime
+  image: ${SHAIWEI_TP_F_0B_IMAGE:?use the tp-f-0b make targets}
+  pull_policy: never
+  init: true
+  restart: "no"
+  user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+  working_dir: /workspace
+  read_only: true
+  network_mode: none
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=6g,mode=1777
+  shm_size: 1g
+  pids_limit: 256
+  mem_limit: 14g
+  cpus: 4.0
+  environment:
+    HOME: /tmp
+    TZ: Asia/Shanghai
+    SHAIWEI_DATA_ROOT: /workspace/data
+    MPLCONFIGDIR: /tmp/matplotlib
+    PYTHONPYCACHEPREFIX: /tmp/pycache
+    OMP_NUM_THREADS: "4"
+    OPENBLAS_NUM_THREADS: "4"
+    MKL_NUM_THREADS: "4"
+    NUMEXPR_NUM_THREADS: "4"
+
+x-protocol: &protocol-ro {type: bind, source: ./docs/TP_F_0B_DATA_IDENTITY_PREFLIGHT_PROTOCOL_20261027.md, target: /workspace/docs/TP_F_0B_DATA_IDENTITY_PREFLIGHT_PROTOCOL_20261027.md, read_only: true, bind: {create_host_path: false}}
+x-addendum: &addendum-ro {type: bind, source: ./docs/TP_F_0B_DATA_IDENTITY_PREFLIGHT_ADDENDUM_A1_20261029.md, target: /workspace/docs/TP_F_0B_DATA_IDENTITY_PREFLIGHT_ADDENDUM_A1_20261029.md, read_only: true, bind: {create_host_path: false}}
+x-raw: &raw-ro {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
+x-manifest: &manifest-ro {type: bind, source: ./data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json, target: /workspace/data/research/trend_swing/ts-v3-data-gate-r3/input_manifest.json, read_only: true, bind: {create_host_path: false}}
+x-qlib: &qlib-ro {type: bind, source: ./data/qlib_bin, target: /workspace/data/qlib_bin, read_only: true, bind: {create_host_path: false}}
+x-ledger: &ledger-ro {type: bind, source: ./ledger, target: /workspace/ledger, read_only: true, bind: {create_host_path: false}}
+x-sealed: &sealed-ro {type: bind, source: ./data/research/rf/rf-0b-field-identity-preflight-v1-r2/identity_registry.json, target: /workspace/data/research/rf/rf-0b-field-identity-preflight-v1-r2/identity_registry.json, read_only: true, bind: {create_host_path: false}}
+x-control: &control-ro {type: bind, source: ./data/control/tp-f-0b, target: /workspace/data/control/tp-f-0b, read_only: true, bind: {create_host_path: false}}
+
+services:
+  # 18 个全合成对抗 fixture：不挂任何真实数据；唯一可写为 fixture 报告目录。
+  tp-f-0b-fixture:
+    <<: *runtime
+    profiles: [fixture]
+    mem_limit: 4g
+    cpus: 2.0
+    volumes:
+      - *protocol-ro
+      - *addendum-ro
+      - {type: bind, source: ./logs/tp-f-0b/fixture, target: /workspace/logs/tp-f-0b/fixture, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.tp_f_0b.release, fixture, --output, "${SHAIWEI_TP_F_0B_FIXTURE_OUTPUT:-unused}"]
+
+  # 唯一一次画像：容器内复核 scope、批准与全部输入哈希；唯一可写为画像输出目录。
+  tp-f-0b-profile:
+    <<: *runtime
+    profiles: [run]
+    volumes:
+      - *protocol-ro
+      - *addendum-ro
+      - *raw-ro
+      - *manifest-ro
+      - *qlib-ro
+      - *ledger-ro
+      - *sealed-ro
+      - *control-ro
+      - {type: bind, source: ./data/research/tp-f/tp-f-0b-data-identity-preflight-v1, target: /workspace/data/research/tp-f/tp-f-0b-data-identity-preflight-v1, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.tp_f_0b.release, profile, --scope, "${SHAIWEI_TP_F_0B_SCOPE:-unused}"]
+
+  # 独立审计：被审画像只读重算；唯一可写为审计输出目录。
+  tp-f-0b-audit:
+    <<: *runtime
+    profiles: [audit]
+    volumes:
+      - *protocol-ro
+      - *addendum-ro
+      - *raw-ro
+      - *manifest-ro
+      - *qlib-ro
+      - *ledger-ro
+      - *sealed-ro
+      - *control-ro
+      - {type: bind, source: ./data/research/tp-f/tp-f-0b-data-identity-preflight-v1, target: /workspace/data/research/tp-f/tp-f-0b-data-identity-preflight-v1, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./data/research/tp-f/tp-f-0b-audit, target: /workspace/data/research/tp-f/tp-f-0b-audit, read_only: false, bind: {create_host_path: false}}
+    command: [python, -m, shaiwei.research.tp_f_0b.release, audit, --scope, "${SHAIWEI_TP_F_0B_SCOPE:-unused}"]

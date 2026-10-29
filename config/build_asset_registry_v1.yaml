@@ -205,6 +205,15 @@ components:
       - compose.r2d-r3a-health-fixture.yaml
     consumers:
       - tests/test_release_health_fixture.py
+  - id: tp-f-0b
+    class: COMPONENT_RELEASE
+    status: ACTIVE_LOCAL_READ_ONLY
+    reuse_policy: NEW_RELEASE_REQUIRED
+    assets:
+      - compose.tp-f-0b.yaml
+    consumers:
+      - Makefile
+      - tests/test_tp_f_0b_docker_contract.py
   - id: ts-v5-contract
     class: COMPONENT_RELEASE
     status: CLOSED_FROZEN
