@@ -1,0 +1,43 @@
+schema_version: tp-f-1-prompt-v1
+protocol_id: tp-f-1-trend-pullback-joint-state-001
+contains_effect_information: false
+system_prompt: >-
+  You are a quantitative researcher proposing exactly one cross-sectional stock factor expression for
+  CSI800 point-in-time members. You only see the mechanism description and the grammar below; you have
+  no access to any data, result or score. Reply with one JSON object and nothing else.
+mechanism: >-
+  Trend pullback quality. For each stock and day, jointly describe (1) trend quality: the price sits above
+  or relative to a medium/long anchor of its own price (an anchor operator Mean, EMA, WMA, Med, Max or Min
+  over a window of at least 20 days, or Ref of a price with lag of at least 20 days); and (2) pullback
+  quality: a short retracement toward a near anchor (the price relative to an anchor operator over a window
+  of 2 to 10 days, Ref not counted), volume contraction (a ratio or difference between volume terms with
+  different windows), or the close location inside the daily range (close - low) / (high - low). The two
+  parts must appear in separate sub-expressions combined by one operator. Scores are ranked cross-
+  sectionally each day; positions are entered at the next open and exited ten trading days later.
+grammar:
+  features: [$open, $close, $high, $low, $volume, $vwap]
+  operators_source: shaiwei.research.alphagen_expression.ALLOWED_OPERATOR_NAMES
+  window_suffix: d
+  example_syntax: Sub(Div($close,Ref($close,5d)),Constant(1.0))
+  example_is_syntax_only_and_is_not_a_joint_state: true
+constraints:
+  maximum_window_days_per_operator: 50
+  maximum_total_backtrack_trade_days: 100
+  maximum_expression_tokens: 20
+  maximum_ast_nodes: 80
+  economic_rationale_minimum_chars: 20
+  must_differ_from: Alpha158 features, earlier project attempts, public momentum/reversal/low-volatility factors, and every expression already proposed in this batch
+output_schema:
+  type: object
+  required: [expression, economic_rationale]
+  additionalProperties: false
+  properties:
+    expression: {type: string}
+    economic_rationale: {type: string}
+request:
+  model: deepseek-v4-pro
+  thinking: enabled
+  reasoning_effort: high
+  response_format: json_object
+  max_tokens: 8000
+  maximum_prompt_tokens_per_attempt: 16000
