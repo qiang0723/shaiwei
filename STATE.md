@@ -16,6 +16,10 @@
 字面实现（均线交叉类不算分量，列为已知局限）；裁决优先级 REJECT_DUPLICATE > BLOCKED_DATA > GO。合成 210 万行压测：分类约 5 秒、峰值约 2.1 GB。
 下一步（各需单独授权）：推送 → 构建镜像并在镜像内跑 fixture → 精确 scope + 逐字批准 → 唯一画像 + 独立审计。
 
+**序列第③步完成**：用户“推送，构建镜像并跑镜像内fixture”。244c5f3/516cdba/9bd7529 已推送（origin 9bd7529）。镜像 `shaiwei:tp-f-0b-bf82d7f707b6`
+（id `sha256:bc33674a…`，代码快照与工作树一致）；镜像内断网 fixture 18/18 PASS（继承 RF-0C 分类器自检 10/10），不挂任何真实数据；报告
+`logs/tp-f-0b/fixture/fixture-20261029T034530Z.json`（sha256 `1f373be8…`）。真实画像 0 次。下一步：`tp-f-0b-scope-prepare` 生成精确 scope 与逐字批准文本（待用户放行）。
+
 ## 2026-10-27 · TP-F-0B 结果盲数据与身份预检协议冻结（结果前、实现前）
 
 开工体检：10-26、10-27 日链 PASS（10-27 影子信号生成），scheduler/Web/巡检 healthy。用户“推送，开始起草TP-F-0B协议”：5cba74b 已推送。
