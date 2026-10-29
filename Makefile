@@ -13,6 +13,7 @@
 .PHONY: ops-patrol-build ops-patrol-dry-run ops-patrol-up ops-patrol-drill ops-patrol-status ops-patrol-down
 .PHONY: docker-g1-calibration-build docker-g1-calibration-pilot g1-calibration-scope-prepare g1-calibration-record-approval docker-g1-calibration-run docker-g1-calibration-audit docker-g1-calibration-devset
 .PHONY: docker-g1-v2-rejudge-precheck g1-v2-rejudge-scope-prepare g1-v2-rejudge-record-approval docker-g1-v2-rejudge-run docker-g1-v2-rejudge-audit
+.PHONY: r2-1r1-progress r2-1r1-report
 .PHONY: docker-tp-f-0b-build docker-tp-f-0b-fixture tp-f-0b-scope-prepare tp-f-0b-record-approval docker-tp-f-0b-profile docker-tp-f-0b-audit
 VENV ?= .venv
 PYTHON_BASE ?= python3
@@ -542,6 +543,11 @@ docker-g1-v2-rejudge-audit: ## 重判独立审计（被审对象只读）；SCOP
 	  mkdir -p logs/g1-v2-audit; \
 	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_G1_REJUDGE_IMAGE="$$image" SHAIWEI_G1_REJUDGE_EXECUTION="$(EXECUTION)" \
 	  $(G1_REJUDGE_COMPOSE) --profile audit run --rm --no-deps g1-v2-rejudge-audit
+r2-1r1-progress: ## R2-1R1 只读进度（只出计数，不出任何净值/收益）；AS_OF=YYYYMMDD 可选，默认两账户共同最新执行日
+	$(PYTHON) -m shaiwei.research.r2_1r1.cli progress $(if $(AS_OF),--as-of $(AS_OF),)
+r2-1r1-report: ## R2-1R1 锁存后唯一一次描述报告（write-once）；须用户放行：AS_OF=YYYYMMDD GO_AHEAD=1
+	@test -n "$(AS_OF)" -a "$(GO_AHEAD)" = "1" || (echo "AS_OF=… GO_AHEAD=1 are required (user go-ahead)"; exit 2)
+	$(PYTHON) -m shaiwei.research.r2_1r1.cli report --as-of "$(AS_OF)" --user-go-ahead
 TPF0B_COMPOSE := docker compose -p shaiwei-tp-f-0b -f compose.tp-f-0b.yaml
 TPF0B_RELEASE := $(PYTHON) -m shaiwei.research.tp_f_0b.release
 docker-tp-f-0b-build: ## TP-F-0B 断网镜像 shaiwei:tp-f-0b-<代码快照12位>：须已提交、工作树干净；只构建不运行

@@ -1,5 +1,13 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-10-29 · R2-1R1 评估器工程完成（合成测试），进度运行待授权
+
+用户“推送，开始R2-1R1评估器工程”：8ba0b81/f6ee70c/cbaaea4 已推送（origin cbaaea4）。新包 `src/shaiwei/research/r2_1r1/`（6 模块 ≤182 行）+ make
+`r2-1r1-progress`（只出计数）/`r2-1r1-report AS_OF= GO_AHEAD=1`（锁存后放行、write-once）。架构禁止非 Web 导入 `shaiwei.web` 且 D3 定 Web 不改，故 v1
+日谓词与会计门在包内重写；账户产物/重放/信号核验复用 `paper.query` 与 `shadow.manifest`。口径：谓词不成立=缺口（重置、逐日披露原因）；日历/哈希/重放/
+时间身份等证据不可信=`BLOCKED_EVIDENCE`；锁存窗口内影子信号迟到=`OBSERVED_WITH_EXECUTION_WARN`；报告只覆盖区段首日至锁存日。合成测试 9、架构 13、
+Ruff 通过。说明 `docs/R2_1R1_EVALUATOR_ENGINEERING_20261029.md`。评估器未在真实账本上运行。下一步（待授权）：推送 → 只读进度运行核对已知事实。
+
 ## 2026-10-29 · TP-F-1 趋势回踩联合状态正式小批协议冻结（结果前、实现前）
 
 TP-F-0B `GO_FORMAL_PROTOCOL` 授权起草。RF-1 同规格、裁判改为已启用的 g1-v2。用户 D1–D4 均选建议项：候选须满足 TP-F-0B 联合状态签名（实现
