@@ -54,8 +54,13 @@ def run_generation(
     prices: Prices,
     output_dir: Path,
     attempt_ledger: Path,
+    append_attempt: Callable[..., bool] = append_llm_factor_attempt,
 ) -> dict[str, Any]:
-    """Serial calls until 8 completed responses, 3 qualified candidates, or the next worst case would breach $1."""
+    """Serial calls until 8 completed responses, 3 qualified candidates, or the next worst case would breach $1.
+
+    `append_attempt` is the ledger write entry; only the in-image fixture injects a recorder, because a released runtime
+    refuses locks on non-project ledger paths by design.
+    """
     batch = scope.document["batch_contract"]
     try:
         output_dir.mkdir(parents=True, exist_ok=False)  # 排他认领：目录已在即同 scope 重跑
@@ -110,7 +115,7 @@ def run_generation(
             "canonical_sha256": verdict.get("canonical_sha256", ""), "decision_artifact_path": portable_artifact_path(decision_path),
             "decision_artifact_sha256": decision_sha, "operator": OPERATOR,
         }
-        append_llm_factor_attempt(path=attempt_ledger, **row)
+        append_attempt(path=attempt_ledger, **row)
         attempts.append(row)
         if verdict["status"] == "QUALIFIED":
             qualified.append({"candidate_id": candidate_id, "canonical_expression": verdict["canonical"],

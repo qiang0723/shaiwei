@@ -136,3 +136,13 @@ def test_generation_through_the_audited_transport_with_a_mock_route(tmp_path, pa
     events = list(csv.DictReader(transports.open(encoding="utf-8")))
     assert {event["event_type"] for event in events} == {"STARTED", "COMPLETED"} and len(events) == 6
     assert all(event["execution_release_sha256"] == SCOPE_SHA and event["model"] == "deepseek-v4-pro" for event in events)
+
+
+def test_in_image_fixture_passes_under_a_released_runtime(monkeypatch):
+    """已发布运行时拒绝非正式账本路径的锁：镜像内 fixture 必须不走真实账本写入口也能全绿。"""
+    from shaiwei.research.tp_f_1.fixture import fixture
+
+    monkeypatch.setenv("SHAIWEI_RELEASE_MANIFEST", "/opt/shaiwei/release-manifest.json")
+    monkeypatch.delenv("SHAIWEI_LOCK_AUTHORITY", raising=False)
+    result = fixture()
+    assert result["fixture_pass"] is True and result["generation_responses"] == 4 and result["network"] is False

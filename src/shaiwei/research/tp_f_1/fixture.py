@@ -55,12 +55,22 @@ def fixture() -> dict[str, Any]:
     def provider_for(_attempt: str) -> Iterator[Fake]:
         yield Fake()
 
+    recorded: list[dict[str, Any]] = []
+
+    def record(*, path: Path, **row: Any) -> bool:  # 已发布运行时拒绝非正式账本路径的锁，fixture 只校验行与表头逐列一致
+        if tuple(row) != ATTEMPT_HEADER:
+            raise TPF1Error("TP-F-1 fixture attempt row differs from the frozen ledger header")
+        recorded.append(row)
+        return True
+
     with tempfile.TemporaryDirectory(prefix="tp-f-1-fixture-") as directory:
         ledger = Path(directory) / "attempts.csv"
         ledger.write_text(",".join(ATTEMPT_HEADER) + "\n", encoding="utf-8")
         summary = run_generation(scope, prompt, index, rule, scope_sha256="f" * 64, provider_for=provider_for,
                                  prices=Prices(Decimal("0.003625"), Decimal("0.435"), Decimal("0.87")),
-                                 output_dir=Path(directory) / "out", attempt_ledger=ledger)
+                                 output_dir=Path(directory) / "out", attempt_ledger=ledger, append_attempt=record)
+    if [row["ordinal"] for row in recorded] != ["1", "2", "3", "4"]:
+        failed.append("attempt_rows_recorded")
     if (summary["status_counts"] != {"DUPLICATE_WITHIN_BATCH": 1, "QUALIFIED": 3} or summary["completed_responses"] != 4
             or summary["stop_reason"] != "QUALIFIED_CANDIDATE_MAXIMUM"):
         failed.append("generation_dedup_and_accounting")
