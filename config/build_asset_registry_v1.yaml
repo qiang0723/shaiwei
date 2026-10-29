@@ -214,6 +214,15 @@ components:
     consumers:
       - Makefile
       - tests/test_tp_f_0b_docker_contract.py
+  - id: tp-f-1
+    class: COMPONENT_RELEASE
+    status: ACTIVE_LOCAL_READ_ONLY
+    reuse_policy: NEW_RELEASE_REQUIRED
+    assets:
+      - compose.tp-f-1.yaml
+    consumers:
+      - Makefile
+      - tests/test_tp_f_1_docker_contract.py
   - id: ts-v5-contract
     class: COMPONENT_RELEASE
     status: CLOSED_FROZEN

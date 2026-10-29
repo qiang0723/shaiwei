@@ -96,8 +96,8 @@ def test_registry_covers_every_tracked_build_asset_exactly_once() -> None:
     tracked_build_assets = _git_files("Dockerfile*", "compose*.yaml")
     tracked_files = _git_files("*")
 
-    assert len(tracked_build_assets) == 102
-    assert len(registry.assets) == len(set(registry.assets)) == 102
+    assert len(tracked_build_assets) == 103
+    assert len(registry.assets) == len(set(registry.assets)) == 103
     assert set(registry.assets) == tracked_build_assets
     assert {
         BuildAssetClass.GLOBAL,

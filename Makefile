@@ -14,6 +14,7 @@
 .PHONY: docker-g1-calibration-build docker-g1-calibration-pilot g1-calibration-scope-prepare g1-calibration-record-approval docker-g1-calibration-run docker-g1-calibration-audit docker-g1-calibration-devset
 .PHONY: docker-g1-v2-rejudge-precheck g1-v2-rejudge-scope-prepare g1-v2-rejudge-record-approval docker-g1-v2-rejudge-run docker-g1-v2-rejudge-audit
 .PHONY: r2-1r1-progress r2-1r1-report
+.PHONY: docker-tp-f-1-build docker-tp-f-1-fixture tp-f-1-scope-prepare tp-f-1-record-approval docker-tp-f-1-generate tp-f-1-review-packet tp-f-1-record-review docker-tp-f-1-evaluate docker-tp-f-1-audit
 .PHONY: docker-tp-f-0b-build docker-tp-f-0b-fixture tp-f-0b-scope-prepare tp-f-0b-record-approval docker-tp-f-0b-profile docker-tp-f-0b-audit
 VENV ?= .venv
 PYTHON_BASE ?= python3
@@ -548,6 +549,50 @@ r2-1r1-progress: ## R2-1R1 只读进度（只出计数，不出任何净值/收�
 r2-1r1-report: ## R2-1R1 锁存后唯一一次描述报告（write-once）；须用户放行：AS_OF=YYYYMMDD GO_AHEAD=1
 	@test -n "$(AS_OF)" -a "$(GO_AHEAD)" = "1" || (echo "AS_OF=… GO_AHEAD=1 are required (user go-ahead)"; exit 2)
 	$(PYTHON) -m shaiwei.research.r2_1r1.cli report --as-of "$(AS_OF)" --user-go-ahead
+TPF1_COMPOSE := docker compose -p shaiwei-tp-f-1 -f compose.tp-f-1.yaml
+TPF1_RELEASE := $(PYTHON) -m shaiwei.research.tp_f_1.release
+docker-tp-f-1-build: ## TP-F-1 镜像 shaiwei:tp-f-1-<代码快照12位>：须已提交、工作树干净；只构建不运行
+	@test -z "$$(git status --porcelain --untracked-files=no)" || (echo "tracked worktree is dirty"; exit 2)
+	docker build -f Dockerfile --build-arg SHAIWEI_RELEASE_GIT_HEAD="$$(git rev-parse HEAD)" -t shaiwei:tp-f-1-build .
+	@image_snapshot="$$(docker run --rm --network none shaiwei:tp-f-1-build python -c '$(CODE_SNAPSHOT_PY)')"; \
+	  test "$$image_snapshot" = "$$($(PYTHON) -c '$(CODE_SNAPSHOT_PY)')" || (echo "image snapshot differs from worktree"; exit 2); \
+	  tag="shaiwei:tp-f-1-$$(printf %s "$$image_snapshot" | cut -c1-12)"; \
+	  docker tag shaiwei:tp-f-1-build "$$tag" && docker rmi shaiwei:tp-f-1-build >/dev/null && echo "$$tag"
+docker-tp-f-1-fixture: ## 镜像内断网全合成 fixture（候选合同/模拟路由生成/盲评语法）；IMAGE=… 必填
+	@test -n "$(IMAGE)" || (echo "IMAGE=shaiwei:tp-f-1-<snapshot12> is required"; exit 2)
+	@mkdir -p logs/tp-f-1/fixture
+	@output="logs/tp-f-1/fixture/fixture-$$(date -u +%Y%m%dT%H%M%SZ).json"; \
+	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_TP_F_1_IMAGE="$(IMAGE)" SHAIWEI_TP_F_1_FIXTURE_OUTPUT="$$output" \
+	  $(TPF1_COMPOSE) --profile fixture run --rm --no-deps tp-f-1-fixture && echo "$$output"
+tp-f-1-scope-prepare: ## 精确 scope 与逐字批准文本（须 R2-1R1 已锁存且报告已生成；价格须当日复核官方价）；IMAGE= FIXTURE= PRICE_HIT= PRICE_MISS= PRICE_OUTPUT= PRICE_CHECKED_ON= PRICE_SOURCE_URL=
+	@test -n "$(IMAGE)" -a -n "$(FIXTURE)" -a -n "$(PRICE_HIT)" -a -n "$(PRICE_MISS)" -a -n "$(PRICE_OUTPUT)" -a -n "$(PRICE_CHECKED_ON)" -a -n "$(PRICE_SOURCE_URL)" || (echo "IMAGE FIXTURE PRICE_* are required"; exit 2)
+	$(TPF1_RELEASE) prepare --image "$(IMAGE)" --fixture "$(FIXTURE)" --price-hit "$(PRICE_HIT)" --price-miss "$(PRICE_MISS)" --price-output "$(PRICE_OUTPUT)" --price-checked-on "$(PRICE_CHECKED_ON)" --price-source-url "$(PRICE_SOURCE_URL)"
+tp-f-1-record-approval: ## 仅当 TEXT 与该 scope 的逐字批准文本完全一致才写批准文件；SCOPE=… TEXT="…"
+	@test -n "$(SCOPE)" -a -n "$(TEXT)" || (echo "SCOPE=… TEXT=… are required"; exit 2)
+	$(TPF1_RELEASE) record-approval --scope "$(SCOPE)" --text "$(TEXT)"
+docker-tp-f-1-generate: ## G 生成段（唯一出网，只透传 DEEPSEEK_API_KEY，须已在调用环境中）；SCOPE=…
+	@test -n "$(SCOPE)" || (echo "SCOPE=… is required"; exit 2)
+	@test -n "$$DEEPSEEK_API_KEY" || (echo "DEEPSEEK_API_KEY must be present in the invoking environment"; exit 2)
+	@image="$$($(TPF1_RELEASE) check-image --scope "$(SCOPE)")" || exit 2; \
+	  mkdir -p data/research/tp-f-1; \
+	  SHAIWEI_TP_F_1_IMAGE="$$image" SHAIWEI_TP_F_1_SCOPE="$(SCOPE)" $(TPF1_COMPOSE) --profile generate run --rm --no-deps tp-f-1-generate
+tp-f-1-review-packet: ## R 盲评包（只含编号/规范表达式/经济陈述）与裁决语法；SCOPE=…
+	@test -n "$(SCOPE)" || (echo "SCOPE=… is required"; exit 2)
+	$(TPF1_RELEASE) review-packet --scope "$(SCOPE)"
+tp-f-1-record-review: ## 逐字转录用户盲评裁决（不合语法即拒绝）；SCOPE=… TEXT="…"
+	@test -n "$(SCOPE)" -a -n "$(TEXT)" || (echo "SCOPE=… TEXT=… are required"; exit 2)
+	$(TPF1_RELEASE) record-review --scope "$(SCOPE)" --text "$(TEXT)"
+docker-tp-f-1-evaluate: ## E 离线评估与 g1-v2 判定（须已有盲评记录）；SCOPE=…
+	@test -n "$(SCOPE)" || (echo "SCOPE=… is required"; exit 2)
+	@image="$$($(TPF1_RELEASE) check-image --scope "$(SCOPE)")" || exit 2; \
+	  mkdir -p logs/tp-f-1 data/research/tp-f-1; \
+	  SHAIWEI_TP_F_1_IMAGE="$$image" SHAIWEI_TP_F_1_SCOPE="$(SCOPE)" $(TPF1_COMPOSE) --profile evaluate run --rm --no-deps tp-f-1-evaluate
+docker-tp-f-1-audit: ## A 独立审计（被审对象只读）；SCOPE=…
+	@test -n "$(SCOPE)" || (echo "SCOPE=… is required"; exit 2)
+	@image="$$($(TPF1_RELEASE) check-image --scope "$(SCOPE)")" || exit 2; \
+	  mkdir -p data/research/tp-f-1-audit; \
+	  SHAIWEI_HOST_UID="$$(id -u)" SHAIWEI_HOST_GID="$$(id -g)" SHAIWEI_TP_F_1_IMAGE="$$image" SHAIWEI_TP_F_1_SCOPE="$(SCOPE)" \
+	  $(TPF1_COMPOSE) --profile audit run --rm --no-deps tp-f-1-audit
 TPF0B_COMPOSE := docker compose -p shaiwei-tp-f-0b -f compose.tp-f-0b.yaml
 TPF0B_RELEASE := $(PYTHON) -m shaiwei.research.tp_f_0b.release
 docker-tp-f-0b-build: ## TP-F-0B 断网镜像 shaiwei:tp-f-0b-<代码快照12位>：须已提交、工作树干净；只构建不运行

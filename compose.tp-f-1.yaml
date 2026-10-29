@@ -1,0 +1,108 @@
+name: shaiwei-tp-f-1
+
+# TP-F-1 正式小批（docs/TP_F_1_FORMAL_SMALL_BATCH_PROTOCOL_20261029.md + 补遗 A1）。只读根、丢弃全部能力、无 env_file。
+# 只有生成段出网（DeepSeek），且只透传 DEEPSEEK_API_KEY；其余各段断网。写账本的两段以 root 共用 scheduler 命名卷锁（能力全部丢弃）。
+x-runtime: &runtime
+  image: ${SHAIWEI_TP_F_1_IMAGE:?use the tp-f-1 make targets}
+  pull_policy: never
+  init: true
+  restart: "no"
+  working_dir: /workspace
+  read_only: true
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=4g,mode=1777
+    - /workspace/mlruns:rw,noexec,nosuid,size=1g,mode=1777
+  shm_size: 2g
+  pids_limit: 256
+  mem_limit: 12g
+  cpus: 6.0
+  environment: &environment
+    HOME: /tmp
+    TZ: Asia/Shanghai
+    SHAIWEI_DATA_ROOT: /workspace/data
+    MPLCONFIGDIR: /tmp/matplotlib
+    PYTHONPYCACHEPREFIX: /tmp/pycache
+    OMP_NUM_THREADS: "6"
+    OPENBLAS_NUM_THREADS: "6"
+    MKL_NUM_THREADS: "6"
+    NUMEXPR_NUM_THREADS: "6"
+
+x-doc-1: &doc-1 {type: bind, source: ./docs/TP_F_1_FORMAL_SMALL_BATCH_PROTOCOL_20261029.md, target: /workspace/docs/TP_F_1_FORMAL_SMALL_BATCH_PROTOCOL_20261029.md, read_only: true, bind: {create_host_path: false}}
+x-doc-2: &doc-2 {type: bind, source: ./docs/TP_F_1_FORMAL_SMALL_BATCH_ADDENDUM_A1_20261029.md, target: /workspace/docs/TP_F_1_FORMAL_SMALL_BATCH_ADDENDUM_A1_20261029.md, read_only: true, bind: {create_host_path: false}}
+x-doc-3: &doc-3 {type: bind, source: ./docs/TP_F_0B_DATA_IDENTITY_PREFLIGHT_PROTOCOL_20261027.md, target: /workspace/docs/TP_F_0B_DATA_IDENTITY_PREFLIGHT_PROTOCOL_20261027.md, read_only: true, bind: {create_host_path: false}}
+x-doc-4: &doc-4 {type: bind, source: ./docs/TP_F_0B_DATA_IDENTITY_PREFLIGHT_ADDENDUM_A1_20261029.md, target: /workspace/docs/TP_F_0B_DATA_IDENTITY_PREFLIGHT_ADDENDUM_A1_20261029.md, read_only: true, bind: {create_host_path: false}}
+x-doc-5: &doc-5 {type: bind, source: ./docs/TP_F_0A_TREND_PULLBACK_FACTOR_PREPARATION_20260820.md, target: /workspace/docs/TP_F_0A_TREND_PULLBACK_FACTOR_PREPARATION_20260820.md, read_only: true, bind: {create_host_path: false}}
+x-doc-6: &doc-6 {type: bind, source: ./docs/TP_F_0B_ACCEPTANCE_20261029.md, target: /workspace/docs/TP_F_0B_ACCEPTANCE_20261029.md, read_only: true, bind: {create_host_path: false}}
+x-vendor: &vendor-ro {type: bind, source: ./vendor/alphagen, target: /workspace/vendor/alphagen, read_only: true, bind: {create_host_path: false}}
+x-qlib: &qlib-ro {type: bind, source: ./data/qlib_bin, target: /workspace/data/qlib_bin, read_only: true, bind: {create_host_path: false}}
+x-raw: &raw-ro {type: bind, source: ./data/raw, target: /workspace/data/raw, read_only: true, bind: {create_host_path: false}}
+x-research: &research-ro {type: bind, source: ./data/research, target: /workspace/data/research, read_only: true, bind: {create_host_path: false}}
+x-ledger: &ledger-ro {type: bind, source: ./ledger, target: /workspace/ledger, read_only: true, bind: {create_host_path: false}}
+x-control: &control-ro {type: bind, source: ./data/control/tp-f-1, target: /workspace/data/control/tp-f-1, read_only: true, bind: {create_host_path: false}}
+x-locks: &locks {type: volume, source: runtime-locks, target: /run/shaiwei-locks, volume: {nocopy: true}}
+x-lock-env: &lock-env
+  <<: *environment
+  SHAIWEI_LOCK_AUTHORITY: docker-named-volume-v1
+  SHAIWEI_LOCK_ROOT: /run/shaiwei-locks
+
+services:
+  # 镜像内全合成 fixture：断网、不挂任何数据；唯一可写为 fixture 报告目录。
+  tp-f-1-fixture:
+    <<: *runtime
+    profiles: [fixture]
+    network_mode: none
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    mem_limit: 4g
+    cpus: 2.0
+    volumes: [*doc-1, *doc-2, *doc-3, *doc-4, *vendor-ro,
+              {type: bind, source: ./logs/tp-f-1/fixture, target: /workspace/logs/tp-f-1/fixture, read_only: false, bind: {create_host_path: false}}]
+    command: [python, -m, shaiwei.research.tp_f_1.release, fixture, --output, "${SHAIWEI_TP_F_1_FIXTURE_OUTPUT:-unused}"]
+
+  # G 生成段：唯一出网的服务，只透传 DeepSeek 密钥；可写为两本 TP-F-1 专用账本与本批输出目录。
+  tp-f-1-generate:
+    <<: *runtime
+    profiles: [generate]
+    user: "0:0"
+    environment:
+      <<: *lock-env
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+    volumes: [*doc-1, *doc-2, *doc-3, *doc-4, *doc-5, *doc-6, *vendor-ro, *qlib-ro, *research-ro, *ledger-ro, *control-ro, *locks,
+              {type: bind, source: ./ledger/tp_f_1_llm_attempts.csv, target: /workspace/ledger/tp_f_1_llm_attempts.csv, read_only: false, bind: {create_host_path: false}},
+              {type: bind, source: ./ledger/tp_f_1_llm_transports.csv, target: /workspace/ledger/tp_f_1_llm_transports.csv, read_only: false, bind: {create_host_path: false}},
+              {type: bind, source: ./data/research/tp-f-1, target: /workspace/data/research/tp-f-1, read_only: false, bind: {create_host_path: false}}]
+    command: [python, -m, shaiwei.research.tp_f_1.release, generate, --scope, "${SHAIWEI_TP_F_1_SCOPE:-unused}"]
+
+  # E 评估段：断网；可写为实验总账、v2 准入账本、本批输出与报告目录。
+  tp-f-1-evaluate:
+    <<: *runtime
+    profiles: [evaluate]
+    network_mode: none
+    user: "0:0"
+    environment: *lock-env
+    volumes: [*doc-1, *doc-2, *doc-3, *doc-4, *doc-5, *doc-6, *vendor-ro, *qlib-ro, *raw-ro, *research-ro, *ledger-ro, *control-ro, *locks,
+              {type: bind, source: ./ledger/experiments.csv, target: /workspace/ledger/experiments.csv, read_only: false, bind: {create_host_path: false}},
+              {type: bind, source: ./ledger/factor_admissions_v2.csv, target: /workspace/ledger/factor_admissions_v2.csv, read_only: false, bind: {create_host_path: false}},
+              {type: bind, source: ./data/research/tp-f-1, target: /workspace/data/research/tp-f-1, read_only: false, bind: {create_host_path: false}},
+              {type: bind, source: ./logs/tp-f-1, target: /workspace/logs/tp-f-1, read_only: false, bind: {create_host_path: false}}]
+    command: [python, -m, shaiwei.research.tp_f_1.release, evaluate, --scope, "${SHAIWEI_TP_F_1_SCOPE:-unused}"]
+
+  # A 独立审计：断网；被审对象只读，唯一可写为审计输出目录。
+  tp-f-1-audit:
+    <<: *runtime
+    profiles: [audit]
+    network_mode: none
+    user: "${SHAIWEI_HOST_UID:-10001}:${SHAIWEI_HOST_GID:-10001}"
+    mem_limit: 4g
+    cpus: 2.0
+    volumes: [*doc-1, *doc-2, *doc-3, *doc-4, *doc-5, *doc-6, *research-ro, *ledger-ro, *control-ro,
+              {type: bind, source: ./logs/tp-f-1, target: /workspace/logs/tp-f-1, read_only: true, bind: {create_host_path: false}},
+              {type: bind, source: ./data/research/tp-f-1-audit, target: /workspace/data/research/tp-f-1-audit, read_only: false, bind: {create_host_path: false}}]
+    command: [python, -m, shaiwei.research.tp_f_1.release, audit, --scope, "${SHAIWEI_TP_F_1_SCOPE:-unused}"]
+
+volumes:
+  runtime-locks:
+    external: true
+    name: shaiwei_runtime_locks_v1

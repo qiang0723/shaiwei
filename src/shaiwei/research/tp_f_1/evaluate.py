@@ -47,9 +47,13 @@ class EvaluationContext:
 
     @property
     def judge_view(self) -> SimpleNamespace:
-        """The attributes `judge_unit` reads: a single-family multiple-testing declaration for TP-F-1."""
-        config = SimpleNamespace(multiple_testing_families={FAMILY: (FAMILY,)}, protocol_id=self.scope.document["protocol_id"])
-        return SimpleNamespace(settings=self.settings, spec=self.spec, identity=SimpleNamespace(config=config, spec_sha256=self.spec_sha256))
+        return judge_view(self.settings, self.spec, self.spec_sha256, self.scope.document["protocol_id"])
+
+
+def judge_view(settings: Settings, spec: G1V2Spec, spec_sha256: str, protocol_id: str) -> SimpleNamespace:
+    """The attributes `judge_unit` reads: a single-family multiple-testing declaration for TP-F-1."""
+    config = SimpleNamespace(multiple_testing_families={FAMILY: (FAMILY,)}, protocol_id=protocol_id)
+    return SimpleNamespace(settings=settings, spec=spec, identity=SimpleNamespace(config=config, spec_sha256=spec_sha256))
 
 
 def experiment_id(ctx: EvaluationContext, attempt_id: str) -> str:
