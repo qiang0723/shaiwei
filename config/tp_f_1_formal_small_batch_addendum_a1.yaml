@@ -1,0 +1,58 @@
+schema_version: tp-f-1-formal-small-batch-addendum-a1-v1
+addendum_id: tp-f-1-addendum-a1-selection-and-blind-review
+prepared_on: "2026-10-29"
+status: RESULT_BLIND_ADDENDUM_FROZEN_BEFORE_SELECTION_OR_REVIEW_IMPLEMENTATION
+document: docs/TP_F_1_FORMAL_SMALL_BATCH_ADDENDUM_A1_20261029.md
+production_authorization: none
+
+parent_protocol:
+  path: config/tp_f_1_formal_small_batch_v1.yaml
+  sha256: ec38b15a679a144cb74be565fbfe53de8ba355e36e6289519d8944d89d46a809
+  document_path: docs/TP_F_1_FORMAL_SMALL_BATCH_PROTOCOL_20261029.md
+  document_sha256: a91e72547831e31890f5af0073a5b3b32111c9ab2502fe7558573d7710afa34f
+  original_text_preserved: true
+
+user_rulings_2026_10_29:
+  selection_correction: discovery_absolute_mean_daily_rank_ic_of_pit_neutralized_factor
+  semantic_layer: user_blind_review_of_qualified_candidates_without_numbers
+
+change_1_selection:
+  superseded: mechanical_top1_top2_by_g1_v2_discovery_selection_increment_ir
+  reason: g1_v2_selection_increment_ir_is_the_paired_candidate_minus_alpha158_baseline_rank_ic_over_the_W1_W6_test_windows_and_no_baseline_prediction_exists_in_the_2016_2018_discovery_period
+  new_rule:
+    metric: absolute_mean_daily_rank_ic_of_pit_neutralized_factor
+    period: {start: "20160101", end: "20181231"}
+    minimum_valid_daily_ic_observations: 252
+    direction: sign_of_discovery_mean_daily_rank_ic_frozen_once
+    tie_break: lower_canonical_expression_sha256_first
+    candidates_ranked: all_candidates_retained_after_blind_review
+    selected: top1_then_top2_judged_by_g1_v2
+  full_g1_v2_evidence_for_all_retained_candidates: true
+  reason_for_full_evidence: g1_v2_dsr_requires_trial_increment_ir_variance_from_valid_family_trials
+  selection_uses_out_of_sample_data: false
+
+change_2_semantic_blind_review:
+  superseded: formal_batch_blind_review_label_without_implemented_form
+  executor: user
+  timing: after_generation_stage_before_any_factor_value_is_computed
+  packet_contents: [candidate_id, canonical_expression, economic_rationale]
+  packet_forbidden: [any_number_computed_from_market_data, discovery_or_effect_statistics, direction]
+  veto_reasons: [NOT_THIS_MECHANISM, DISGUISED_DUPLICATE]
+  ruling_record: verbatim_user_text_transcribed_by_tool_never_fabricated
+  vetoed_candidates_count_in_family_n: true
+  zero_retained: REJECT_TP_F_AND_CLOSE
+  one_retained: evaluated_and_judged_valid_trial_increment_irs_gate_fails_as_recorded
+
+execution_stages:
+  - {stage: G_generation, network: deepseek_https_llm_lane_only, single_shot: true}
+  - {stage: R_user_blind_review, network: none, single_shot: true}
+  - {stage: E_offline_evaluation_and_g1_v2_judgement, network: none, single_shot: true, requires: recorded_blind_review_ruling}
+  - {stage: A_independent_audit, network: none, single_shot: true}
+one_exact_scope_and_one_verbatim_approval_cover_G_R_E_A: true
+
+unchanged: [batch_contract, candidate_contract, family_n_all_completed_responses, budget, dedup_layers_1_3_4_5, effect_stage_gates_and_read_span, verdicts, execution_three_gates]
+
+result_blind:
+  tp_f_formulas_existing: 0
+  llm_calls: 0
+  change_after_generation: forbidden
