@@ -14,6 +14,7 @@ from collections import Counter
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, time, timezone
 from pathlib import Path
+from time import monotonic
 from typing import Callable, Iterable, Literal
 from urllib.error import HTTPError
 from urllib.request import ProxyHandler, Request, build_opener
@@ -181,13 +182,16 @@ def check_tag_drift(docker: Query, tag: str, scheduler: dict[str, str] | None) -
 def check_web(probe: Callable[[str], int], base: str, paths: Iterable[str]) -> list[Finding]:
     findings: list[Finding] = []
     for path in paths:
+        started = monotonic()  # 耗时区分代理上游超时（约 5 s）与立即失败
         try:
             code = probe(base.rstrip("/") + path)
         except (OSError, ValueError) as error:  # URLError 与超时都是 OSError
-            findings.append(Finding("WEB_UNREACHABLE", "FAIL", {"path": path, "error_type": type(error).__name__}))
+            elapsed_ms = int((monotonic() - started) * 1000)
+            findings.append(Finding("WEB_UNREACHABLE", "FAIL", {"path": path, "error_type": type(error).__name__, "elapsed_ms": elapsed_ms}))
             continue
         ok = 200 <= code < 300
-        findings.append(Finding("WEB_OK" if ok else "WEB_UNHEALTHY", "INFO" if ok else "FAIL", {"path": path, "http_status": code}))
+        detail = {"path": path, "http_status": code, "elapsed_ms": int((monotonic() - started) * 1000)}
+        findings.append(Finding("WEB_OK" if ok else "WEB_UNHEALTHY", "INFO" if ok else "FAIL", detail))
     return findings
 
 

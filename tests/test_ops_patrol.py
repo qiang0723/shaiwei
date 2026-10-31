@@ -221,10 +221,12 @@ def test_container_mode_never_calls_docker_or_git_and_lists_skipped_checks(tmp_p
 def test_web_probe_failures_are_fail(tmp_path: Path):
     report = _run(_ledgers(tmp_path), web=_web(down=("/api/v1/system/runs",)))
     hit = [f for f in report["attention"] if f["code"] == "WEB_UNREACHABLE"]
-    assert hit and hit[0]["detail"] == {"path": "/api/v1/system/runs", "error_type": "OSError"}
+    assert hit and {k: v for k, v in hit[0]["detail"].items() if k != "elapsed_ms"} == {"path": "/api/v1/system/runs", "error_type": "OSError"}
+    assert isinstance(hit[0]["detail"]["elapsed_ms"], int) and hit[0]["detail"]["elapsed_ms"] >= 0
     assert report["status"] == "FAIL"
     report = _run(_ledgers(tmp_path), web=_web(503))
     assert {f["code"] for f in report["attention"]} == {"WEB_UNHEALTHY"}
+    assert all(f["detail"]["http_status"] == 503 and "elapsed_ms" in f["detail"] for f in report["attention"])
 
 
 def test_patrol_container_is_inspected_only_once_configured(tmp_path: Path):

@@ -171,8 +171,9 @@ def tick(
             state.digest_trade_date = str(report["expected_trade_date"])
             if delivery in _DELIVERED:
                 state.gaps, state.suppressed = [], 0
-    if outgoing:
-        events.append({"kind": "MESSAGE", "event": outgoing.event, "delivery_status": delivery, "signature": signature(report)})
+    if outgoing:  # 签名只含稳定键；完整明细（HTTP 状态码、耗时等）随事件落盘，供事后定因
+        events.append({"kind": "MESSAGE", "event": outgoing.event, "delivery_status": delivery, "signature": signature(report),
+                       "attention": report["attention"]})
     service = {
         "grace_active": grace,
         "healthy_until": (now_utc + timedelta(minutes=config.service.latest_stale_minutes)).isoformat(),

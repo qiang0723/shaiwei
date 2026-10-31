@@ -166,6 +166,19 @@ def test_events_log_and_healthcheck_follow_latest(tmp_path: Path):
     assert not healthcheck(tmp_path / "missing.json", T0)
 
 
+def test_alert_event_keeps_full_attention_detail_while_signature_stays_stable(tmp_path: Path):
+    _tick(tmp_path, _report())
+    first = _finding("WEB_UNHEALTHY", path="/api/v1/system/runs", http_status=503, elapsed_ms=5004)
+    _tick(tmp_path, _report(first), at=T0 + timedelta(minutes=10))
+    again = _finding("WEB_UNHEALTHY", path="/api/v1/system/runs", http_status=503, elapsed_ms=12)
+    sender, _ = _tick(tmp_path, _report(again), at=T0 + timedelta(minutes=20))
+    assert sender.sent == []  # 耗时不进签名，同一问题不重复告警
+    rows = [json.loads(line) for line in (tmp_path / "events_20261013.jsonl").read_text(encoding="utf-8").splitlines()]
+    alert = [row for row in rows if row["event"] == "ops_patrol_alert"]
+    assert len(alert) == 1 and alert[0]["signature"] == ["WEB_UNHEALTHY|path=/api/v1/system/runs"]
+    assert alert[0]["attention"] == [first]
+
+
 def test_serve_runs_when_due_and_survives_a_failing_tick():
     stop = threading.Event()
     times = iter(T0 + timedelta(minutes=m) for m in (0, 1, 9, 10, 11, 20))
