@@ -1,5 +1,27 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-11-02 · 定因：Web 运维接口不收 scheduler 心跳 `pass`（409）；另发现 TP-F-1 镜像已被 061b25d 作废
+
+R2-1R1 进度 as_of 20261102 `NOT_DUE`：当前区段 10-22—11-02，8 日/1 次调仓（首次调仓已计入），下一开市日 11-03。11-02 日链全 PASS，五容器 healthy、0 重启。
+
+**定因**（升级后的巡检首次留下明细：11-02 16:21 `WEB_UNHEALTHY` `/api/v1/system/runs` `http_status=409`、1,913 ms）：`pipeline/scheduler.py` 在整轮 PASS 后
+`write_health(result.status.lower())` 写入 `pass`，WAITING_SOURCE 时写 `waiting_source`；`web/operations.py` 的 `HEALTH_STATUSES` 两者都不收，`_health_profile`
+抛 `EVIDENCE_MISMATCH`（`WebQueryError` 默认 409）。共用 `operations_snapshot` 的 `/system/runs`、`/data-quality`、`/notifications/*` 因此从 PASS 轮结束一直 409，
+到下一轮写 `running` 为止：常态 15 分钟，宿主睡眠时更长（10-29 为 2 小时）。纯展示缺陷，scheduler、账本与 R2-1R1 计数不受影响。
+**历史对账**（按事件 `signature`）：`WEB_UNHEALTHY` 共 7 条消息，6 条落在 PASS 后窗口内（10-27、10-28、10-29×2、10-30、11-02），唯一例外 10-31 09:49 未归因（无明细、
+恰逢 NOOP 轮）。6 次 PASS 轮中 5 次有直接证据，10-26 当时被其他告警覆盖、无法判定。`WEB_UNREACHABLE` 3 条（10-24、10-25、11-01）是另一类：11-01 12:14 为 5,013 ms
+`TimeoutError`，宿主紧接着睡到 14:33，符合睡眠/I/O 推测但未证实。`HEALTH_STALE` 5 条为宿主睡眠。
+**显式作废**（2026-11-02）：10-31 条目“推测为唤醒后首个请求经代理超时或连接失败（503）”对 `WEB_UNHEALTHY` 作废，该推测最多只适用于 `WEB_UNREACHABLE`。10-31 条目记录的 6 次次数不变。
+
+**修复（未提交、未推送）**：`/Users/john/Desktop/shaiwei/shaiwei_fix_health`（分支 `fix/web-health-statuses`，基于 64310a4）只改读取侧：`HEALTH_STATUSES` 加 `pass`、`waiting_source`；
+测试按 scheduler 实际写出的 11 个状态参数化（修前 `pass`/`waiting_source` 2 条失败，修后全过），并加未知状态仍 fail-closed。**不改 scheduler**：其 `code_snapshot` 来自自身发布清单，
+不发布 scheduler 就不重置 R2-1R1 区段。全量测试：该工作树缺 `logs/` 与数据，修复版与同 HEAD 基线都是 95 失败 + 27 错误，清单逐条相同，修复版多通过 12 条（即新增用例）；
+合入主工作区后仍须跑一次 `make test` 才算全绿。上线走 Web 发布（prepare-successor → build → promote，含回滚演练，上次 10-22 用时约 3 分钟，scheduler 不动），须用户逐字批准；代码推送须用户放行。
+
+**TP-F-1 计划更正**：`tp_f_1/release.py` 的 `prepare()` 要求镜像快照 = 当前工作树快照、fixture 同快照，否则 fail-closed。10-29 的镜像 `shaiwei:tp-f-1-df3cf863c40e` 与其 fixture 已被
+061b25d（10-31 巡检改动）作废：当前快照 `3716e01d45d2`。此前“以该镜像走 scope 准备”的计划作废（2026-11-02）：须在最终代码推送后按 HEAD 重建镜像并重跑 fixture，才能 scope 准备。
+应先合入上述修复再重建，只建一次。协议、提示词、执行门均未变。
+
 ## 2026-10-31 · 用户放权：每日自动运维定时任务 + R2-1R1 锁存后报告预先放行
 
 用户：“你要学会自我执行、自己操作、自我进化，长时间的执行，因为我不是每天都有时间跟你对话”。随后两项裁决：
