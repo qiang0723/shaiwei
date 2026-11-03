@@ -10,6 +10,13 @@
 应为 daily FAIL 行（row_count 0、无快照哈希）触发 operations 证据校验 fail-closed，属展示层；未复现、未定因到具体校验。
 **待验通过**：PASS 轮结束后 17:48 巡检在心跳 `pass` 下 `/api/v1/system/runs` 200（2,182 ms），17:49 手测 200；11-02 定因的 PASS 后 409 告警未再出现，记为已解决。
 R2-1R1 as_of 20261103 `NOT_DUE`：区段 10-22—11-03 9 日/1 次调仓，无新缺口，下一开市日 11-04。五容器 healthy、0 重启。本条随账本存证提交。
+**补充定因（20:40 主会话，更正上句“应为 FAIL 行触发、未定因”）**：17:28 的 409 来自 `operations._ingest_profile` 的
+“日运行批次数与采集账本时间切片不一致”。FAIL 行 `75b1dad64b43` 的 `batch_count=0`，但其运行窗口 17:17:00.25–17:17:07.66 内采集账本已有 4 批
+（daily、adj_factor、daily_basic、suspend_d），4≠0，于是 EVIDENCE_MISMATCH 409，直到 17:32 PASS 行（batch_count=1，窗口内恰 1 批 index_daily）成为终态。
+临时目录复现：FAIL 行若无中途已落盘批次，快照 200 并显示 FAIL，不会 409，所以只有“部分落盘后失败”才触发。
+影响：仅展示层，偏偏在日链失败、最需要看运维页时不可用；账本与数据无误，R2-1R1 不受影响。修法有两种：读取侧对 FAIL 终态不强求切片相等、改为暴露差异；
+或写入侧让 FAIL 行如实记已落盘批次数（改 scheduler，须发布，会重置 R2-1R1 区段）。不急，待用户定；在此之前不改代码。
+FileNotFoundError 本身仍未定因：scheduler 不落异常栈。让它落栈同样要发布 scheduler，宜在 R2-1R1 锁存之后再做。
 
 ## 2026-11-03 · Web 心跳修复已发布（用户逐字批准，第 4 代 Web 发布）
 
