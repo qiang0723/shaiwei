@@ -914,6 +914,41 @@ def test_operations_fail_closed_on_ingest_or_sentinel_tampering(tmp_path: Path):
     assert sentinel_error.value.code == "EVIDENCE_MISMATCH"
 
 
+@pytest.mark.parametrize(
+    "status",
+    [
+        "starting",
+        "running",
+        "waiting_source",
+        "shadow",
+        "paper",
+        "pass",
+        "noop",
+        "waiting",
+        "degraded",
+        "stopped",
+        "idle",
+    ],
+)
+def test_operations_accept_every_heartbeat_the_scheduler_writes(tmp_path: Path, status: str):
+    _fixture(tmp_path)
+    path = tmp_path / "logs/scheduler/health.json"
+    health = json.loads(path.read_text(encoding="utf-8"))
+    path.write_text(json.dumps({**health, "status": status}), encoding="utf-8")
+    bundle = build_operations_snapshot(project_root=tmp_path)
+    assert bundle.system_run["scheduler_heartbeat"]["recorded_status"] == status
+
+
+def test_operations_reject_unknown_heartbeat_status(tmp_path: Path):
+    _fixture(tmp_path)
+    path = tmp_path / "logs/scheduler/health.json"
+    health = json.loads(path.read_text(encoding="utf-8"))
+    path.write_text(json.dumps({**health, "status": "healthy-ish"}), encoding="utf-8")
+    with pytest.raises(WebQueryError, match="心跳状态无效") as error:
+        build_operations_snapshot(project_root=tmp_path)
+    assert error.value.code == "EVIDENCE_MISMATCH"
+
+
 def test_notification_contract_preserves_attempts_and_exposes_no_body(tmp_path: Path):
     _fixture(tmp_path)
     (tmp_path / "logs/notifications/feishu_20260722.jsonl").write_text(

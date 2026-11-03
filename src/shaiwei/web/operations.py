@@ -46,8 +46,10 @@ RELEASE_SCHEMA = "shaiwei-scheduler-release-audit-v1"
 HEALTH_STATUSES = {
     "starting",
     "running",
+    "waiting_source",
     "shadow",
     "paper",
+    "pass",
     "noop",
     "waiting",
     "degraded",
