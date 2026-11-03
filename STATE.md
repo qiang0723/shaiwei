@@ -1,5 +1,18 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-11-03 · Web 心跳修复已发布（用户逐字批准，第 4 代 Web 发布）
+
+用户逐字批准：“批准 Web 心跳修复发布：以当时 origin/main 的 HEAD（Web 源码同 d589931）执行一次 make docker-web-release-prepare-successor、make docker-web-build、
+make docker-web-release-promote，替换三个 Web 容器（含回滚演练），仅在 16:00–18:00 之外执行；不改 scheduler，不授权其他生产动作。”
+11:44 核验：HEAD = origin/main = `a80ced1`，已跟踪文件无改动，Web 源码与 `d589931` 无差异。执行各一次：
+①11:45 prepare-successor PASS（归档已部署候选指针 `7d6e7fc7…`）；②11:45–11:46 build PASS，新候选 `f302909f…`
+（web-runtime `fa6b17d0…`、research-control `d1c39ded…`，发布身份 `b33e4243…`，标签 `*-release-4b6254c5fd14c229`）；
+③11:46–11:47 promote PASS（部署→回滚演练→再部署，`rollback_drill_passed=true`）。
+验收：`make docker-web-status` PASS（`scheduler_identity_unchanged=true`）；Web 新容器 ui `18b33062`、query `99d377c5`、research-control `d9413066`，均 healthy、0 重启；
+scheduler `98d1f84cb12c` 与巡检 `eafde8c9` 未动，R2-1R1 区段不受影响。`/healthz`、`/api/v1/system/runs`、`/api/v1/data-quality` 返回 200（约 1.1 s）。
+容器内 `HEALTH_STATUSES` 已含 `pass`、`waiting_source`。发布窗口落在两次巡检之间，没有告警。
+**待验**：今天日链 PASS 轮结束后的 15 分钟内不应再出现 `WEB_UNHEALTHY` 409；若仍出现，记为未解决并重新定因。
+
 ## 2026-11-03 · Web 心跳修复已推送（d589931），Web 发布待逐字批准
 
 用户“继续执行吧”（对 11-02 合入、推送、发布请求的答复）：按“代码推送须问用户”视为放行推送；Web 发布属生产发布、须逐字批准，此句不构成，未执行。
