@@ -1,5 +1,13 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-11-03 · Web 心跳修复已推送（d589931），Web 发布待逐字批准
+
+用户“继续执行吧”（对 11-02 合入、推送、发布请求的答复）：按“代码推送须问用户”视为放行推送；Web 发布属生产发布、须逐字批准，此句不构成，未执行。
+修复分支变基到 4edab10 后快进 main 为 `d589931`（只改 `web/operations.py` 与 `tests/test_web_query.py`）；主工作区 `make test` 2,625 通过、1 跳过、0 失败
+（较 10-31 的 2,613 多 12 条即新增用例），架构 13、Ruff、diff-check、脱敏通过，已推送。生产未动：五容器 ID 不变，`/healthz` 与 `/api/v1/system/runs` 返回 200。
+注意：Web 源码变更后，`make docker-web-status` 会以“source tree differs from embedded manifest”失败，直到新候选部署为止。这是预期的身份门行为，运行中的 Web 不受影响；
+在此之前若 Web 容器被重建，`make docker-web-up` 同样会拒绝。代码快照随之再变（TP-F-1 镜像须在最终 HEAD 上重建，见 11-02 条）。
+
 ## 2026-11-02 · 定因：Web 运维接口不收 scheduler 心跳 `pass`（409）；另发现 TP-F-1 镜像已被 061b25d 作废
 
 R2-1R1 进度 as_of 20261102 `NOT_DUE`：当前区段 10-22—11-02，8 日/1 次调仓（首次调仓已计入），下一开市日 11-03。11-02 日链全 PASS，五容器 healthy、0 重启。
