@@ -1,5 +1,16 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-11-03 · 值班：日链首轮 FileNotFoundError 失败、15 分钟后自愈 PASS；Web 心跳修复待验通过；R2-1R1 9 日/1 次调仓
+
+日链 20261103 两轮：首轮 17:16（cycle dc5d6e58）在 DAILY_COLLECTION 17:17:07 FAIL `FileNotFoundError`（daily_runs 75b1dad64b43 FAIL 行，append-only 留存）；daily/adj_factor/daily_basic/suspend_d
+四批已落盘入账，失败点在 index_daily 写入：其分区目录 17:17:07 建成但无 parquet（`RawBatchWriter.write` 的 to_parquet→fsync→link→sha256 某步 ENOENT，临时文件已按 finally 清理），
+异常栈未落盘（scheduler 只记 error_type，stdout 无 traceback）。17:32 第二轮（cycle e333a3b4）只补 index_daily 即 PASS，影子、model_baseline/model_top20 paper 全 PASS（17:42 完）。
+宿主 15:56–17:07 电池睡眠、17:07 用户活动唤醒，首轮距唤醒 9 分钟；账本史上首次 FileNotFoundError。推测为唤醒后 Docker 绑定挂载的瞬时文件系统错误，未证实；若再现，须让 scheduler 把异常栈落盘再定因。
+巡检 17:28 告警 `HEALTH_DEGRADED`（degraded/FileNotFoundError，657 s）+ `WEB_UNHEALTHY` 409（885 ms），17:38 恢复。此 409 不是心跳状态问题（`degraded` 已在 `HEALTH_STATUSES`），
+应为 daily FAIL 行（row_count 0、无快照哈希）触发 operations 证据校验 fail-closed，属展示层；未复现、未定因到具体校验。
+**待验通过**：PASS 轮结束后 17:48 巡检在心跳 `pass` 下 `/api/v1/system/runs` 200（2,182 ms），17:49 手测 200；11-02 定因的 PASS 后 409 告警未再出现，记为已解决。
+R2-1R1 as_of 20261103 `NOT_DUE`：区段 10-22—11-03 9 日/1 次调仓，无新缺口，下一开市日 11-04。五容器 healthy、0 重启。本条随账本存证提交。
+
 ## 2026-11-03 · Web 心跳修复已发布（用户逐字批准，第 4 代 Web 发布）
 
 用户逐字批准：“批准 Web 心跳修复发布：以当时 origin/main 的 HEAD（Web 源码同 d589931）执行一次 make docker-web-release-prepare-successor、make docker-web-build、
