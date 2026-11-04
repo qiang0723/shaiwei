@@ -1,5 +1,14 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-11-04 · 值班：日链全 PASS；R2-1R1 10 日/1 次调仓；07:47 又现一次 `WEB_UNHEALTHY` 409（非日链后）
+
+日链 20261104 一轮 PASS（daily 16:24–16:25、影子 16:25–16:34、model_baseline/model_top20 paper 16:35 PASS）。五容器 healthy、0 重启。
+R2-1R1 as_of 20261104 `NOT_DUE`：区段 10-22—11-04 10 日/1 次调仓，无新区段，下一开市日 11-05。
+巡检告警：①07:47（UTC 11-03 23:47）`WEB_UNHEALTHY` `/api/v1/system/runs` **409**、2,340 ms，07:58 自愈；不是 5 s 超时，也不在日链 PASS 后的 15 分钟内，
+11-03 判定“PASS 后 409 已解决”的结论不受影响，但 409 仍有未定因的来源（07:47 时最新日链行是 11-03 的 PASS 终态；待主会话查 operations 校验）。
+②10:08 `HEALTH_STALE`（心跳 noop、3,853 s，宿主 09:08–09:47 睡眠后），10:18 自愈；18:02 巡检 `HEALTH_STALE`（5,238 s，宿主 16:42–18:01 睡眠）只出现一轮、未发告警，18:12 恢复。
+`DAILY_RECENT_FAIL` WARN 为 11-03 的 FAIL 行留在 5 日窗口内，属预期。本条随账本存证提交。
+
 ## 2026-11-03 · 外部工具登记：Kronos（K 线基础模型）——不装、不评估、条件触发
 
 用户“看下这个项目 https://github.com/shiyu-coder/Kronos”后同意本人初判并要求“登记进 STATE”。只读查阅仓库、`finetune/config.py` 与论文（arXiv 2508.02739），
