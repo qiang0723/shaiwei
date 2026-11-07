@@ -1,5 +1,20 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-11-07 · 两项 409 修复已在本地分支备好（未推送），待锁存时一并推送、发布
+
+用户“先把两项修复准备好吧”。worktree `../wt-409-fixes`、分支 `fix/409-fail-slice-and-patrol-retry`（基于 87374d2），两个独立提交，**均未推送**：
+①`5788326` web：终态 FAIL 的日运行允许“少记”其采集时间切片（出错前已落盘入账的批次），快照不再 409，`batch_chain.incremental_slice_status`
+暴露 `FAILED_RUN_UNRECORDED_BATCHES`；PASS 不一致或 FAIL 多记仍 `EVIDENCE_MISMATCH`。改 `web/operations.py`、`tests/test_web_query.py`、
+`docs/WEB_METRIC_DICTIONARY.md`。新测试按 11-03 形态构造，在旧代码上复现 409、新代码通过。注意：数据质量页前端对 FAIL 日本就不渲染（要求数据快照哈希），
+此修复让 `/api/v1/system/runs` 等接口在失败日可用并显示 FAIL 阶段，未改前端。
+②`da790c2` ops-patrol：Web 探针首次非 2xx 或连不上时隔 `web_probe.retry_delay_seconds`（5 s，新配置项）复核一次，仍失败才 FAIL，首次结果留在
+`detail.first_attempt`；按 ADR 0020 §9 追加 §10 带日期修订。`ops_patrol.py` 383 行（ADR 上限 400）。
+验证：两遍全量 pytest 对比（worktree 缺 logs/data，基线与修复各 122 条相同的环境性失败/错误，失败集合逐条一致），修复版多 3 条通过；Ruff、diff-check 通过。
+生产、主线、R2-1R1、TP-F-1 镜像均未受影响（main 未动）。**锁存时的顺序**：合入 main → 主工作区 `make test` → 推送（问用户）→
+Web 发布（prepare-successor/build/promote，逐字批准，16:00–18:00 外）→ 巡检 `ops-patrol-build` → `ops-patrol-dry-run IMAGE=…` →
+`ops-patrol-up IMAGE=…`（逐字批准；回滚镜像 `shaiwei:ops-patrol-3716e01d45d2`）→ 在最终 HEAD 上重建 TP-F-1 镜像（问用户）。
+宿主侧 `make ops-patrol` 合入后即用新代码。
+
 ## 2026-11-07 · 定因：11-04 07:47 的 `WEB_UNHEALTHY` 409 是快照读取撞上 scheduler 唤醒后首轮写心跳（CONFLICT，可重试）
 
 周六体检：五容器 healthy、0 重启，`/healthz`、`/api/v1/system/runs`、`/api/v1/data-quality` 200；R2-1R1 as_of 20261106 `NOT_DUE`（10-22—11-06 12 日/1 次调仓），下一开市日 11-09。
