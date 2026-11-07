@@ -21,6 +21,7 @@ web_probe:                            # 两模式都用 HTTP 探针；/healthz �
   container_base: "http://host.docker.internal:8080"
   paths: ["/healthz", "/api/v1/system/runs"]
   timeout_seconds: 5
+  retry_delay_seconds: 5               # 非 2xx 或连不上时隔几秒复核一次再判；Web 快照读取撞上 scheduler 改写心跳会给可重试的 409（2026-11-04 07:47）
 service:                              # 巡检容器循环与告警状态机（ADR 0020 §4.2–4.3）
   interval_minutes: 10                # 巡检间隔
   wake_check_seconds: 60              # 每 60 s 比对墙钟；Mac 唤醒后 ≤1 分钟补巡

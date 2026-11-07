@@ -126,3 +126,12 @@ Makefile：`ops-patrol-build / ops-patrol-dry-run / ops-patrol-up / ops-patrol-d
 ## 9. 复审触发
 
 迁移到专用主机时重审（ADR_005）；观察期结束复审桌面任务去留；误报 ≥3 次/周须修订本 ADR 的阈值，不得在代码里静默调参。
+
+## 10. 修订：Web 探针失败先复核一次（2026-11-07 草拟，推送与巡检容器替换待用户批准）
+
+依据：2026-11-04 07:47 的 `WEB_UNHEALTHY` 409 是巡检探测恰逢 scheduler 唤醒后首轮改写心跳，Web 快照两遍读取都检测到证据变化，
+返回可重试的 `CONFLICT`（定因见 STATE 2026-11-07）。这是 Web 按设计 fail-closed 的瞬时结果，不是故障。
+修订：首次非 2xx 或连不上时，隔 `web_probe.retry_delay_seconds`（5 s）对同一路径复核一次，复核仍失败才记 FAIL，
+明细保留 `first_attempt`；复核通过记 `WEB_OK`（INFO），首次结果只留在 latest.json，不发消息。
+§4.1“任一探针失败为 FAIL”自本修订起按“复核后仍失败”解释。最坏耗时每路径约 5+5+5 s，远小于 10 分钟巡检间隔。
+持续故障（Web 停止、持续 409）照常告警，只是晚约 5 s。

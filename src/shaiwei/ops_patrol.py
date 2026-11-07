@@ -14,7 +14,7 @@ from collections import Counter
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, time, timezone
 from pathlib import Path
-from time import monotonic
+from time import monotonic, sleep
 from typing import Callable, Iterable, Literal
 from urllib.error import HTTPError
 from urllib.request import ProxyHandler, Request, build_opener
@@ -179,19 +179,36 @@ def check_tag_drift(docker: Query, tag: str, scheduler: dict[str, str] | None) -
     return [Finding("SCHEDULER_TAG_ALIGNED", "INFO", detail)]
 
 
-def check_web(probe: Callable[[str], int], base: str, paths: Iterable[str]) -> list[Finding]:
+def _probe_web(probe: Callable[[str], int], base: str, path: str) -> Finding:
+    started = monotonic()  # 耗时区分代理上游超时（约 5 s）与立即失败
+    try:
+        code = probe(base.rstrip("/") + path)
+    except (OSError, ValueError) as error:  # URLError 与超时都是 OSError
+        elapsed_ms = int((monotonic() - started) * 1000)
+        return Finding("WEB_UNREACHABLE", "FAIL", {"path": path, "error_type": type(error).__name__, "elapsed_ms": elapsed_ms})
+    ok = 200 <= code < 300
+    detail = {"path": path, "http_status": code, "elapsed_ms": int((monotonic() - started) * 1000)}
+    return Finding("WEB_OK" if ok else "WEB_UNHEALTHY", "INFO" if ok else "FAIL", detail)
+
+
+def check_web(
+    probe: Callable[[str], int],
+    base: str,
+    paths: Iterable[str],
+    *,
+    retry_delay_seconds: float,
+    sleeper: Callable[[float], None] = sleep,
+) -> list[Finding]:
     findings: list[Finding] = []
     for path in paths:
-        started = monotonic()  # 耗时区分代理上游超时（约 5 s）与立即失败
-        try:
-            code = probe(base.rstrip("/") + path)
-        except (OSError, ValueError) as error:  # URLError 与超时都是 OSError
-            elapsed_ms = int((monotonic() - started) * 1000)
-            findings.append(Finding("WEB_UNREACHABLE", "FAIL", {"path": path, "error_type": type(error).__name__, "elapsed_ms": elapsed_ms}))
-            continue
-        ok = 200 <= code < 300
-        detail = {"path": path, "http_status": code, "elapsed_ms": int((monotonic() - started) * 1000)}
-        findings.append(Finding("WEB_OK" if ok else "WEB_UNHEALTHY", "INFO" if ok else "FAIL", detail))
+        finding = _probe_web(probe, base, path)
+        if finding.severity != "INFO":
+            # 单次失败可能只是 Web 快照撞上 scheduler 改写心跳的可重试 409（2026-11-04 07:47）：隔几秒复核一次再判，首次结果留在明细里
+            sleeper(retry_delay_seconds)
+            first = {key: value for key, value in finding.detail.items() if key != "path"}
+            retried = _probe_web(probe, base, path)
+            finding = Finding(retried.code, retried.severity, {**retried.detail, "first_attempt": {"code": finding.code, **first}})
+        findings.append(finding)
     return findings
 
 
@@ -294,6 +311,7 @@ def run_patrol(
     stale_seconds: int,
     web_probe: Callable[[str], int],
     mode: Mode = "host",
+    sleeper: Callable[[float], None] = sleep,
 ) -> dict[str, object]:
     tz = ZoneInfo(config.timezone)
     now_local = now_utc.astimezone(tz)
@@ -305,7 +323,7 @@ def run_patrol(
         findings += container_findings
         findings += check_tag_drift(docker, config.scheduler_current_tag, seen.get(config.containers.scheduler))
     base = config.web_probe.host_base if mode == "host" else config.web_probe.container_base
-    findings += check_web(web_probe, base, config.web_probe.paths)
+    findings += check_web(web_probe, base, config.web_probe.paths, retry_delay_seconds=config.web_probe.retry_delay_seconds, sleeper=sleeper)
     expected: str | None = None
     try:
         days = open_days(calendar_loader())

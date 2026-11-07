@@ -30,6 +30,7 @@ class WebProbe(FrozenModel):
     container_base: str
     paths: tuple[str, ...] = Field(min_length=1)
     timeout_seconds: float = Field(gt=0, le=30)
+    retry_delay_seconds: float = Field(ge=0, le=30)
 
 
 class ServiceConfig(FrozenModel):

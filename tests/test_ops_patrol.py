@@ -98,6 +98,7 @@ def _run(
     health_age=60,
     web=None,
     mode="host",
+    sleeps=None,
 ):
     now_utc = datetime.fromisoformat(now_local + ":00+08:00").astimezone(timezone.utc)
     # 心跳时间跟随测试时钟；巡检会把“来自未来”的心跳判为 STALE，所以不能用真实 now 写夹具。
@@ -114,6 +115,7 @@ def _run(
         stale_seconds=3600,
         web_probe=web or _web(),
         mode=mode,
+        sleeper=(sleeps if sleeps is not None else []).append,
     )
 
 
@@ -221,12 +223,46 @@ def test_container_mode_never_calls_docker_or_git_and_lists_skipped_checks(tmp_p
 def test_web_probe_failures_are_fail(tmp_path: Path):
     report = _run(_ledgers(tmp_path), web=_web(down=("/api/v1/system/runs",)))
     hit = [f for f in report["attention"] if f["code"] == "WEB_UNREACHABLE"]
-    assert hit and {k: v for k, v in hit[0]["detail"].items() if k != "elapsed_ms"} == {"path": "/api/v1/system/runs", "error_type": "OSError"}
+    assert hit and {k: v for k, v in hit[0]["detail"].items() if k not in {"elapsed_ms", "first_attempt"}} == {"path": "/api/v1/system/runs", "error_type": "OSError"}
+    assert hit[0]["detail"]["first_attempt"]["code"] == "WEB_UNREACHABLE"
     assert isinstance(hit[0]["detail"]["elapsed_ms"], int) and hit[0]["detail"]["elapsed_ms"] >= 0
     assert report["status"] == "FAIL"
     report = _run(_ledgers(tmp_path), web=_web(503))
     assert {f["code"] for f in report["attention"]} == {"WEB_UNHEALTHY"}
     assert all(f["detail"]["http_status"] == 503 and "elapsed_ms" in f["detail"] for f in report["attention"])
+
+
+def test_web_probe_rechecks_once_before_judging(tmp_path: Path):
+    def flaky(first):
+        calls = []
+
+        def probe(url):
+            calls.append(url)
+            if url.endswith("/api/v1/system/runs") and calls.count(url) == 1:
+                if isinstance(first, Exception):
+                    raise first
+                return first
+            return 200
+
+        return probe
+
+    sleeps: list[float] = []
+    report = _run(_ledgers(tmp_path), web=flaky(409), sleeps=sleeps)
+    assert sleeps == [load_config().web_probe.retry_delay_seconds] == [5]
+    assert not [f for f in report["attention"] if f["code"].startswith("WEB_")]
+    ok = next(f for f in report["findings"] if f["code"] == "WEB_OK" and f["detail"]["path"] == "/api/v1/system/runs")
+    assert ok["detail"]["http_status"] == 200
+    assert {k: v for k, v in ok["detail"]["first_attempt"].items() if k != "elapsed_ms"} == {"code": "WEB_UNHEALTHY", "http_status": 409}
+
+    report = _run(_ledgers(tmp_path), web=flaky(OSError("timed out")))
+    assert not [f for f in report["attention"] if f["code"].startswith("WEB_")]
+
+    sleeps = []
+    report = _run(_ledgers(tmp_path), web=_web(409), sleeps=sleeps)
+    assert sleeps == [5, 5]
+    hit = [f for f in report["attention"] if f["code"] == "WEB_UNHEALTHY"]
+    assert len(hit) == 2 and all(f["detail"]["first_attempt"]["http_status"] == 409 for f in hit)
+    assert report["status"] == "FAIL"
 
 
 def test_patrol_container_is_inspected_only_once_configured(tmp_path: Path):
