@@ -876,6 +876,7 @@ def test_operations_snapshot_profiles_quality_without_overclaiming_raw_rehash(tm
     assert quality["status_reasons"] == ["SENTINEL_REPORT_NOT_HASH_BOUND"]
     assert quality["batch_chain"]["registered_batch_count"] == 2
     assert quality["batch_chain"]["incremental_batch_count"] == 2
+    assert quality["batch_chain"]["incremental_slice_status"] == "MATCH"
     assert quality["batch_chain"]["raw_parquet_rehash_status"] == "NOT_EVALUATED"
     assert quality["batch_chain"]["reconstructed_data_snapshot_sha256"] == quality[
         "data_snapshot_sha256"
@@ -912,6 +913,76 @@ def test_operations_fail_closed_on_ingest_or_sentinel_tampering(tmp_path: Path):
     with pytest.raises(WebQueryError, match="时钟") as sentinel_error:
         build_operations_snapshot(project_root=tmp_path)
     assert sentinel_error.value.code == "EVIDENCE_MISMATCH"
+
+
+def _fail_after_partial_ingest(root: Path, *, recorded_batch_count: int) -> None:
+    """Mirror 2026-11-03: the attempt landed batches, then failed and recorded batch_count 0."""
+    daily_path = root / "ledger/daily_runs.csv"
+    daily = list(csv.DictReader(daily_path.open(encoding="utf-8")))
+    daily.append(
+        {
+            "run_id": "dailyfail",
+            "started_at": "2026-07-27T09:17:00+00:00",
+            "finished_at": "2026-07-27T09:17:07+00:00",
+            "target_trade_date": "20260727",
+            "status": "FAIL",
+            "batch_count": recorded_batch_count,
+            "row_count": 0,
+            "data_snapshot_sha256": "",
+            "error_type": "FileNotFoundError",
+            "operator": "docker-scheduler",
+        }
+    )
+    _write_csv(daily_path, DAILY_RUN_FIELDS, daily)
+    ingest_path = root / "ledger/ingest_batches.csv"
+    ingest = list(csv.DictReader(ingest_path.open(encoding="utf-8")))
+    for offset, (source_api, digit) in enumerate((("tushare.daily", "e"), ("tushare.adj_factor", "f"))):
+        ingest.append(
+            {
+                "batch_id": f"batch-partial-{offset}",
+                "ingest_time": f"2026-07-27T09:17:0{offset + 2}+00:00",
+                "source_api": source_api,
+                "params_json": json.dumps({"trade_date": "20260727"}, sort_keys=True),
+                "row_count": 1,
+                "parquet_path": "data/raw/redacted-partial.parquet",
+                "content_sha256": digit * 64,
+                "operator": "docker-scheduler",
+            }
+        )
+    _write_csv(ingest_path, INGEST_FIELDS, ingest)
+
+
+def test_operations_show_failed_run_that_landed_batches_before_failing(tmp_path: Path):
+    _fixture(tmp_path)
+    _fail_after_partial_ingest(tmp_path, recorded_batch_count=0)
+    bundle = build_operations_snapshot(project_root=tmp_path)
+
+    quality = bundle.data_quality
+    assert quality["status"] == "FAIL"
+    assert quality["daily_increment"]["batch_count"] == 0
+    assert quality["batch_chain"]["incremental_batch_count"] == 2
+    assert quality["batch_chain"]["incremental_slice_status"] == "FAILED_RUN_UNRECORDED_BATCHES"
+    assert bundle.system_run["status"] == "FAIL"
+    daily_stage = next(s for s in bundle.system_run["stages"] if s["stage"] == "daily_increment")
+    assert daily_stage["status"] == "FAIL"
+    assert daily_stage["first_error_type"] == "FileNotFoundError"
+
+
+def test_operations_reject_ingest_slice_overcount_or_pass_mismatch(tmp_path: Path):
+    _fixture(tmp_path)
+    _fail_after_partial_ingest(tmp_path, recorded_batch_count=3)
+    with pytest.raises(WebQueryError, match="时间切片") as overcount:
+        build_operations_snapshot(project_root=tmp_path)
+    assert overcount.value.code == "EVIDENCE_MISMATCH"
+
+    _fixture(tmp_path)
+    daily_path = tmp_path / "ledger/daily_runs.csv"
+    daily = list(csv.DictReader(daily_path.open(encoding="utf-8")))
+    daily[-1]["batch_count"] = "1"
+    _write_csv(daily_path, DAILY_RUN_FIELDS, daily)
+    with pytest.raises(WebQueryError, match="时间切片") as pass_mismatch:
+        build_operations_snapshot(project_root=tmp_path)
+    assert pass_mismatch.value.code == "EVIDENCE_MISMATCH"
 
 
 @pytest.mark.parametrize(

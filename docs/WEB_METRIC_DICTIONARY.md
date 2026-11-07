@@ -120,6 +120,7 @@
 | `task_status` | 核心任务状态 | 调度周期的核心执行结论 | 不与通知合并；失败后恢复为 WARN | `GET /api/v1/system/runs` | I |
 | `notification_status` | 通知状态 | 同一逻辑消息多次 attempt 的最终投递状态 | 失败保留；恢复不覆盖失败 | `GET /api/v1/notifications/{message_id}` | I |
 | `registered_batch_count` | 登记批次 | 截止日运行完成时进入数据快照的批次数 | 只证明登记身份链；不等于原始文件重哈希 | `GET /api/v1/data-quality` | I |
+| `incremental_slice_status` | 当日批次切片核对 | 终态日运行登记的 `batch_count` 与其运行窗口内采集账本批次数是否一致 | `MATCH`；终态 FAIL 且窗口内批次多于登记数=`FAILED_RUN_UNRECORDED_BATCHES`（出错前已落盘入账）；PASS 不一致或 FAIL 多记均拒绝（409） | `GET /api/v1/data-quality` | I |
 | `raw_parquet_rehash_status` | 原始文件重验 | 查询时是否逐字重哈希原始 Parquet | P3-2A 固定 `NOT_EVALUATED` | `GET /api/v1/data-quality` | I |
 | `sentinel_evidence_status` | 哨兵证据完整性 | 哨兵报告是否有历史时点哈希绑定 | 当前固定 WARN/`IDENTITY_MATCH_UNHASHED` | `GET /api/v1/data-quality` | I |
 | `replay_status` | 账本重放 | 独立重放全部账户日的结论 | 非 PASS 禁止可信组合结论 | `verify_paper_replay.status` | I |

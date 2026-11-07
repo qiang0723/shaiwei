@@ -417,6 +417,7 @@ def _ingest_profile(
     started_at: datetime,
     finished_at: datetime,
     expected_batch_count: int,
+    terminal_passed: bool,
 ) -> dict[str, object]:
     try:
         reader = csv.DictReader(io.StringIO(payload.decode("utf-8")))
@@ -485,7 +486,12 @@ def _ingest_profile(
     digest.update(b"]")
     if len(incremental) > MAX_INCREMENTAL_BATCHES:
         raise WebQueryError("CONFLICT", "当日新增批次超过固定响应上限")
-    if len(incremental) != expected_batch_count:
+    # FAIL 行的 batch_count 不计出错前已落盘入账的批次：失败尝试只允许少记、不允许多记，差异如实暴露
+    if len(incremental) == expected_batch_count:
+        slice_status = "MATCH"
+    elif not terminal_passed and len(incremental) > expected_batch_count:
+        slice_status = "FAILED_RUN_UNRECORDED_BATCHES"
+    else:
         raise WebQueryError("EVIDENCE_MISMATCH", "日运行批次数与采集账本时间切片不一致")
     return {
         "registered_batch_count": included_batches,
@@ -494,6 +500,7 @@ def _ingest_profile(
         "source_api_batch_counts": dict(sorted(source_counts.items())),
         "reconstructed_data_snapshot_sha256": digest.hexdigest(),
         "incremental_batch_count": len(incremental),
+        "incremental_slice_status": slice_status,
         "incremental_batches": incremental,
         "raw_parquet_rehash_status": "NOT_EVALUATED",
         "raw_parquet_rehash_reason": "P3-2A 不挂载 data/raw",
@@ -763,6 +770,7 @@ def _build_from_cut(cut: _OperationsCut, requested_as_of: str | None) -> Operati
         started_at=started_at,
         finished_at=finished_at,
         expected_batch_count=expected_batch_count,
+        terminal_passed=daily_terminal.get("status") == "PASS",
     )
     expected_data_snapshot = str(daily_terminal.get("data_snapshot_sha256", ""))
     if daily_terminal.get("status") == "PASS":
