@@ -1,5 +1,21 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-11-16 · 409 修复上线：Web 第 5 代发布 + 巡检容器换新（均经用户逐字批准）
+
+**Web 发布**，用户逐字批准：“批准 409 修复 Web 发布：以 origin/main 的 HEAD（Web 源码同 5245367）执行一次 make docker-web-release-prepare-successor、make docker-web-build、
+make docker-web-release-promote，替换三个 Web 容器（含回滚演练），仅在 16:00–18:00 之外执行；不改 scheduler，不授权其他生产动作。”
+15:51 核验：HEAD = origin/main = `0611c3f`，已跟踪文件无改动，Web 源码与 5245367 无差异。执行各一次：①15:52:08 prepare-successor PASS（归档 `f302909f…`）；
+②15:52:12–15:52:56 build PASS，候选 `1a882801…`（web-runtime `83ad1b8b…`、research-control `6918c970…`，发布身份 `af85e4bf…`，标签 `*-release-ea4475d01d5e5045`）；
+③15:53:05–15:54:16 promote PASS（`rollback_drill_passed=true`），全程在 16:00 前结束。验收：`make docker-web-status` PASS（`scheduler_identity_unchanged=true`）；
+新容器 ui `2bf1700c`、query `1936b98a`、research-control `0bfe202f`，healthy、0 重启；`/healthz`、`/api/v1/system/runs`、`/api/v1/data-quality` 200（约 1.2 s）。
+**巡检升级**，用户逐字批准：“批准巡检升级：以代码同 248b042 的 origin/main HEAD 构建巡检镜像，经 make ops-patrol-dry-run 通过后执行一次 make ops-patrol-up，
+替换当前常驻巡检容器（旧镜像 shaiwei:ops-patrol-3716e01d45d2 保留作回滚）；只增加 Web 探针失败后 5 秒复核一次，不发演练消息，不影响 scheduler、Web 与账本，不授权其他生产动作。”
+15:54 核验代码与 248b042 无差异；`make ops-patrol-build` 15:54:48–15:59:44 得 `shaiwei:ops-patrol-857714ceffbd`；dry-run 16:00:09 PASS、无计划消息；
+`make ops-patrol-up` 16:00:16–16:00:22 执行一次，新容器 `0fc8d306` 21 s healthy、0 重启，首轮 16:00:28 PASS（`/api/v1/system/runs` 200、1,742 ms）。
+回滚镜像 `shaiwei:ops-patrol-3716e01d45d2`（`make ops-patrol-up IMAGE=…` 需再次逐字批准）。发布窗口内巡检 events 无告警。
+scheduler `98d1f84c` 未动、`scheduler_releases.jsonl` 无新记录，R2-1R1 区段不受影响。TP-F-1 镜像仍须在锁存时按最终 HEAD 重建一次（问用户）。
+之后观察：409 CONFLICT 若再出现，应只在 events 明细的 `first_attempt` 里出现、不再告警；交易日长周期里 5 s 复核是否够，待积累。
+
 ## 2026-11-16 · 两项 409 修复已推送（d8efe9a），Web 发布与巡检容器替换待逐字批准
 
 用户“可以推送 409 修复”。分支再次变基到 307bd3e：`84f96fa` web（Web 源码同 5245367）、`d8efe9a` 巡检（代码同 248b042），fast-forward 合入 main。
