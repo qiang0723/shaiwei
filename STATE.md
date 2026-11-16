@@ -1,5 +1,19 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-11-16 · 只读排查：巡检 `HOST_RESUMED` 在“半睡”（频繁 DarkWake）时漏记，机制已定；不改代码
+
+结 11-07 条“这一轮没进唤醒宽限期……原因未查”。**机制**：巡检服务每 60 s 单调时钟醒一次、按墙钟到期才跑一轮（`ops_patrol_service.serve`），
+`HOST_RESUMED` 只看巡检相邻两轮的墙钟间隔是否超过 30 分钟（`_note_resume`）；scheduler 则是 `stopped.wait(900)` 单调等待（`pipeline/scheduler.py:215`），
+只在每轮里写心跳。笔记本合盖后反复 DarkWake（每次几秒到几十秒）时，巡检照样在醒的间隙跑轮、间隔常不到 30 分钟，scheduler 的 900 s 却攒不满、整段停摆，
+于是真正唤醒时既没有 `HOST_RESUMED` 也没有宽限期。**证据**：11-03—11-16 scheduler 超过 35 分钟的断档 29 段，13 段没有对应的 `HOST_RESUMED`；
+有记的那些，巡检记下的分钟数也普遍远小于 scheduler 断档（如 11-06 00:55—11:00 断档 606 分钟、巡检只记 242 分钟）；
+11-16 09:00—09:40 `pmset -g log` 显示每 1—2 分钟一次 DarkWake、09:40:08 完全唤醒，scheduler 08:52 之后 09:45 才再开一轮，巡检 events 当天为空。
+**11-04 07:47 那一轮**：未报 `HEALTH_STALE` 是因为巡检读心跳时 scheduler 已写入 `running`（cycle 比 tick 晚 0.52 s），年龄按 tick 开始时刻算得 −0.52 s、`int()` 取整为 0；
+当晚巡检逐轮时刻无法复原（`pmset` 日志只保留到 11-09，巡检不逐轮落日志），只能说与上述机制相符、未直接证实。
+**影响与处置**：唤醒时撞上 scheduler 首轮的 409 已由今天上线的 5 s 复核覆盖；半睡期间的 `HEALTH_STALE` 告警是真信号（日链确实没在跑），不应压掉。**不改代码**。
+另登记一个潜在问题：`check_health` 把负年龄也判 `HEALTH_STALE`，若读心跳比 tick 开始晚 ≥1 s 且恰逢 scheduler 写心跳会误报；它是每轮第一项检查，历史 9 次 `HEALTH_STALE` 无一为负，暂不处理。
+运维含义：宿主完全唤醒后 scheduler 最多再等约 15 分钟才开下一轮（11-16 09:40→09:45），“插电开盖 20 分钟”的说法成立。
+
 ## 2026-11-16 · 409 修复上线：Web 第 5 代发布 + 巡检容器换新（均经用户逐字批准）
 
 **Web 发布**，用户逐字批准：“批准 409 修复 Web 发布：以 origin/main 的 HEAD（Web 源码同 5245367）执行一次 make docker-web-release-prepare-successor、make docker-web-build、
