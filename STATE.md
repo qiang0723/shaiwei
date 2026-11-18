@@ -1,5 +1,30 @@
 # STATE — 筛微施工状态（git 为真身，会话记忆为草稿）
 
+## 2026-11-18 · Tushare 故障致 20261118 行情 0 行批次入账、调度器无法自愈；经用户逐字批准人工追加 5 批后日链 21:05 PASS；R2-1R1 未断档
+
+**11-17（通知告警，不影响计数）。** 日链 17:39—17:50 PASS（daily 15,671 行、shadow、两 paper 行均 PASS），但 top20 完成通知 `paper_top20_cycle_completed`
+飞书 3 次投递均失败（`NETWORK_TimeoutError`/`NETWORK_SSLEOFError`），`paper_forward_acceptance` 要求当日送达记录，故此后每 15 分钟
+`PAPER_ACCEPTANCE` `CalledProcessError`（traceback：`FORWARD notification delivery missing: paper_top20_cycle_completed`）、CYCLE FAILED、心跳 `degraded`，
+巡检 11-17 17:56、11-18 04:19 两次 `HEALTH_DEGRADED`。验收只看最新 FORWARD run，11-18 新 run 通知送达后 21:05 自愈。权威表述 11-17 `PASS_WITH_NOTIFICATION_WARN`。
+当日值班（17:47 起）只核账本行、报了 PASS，漏看心跳；值班 SKILL 已补“`health.json` degraded 时查 timeline 错误事件”一步及上述两类已知模式。
+
+**11-18 事件。** 宿主 18:56 才唤醒。Tushare 服务端故障（前端 `api.waditu.com` 间歇 502、接口返回空帧或 30 s 读超时；19:53 实测连已发布的 20261117 `daily` 也返回 0 行）：
+19:01、19:16 就绪探测各约 31 s（全空退避）`NOT_READY`；19:31 过 `source_deadline` 转正式采集，`IngestError`；19:48 正式采集拿到全空帧，
+`RETRY_EMPTY_APIS` 退避 6 次后把 20261118 的 daily/adj_factor/daily_basic/suspend_d/index_daily **5 个 0 行批次正式入账**，`DailyPipelineError: daily is empty for open date`。
+**缺陷（登记，不在锁存前改）**：`daily._execute_date` 只拉 `_request_is_committed` 为假的请求，已入账的 0 行批次此后每轮被直接读出→永久失败（20:04、20:21 两轮实证 market 批次未重拉），
+且补采按日期顺序、不跳日，11-19 起也会被卡住——调度器不能自愈，必须人工。根治方向：开市日密集行情接口的 0 行批次不视为已提交（或入账前即 fail-closed），需 scheduler 发布，排在 R2-1R1 锁存之后。
+
+**恢复（用户逐字批准）**：“批准 11-18 日增量恢复：Tushare 恢复且内存校验通过后，在调度器容器内持日增量锁，以 operator=manual-recovery-20261118 追加 20261118 的
+daily、adj_factor、daily_basic、suspend_d、index_daily 五个新批次（参数与调度器一致，旧 0 行批次保留），之后由调度器自然周期完成日链；接受本次以临时脚本代替 make 目标；
+不改代码、不重启容器、不改既有账本行，不授权其他生产动作。”执行：临时脚本经 `docker exec` 用容器内生产代码（`build_market_requests`、`TushareIngestor._query`、
+冻结 `validate_trade_date`、`RawBatchWriter`），先无锁内存试拉，通过后在 `daily_lock()` 内重拉、再校验、才写入；另对 `suspend_d`（不在冻结校验内、单发）为空时多问 3 次。
+每 5 分钟一轮：20:05 全空、20:13 仅 daily/adj_factor 有数、20:23 超时、20:30 全空、**20:50:35 校验通过并写入**：`9884a84d6720` daily 5,217、`d79a52f194af` adj_factor 5,229、
+`2eca675ddce0` daily_basic 5,217、`811992a25c81` suspend_d 7、`1f96d5366642` index_daily 1（合计 15,671），目录最新版即此 5 批，旧 0 行批次保留；`make check-ledger` 94 passed。
+调度器自然周期：20:53:45 daily PASS（`0fdabedc54fc`，batch_count 0、15,671 行）、21:04:36 shadow PASS（on_time=true，非调仓日）、21:05 两 paper 执行/核验/验收全 PASS、CYCLE PASS、心跳 `pass`；
+行的 operator 均为 `docker-scheduler`。另：当晚每轮正式采集都会先重拉 stock_basic（故障期多为 0 行批次），20:53 那一轮拉到正常批次（L 5,224、D 339，P 0 属常态）成为最新版。
+**R2-1R1** as_of 20261118 `NOT_DUE`：区段 11-12—11-18 5 日/1 次调仓，无新缺口（reset 仍 9 次），不缺日最早 12-09 锁存不变。
+daily_runs 当日 4 条 FAIL 行（19:32 `IngestError`、19:49/20:05/20:21 `DailyPipelineError`；20:38 一轮在 stock_basic 阶段 `IngestError`、未写行）与故障期 0 行批次如实保留。
+
 ## 2026-11-16 · 值班：11-16 日链 16:20 PASS；R2-1R1 区段 11-12 起 3 日/1 次调仓（11-16 调仓如期）；5 s 复核上线后巡检无告警
 
 日链：daily 16:07、shadow 16:08—16:19、两个 paper 账户 16:20 均 PASS（交易日 20261116）。**R2-1R1** as_of 20261116 `NOT_DUE`，当前区段 11-12—11-16
