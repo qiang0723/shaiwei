@@ -24,6 +24,7 @@ daily、adj_factor、daily_basic、suspend_d、index_daily 五个新批次（参
 行的 operator 均为 `docker-scheduler`。另：当晚每轮正式采集都会先重拉 stock_basic（故障期多为 0 行批次），20:53 那一轮拉到正常批次（L 5,224、D 339，P 0 属常态）成为最新版。
 **R2-1R1** as_of 20261118 `NOT_DUE`：区段 11-12—11-18 5 日/1 次调仓，无新缺口（reset 仍 9 次），不缺日最早 12-09 锁存不变。
 daily_runs 当日 4 条 FAIL 行（19:32 `IngestError`、19:49/20:05/20:21 `DailyPipelineError`；20:38 一轮在 stock_basic 阶段 `IngestError`、未写行）与故障期 0 行批次如实保留。
+巡检 21:12 由 FAIL 转 `WARN DAILY_RECENT_FAIL`（近 5 个开市日 4 条 FAIL 行），为这 4 行的预期回显，11-18 滑出窗口后（推算 11-25 起）自然消失，期间不另行处置。
 
 ## 2026-11-16 · 值班：11-16 日链 16:20 PASS；R2-1R1 区段 11-12 起 3 日/1 次调仓（11-16 调仓如期）；5 s 复核上线后巡检无告警
 
